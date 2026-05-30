@@ -22,10 +22,13 @@
   | 门面 | 生产域名 | 本地开发地址 | 入口路由 |
   |------|---------|-------------|---------|
   | 消费者门户（业主找装修） | `xyjzxh.com` | `localhost:3000` | `/`（`app/(main)/page.tsx`，`ConsumerHome`）|
-  | 协会门户（企业/从业者） | `xh.xyjzxh.com` | `xh.localhost:3000` | `/` 重写到 `/xh`（`app/(main)/xh/page.tsx`，`AssociationHome`）|
-  | 企业子站 | `<租户>.xyjzxh.com` | `<租户>.localhost:3000` | 重写到 `/biz/<租户>` |
+  | 协会门户（企业/从业者） | `xh.xyjzxh.com` | `xh.lvh.me:3000`（或 `localhost:3000/xh`） | `/` 重写到 `/xh`（`app/(main)/xh/page.tsx`，`AssociationHome`）|
+  | 企业子站 | `<租户>.xyjzxh.com` | `<租户>.lvh.me:3000` | 重写到 `/biz/<租户>` |
   - 当前门面通过 cookie `xy_face` 与响应头 `x-face` 标记。
-  - **本地看协会门户必须访问 `xh.localhost:3000`**，`localhost:3000` 只会显示消费者门户。
+  - **本地访问协会门户的正确方式**（`localhost:3000` 只显示消费者门户）：
+    - `localhost:3000/xh` — 最简单、离线即用，但 face 标记仍是 consumer（仅看内容够用）。
+    - `xh.lvh.me:3000` — 真实子域名分流（face=xh），需联网；`middleware.ts` 的 `DEV_ROOTS` 已内置 `lvh.me`。
+    - ⚠️ **不要用 `xh.localhost:3000`**：Windows 浏览器默认不解析 `*.localhost`，打不开。
 - **界面语言**：简体中文。
 - **AI 数字员工**：未配置 key 时走「演示模式」（内置示例回复）；提供方优先级 DeepSeek > Anthropic。
 - **AI 对话记忆**：当前仅单次会话内多轮连续，刷新/新会话即清空，无持久化。（如需长期记忆另行确认后实现）
