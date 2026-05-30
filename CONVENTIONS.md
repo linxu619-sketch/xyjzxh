@@ -15,6 +15,12 @@
 - **改版 Next.js**：这是一个有重大改动的 Next.js（16.2.6），写任何代码前先读 `node_modules/next/dist/docs/` 里的相关文档，留意 deprecation 提示。
 - **默认端口**：3000。
 - **`middleware` 已废弃** → 应迁移到 `proxy`（当前为技术债，待处理）。
+- **批处理脚本（`.bat`）必须存为 GBK(cp936) 编码**（无 BOM、CRLF 换行）。中文版 Windows 的 `cmd.exe` 用 GBK 逐字节解析 `.bat`，若存成 UTF-8，中文多字节会让命令解析错位、报「不是内部或外部命令」导致启动失败（`chcp 65001` 救不了）。
+  - ⚠️ **用 Write/Edit 工具改过 `.bat` 后，它会变回 UTF-8，必须重新转 GBK**：
+    ```powershell
+    $p='D:\xyjzxh\启动.bat'; $t=Get-Content -Raw -Encoding UTF8 $p; $t=($t -split "`r?`n") -join "`r`n"; [IO.File]::WriteAllText($p,$t,[Text.Encoding]::GetEncoding(936))
+    ```
+  - `.gitattributes` 已将 `*.bat` 设为 `-text`（二进制），防止 git 改动其字节。
 
 ## 网站特性
 

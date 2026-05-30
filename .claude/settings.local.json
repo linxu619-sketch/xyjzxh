@@ -42,7 +42,10 @@
       "Bash(git commit *)",
       "Bash(git grep *)",
       "Bash(xargs -0 -I{} sed -i 's/建筑装修协会/建筑装饰装修协会/g' \"{}\")",
-      "Bash(xargs -0 -I{} sed -i 's/xyzhxh\\\\.org/xyjzxh.com/g' \"{}\")"
+      "Bash(xargs -0 -I{} sed -i 's/xyzhxh\\\\.org/xyjzxh.com/g' \"{}\")",
+      "Bash(rm -f _bat_out.log _bat_err.log _live.log)",
+      "Bash(curl -s -o /dev/null -w \"port3000 now: HTTP %{http_code}\\\\n\" --max-time 3 http://localhost:3000/)",
+      "Bash(xxd)"
     ]
   }
 }
