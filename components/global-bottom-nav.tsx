@@ -37,16 +37,23 @@ export function GlobalBottomNav({ face = "consumer" }: { face?: Face }) {
   const pathname = usePathname();
   const tabs = face === "xh" ? XH_TABS : CONSUMER_TABS;
 
-  // dashboard 页本身有自己的底部，不再叠加
-  if (pathname.startsWith("/dashboard/customer") || pathname.startsWith("/dashboard/practitioner")) {
+  // AI 聊天页有自己的底部输入框、客户/从业者控制台有自己的底栏 —— 都不叠加
+  if (
+    pathname.startsWith("/ai/") ||
+    pathname.startsWith("/dashboard/customer") ||
+    pathname.startsWith("/dashboard/practitioner")
+  ) {
     return null;
   }
 
   return (
-    <nav
-      className="lg:hidden fixed bottom-0 inset-x-0 z-40 pointer-events-none"
-      aria-label="主导航"
-    >
+    <>
+      {/* 移动端占位：撑出底栏高度，避免固定底栏遮住页脚/页面底部内容 */}
+      <div aria-hidden className="lg:hidden h-[calc(3.5rem+max(env(safe-area-inset-bottom),0.5rem))]" />
+      <nav
+        className="lg:hidden fixed bottom-0 inset-x-0 z-40 pointer-events-none"
+        aria-label="主导航"
+      >
       {/* 底部白条 + 上阴影 */}
       <div className="pointer-events-auto relative bg-background/95 backdrop-blur-xl border-t border-border pb-[max(env(safe-area-inset-bottom),0.5rem)]">
         <div className="mx-auto max-w-md grid grid-cols-5 h-14 items-end">
@@ -104,6 +111,7 @@ export function GlobalBottomNav({ face = "consumer" }: { face?: Face }) {
           })}
         </div>
       </div>
-    </nav>
+      </nav>
+    </>
   );
 }
