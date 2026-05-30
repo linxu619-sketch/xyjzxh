@@ -17,23 +17,28 @@ export default async function RegisterPage({ searchParams }: { searchParams: Pro
   const target: AgreementTarget = role as AgreementTarget;
   const requiredCount = requiredAgreementsFor(target).length;
   const hasAgreed = agreed === "1";
+  // 入会语境：只在「企业会员 / 个人会员」之间选择；业主属于消费者门户，不出现在入会里
+  const isMember = role === "enterprise" || role === "practitioner";
 
   return (
     <Container className="py-12 md:py-20 max-w-3xl">
-      <div className="flex items-center gap-2 mb-6 overflow-x-auto -mx-1 px-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-        <Link href={`/register?role=customer`} className={`shrink-0 px-3.5 h-9 rounded-full text-[13px] font-medium inline-flex items-center gap-1.5 ${role === "customer" ? "bg-foreground text-background" : "bg-surface text-muted-foreground hover:bg-surface-2"}`}>
-          <UserRound className="h-3.5 w-3.5" /> 我是业主
-        </Link>
-        <Link href={`/register?role=enterprise`} className={`shrink-0 px-3.5 h-9 rounded-full text-[13px] font-medium inline-flex items-center gap-1.5 ${role === "enterprise" ? "bg-foreground text-background" : "bg-surface text-muted-foreground hover:bg-surface-2"}`}>
-          <Building2 className="h-3.5 w-3.5" /> 我是企业
-        </Link>
-        <Link href={`/register?role=practitioner`} className={`shrink-0 px-3.5 h-9 rounded-full text-[13px] font-medium inline-flex items-center gap-1.5 ${role === "practitioner" ? "bg-foreground text-background" : "bg-surface text-muted-foreground hover:bg-surface-2"}`}>
-          <HardHat className="h-3.5 w-3.5" /> 我是从业者
-        </Link>
-        <span className="hidden md:inline-flex ml-auto items-center gap-1 text-[12px] text-muted-foreground shrink-0">
-          <ShieldCheck className="h-3.5 w-3.5 text-accent-tea" /> 协会账号由秘书处开通
-        </span>
-      </div>
+      {isMember ? (
+        <div className="flex items-center gap-2 mb-6 overflow-x-auto -mx-1 px-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          <Link href={`/register?role=enterprise`} className={`shrink-0 px-3.5 h-9 rounded-full text-[13px] font-medium inline-flex items-center gap-1.5 ${role === "enterprise" ? "bg-foreground text-background" : "bg-surface text-muted-foreground hover:bg-surface-2"}`}>
+            <Building2 className="h-3.5 w-3.5" /> 企业会员
+          </Link>
+          <Link href={`/register?role=practitioner`} className={`shrink-0 px-3.5 h-9 rounded-full text-[13px] font-medium inline-flex items-center gap-1.5 ${role === "practitioner" ? "bg-foreground text-background" : "bg-surface text-muted-foreground hover:bg-surface-2"}`}>
+            <HardHat className="h-3.5 w-3.5" /> 个人会员
+          </Link>
+          <span className="hidden md:inline-flex ml-auto items-center gap-1 text-[12px] text-muted-foreground shrink-0">
+            <ShieldCheck className="h-3.5 w-3.5 text-accent-tea" /> 会员资格由秘书处审核开通
+          </span>
+        </div>
+      ) : (
+        <div className="mb-6 inline-flex items-center gap-1.5 text-[12px] text-muted-foreground">
+          <UserRound className="h-3.5 w-3.5" /> 业主账号注册（消费者）
+        </div>
+      )}
 
       {/* 3 步进度 */}
       <ol className="grid grid-cols-3 gap-2 mb-6">
@@ -57,10 +62,14 @@ export default async function RegisterPage({ searchParams }: { searchParams: Pro
 
       <h1 className="text-[28px] sm:text-[36px] md:text-[44px] font-semibold tracking-tight leading-tight">
         {role === "customer" ? "注册业主账号" :
-         role === "enterprise" ? "申请企业账号" :
-         "注册从业者账号"}
+         role === "enterprise" ? "申请企业会员" :
+         "申请个人会员"}
       </h1>
-      <p className="mt-2 text-[13px] md:text-[14px] text-muted-foreground max-w-xl">{meta.desc}</p>
+      <p className="mt-2 text-[13px] md:text-[14px] text-muted-foreground max-w-xl">
+        {role === "practitioner"
+          ? "面向独立设计师、项目经理、监理、独立工长等专业个人。提交实名与专业信息、上传资格证书，由协会秘书处审核。"
+          : meta.desc}
+      </p>
 
       {/* 协议签署 banner */}
       <Link
@@ -108,7 +117,6 @@ export default async function RegisterPage({ searchParams }: { searchParams: Pro
                   <option>建筑施工</option>
                   <option>装饰装修</option>
                   <option>设计公司</option>
-                  <option>设计师个人</option>
                 </select>
               </Field>
               <Field label="期望子域名" required>
@@ -136,17 +144,15 @@ export default async function RegisterPage({ searchParams }: { searchParams: Pro
           <>
             <Row>
               <Field label="真实姓名" required><input className="form-input" placeholder="与身份证一致" /></Field>
-              <Field label="工种" required>
+              <Field label="专业 / 工种" required>
                 <select className="form-input">
-                  <option>工长</option>
-                  <option>项目经理</option>
                   <option>设计师</option>
+                  <option>项目经理</option>
                   <option>监理</option>
-                  <option>木工</option>
-                  <option>瓦工</option>
-                  <option>水电工</option>
-                  <option>油漆工</option>
-                  <option>安装工</option>
+                  <option>独立工长</option>
+                  <option>造价 / 预算</option>
+                  <option>软装设计师</option>
+                  <option>其他专业个人</option>
                 </select>
               </Field>
             </Row>
@@ -196,7 +202,7 @@ export default async function RegisterPage({ searchParams }: { searchParams: Pro
           }`}
         >
           {hasAgreed
-            ? (role === "enterprise" ? "提交申请" : role === "practitioner" ? "提交注册" : "完成注册")
+            ? (role === "customer" ? "完成注册" : "提交入会申请")
             : `请先签署 ${requiredCount} 份必签协议`}
           {hasAgreed && <ArrowRight className="h-4 w-4" />}
         </button>

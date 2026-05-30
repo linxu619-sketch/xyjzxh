@@ -1,28 +1,293 @@
-import { Hero } from "@/components/sections/hero";
-import { Categories } from "@/components/sections/categories";
+import Link from "next/link";
+import {
+  ArrowRight, ArrowUpRight, Megaphone, Building2, UserRound,
+  FileCheck2, ShoppingBag, Wallet, Umbrella, Library, GraduationCap,
+  Globe2, CalendarDays, Star, ShieldCheck, Sparkles, ChevronRight,
+} from "lucide-react";
+import { Container } from "@/components/container";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { Numbers } from "@/components/sections/numbers";
-import { Services } from "@/components/sections/services";
-import { AiTeam } from "@/components/sections/ai-team";
 import { News } from "@/components/sections/news";
-import { Cta } from "@/components/sections/cta";
+import { AiTeam } from "@/components/sections/ai-team";
+import { SITE } from "@/lib/site";
+import { ENTERPRISES } from "@/lib/data/enterprises";
+import { cn } from "@/lib/cn";
 
 export const metadata = {
-  title: "协会门户 · 信阳市建筑装饰装修协会",
+  title: "会员之家 · 信阳市建筑装饰装修协会",
   description:
-    "协会为企业、从业者、合作伙伴提供的官方门户 · 工装报备、会员目录、建材集采、AI 助手、知识库、培训等一站式服务。",
+    "信阳市建筑装饰装修协会官方会员平台 — 面向企业会员与个人会员，提供入会、协会公告、工装报备、建材集采、金融保险、培训认证、知识库与 AI 助手等服务与交流。",
 };
 
-// 协会门户（xh.xyjzxh.com）首页 — 面向 B 端（企业 + 从业者 + 合作机构）
+// —— 协会公告 / 通知（示例数据，后续接 Supabase）——
+const ANNOUNCEMENTS = [
+  { tag: "通知", date: "2026-05-28", title: "关于开展 2026 年度会员单位资质年检的通知" },
+  { tag: "政策", date: "2026-05-20", title: "《信阳市住宅装饰装修工程质量验收规范（2026版）》发布" },
+  { tag: "公告", date: "2026-05-12", title: "协会第三届理事会换届选举结果公示" },
+  { tag: "活动", date: "2026-05-06", title: "5 月会员沙龙：AI 在工装报备中的应用（报名中）" },
+];
+
+// —— 会员办事大厅 ——
+const MEMBER_SERVICES = [
+  { icon: FileCheck2, t: "工装报备", d: "项目登记 · 省厅直连", href: "/projects", tone: "build" },
+  { icon: Building2, t: "会员目录", d: "企业 / 个人会员名录", href: "/members", tone: "brand" },
+  { icon: ShoppingBag, t: "建材集采", d: "协会集采 · 分层定价", href: "/supplies", tone: "tea" },
+  { icon: Wallet, t: "金融服务", d: "建装贷 · 保函 · 分期", href: "/finance", tone: "design" },
+  { icon: Umbrella, t: "保险保障", d: "工程险 · 工伤意外险", href: "/insurance", tone: "decor" },
+  { icon: Library, t: "知识库", d: "规范 · 标准 · 案例", href: "/knowledge", tone: "tea" },
+  { icon: GraduationCap, t: "人才 · 培训", d: "招聘 · 继续教育 · 证书", href: "/talents", tone: "yellow" },
+  { icon: Globe2, t: "企业子站", d: "二级域名独立品牌页", href: "/tenant", tone: "brand" },
+];
+
+// —— 协会活动 / 培训（示例数据）——
+const EVENTS = [
+  { date: "06-08", tag: "培训", title: "工装报备「一网通办」专题培训", place: "协会培训中心" },
+  { date: "06-15", tag: "交流", title: "绿色建造与新材料应用交流会", place: "信阳建博会展区" },
+  { date: "06-22", tag: "活动", title: "青年设计师作品评选沙龙", place: "线上 + 线下" },
+];
+
+const TONE_SOFT: Record<string, string> = {
+  brand: "bg-brand-50 text-brand",
+  build: "bg-cat-build-soft text-cat-build",
+  decor: "bg-cat-decor-soft text-cat-decor",
+  design: "bg-cat-design-soft text-cat-design",
+  tea: "bg-[#e6f7f1] text-accent-tea",
+  yellow: "bg-[#fff6d6] text-[#a37200]",
+};
+
+const BG: Record<string, string> = {
+  build: "bg-cat-build", decor: "bg-cat-decor", design: "bg-cat-design",
+};
+
+const FEATURED = ENTERPRISES.filter((e) => e.featured).slice(0, 6);
+
+// 协会门户（xh.xyjzxh.com）首页 — 面向会员（企业会员 + 个人会员）的服务与交流平台
 export default function AssociationHome() {
   return (
     <>
-      <Hero />
+      {/* HERO — 会员之家 */}
+      <section className="relative overflow-hidden">
+        <div className="absolute inset-0 bg-mesh" aria-hidden />
+        <div className="absolute -top-32 -left-20 h-72 w-72 rounded-full bg-brand/15 blur-3xl" aria-hidden />
+        <div className="absolute -top-20 right-0 h-80 w-80 rounded-full bg-cat-build/15 blur-3xl" aria-hidden />
+
+        <Container className="relative pt-12 md:pt-20 pb-12 md:pb-16">
+          <div className="max-w-3xl">
+            <div className="inline-flex items-center gap-1.5 rounded-full bg-background border border-border px-3 py-1 text-[11px] mb-6 shadow-sm">
+              <Badge tone="brand" className="!px-2 !py-0">会员之家</Badge>
+              <span className="text-muted-foreground">服务企业会员与个人会员 · 行业交流平台</span>
+            </div>
+            <h1 className="text-[34px] sm:text-[44px] md:text-[64px] font-semibold tracking-tight leading-[1.05]">
+              {SITE.shortName}<span className="text-gradient-brand">会员之家</span>
+            </h1>
+            <p className="mt-5 md:mt-6 text-[14px] md:text-[18px] leading-7 md:leading-8 text-muted-foreground max-w-2xl">
+              {SITE.name}官方会员平台 — 为<b className="text-foreground">企业会员</b>与<b className="text-foreground">个人会员</b>提供入会、公告通知、工装报备、建材集采、金融保险、培训认证、知识库与 AI 助手等一站式服务与交流。
+            </p>
+            <div className="mt-7 md:mt-9 flex flex-col sm:flex-row gap-3">
+              <Button href="/join" size="lg" variant="primary">
+                申请入会 <ArrowRight className="h-4 w-4" />
+              </Button>
+              <Button href="/login?role=association" size="lg" variant="outline">
+                会员登录工作台
+              </Button>
+            </div>
+            <div className="mt-6 flex flex-wrap items-center gap-x-4 gap-y-2 text-[12px] text-muted-foreground">
+              <span className="inline-flex items-center gap-1.5"><ShieldCheck className="h-3.5 w-3.5 text-accent-tea" /> 协会认证</span>
+              <span className="inline-flex items-center gap-1.5"><Building2 className="h-3.5 w-3.5 text-cat-build" /> 报备直连省厅</span>
+              <span className="inline-flex items-center gap-1.5"><Sparkles className="h-3.5 w-3.5 text-cat-decor" /> 10 位 AI 在线</span>
+            </div>
+          </div>
+        </Container>
+      </section>
+
+      {/* 数据墙 */}
       <Numbers />
-      <Categories />
-      <Services />
-      <AiTeam />
+
+      {/* 协会公告 & 通知 */}
+      <section className="py-12 md:py-16">
+        <Container>
+          <div className="flex items-end justify-between gap-4 mb-6 md:mb-8">
+            <div>
+              <div className="text-[12px] tracking-[0.2em] text-brand uppercase font-medium inline-flex items-center gap-1.5">
+                <Megaphone className="h-3.5 w-3.5" /> NOTICES · 协会公告
+              </div>
+              <h2 className="mt-2 text-[26px] md:text-[40px] font-semibold tracking-tight">公告与通知</h2>
+            </div>
+            <Link href="/news" className="text-[13px] text-brand shrink-0">查看全部 →</Link>
+          </div>
+          <div className="rounded-3xl border border-border bg-background divide-y divide-border overflow-hidden">
+            {ANNOUNCEMENTS.map((a) => (
+              <Link key={a.title} href="/news" className="flex items-center gap-3 md:gap-4 px-4 md:px-6 py-4 hover:bg-surface transition-colors group">
+                <Badge tone="brand" className="!px-2 !py-0.5 shrink-0">{a.tag}</Badge>
+                <span className="flex-1 min-w-0 truncate text-[14px] md:text-[15px] group-hover:text-brand transition-colors">{a.title}</span>
+                <span className="text-[12px] text-muted-foreground shrink-0 tabular-nums">{a.date}</span>
+                <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0 hidden sm:block" />
+              </Link>
+            ))}
+          </div>
+        </Container>
+      </section>
+
+      {/* 两类会员专区 */}
+      <section className="py-12 md:py-16 bg-surface">
+        <Container>
+          <div className="text-center max-w-2xl mx-auto mb-8 md:mb-12">
+            <div className="text-[12px] tracking-[0.2em] text-brand uppercase font-medium">MEMBERSHIP · 会员通道</div>
+            <h2 className="mt-2 text-[26px] md:text-[40px] font-semibold tracking-tight">两类会员，各得其所</h2>
+            <p className="mt-3 text-[14px] text-muted-foreground">企业以单位入会，专业个人以个人身份入会 — 权益与服务各有侧重。</p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-5">
+            <MemberCard
+              icon={Building2}
+              tone="build"
+              title="企业会员"
+              who="建筑施工 · 装饰装修 · 设计公司"
+              perks={["二级域名子站 · 在线接单", "工装报备直通省厅", "流量分发与协会认证", "建材集采 · 金融保险优惠", "企业经营后台 + AI 员工"]}
+              href="/join?type=enterprise"
+            />
+            <MemberCard
+              icon={UserRound}
+              tone="design"
+              title="个人会员"
+              who="独立设计师 · 项目经理 · 监理 · 独立工长"
+              perks={["协会认证个人主页 / 名片", "专业认证徽章背书", "项目对接与接单", "工伤 / 意外保险保障", "培训、继续教育与证书"]}
+              href="/join?type=individual"
+            />
+          </div>
+        </Container>
+      </section>
+
+      {/* 会员办事大厅 */}
+      <section className="py-12 md:py-16">
+        <Container>
+          <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4 mb-8 md:mb-12">
+            <div className="max-w-2xl">
+              <div className="text-[12px] tracking-[0.2em] text-cat-decor uppercase font-medium">SERVICES · 会员服务</div>
+              <h2 className="mt-2 text-[26px] md:text-[40px] font-semibold tracking-tight">会员办事大厅</h2>
+            </div>
+            <p className="text-[13px] md:text-[15px] text-muted-foreground max-w-md">入会、报备、集采、金融、培训、知识与 AI — 一处入口、一套账号、一次到位。</p>
+          </div>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5 md:gap-4">
+            {MEMBER_SERVICES.map((s) => {
+              const Icon = s.icon;
+              return (
+                <Link key={s.t} href={s.href} className="group relative overflow-hidden rounded-2xl bg-background p-4 md:p-6 ring-1 ring-border transition-all active:scale-[0.98] md:hover:-translate-y-1 md:hover:shadow-md">
+                  <div className={cn("inline-flex h-10 md:h-11 w-10 md:w-11 items-center justify-center rounded-xl", TONE_SOFT[s.tone])}>
+                    <Icon className="h-4 md:h-5 w-4 md:w-5" />
+                  </div>
+                  <div className="mt-3 md:mt-4 text-[13px] md:text-[15px] font-semibold tracking-tight">{s.t}</div>
+                  <div className="mt-1 text-[11px] md:text-[12px] text-muted-foreground leading-4 md:leading-5">{s.d}</div>
+                  <ArrowUpRight className="absolute top-3 md:top-5 right-3 md:right-5 h-3.5 md:h-4 w-3.5 md:w-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+                </Link>
+              );
+            })}
+          </div>
+        </Container>
+      </section>
+
+      {/* 会员风采 */}
+      <section className="py-12 md:py-16 bg-surface">
+        <Container>
+          <div className="flex items-end justify-between gap-4 mb-6 md:mb-10">
+            <div>
+              <div className="text-[12px] tracking-[0.2em] text-cat-build uppercase font-medium">MEMBERS · 会员风采</div>
+              <h2 className="mt-2 text-[26px] md:text-[40px] font-semibold tracking-tight">优秀会员单位</h2>
+            </div>
+            <Link href="/members" className="text-[13px] text-brand shrink-0">全部会员 →</Link>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">
+            {FEATURED.map((e) => (
+              <Link key={e.id} href={`/members/${e.slug}`} className="group rounded-3xl border border-border bg-background p-5 hover:shadow-md transition-all md:hover:-translate-y-0.5">
+                <div className="flex items-center gap-3">
+                  <span className={cn("h-12 w-12 rounded-2xl text-white inline-flex items-center justify-center font-semibold", BG[e.color] ?? "bg-brand")}>
+                    {e.hero.brand.slice(0, 1)}
+                  </span>
+                  <div className="min-w-0">
+                    <div className="text-[15px] font-semibold truncate">{e.name}</div>
+                    <div className="text-[11px] text-muted-foreground">{e.district} · {e.staff}</div>
+                  </div>
+                </div>
+                <div className="mt-3 text-[13px] text-muted-foreground line-clamp-2">{e.short}</div>
+                <div className="mt-3 pt-3 border-t border-border flex items-center justify-between text-[12px]">
+                  <span className="inline-flex items-center gap-1"><Star className="h-3.5 w-3.5 fill-[#FFB400] text-[#FFB400]" /><span className="font-semibold">{e.rating.toFixed(1)}</span><span className="text-muted-foreground">({e.reviews})</span></span>
+                  <span className="text-muted-foreground">{e.cases} 案例</span>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </Container>
+      </section>
+
+      {/* 协会活动 & 培训 */}
+      <section className="py-12 md:py-16">
+        <Container>
+          <div className="flex items-end justify-between gap-4 mb-6 md:mb-10">
+            <div>
+              <div className="text-[12px] tracking-[0.2em] text-cat-design uppercase font-medium inline-flex items-center gap-1.5">
+                <CalendarDays className="h-3.5 w-3.5" /> EVENTS · 活动培训
+              </div>
+              <h2 className="mt-2 text-[26px] md:text-[40px] font-semibold tracking-tight">近期活动与培训</h2>
+            </div>
+            <Link href="/talents" className="text-[13px] text-brand shrink-0">培训报名 →</Link>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4">
+            {EVENTS.map((ev) => (
+              <div key={ev.title} className="rounded-3xl border border-border bg-background p-5 md:p-6 hover:shadow-md transition-shadow">
+                <div className="flex items-center gap-3">
+                  <div className="h-12 w-12 rounded-2xl bg-cat-design-soft text-cat-design inline-flex items-center justify-center leading-none">
+                    <span className="text-[15px] font-semibold tabular-nums">{ev.date}</span>
+                  </div>
+                  <Badge tone="design" className="!px-2 !py-0.5">{ev.tag}</Badge>
+                </div>
+                <div className="mt-4 text-[15px] font-semibold tracking-tight leading-snug">{ev.title}</div>
+                <div className="mt-2 text-[12px] text-muted-foreground">{ev.place}</div>
+              </div>
+            ))}
+          </div>
+        </Container>
+      </section>
+
+      {/* 行业新闻 & 政策 */}
       <News />
-      <Cta />
+
+      {/* 面向会员的 AI 助手 */}
+      <AiTeam />
     </>
+  );
+}
+
+function MemberCard({
+  icon: Icon, tone, title, who, perks, href,
+}: {
+  icon: React.ComponentType<{ className?: string }>;
+  tone: "build" | "design";
+  title: string; who: string; perks: string[]; href: string;
+}) {
+  return (
+    <div className="relative overflow-hidden rounded-3xl border border-border bg-background p-6 md:p-8 flex flex-col">
+      <div className={cn("absolute -right-12 -top-12 h-40 w-40 rounded-full opacity-90 bg-gradient-to-br",
+        tone === "build" ? "from-cat-build to-[#0e44c9]" : "from-cat-design to-[#6d3df0]")} />
+      <div className="relative">
+        <span className={cn("inline-flex h-12 w-12 items-center justify-center rounded-2xl text-white",
+          tone === "build" ? "bg-cat-build" : "bg-cat-design")}>
+          <Icon className="h-6 w-6" />
+        </span>
+        <h3 className="mt-4 text-[24px] md:text-[28px] font-semibold tracking-tight">{title}</h3>
+        <p className="mt-1 text-[13px] text-muted-foreground">{who}</p>
+      </div>
+      <ul className="relative mt-5 space-y-2 flex-1">
+        {perks.map((p) => (
+          <li key={p} className="flex items-start gap-2 text-[13px] md:text-[14px]">
+            <ShieldCheck className="h-4 w-4 text-accent-tea mt-0.5 shrink-0" /> {p}
+          </li>
+        ))}
+      </ul>
+      <div className="relative mt-6">
+        <Button href={href} variant="primary">
+          申请{title} <ArrowRight className="h-4 w-4" />
+        </Button>
+      </div>
+    </div>
   );
 }
