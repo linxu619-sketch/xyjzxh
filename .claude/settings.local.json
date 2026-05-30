@@ -27,7 +27,13 @@
       "Bash(git init *)",
       "Bash(git config *)",
       "Bash(git add *)",
-      "Bash(grep -E \"\\\\.env\\\\.local$\")"
+      "Bash(grep -E \"\\\\.env\\\\.local$\")",
+      "Bash(rm -f prod_test.log dev_test.log)",
+      "Bash(git rm *)",
+      "Bash(grep -iE \"test.log|\\\\.env\\\\.local$\")",
+      "Bash(git commit -q -m '@ *)",
+      "Bash(git commit -q --amend -m 'chore: 建立版本控制与协作流程 \\(v0.2.0\\)' -m '- 初始化 Git 仓库，纳入信阳市建筑装修协会网站现有代码作为基线 *)",
+      "Bash(git commit -q -m 'docs: 确定发布节奏为每次改动直接定版本 \\(v0.2.1\\)' -m '- CONVENTIONS.md：协作流程第1条改为「每次改动直接定版本并提交」，不用未发布缓冲区 *)"
     ]
   }
 }
