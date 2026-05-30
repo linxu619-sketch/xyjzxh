@@ -1,8 +1,7 @@
 @echo off
 setlocal enabledelayedexpansion
-title 信阳建装 · 一键启动（请勿关闭本窗口）
+title 信阳建装 · 一键启动
 
-REM 切换到脚本所在目录
 cd /d "%~dp0"
 
 echo ============================================================
@@ -37,26 +36,41 @@ if not exist "node_modules" (
 )
 echo.
 
-REM ---------- 3. 启动开发服务器 ----------
-echo [3/3] 正在启动开发服务器...
+REM ---------- 若已在运行，直接打开浏览器 ----------
+powershell -NoProfile -Command "if(Get-NetTCPConnection -LocalPort 3000 -State Listen -ErrorAction SilentlyContinue){exit 9}else{exit 0}"
+if errorlevel 9 (
+    echo [提示] 网站已在运行，直接为你打开浏览器。
+    start "" http://localhost:3000
+    echo.
+    echo 要停止网站请双击「停止.bat」。本窗口可关闭。
+    echo.
+    pause
+    exit /b 0
+)
+
+REM ---------- 3. 后台启动服务器 ----------
+echo [3/3] 正在后台启动网站服务器...
+powershell -NoProfile -ExecutionPolicy Bypass -Command "Start-Process -FilePath 'cmd.exe' -ArgumentList '/c','npm run dev > server.log 2>&1' -WorkingDirectory '%~dp0' -WindowStyle Hidden"
+
+echo     正在等待服务器就绪（通常几秒）...
+powershell -NoProfile -ExecutionPolicy Bypass -Command "$ok=$false; for($i=0;$i -lt 90;$i++){try{$null=Invoke-WebRequest -UseBasicParsing 'http://localhost:3000' -TimeoutSec 2; $ok=$true; break}catch{Start-Sleep -Seconds 1}}; if($ok){Start-Process 'http://localhost:3000'; exit 0}else{exit 1}"
+if errorlevel 1 (
+    echo.
+    echo [警告] 等待超时，服务器可能启动失败。请查看本目录下的 server.log 排查。
+    echo.
+    pause
+    exit /b 1
+)
+
 echo.
-echo   ------------------------------------------------------------
-echo   网站启动后，在浏览器访问以下地址：
+echo ============================================================
+echo   网站已在后台启动！
 echo.
 echo     消费者门户（业主找装修）  http://localhost:3000
 echo     协会门户（企业/从业者）   http://localhost:3000/xh
 echo.
-echo   就绪后会自动打开「消费者门户」。看协会门户请用上面带 /xh 的地址。
-echo   ------------------------------------------------------------
+echo   * 本窗口现在可以关闭，网站会继续在后台运行。
+echo   * 要停止网站，请双击「停止.bat」。
+echo ============================================================
 echo.
-echo   【重要】本窗口就是服务器，使用期间请勿关闭！关闭窗口=停止网站。
-echo.
-
-REM 后台轮询：等服务器真正就绪后再自动打开浏览器（最多等 90 秒）
-start "" powershell -NoProfile -WindowStyle Hidden -ExecutionPolicy Bypass -Command "for($i=0;$i -lt 90;$i++){try{$null=Invoke-WebRequest -UseBasicParsing 'http://localhost:3000' -TimeoutSec 2;Start-Process 'http://localhost:3000';break}catch{Start-Sleep -Seconds 1}}"
-
-call npm run dev
-
-echo.
-echo 服务器已停止。
 pause

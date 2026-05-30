@@ -48,3 +48,4 @@ next-env.d.ts
 # 临时测试日志
 *_test.log
 _*.log
+server.log
