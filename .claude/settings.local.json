@@ -33,7 +33,12 @@
       "Bash(grep -iE \"test.log|\\\\.env\\\\.local$\")",
       "Bash(git commit -q -m '@ *)",
       "Bash(git commit -q --amend -m 'chore: 建立版本控制与协作流程 \\(v0.2.0\\)' -m '- 初始化 Git 仓库，纳入信阳市建筑装修协会网站现有代码作为基线 *)",
-      "Bash(git commit -q -m 'docs: 确定发布节奏为每次改动直接定版本 \\(v0.2.1\\)' -m '- CONVENTIONS.md：协作流程第1条改为「每次改动直接定版本并提交」，不用未发布缓冲区 *)"
+      "Bash(git commit -q -m 'docs: 确定发布节奏为每次改动直接定版本 \\(v0.2.1\\)' -m '- CONVENTIONS.md：协作流程第1条改为「每次改动直接定版本并提交」，不用未发布缓冲区 *)",
+      "PowerShell($ports = 3000,3001,3002; foreach \\($p in $ports\\) { $c = Get-NetTCPConnection -LocalPort $p -State Listen -ErrorAction SilentlyContinue; if \\($c\\) { foreach \\($x in $c\\) { try { Stop-Process -Id $x.OwningProcess -Force -ErrorAction Stop; \"killed PID $\\($x.OwningProcess\\) on port $p\" } catch {} } } }; Start-Sleep -Milliseconds 500; foreach \\($p in $ports\\) { $c2 = Get-NetTCPConnection -LocalPort $p -State Listen -ErrorAction SilentlyContinue; if \\($c2\\) { \"port $p STILL busy\" } else { \"port $p free\" } })",
+      "Bash(git commit -q -m 'docs: 记录双主页/三门面架构为核心特性 \\(v0.2.2\\)' -m '- CONVENTIONS.md：新增「双主页/三门面」域名分流架构说明（消费者/协会xh/企业子站） *)",
+      "PowerShell($c = Get-NetTCPConnection -LocalPort 3000 -State Listen -ErrorAction SilentlyContinue; if \\($c\\) { foreach \\($x in $c\\) { try { Stop-Process -Id $x.OwningProcess -Force -ErrorAction Stop; \"killed $\\($x.OwningProcess\\)\" } catch {} } } ; Start-Sleep -Milliseconds 400; if \\(Get-NetTCPConnection -LocalPort 3000 -State Listen -ErrorAction SilentlyContinue\\) { \"3000 busy\" } else { \"3000 free\" })",
+      "Bash(git commit -q -m 'fix\\(docs\\): 纠正协会门户本地访问方式 \\(v0.2.3\\)' -m '- xh.localhost:3000 在 Windows 浏览器不解析，改荐 localhost:3000/xh 或 xh.lvh.me:3000 *)",
+      "Bash(git commit -q -m 'feat\\(启动\\): 轮询就绪再开浏览器，删除生产模式脚本 \\(v0.3.0\\)' -m '- 启动.bat 改为轮询 localhost:3000 就绪后再自动打开浏览器，修复打开过早导致无法访问 *)"
     ]
   }
 }

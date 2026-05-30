@@ -1,13 +1,13 @@
 @echo off
 chcp 65001 >nul
 setlocal enabledelayedexpansion
-title 信阳市建筑装修协会 · 一键启动
+title 信阳建装 · 一键启动（请勿关闭本窗口）
 
 REM 切换到脚本所在目录
 cd /d "%~dp0"
 
 echo ============================================================
-echo   信阳市建筑装修协会 网站 · 一键启动
+echo   信阳市建筑装饰装修协会（信阳建装）· 一键启动
 echo ============================================================
 echo.
 
@@ -20,40 +20,41 @@ if errorlevel 1 (
     exit /b 1
 )
 for /f "delims=" %%v in ('node -v') do set NODE_VER=%%v
-echo [1/4] Node.js 版本：%NODE_VER%
+echo [1/3] Node.js 版本：%NODE_VER%
 echo.
 
 REM ---------- 2. 安装依赖（仅当缺失时）----------
 if not exist "node_modules" (
-    echo [2/4] 首次运行，正在安装依赖（可能需要几分钟）...
+    echo [2/3] 首次运行，正在安装依赖（可能需要几分钟）...
     call npm install
     if errorlevel 1 (
         echo [错误] 依赖安装失败，请检查网络后重试。
+        echo.
         pause
         exit /b 1
     )
 ) else (
-    echo [2/4] 依赖已就绪，跳过安装。
+    echo [2/3] 依赖已就绪。
 )
 echo.
 
-REM ---------- 3. 检查环境变量文件 ----------
-if not exist ".env.local" (
-    echo [3/4] 未发现 .env.local，将以「演示模式」运行（AI 用内置示例回复）。
-    echo        如需接入真实 AI / Supabase，请复制 .env.local.example 为 .env.local 并填写。
-) else (
-    echo [3/4] 已发现 .env.local，使用其中配置。
-)
+REM ---------- 3. 启动开发服务器 ----------
+echo [3/3] 正在启动开发服务器...
+echo.
+echo   ------------------------------------------------------------
+echo   网站启动后，在浏览器访问以下地址：
+echo.
+echo     消费者门户（业主找装修）  http://localhost:3000
+echo     协会门户（企业/从业者）   http://localhost:3000/xh
+echo.
+echo   就绪后会自动打开「消费者门户」。看协会门户请用上面带 /xh 的地址。
+echo   ------------------------------------------------------------
+echo.
+echo   【重要】本窗口就是服务器，使用期间请勿关闭！关闭窗口=停止网站。
 echo.
 
-REM ---------- 4. 启动开发服务器并打开浏览器 ----------
-echo [4/4] 正在启动开发服务器... 启动后将自动打开浏览器。
-echo        访问地址：http://localhost:3000
-echo        关闭本窗口即可停止服务器。
-echo.
-
-REM 延迟几秒后自动打开浏览器（等待编译）
-start "" cmd /c "timeout /t 8 >nul & start "" http://localhost:3000"
+REM 后台轮询：等服务器真正就绪后再自动打开浏览器（最多等 90 秒）
+start "" powershell -NoProfile -WindowStyle Hidden -ExecutionPolicy Bypass -Command "for($i=0;$i -lt 90;$i++){try{$null=Invoke-WebRequest -UseBasicParsing 'http://localhost:3000' -TimeoutSec 2;Start-Process 'http://localhost:3000';break}catch{Start-Sleep -Seconds 1}}"
 
 call npm run dev
 
