@@ -10,7 +10,7 @@ const TONE: Record<string, "build" | "decor" | "design"> = {
   build: "build", decor: "decor", design: "design",
 };
 
-export const metadata = { title: "人才中心 · 信阳市建筑装修协会" };
+export const metadata = { title: "人才中心 · 信阳市建筑装饰装修协会" };
 
 export default function TalentsPage() {
   return (

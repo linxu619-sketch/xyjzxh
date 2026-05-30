@@ -11,7 +11,7 @@ const TONE: Record<string, "build" | "decor" | "design" | "brand" | "tea"> = {
 
 const CATS = ["全部", "协会公告", "政策解读", "行业新闻", "会员动态", "活动通知"];
 
-export const metadata = { title: "新闻动态 · 信阳市建筑装修协会" };
+export const metadata = { title: "新闻动态 · 信阳市建筑装饰装修协会" };
 
 export default function NewsPage() {
   const [feature, ...rest] = NEWS_ITEMS;

@@ -53,7 +53,7 @@ export function Hero() {
           </h1>
 
           <p className="animate-fade-up animate-fade-up-delay-2 mt-5 md:mt-9 text-[13px] md:text-[18px] leading-6 md:leading-8 text-muted-foreground max-w-2xl mx-auto px-2">
-            信阳市建筑装修协会官方平台 — 汇聚 1,052 家建筑、装修与设计企业，
+            信阳市建筑装饰装修协会官方平台 — 汇聚 1,052 家建筑、装修与设计企业，
             <br className="hidden md:block" />
             提供工装报备、消费保险、金融、知识与 AI 助手等一站式在线服务。
           </p>

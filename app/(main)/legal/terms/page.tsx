@@ -1,7 +1,7 @@
 import { Container } from "@/components/container";
 import { PageHeader } from "@/components/page-header";
 
-export const metadata = { title: "服务条款 · 信阳市建筑装修协会" };
+export const metadata = { title: "服务条款 · 信阳市建筑装饰装修协会" };
 
 export default function TermsPage() {
   return (
@@ -14,7 +14,7 @@ export default function TermsPage() {
       />
       <Container className="py-12 max-w-3xl prose prose-lg text-[15px] leading-8">
         <h2 className="text-[22px] font-semibold mt-0">第一条 适用范围</h2>
-        <p>本条款适用于信阳市建筑装修协会运营的「xyzhxh.org」主站、子站、API、AI 助手矩阵。</p>
+        <p>本条款适用于信阳市建筑装饰装修协会运营的「xyjzxh.com」主站、子站、API、AI 助手矩阵。</p>
         <h2 className="text-[22px] font-semibold mt-10">第二条 用户类型</h2>
         <p>平台支持三类账号：协会工作人员、企业工作人员、C 端业主。三类账号独立运行、权限互不相干。</p>
         <h2 className="text-[22px] font-semibold mt-10">第三条 服务内容</h2>

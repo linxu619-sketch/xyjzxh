@@ -3,7 +3,7 @@ import { Building2, Users2, Award, Sparkles, ArrowUpRight } from "lucide-react";
 import { Container } from "@/components/container";
 import { PageHeader } from "@/components/page-header";
 
-export const metadata = { title: "组织架构 · 信阳市建筑装修协会" };
+export const metadata = { title: "组织架构 · 信阳市建筑装饰装修协会" };
 
 type OrgItem = {
   name: string;

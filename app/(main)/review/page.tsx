@@ -5,7 +5,7 @@ import { PageHeader } from "@/components/page-header";
 import { Badge } from "@/components/ui/badge";
 import { ENTERPRISES } from "@/lib/data/enterprises";
 
-export const metadata = { title: "口碑评价 · 信阳市建筑装修协会" };
+export const metadata = { title: "口碑评价 · 信阳市建筑装饰装修协会" };
 
 const SAMPLE = [
   { id: "R001", user: "刘**", enterprise: "名家装饰",         project: "金茂悦府 1602",      rating: 5, content: "项目经理特别负责，水电改造的时候多次主动来工地，质量超预期。", date: "2026-05-26", cat: "decor" as const },

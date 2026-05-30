@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { PROJECTS, STATUS_META } from "@/lib/data/projects";
 
-export const metadata = { title: "工装报备 · 信阳市建筑装修协会" };
+export const metadata = { title: "工装报备 · 信阳市建筑装饰装修协会" };
 
 const TYPE_TONE: Record<string, "build" | "decor" | "design" | "tea"> = {
   家装: "decor", 工装: "build", 公装: "design", 市政: "tea",

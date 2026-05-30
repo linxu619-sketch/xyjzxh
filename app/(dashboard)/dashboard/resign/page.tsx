@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { getSession } from "@/lib/auth/session";
 import { AGREEMENT_TEMPLATES } from "@/lib/data/agreements";
 
-export const metadata = { title: "待重签协议 · 信阳市建筑装修协会" };
+export const metadata = { title: "待重签协议 · 信阳市建筑装饰装修协会" };
 
 // 演示数据：3 份待重签
 const DEMO_PENDING = [

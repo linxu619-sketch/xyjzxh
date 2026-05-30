@@ -7,7 +7,7 @@ import { News } from "@/components/sections/news";
 import { Cta } from "@/components/sections/cta";
 
 export const metadata = {
-  title: "协会门户 · 信阳市建筑装修协会",
+  title: "协会门户 · 信阳市建筑装饰装修协会",
   description:
     "协会为企业、从业者、合作伙伴提供的官方门户 · 工装报备、会员目录、建材集采、AI 助手、知识库、培训等一站式服务。",
 };

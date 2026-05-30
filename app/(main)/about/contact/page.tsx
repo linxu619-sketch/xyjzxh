@@ -4,15 +4,15 @@ import { Container } from "@/components/container";
 import { PageHeader } from "@/components/page-header";
 import { SITE } from "@/lib/site";
 
-export const metadata = { title: "联系我们 · 信阳市建筑装修协会" };
+export const metadata = { title: "联系我们 · 信阳市建筑装饰装修协会" };
 
 const DEPTS = [
-  { name: "秘书处（综合）",       tel: "0376-1111111", mail: "secretariat@xyzhxh.org" },
-  { name: "会员部",              tel: "0376-2222222", mail: "members@xyzhxh.org" },
-  { name: "技术委员会",          tel: "0376-3333333", mail: "tech@xyzhxh.org" },
-  { name: "调解委员会",          tel: "0376-4444444", mail: "mediation@xyzhxh.org" },
-  { name: "金融保险委员会",      tel: "0376-5555555", mail: "finance@xyzhxh.org" },
-  { name: "AI 与数字化办公室",    tel: "0376-6666666", mail: "ai@xyzhxh.org" },
+  { name: "秘书处（综合）",       tel: "0376-1111111", mail: "secretariat@xyjzxh.com" },
+  { name: "会员部",              tel: "0376-2222222", mail: "members@xyjzxh.com" },
+  { name: "技术委员会",          tel: "0376-3333333", mail: "tech@xyjzxh.com" },
+  { name: "调解委员会",          tel: "0376-4444444", mail: "mediation@xyjzxh.com" },
+  { name: "金融保险委员会",      tel: "0376-5555555", mail: "finance@xyjzxh.com" },
+  { name: "AI 与数字化办公室",    tel: "0376-6666666", mail: "ai@xyjzxh.com" },
 ];
 
 export default function ContactPage() {

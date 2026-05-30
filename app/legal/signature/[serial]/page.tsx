@@ -6,7 +6,7 @@ import { AGREEMENT_SIGNATURES, getTemplate } from "@/lib/data/agreements";
 import { SITE } from "@/lib/site";
 import { PrintButton } from "./PrintButton";
 
-export const metadata = { title: "签署证书 · 信阳市建筑装修协会" };
+export const metadata = { title: "签署证书 · 信阳市建筑装饰装修协会" };
 
 export default async function SignatureCert({ params }: { params: Promise<{ serial: string }> }) {
   const { serial } = await params;

@@ -84,7 +84,7 @@ export default function EnterpriseAi() {
       <div className="mt-6">
         <SettingsCard
           title="自定义品牌 AI"
-          desc={<>基于「小装」克隆一位 <b className="text-foreground">名家小装</b>，使用企业品牌头像、话术与知识库，仅在 mingjia.xyzhxh.org 子站生效</>}
+          desc={<>基于「小装」克隆一位 <b className="text-foreground">名家小装</b>，使用企业品牌头像、话术与知识库，仅在 mingjia.xyjzxh.com 子站生效</>}
           action={
             <button className="h-9 px-4 rounded-full bg-foreground text-background text-[13px] font-medium inline-flex items-center gap-1.5">
               <Sparkles className="h-3.5 w-3.5 text-accent-yellow" /> 立即克隆

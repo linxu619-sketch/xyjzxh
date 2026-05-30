@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { signaturesByUser, getTemplate, AGREEMENT_SIGNATURES } from "@/lib/data/agreements";
 import { RevokeButton } from "@/components/agreements/revoke-button";
 
-export const metadata = { title: "我的协议 · 信阳市建筑装修协会" };
+export const metadata = { title: "我的协议 · 信阳市建筑装饰装修协会" };
 
 export default function CustomerAgreements() {
   // 演示：使用刘女士的 C00284 签署记录

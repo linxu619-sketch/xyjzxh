@@ -5,7 +5,7 @@ import {
 import { CustomerShell } from "@/components/dashboard/customer-shell";
 import { Badge } from "@/components/ui/badge";
 
-export const metadata = { title: "我的项目 · 信阳市建筑装修协会" };
+export const metadata = { title: "我的项目 · 信阳市建筑装饰装修协会" };
 
 type CustomerProject = {
   id: string; name: string; enterprise: string;

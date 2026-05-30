@@ -1,7 +1,7 @@
 import { Container } from "@/components/container";
 import { LoginForm } from "./LoginForm";
 
-export const metadata = { title: "登录 · 信阳市建筑装修协会" };
+export const metadata = { title: "登录 · 信阳市建筑装饰装修协会" };
 
 export default function LoginPage({ searchParams }: { searchParams: Promise<{ role?: string }> }) {
   return (

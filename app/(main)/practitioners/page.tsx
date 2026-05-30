@@ -10,7 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { PRACTITIONERS_LIST, PRACTITIONER_JOBS } from "@/lib/data/practitioners";
 import { cn } from "@/lib/cn";
 
-export const metadata = { title: "从业者门户 · 信阳市建筑装修协会" };
+export const metadata = { title: "从业者门户 · 信阳市建筑装饰装修协会" };
 
 const SERVICES = [
   { icon: ShieldCheck, t: "实名身份 + 信用画像", d: "协会颁发数字身份证 · 历史项目自动聚合 · 信用分对接住建系统", color: "brand" },

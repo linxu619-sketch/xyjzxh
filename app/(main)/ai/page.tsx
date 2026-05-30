@@ -23,7 +23,7 @@ const QUICK_ACTIONS = [
   { label: "找一份合适的活", href: "/ai/hr",      color: "tea" as const,   emoji: "👷",  who: "小才" },
 ];
 
-export const metadata = { title: "AI 助手大厅 · 信阳市建筑装修协会" };
+export const metadata = { title: "AI 助手大厅 · 信阳市建筑装饰装修协会" };
 
 export default function AiHall() {
   return (

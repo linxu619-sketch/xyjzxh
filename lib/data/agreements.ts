@@ -80,7 +80,7 @@ export const AGREEMENT_TEMPLATES: AgreementTemplate[] = [
   {
     id: "tpl-ent-membership",
     code: "ENT-MEMBERSHIP",
-    title: "信阳市建筑装修协会 · 入会协议",
+    title: "信阳市建筑装饰装修协会 · 入会协议",
     category: "membership",
     target: "enterprise",
     version: "1.2.0",
@@ -94,7 +94,7 @@ export const AGREEMENT_TEMPLATES: AgreementTemplate[] = [
     reviewedBy: "王律师事务所",
     approvedBy: "李会长",
     approvedAt: "2026-03-28",
-    content: `# 入会协议\n\n甲方：信阳市建筑装修协会\n乙方：本企业\n\n## 第一条 入会条件\n…\n\n## 第二条 权利与义务\n（重点条款 ①）乙方须确保所提供的资质材料真实有效…\n…\n\n## 第十条 违约与解除\n（重点条款 ②）乙方有挂证、虚假宣传、欺诈业主等行为的，协会有权立即解除…\n\n## 第十二条 争议解决\n（重点条款 ③）因本协议产生的争议，双方应优先通过协会调解委员会调解；调解不成的，由信阳市浉河区人民法院管辖。`,
+    content: `# 入会协议\n\n甲方：信阳市建筑装饰装修协会\n乙方：本企业\n\n## 第一条 入会条件\n…\n\n## 第二条 权利与义务\n（重点条款 ①）乙方须确保所提供的资质材料真实有效…\n…\n\n## 第十条 违约与解除\n（重点条款 ②）乙方有挂证、虚假宣传、欺诈业主等行为的，协会有权立即解除…\n\n## 第十二条 争议解决\n（重点条款 ③）因本协议产生的争议，双方应优先通过协会调解委员会调解；调解不成的，由信阳市浉河区人民法院管辖。`,
     highlights: [
       "我已仔细阅读「资质材料真实性」条款并承诺真实",
       "我已知悉「挂证 / 虚假宣传 / 欺诈」将立即解除会籍",

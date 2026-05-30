@@ -23,7 +23,7 @@ const DEMO_RESIGNS = [
   },
 ];
 
-export const metadata = { title: "我的 · 信阳市建筑装修协会" };
+export const metadata = { title: "我的 · 信阳市建筑装饰装修协会" };
 
 export default async function CustomerDashboard() {
   const session = await getSession();

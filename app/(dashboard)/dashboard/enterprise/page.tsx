@@ -7,7 +7,7 @@ import { EnterpriseShell } from "@/components/dashboard/shell";
 import { StatCard, Panel } from "@/components/dashboard/widgets";
 import { Badge } from "@/components/ui/badge";
 
-export const metadata = { title: "企业工作台 · 信阳市建筑装修协会" };
+export const metadata = { title: "企业工作台 · 信阳市建筑装饰装修协会" };
 
 const LEADS = [
   { name: "刘女士", area: "120㎡ · 浉河区",    from: "AI 装修顾问", budget: "30 万", hot: true,  phone: "138****8472" },

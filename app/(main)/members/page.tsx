@@ -5,7 +5,7 @@ import { Database } from "lucide-react";
 import { getEnterprises, lastDataSource } from "@/lib/data/enterprises-source";
 import { MembersExplorer } from "./MembersExplorer";
 
-export const metadata = { title: "会员目录 · 信阳市建筑装修协会" };
+export const metadata = { title: "会员目录 · 信阳市建筑装饰装修协会" };
 
 export default async function MembersPage({
   searchParams,

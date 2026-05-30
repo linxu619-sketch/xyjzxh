@@ -3,7 +3,7 @@ import { ShieldCheck, AlertCircle, FileText, ChevronRight } from "lucide-react";
 import { CustomerShell } from "@/components/dashboard/customer-shell";
 import { Badge } from "@/components/ui/badge";
 
-export const metadata = { title: "我的保单 · 信阳市建筑装修协会" };
+export const metadata = { title: "我的保单 · 信阳市建筑装饰装修协会" };
 
 const POLICIES = [
   { id: "POL-2026-1138", product: "安心家装险 · 协会版", insurer: "人保财险",

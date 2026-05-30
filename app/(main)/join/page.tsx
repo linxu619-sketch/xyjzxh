@@ -5,7 +5,7 @@ import { PageHeader } from "@/components/page-header";
 import { Button } from "@/components/ui/button";
 
 const BENEFITS = [
-  { icon: Building2, title: "二级域名子站", desc: "yourbrand.xyzhxh.org 独立品牌页 + 在线接单" },
+  { icon: Building2, title: "二级域名子站", desc: "yourbrand.xyjzxh.com 独立品牌页 + 在线接单" },
   { icon: ShieldCheck, title: "协会认证", desc: "在册即获认证徽章，提升业主信任与转化" },
   { icon: TrendingUp, title: "流量分发", desc: "首页推荐、AI 主动匹配、搜索优先排序" },
   { icon: Award, title: "金融保险优惠", desc: "建装贷专属费率、消费险联合品牌" },
@@ -20,7 +20,7 @@ const STEPS = [
   { n: 4, t: "缴费 + 开通", d: "签订入会协议、缴纳会费、开通子站与账号。" },
 ];
 
-export const metadata = { title: "申请入会 · 信阳市建筑装修协会" };
+export const metadata = { title: "申请入会 · 信阳市建筑装饰装修协会" };
 
 export default function JoinPage() {
   return (

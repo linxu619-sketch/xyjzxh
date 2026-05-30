@@ -9,7 +9,7 @@ export default function SitePage() {
   return (
     <EnterpriseShell
       title="我的子站"
-      subtitle="mingjia.xyzhxh.org · 上次更新 5 分钟前 · 本月访客 9,284"
+      subtitle="mingjia.xyjzxh.com · 上次更新 5 分钟前 · 本月访客 9,284"
       actions={
         <Link href="/biz/mingjia" target="_blank" className="h-9 px-4 rounded-full bg-foreground text-background text-[13px] font-medium inline-flex items-center gap-1.5">
           <ExternalLink className="h-3.5 w-3.5" /> 打开预览
@@ -35,7 +35,7 @@ export default function SitePage() {
             <FormRow label="子域名" required hint="A-Z 0-9 - 限制，启用后需 24h 生效">
               <div className="flex items-center gap-2">
                 <Input defaultValue="mingjia" />
-                <span className="text-[13px] text-muted-foreground shrink-0">.xyzhxh.org</span>
+                <span className="text-[13px] text-muted-foreground shrink-0">.xyjzxh.com</span>
               </div>
             </FormRow>
             <FormRow label="品牌全称" required><Input defaultValue="信阳名家装饰工程有限公司" /></FormRow>

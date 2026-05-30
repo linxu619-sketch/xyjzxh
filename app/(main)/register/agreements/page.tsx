@@ -8,7 +8,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { AgreementsClient } from "./AgreementsClient";
 
-export const metadata = { title: "签署协议 · 信阳市建筑装修协会" };
+export const metadata = { title: "签署协议 · 信阳市建筑装饰装修协会" };
 
 export default async function RegisterAgreementsPage({
   searchParams,

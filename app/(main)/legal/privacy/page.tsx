@@ -1,7 +1,7 @@
 import { Container } from "@/components/container";
 import { PageHeader } from "@/components/page-header";
 
-export const metadata = { title: "隐私政策 · 信阳市建筑装修协会" };
+export const metadata = { title: "隐私政策 · 信阳市建筑装饰装修协会" };
 
 export default function PrivacyPage() {
   return (
@@ -10,7 +10,7 @@ export default function PrivacyPage() {
         eyebrow="LEGAL · 法务"
         tone="brand"
         title={<>隐私政策</>}
-        description="本政策约定信阳市建筑装修协会平台如何收集、使用、共享、保护您的个人信息。本政策最近一次更新于 2026-05-30。"
+        description="本政策约定信阳市建筑装饰装修协会平台如何收集、使用、共享、保护您的个人信息。本政策最近一次更新于 2026-05-30。"
       />
       <Container className="py-12 max-w-3xl prose prose-lg text-[15px] leading-8">
         <h2 className="text-[22px] font-semibold mt-0">一、我们收集哪些信息</h2>

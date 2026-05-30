@@ -13,7 +13,7 @@ import {
 } from "@/lib/data/supplies";
 import { cn } from "@/lib/cn";
 
-export const metadata = { title: "建材超市 · 信阳市建筑装修协会" };
+export const metadata = { title: "建材超市 · 信阳市建筑装饰装修协会" };
 
 const THUMB: Record<string, string> = {
   build: "bg-cat-build", decor: "bg-cat-decor", design: "bg-cat-design",

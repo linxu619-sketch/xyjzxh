@@ -6,7 +6,7 @@ import { CustomerShell } from "@/components/dashboard/customer-shell";
 import { logoutAction } from "@/app/(main)/login/actions";
 import { Toggle } from "@/components/dashboard/section";
 
-export const metadata = { title: "账号设置 · 信阳市建筑装修协会" };
+export const metadata = { title: "账号设置 · 信阳市建筑装饰装修协会" };
 
 export default function CustomerSettings() {
   return (
@@ -64,7 +64,7 @@ export default function CustomerSettings() {
       </form>
 
       <div className="mt-6 mb-2 text-center text-[10px] text-muted-foreground">
-        信阳市建筑装修协会 · v1.0.0 · 备案号略
+        信阳市建筑装饰装修协会 · v1.0.0 · 备案号略
       </div>
     </CustomerShell>
   );

@@ -251,7 +251,7 @@ function Step5() {
       </div>
       <label className="flex items-start gap-2.5 text-[12px] text-muted-foreground">
         <input type="checkbox" defaultChecked className="mt-0.5 accent-brand" />
-        <span>我承诺所填信息真实、附件合规，同意将信息同步至河南省建设行业监管平台，并由信阳市建筑装修协会归档。</span>
+        <span>我承诺所填信息真实、附件合规，同意将信息同步至河南省建设行业监管平台，并由信阳市建筑装饰装修协会归档。</span>
       </label>
     </div>
   );

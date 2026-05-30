@@ -27,7 +27,7 @@ const TONE: Record<string, string> = {
   yellow: "bg-[#fff6d6] text-[#a37200]",
 };
 
-export const metadata = { title: "协会服务 · 信阳市建筑装修协会" };
+export const metadata = { title: "协会服务 · 信阳市建筑装饰装修协会" };
 
 export default function ServicesPage() {
   return (

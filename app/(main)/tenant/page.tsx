@@ -4,10 +4,10 @@ import { Container } from "@/components/container";
 import { PageHeader } from "@/components/page-header";
 import { Button } from "@/components/ui/button";
 
-export const metadata = { title: "企业子站 · 信阳市建筑装修协会" };
+export const metadata = { title: "企业子站 · 信阳市建筑装饰装修协会" };
 
 const FEATURES = [
-  { icon: Globe2, t: "独立子域名", d: "yourbrand.xyzhxh.org，5 分钟开通，自动 SSL，支持 CNAME 自定义" },
+  { icon: Globe2, t: "独立子域名", d: "yourbrand.xyjzxh.com，5 分钟开通，自动 SSL，支持 CNAME 自定义" },
   { icon: Palette, t: "独立品牌皮肤", d: "Logo、主色、字体、hero 图自定义，与协会主站视觉解耦" },
   { icon: Code2, t: "全栈托管", d: "无需买服务器、配 CDN、申请 ICP，协会平台全部代办" },
   { icon: Sparkles, t: "嵌入 AI 员工", d: "可克隆 4 位 AI（小装 / 小设 / 小经 / 小保），换成贵企业品牌" },
@@ -35,7 +35,7 @@ export default function TenantPage() {
               <span className="h-3 w-3 rounded-full bg-accent-yellow" />
               <span className="h-3 w-3 rounded-full bg-accent-tea" />
             </div>
-            <code className="text-[12px] text-muted-foreground ml-2">mingjia.xyzhxh.org</code>
+            <code className="text-[12px] text-muted-foreground ml-2">mingjia.xyjzxh.com</code>
           </div>
           <div className="aspect-video relative bg-gradient-to-br from-cat-decor to-[#e6531f]">
             <div className="absolute inset-0 p-8 text-white flex flex-col justify-between">
@@ -74,7 +74,7 @@ export default function TenantPage() {
           <h2 className="mt-3 text-[28px] md:text-[40px] font-semibold tracking-tight leading-tight">5 分钟开通子站</h2>
           <div className="mt-8 grid grid-cols-1 md:grid-cols-4 gap-4">
             {[
-              { n: 1, t: "选子域名", d: "yourbrand.xyzhxh.org" },
+              { n: 1, t: "选子域名", d: "yourbrand.xyjzxh.com" },
               { n: 2, t: "上传 logo", d: "PNG / SVG 自动适配" },
               { n: 3, t: "选品牌色", d: "5 套预设 + 自定义" },
               { n: 4, t: "导入案例", d: "Excel 一键上传" },
@@ -102,7 +102,7 @@ export default function TenantPage() {
                 <div className="absolute bottom-3 left-4 text-white text-[15px] font-semibold">{b.brand}</div>
               </div>
               <div className="p-4 flex items-center justify-between">
-                <code className="text-[12px] text-muted-foreground">{b.slug}.xyzhxh.org</code>
+                <code className="text-[12px] text-muted-foreground">{b.slug}.xyjzxh.com</code>
                 <span className="inline-flex items-center gap-1 text-[12px] text-brand font-medium">
                   访问 <ArrowRight className="h-3 w-3" />
                 </span>

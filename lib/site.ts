@@ -1,7 +1,7 @@
 // 站点数据 — 统一在此维护，便于后续接入 Supabase
 
 export const SITE = {
-  name: "信阳市建筑装修协会",
+  name: "信阳市建筑装饰装修协会",
   shortName: "信阳建装",
   brand: "XY-ASSOC",
   slogan: "让每一次装修都有协会守护",

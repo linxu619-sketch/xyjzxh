@@ -6,7 +6,7 @@ import { Building2, Users2, Award, Sparkles, Phone, Mail, MapPin } from "lucide-
 import { SITE } from "@/lib/site";
 
 const TIMELINE = [
-  { year: "1998", t: "信阳市建筑装修协会成立", d: "由 28 家本地建筑装修企业联合发起" },
+  { year: "1998", t: "信阳市建筑装饰装修协会成立", d: "由 28 家本地建筑装修企业联合发起" },
   { year: "2008", t: "首届信阳建博会", d: "走向年度行业盛会，规模 200+ 家" },
   { year: "2015", t: "推出工装报备数字化系统", d: "本地首套数字化报备解决方案" },
   { year: "2020", t: "上线消费保险联合品牌", d: "与人保、平安联合推出安心家装险" },

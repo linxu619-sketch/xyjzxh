@@ -18,7 +18,7 @@ const COLOR: Record<string, string> = {
   tea: "from-accent-tea to-[#008a63]",
 };
 
-export const metadata = { title: "金融服务 · 信阳市建筑装修协会" };
+export const metadata = { title: "金融服务 · 信阳市建筑装饰装修协会" };
 
 export default function FinancePage() {
   return (

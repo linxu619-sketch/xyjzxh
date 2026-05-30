@@ -9,7 +9,7 @@ const TONE: Record<string, "build" | "decor" | "design" | "tea" | "brand"> = {
   brand: "brand", build: "build", decor: "decor", design: "design", tea: "tea",
 };
 
-export const metadata = { title: "知识库 · 信阳市建筑装修协会" };
+export const metadata = { title: "知识库 · 信阳市建筑装饰装修协会" };
 
 export default function KnowledgePage() {
   const hot = KNOWLEDGE.filter((k) => k.hot);

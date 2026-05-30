@@ -15,7 +15,7 @@ const COLOR: Record<string, string> = {
   yellow: "from-[#ffd34d] to-[#ffae00]",
 };
 
-export const metadata = { title: "消费保险 · 信阳市建筑装修协会" };
+export const metadata = { title: "消费保险 · 信阳市建筑装饰装修协会" };
 
 export default function InsurancePage() {
   return (

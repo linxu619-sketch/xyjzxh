@@ -124,7 +124,7 @@ export default function PractitionerProfile() {
       </form>
 
       <div className="mt-6 mb-2 text-center text-[10px] text-muted-foreground">
-        信阳市建筑装修协会 · 从业者门户 v1.0
+        信阳市建筑装饰装修协会 · 从业者门户 v1.0
       </div>
     </PractitionerShell>
   );

@@ -2,10 +2,10 @@ import { Container } from "@/components/container";
 import { PageHeader } from "@/components/page-header";
 import { Download, FileText } from "lucide-react";
 
-export const metadata = { title: "章程制度 · 信阳市建筑装修协会" };
+export const metadata = { title: "章程制度 · 信阳市建筑装饰装修协会" };
 
 const DOCS = [
-  { name: "信阳市建筑装修协会章程（2026 修订）",       size: "412 KB", date: "2026-03-15", hot: true },
+  { name: "信阳市建筑装饰装修协会章程（2026 修订）",       size: "412 KB", date: "2026-03-15", hot: true },
   { name: "理事会议事规则",                          size: "186 KB", date: "2024-10-01" },
   { name: "调解委员会工作细则",                       size: "264 KB", date: "2024-06-12" },
   { name: "会员管理办法（含入会 / 退会 / 处分）",      size: "318 KB", date: "2025-12-08" },

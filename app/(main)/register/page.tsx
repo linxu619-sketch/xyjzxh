@@ -4,7 +4,7 @@ import { ROLE_META, type Role } from "@/lib/auth";
 import { Building2, UserRound, ArrowRight, ShieldCheck, CheckCircle2, HardHat, FileText } from "lucide-react";
 import { requiredAgreementsFor, type AgreementTarget } from "@/lib/data/agreements";
 
-export const metadata = { title: "注册 · 信阳市建筑装修协会" };
+export const metadata = { title: "注册 · 信阳市建筑装饰装修协会" };
 
 export default async function RegisterPage({ searchParams }: { searchParams: Promise<{ role?: string; agreed?: string }> }) {
   const { role: r, agreed } = await searchParams;
@@ -114,7 +114,7 @@ export default async function RegisterPage({ searchParams }: { searchParams: Pro
               <Field label="期望子域名" required>
                 <div className="flex items-center gap-2">
                   <input className="form-input flex-1" placeholder="如 huatai" />
-                  <span className="text-[13px] text-muted-foreground">.xyzhxh.org</span>
+                  <span className="text-[13px] text-muted-foreground">.xyjzxh.com</span>
                 </div>
               </Field>
             </Row>

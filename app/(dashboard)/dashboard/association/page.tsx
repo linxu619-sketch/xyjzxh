@@ -7,7 +7,7 @@ import { AssociationShell } from "@/components/dashboard/shell";
 import { StatCard, Panel } from "@/components/dashboard/widgets";
 import { Badge } from "@/components/ui/badge";
 
-export const metadata = { title: "协会工作台 · 信阳市建筑装修协会" };
+export const metadata = { title: "协会工作台 · 信阳市建筑装饰装修协会" };
 
 const TODOS = [
   { tag: "会员审核", color: "brand" as const,  title: "信阳同信建工 入会申请待复审", time: "2 小时前", urgent: true },
