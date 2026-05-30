@@ -1,0 +1,172 @@
+@import "tailwindcss";
+
+/* ============================================================
+   信阳市建筑装修协会 · 视觉系统
+   风格：明亮极简 + 大色块（Linear / Stripe 风）
+   ============================================================ */
+
+:root {
+  /* 基础色 */
+  --background: #ffffff;
+  --foreground: #0a0a0f;
+  --surface: #f7f8fb;
+  --surface-2: #eef1f6;
+  --border: #e6e9ef;
+  --muted: #6b7180;
+  --muted-foreground: #4a5060;
+
+  /* 品牌主色：琉璃蓝（信任 / 现代） */
+  --brand: #1456f0;
+  --brand-600: #0e44c9;
+  --brand-50: #eaf0ff;
+
+  /* 三大品类色（大色块） */
+  --cat-build: #1456f0;       /* 建筑 · 琉璃蓝 */
+  --cat-build-soft: #e8efff;
+  --cat-decor: #ff6b35;       /* 装修 · 暖橘 */
+  --cat-decor-soft: #ffeee5;
+  --cat-design: #8b5cf6;      /* 设计 · 紫罗兰 */
+  --cat-design-soft: #f1ebff;
+
+  /* 强调与语义色 */
+  --accent-tea: #00a878;      /* 信阳茶绿，本地呼应 */
+  --accent-yellow: #ffd34d;   /* AI/亮点 */
+  --success: #00a878;
+  --warning: #f59e0b;
+  --danger: #ef4444;
+
+  /* 圆角 / 阴影 / 节奏 */
+  --radius-sm: 8px;
+  --radius-md: 14px;
+  --radius-lg: 22px;
+  --radius-xl: 32px;
+  --shadow-sm: 0 1px 2px rgba(10, 10, 15, 0.04);
+  --shadow-md: 0 8px 24px -8px rgba(20, 86, 240, 0.12);
+  --shadow-lg: 0 20px 60px -20px rgba(20, 86, 240, 0.25);
+
+  /* 字体栈：英文 Inter 系统替代 + 中文 PingFang/YaHei */
+  --font-sans:
+    "Inter", "ui-sans-serif", "system-ui", -apple-system, "Segoe UI", Roboto,
+    "Helvetica Neue", Arial, "PingFang SC", "Hiragino Sans GB",
+    "Microsoft YaHei", "微软雅黑", sans-serif;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-border: var(--border);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+
+  --color-brand: var(--brand);
+  --color-brand-600: var(--brand-600);
+  --color-brand-50: var(--brand-50);
+
+  --color-cat-build: var(--cat-build);
+  --color-cat-build-soft: var(--cat-build-soft);
+  --color-cat-decor: var(--cat-decor);
+  --color-cat-decor-soft: var(--cat-decor-soft);
+  --color-cat-design: var(--cat-design);
+  --color-cat-design-soft: var(--cat-design-soft);
+
+  --color-accent-tea: var(--accent-tea);
+  --color-accent-yellow: var(--accent-yellow);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-danger: var(--danger);
+
+  --radius: var(--radius-md);
+  --font-sans: var(--font-sans);
+}
+
+@layer base {
+  * {
+    border-color: var(--border);
+  }
+
+  html {
+    -webkit-text-size-adjust: 100%;
+    text-rendering: optimizeLegibility;
+    scroll-behavior: smooth;
+  }
+
+  body {
+    background: var(--background);
+    color: var(--foreground);
+    font-family: var(--font-sans);
+    font-feature-settings: "cv11", "ss01", "ss03";
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* 中文标题字重稍降，避免厚重 */
+  h1, h2, h3, h4 {
+    letter-spacing: -0.02em;
+  }
+
+  /* 自定义选区色 */
+  ::selection {
+    background: var(--brand);
+    color: #fff;
+  }
+}
+
+@layer utilities {
+  /* 渐变背景工具 */
+  .bg-mesh {
+    background-image:
+      radial-gradient(at 12% 8%, rgba(20, 86, 240, 0.10) 0px, transparent 50%),
+      radial-gradient(at 88% 6%, rgba(255, 107, 53, 0.08) 0px, transparent 55%),
+      radial-gradient(at 50% 100%, rgba(139, 92, 246, 0.08) 0px, transparent 55%);
+  }
+
+  .bg-grid {
+    background-image:
+      linear-gradient(to right, rgba(10, 10, 15, 0.04) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(10, 10, 15, 0.04) 1px, transparent 1px);
+    background-size: 56px 56px;
+  }
+
+  /* 文本渐变 */
+  .text-gradient-brand {
+    background: linear-gradient(135deg, #1456f0 0%, #8b5cf6 60%, #ff6b35 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    color: transparent;
+  }
+
+  /* 浮入动效 */
+  @keyframes fade-up {
+    from { opacity: 0; transform: translateY(16px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .animate-fade-up {
+    animation: fade-up 0.7s cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+  .animate-fade-up-delay-1 { animation-delay: 0.08s; }
+  .animate-fade-up-delay-2 { animation-delay: 0.16s; }
+  .animate-fade-up-delay-3 { animation-delay: 0.24s; }
+  .animate-fade-up-delay-4 { animation-delay: 0.32s; }
+  .animate-fade-up-delay-5 { animation-delay: 0.40s; }
+
+  /* 跑马灯 */
+  @keyframes marquee {
+    from { transform: translateX(0); }
+    to { transform: translateX(-50%); }
+  }
+  .animate-marquee {
+    animation: marquee 40s linear infinite;
+  }
+
+  /* 闪烁光斑 */
+  @keyframes pulse-glow {
+    0%, 100% { opacity: 0.5; transform: scale(1); }
+    50% { opacity: 1; transform: scale(1.05); }
+  }
+  .animate-pulse-glow {
+    animation: pulse-glow 3s ease-in-out infinite;
+  }
+}

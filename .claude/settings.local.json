@@ -1,0 +1,33 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm --version)",
+      "Bash(npx --version)",
+      "Bash(npx --yes create-next-app@latest . --typescript --tailwind --app --eslint --no-src-dir --use-npm --turbopack --import-alias \"@/*\" --skip-install)",
+      "Bash(npm install *)",
+      "Bash(npx tsc *)",
+      "Bash(npm run *)",
+      "Bash(curl *)",
+      "PowerShell(Move-Item *)",
+      "Bash(taskkill /PID 3684 /F)",
+      "Bash(netstat -ano)",
+      "PowerShell(Stop-Process *)",
+      "Bash(node *)",
+      "Bash(grep -oE '<h1[^>]*>.{0,200}')",
+      "Bash(grep -oE 'aria-label=\"[^\"]{1,20}\"')",
+      "Bash(grep -oE '主导航|aria-label=\\\\\\\\?\"找装企\\\\\\\\?\"|grid-cols-5')",
+      "PowerShell(npx tsc --noEmit 2>&1 | Select-Object -First 80)",
+      "PowerShell($ports = @\\(3000,3001,3002,3003\\); $live = $null; foreach \\($p in $ports\\) { try { $r = Invoke-WebRequest -Uri \"http://localhost:$p/\" -UseBasicParsing -TimeoutSec 2 -ErrorAction Stop; $live = $p; break } catch {} }; if \\($live\\) { \"Dev server on $live\" } else { \"No dev server running\" })",
+      "PowerShell(Set-Location *)",
+      "PowerShell(Get-CimInstance *)",
+      "Bash(cd /d D:\\\\xyjzxh)",
+      "Bash(dir /b)",
+      "Bash(npm -v)",
+      "PowerShell($c = Get-NetTCPConnection -LocalPort 3000 -State Listen -ErrorAction SilentlyContinue; if \\($c\\) { foreach \\($x in $c\\) { Stop-Process -Id $x.OwningProcess -Force -ErrorAction SilentlyContinue }; Start-Sleep -Milliseconds 400 }; $c2 = Get-NetTCPConnection -LocalPort 3000 -State Listen -ErrorAction SilentlyContinue; if \\($c2\\) { 'still listening' } else { 'port 3000 free' })",
+      "Bash(git init *)",
+      "Bash(git config *)",
+      "Bash(git add *)",
+      "Bash(grep -E \"\\\\.env\\\\.local$\")"
+    ]
+  }
+}

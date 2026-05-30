@@ -1,0 +1,114 @@
+import Link from "next/link";
+import { Star, Search, ShieldCheck, MessageSquareHeart, ArrowUpRight } from "lucide-react";
+import { Container } from "@/components/container";
+import { PageHeader } from "@/components/page-header";
+import { Badge } from "@/components/ui/badge";
+import { ENTERPRISES } from "@/lib/data/enterprises";
+
+export const metadata = { title: "口碑评价 · 信阳市建筑装修协会" };
+
+const SAMPLE = [
+  { id: "R001", user: "刘**", enterprise: "名家装饰",         project: "金茂悦府 1602",      rating: 5, content: "项目经理特别负责，水电改造的时候多次主动来工地，质量超预期。", date: "2026-05-26", cat: "decor" as const },
+  { id: "R002", user: "陈**", enterprise: "壹品装饰",         project: "茶都商务 22F",       rating: 5, content: "设计师很懂年轻人审美，方案改了两版就定稿，后期施工严格按图。", date: "2026-05-22", cat: "decor" as const },
+  { id: "R003", user: "孙**", enterprise: "华泰建工",         project: "茶博园景观二期",     rating: 4, content: "整体满意，进度严格，唯独沟通群有时回得慢。", date: "2026-05-18", cat: "build" as const },
+  { id: "R004", user: "周**", enterprise: "雅舍设计事务所",   project: "御景湾别墅软装",      rating: 5, content: "软装搭配出乎意料，节奏感和留白处理得很到位。", date: "2026-05-12", cat: "design" as const },
+  { id: "R005", user: "王**", enterprise: "万家美装饰",       project: "弦山街老房翻新",      rating: 4, content: "县域价格做出市区品质，性价比之选。", date: "2026-05-05", cat: "decor" as const },
+];
+
+export default function ReviewsHubPage() {
+  const total = 12640;
+  const avg = 4.8;
+  return (
+    <>
+      <PageHeader
+        eyebrow="REVIEWS · 口碑评价"
+        tone="decor"
+        title={<>所有评价实名验证<br className="md:hidden" /> 发布后不可删改</>}
+        description={<>累计 <b>{total.toLocaleString()}</b> 条业主评价 · 平均 <b>{avg}</b> ★ · 100% 关联具体项目可追溯</>}
+      />
+
+      <Container className="py-12 max-w-5xl">
+        {/* 搜索栏 */}
+        <div className="rounded-3xl border border-border bg-background p-4 flex items-center gap-3 mb-6">
+          <Search className="h-4 w-4 text-muted-foreground ml-2" />
+          <input placeholder="搜索企业 / 项目 / 关键词…" className="flex-1 bg-transparent outline-none text-[15px] py-2" />
+        </div>
+
+        {/* 评分汇总 */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+          <div className="rounded-3xl border border-border bg-background p-6">
+            <div className="text-[11px] text-muted-foreground tracking-wider uppercase">平均评分</div>
+            <div className="mt-2 flex items-baseline gap-2">
+              <span className="text-[64px] font-semibold leading-none text-cat-decor">{avg}</span>
+              <span className="text-muted-foreground">/ 5.0</span>
+            </div>
+            <div className="mt-3 flex items-center gap-0.5">
+              {Array.from({ length: 5 }, (_, i) => (
+                <Star key={i} className={i < Math.round(avg) ? "h-4 w-4 fill-[#FFB400] text-[#FFB400]" : "h-4 w-4 text-border"} />
+              ))}
+            </div>
+          </div>
+
+          <div className="md:col-span-2 rounded-3xl bg-foreground text-background p-6 flex items-center gap-4">
+            <ShieldCheck className="h-8 w-8 text-accent-yellow shrink-0" />
+            <div className="flex-1">
+              <div className="text-[16px] font-semibold">所有评价均经协会核验</div>
+              <p className="mt-1 text-[12px] text-background/70 max-w-md">
+                每条评价必须关联具体报备项目 + 业主实名身份 · 发布后企业可回复但不能删除 · 涉嫌刷评一票否决
+              </p>
+            </div>
+            <Link href="/ai/mediate" className="hidden md:inline-flex items-center gap-1.5 h-10 px-5 rounded-full bg-accent-yellow text-foreground text-[12px] font-medium">
+              <MessageSquareHeart className="h-3.5 w-3.5" /> 评价异议
+            </Link>
+          </div>
+        </div>
+
+        {/* 评价流 */}
+        <h2 className="text-[18px] font-semibold mb-3">最新评价</h2>
+        <div className="space-y-3">
+          {SAMPLE.map((r) => (
+            <article key={r.id} className="rounded-3xl border border-border bg-background p-5">
+              <div className="flex items-start gap-3">
+                <span className="h-10 w-10 rounded-full bg-surface inline-flex items-center justify-center text-[13px] font-semibold shrink-0">
+                  {r.user.slice(0, 1)}
+                </span>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 mb-1 flex-wrap">
+                    <span className="text-[13px] font-medium">{r.user}</span>
+                    <span className="text-[11px] text-muted-foreground">· 协会实名业主</span>
+                    <Badge tone={r.cat} className="ml-auto">{r.cat === "build" ? "建筑" : r.cat === "decor" ? "装修" : "设计"}</Badge>
+                  </div>
+                  <Link href={`/members?q=${encodeURIComponent(r.enterprise)}`} className="text-[12px] text-brand hover:underline inline-flex items-center gap-1">
+                    {r.enterprise} · {r.project} <ArrowUpRight className="h-3 w-3" />
+                  </Link>
+                  <div className="mt-1 flex items-center gap-0.5">
+                    {Array.from({ length: 5 }, (_, i) => (
+                      <Star key={i} className={i < r.rating ? "h-3.5 w-3.5 fill-[#FFB400] text-[#FFB400]" : "h-3.5 w-3.5 text-border"} />
+                    ))}
+                  </div>
+                  <p className="mt-2 text-[13px] leading-6">{r.content}</p>
+                  <div className="mt-3 text-[11px] text-muted-foreground">{r.date}</div>
+                </div>
+              </div>
+            </article>
+          ))}
+        </div>
+
+        <h2 className="text-[18px] font-semibold mt-12 mb-4">五星热门企业</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+          {ENTERPRISES.filter((e) => e.rating >= 4.8).slice(0, 6).map((e) => (
+            <Link key={e.id} href={`/members/${e.slug}`} className="rounded-2xl border border-border bg-background p-5 hover:shadow-md transition-shadow">
+              <div className="flex items-center gap-2 mb-2">
+                <Star className="h-4 w-4 fill-[#FFB400] text-[#FFB400]" />
+                <span className="font-semibold">{e.rating.toFixed(1)}</span>
+                <span className="text-muted-foreground text-[12px]">({e.reviews} 条评价)</span>
+              </div>
+              <div className="text-[14px] font-medium">{e.name}</div>
+              <div className="text-[11px] text-muted-foreground mt-0.5">{e.district} · {e.tags.slice(0, 2).join(" · ")}</div>
+            </Link>
+          ))}
+        </div>
+      </Container>
+    </>
+  );
+}
