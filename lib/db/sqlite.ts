@@ -100,6 +100,7 @@ CREATE INDEX IF NOT EXISTS idx_reviews_created ON reviews(created_at);
 
 CREATE TABLE IF NOT EXISTS insurance_orders (
   id          INTEGER PRIMARY KEY AUTOINCREMENT,
+  uid         TEXT,    -- 提交时登录用户 id（未登录为空）
   product     TEXT,
   applicant   TEXT,
   phone       TEXT,
@@ -178,9 +179,20 @@ function init(): DB {
   const db = new DatabaseSync(join(dir, "app.db"));
   db.exec("PRAGMA journal_mode = WAL;");
   db.exec(SCHEMA);
+  migrate(db);
   seedEnterprises(db);
   seedAiKnowledge(db);
   return db;
+}
+
+// 对已存在的库做幂等列迁移（新增列时用）
+function migrate(db: DB) {
+  const alters = [
+    "ALTER TABLE insurance_orders ADD COLUMN uid TEXT",
+  ];
+  for (const sql of alters) {
+    try { db.exec(sql); } catch { /* 列已存在，忽略 */ }
+  }
 }
 
 export function getDb(): DB {

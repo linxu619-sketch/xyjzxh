@@ -1,9 +1,17 @@
 import Link from "next/link";
-import { ShieldCheck, AlertCircle, FileText, ChevronRight } from "lucide-react";
+import { ShieldCheck, AlertCircle, FileText, ChevronRight, Clock } from "lucide-react";
 import { CustomerShell } from "@/components/dashboard/customer-shell";
 import { Badge } from "@/components/ui/badge";
+import { getSession } from "@/lib/auth/session";
+import { listInsuranceByUid } from "@/lib/data/insurance-orders";
 
 export const metadata = { title: "我的保单 · 信阳市建筑装饰装修协会" };
+
+function fmt(ts: number) {
+  if (!ts) return "";
+  const d = new Date(ts);
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+}
 
 const POLICIES = [
   { id: "POL-2026-1138", product: "安心家装险 · 协会版", insurer: "人保财险",
@@ -22,9 +30,40 @@ const CLAIMS = [
     submitted: "今天 14:08", status: "AI 初判中", progress: 20 },
 ];
 
-export default function CustomerInsurance() {
+export default async function CustomerInsurance() {
+  const session = await getSession();
+  const mine = session ? listInsuranceByUid(session.uid) : [];
   return (
-    <CustomerShell title="我的保单" subtitle={`${POLICIES.length} 份保单在保 · 1 笔理赔进行中`}>
+    <CustomerShell title="我的保单" subtitle={`${mine.length} 笔在线投保申请 · ${POLICIES.length} 份示例保单`}>
+      {/* 我提交的投保申请（实时，按登录账号） */}
+      <div className="rounded-3xl border border-border bg-background p-5 mb-4">
+        <div className="flex items-center justify-between mb-3">
+          <div className="text-[14px] font-semibold">我提交的投保申请</div>
+          <Badge tone={mine.length ? "tea" : "yellow"}>{mine.length} 笔</Badge>
+        </div>
+        {mine.length === 0 ? (
+          <div className="text-center py-6 text-[13px] text-muted-foreground">
+            还没有投保申请。去 <Link href="/insurance" className="text-brand">消费保险</Link> 在线投保，提交后会出现在这里。
+          </div>
+        ) : (
+          <div className="space-y-2.5">
+            {mine.map((o) => (
+              <div key={o.id} className="rounded-2xl bg-surface p-4">
+                <div className="flex items-center justify-between gap-2">
+                  <div className="text-[14px] font-semibold truncate">{o.product}</div>
+                  <Badge tone={o.status === "done" ? "tea" : "yellow"} className="shrink-0">
+                    {o.status === "done" ? "已出单" : o.status === "contacted" ? "顾问跟进中" : "待协会联系"}
+                  </Badge>
+                </div>
+                <div className="mt-1 text-[11px] text-muted-foreground inline-flex items-center gap-1">
+                  <Clock className="h-3 w-3" /> {fmt(o.createdAt)} · 联系电话 {o.phone}{o.note ? ` · ${o.note}` : ""}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
       <div className="rounded-3xl bg-gradient-to-br from-cat-decor to-[#e6531f] text-white p-5 mb-4 relative overflow-hidden">
         <div className="absolute -right-10 -top-10 h-32 w-32 rounded-full bg-white/10 blur-2xl" />
         <ShieldCheck className="relative h-7 w-7 text-accent-yellow" />

@@ -14,6 +14,15 @@
 
 ---
 
+## [0.20.0] - 2026-05-31
+
+### 新增（个人中心 · 登录态绑定第一步）
+- 提交表单时记录登录用户 uid，后台按 uid 只显示本人数据。首条打通：**客户「我的保单」**。
+  - insurance_orders 加 uid 列（对已有库做幂等迁移 ALTER）；submitInsuranceAction 记录 getSession().uid。
+  - lib/data/insurance-orders 加 listInsuranceByUid；/dashboard/customer/insurance 显示本人投保申请(空态引导)。
+  - 实测：cust-1 见自己投保、cust-2 见空态，按 uid 正确隔离。
+- 模式确立，后续可扩展到 我的调解/评价/报备 等。
+
 ## [0.19.1] - 2026-05-31
 
 ### 优化（图片上传规则）
