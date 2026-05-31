@@ -12,7 +12,13 @@ import { readRuntimeSettings } from "@/lib/runtime-config";
 export type ChatMessage = { role: "system" | "user" | "assistant"; content: string };
 
 const DEFAULT_BASE = "https://api.deepseek.com";
-const DEFAULT_MODEL = "deepseek-chat";
+// V4：flash 性价比优先；如需最高能力可配置 deepseek-v4-pro
+const DEFAULT_MODEL = "deepseek-v4-flash";
+// 旧别名 deepseek-chat / deepseek-reasoner 将于 2026-07-24 停用，自动迁移到 V4
+const LEGACY_MODEL_MAP: Record<string, string> = {
+  "deepseek-chat": "deepseek-v4-flash",
+  "deepseek-reasoner": "deepseek-v4-flash",
+};
 
 export async function streamDeepseek({
   system,
@@ -28,7 +34,11 @@ export async function streamDeepseek({
   if (!apiKey) throw new Error("DEEPSEEK_API_KEY is not set");
 
   const base = cfg.deepseekBaseUrl || process.env.DEEPSEEK_BASE_URL || DEFAULT_BASE;
-  const model = cfg.deepseekModel || process.env.DEEPSEEK_MODEL || DEFAULT_MODEL;
+  const rawModel = cfg.deepseekModel || process.env.DEEPSEEK_MODEL || DEFAULT_MODEL;
+  const model = LEGACY_MODEL_MAP[rawModel] ?? rawModel;
+  // 思考模式：V4 用 thinking 参数控制（不再分模型）。
+  // 旧 deepseek-chat 原本是「非思考」，保留其语义；其余（reasoner / v4）默认开启思考。
+  const thinkingEnabled = rawModel !== "deepseek-chat";
 
   const upstream = await fetch(`${base}/chat/completions`, {
     method: "POST",
@@ -41,6 +51,8 @@ export async function streamDeepseek({
       stream: true,
       max_tokens: maxTokens,
       temperature: 0.6,
+      thinking: { type: thinkingEnabled ? "enabled" : "disabled" },
+      ...(thinkingEnabled ? { reasoning_effort: "high" } : {}),
       messages: [{ role: "system", content: system }, ...messages],
     }),
   });

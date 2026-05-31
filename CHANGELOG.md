@@ -14,6 +14,15 @@
 
 ---
 
+## [0.6.2] - 2026-05-31
+
+### 变更（迁移到 DeepSeek V4）
+- 旧模型 `deepseek-chat` / `deepseek-reasoner` 将于 **2026-07-24 停用**，迁移到 V4：
+  - 默认模型改为 `deepseek-v4-flash`（性价比；可配置 `deepseek-v4-pro` 用最高能力）。
+  - 思考模式改用请求参数 `thinking:{type:"enabled"|"disabled"}` + `reasoning_effort:"high"`（V4 不再分模型）；流式仍返回 `reasoning_content`，`<think>` 折叠展示逻辑不变。
+  - **旧模型名自动映射到 v4-flash**：即使系统设置里仍填 `deepseek-reasoner` 也会自动走 V4（reasoner→开启思考，chat→关闭思考）。
+- 已用真实 API 实测通过。
+
 ## [0.6.1] - 2026-05-31
 
 ### 修复

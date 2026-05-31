@@ -47,7 +47,9 @@
       "Bash(curl -s -o /dev/null -w \"port3000 now: HTTP %{http_code}\\\\n\" --max-time 3 http://localhost:3000/)",
       "Bash(xxd)",
       "Bash(grep -iE \"DEEPSEEK_MODEL|AI_PROVIDER|ANTHROPIC_MODEL\" .env.local)",
-      "Bash(grep -qE \"^DEEPSEEK_API_KEY=.+\" .env.local)"
+      "Bash(grep -qE \"^DEEPSEEK_API_KEY=.+\" .env.local)",
+      "WebSearch",
+      "WebFetch(domain:api-docs.deepseek.com)"
     ]
   }
 }
