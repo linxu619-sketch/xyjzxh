@@ -14,6 +14,14 @@
 
 ---
 
+## [0.7.0] - 2026-05-31
+
+### 新增（AI 员工专业知识库 · RAG 第一期）
+- 新增 `lib/ai/knowledge.ts`：**每个 AI 员工独立的知识库**（种子词条，按 `employee_key` 隔离），含轻量中文检索 `retrieveKnowledge`（关键词命中 + 二元组重叠打分，"FTS 起步"形态）。
+- `app/api/chat/route.ts`：聊天时按最新用户问题检索该员工 top-3 知识，拼进其 `system` 提示词（检索增强）。已为 小协/小报/小保/小金/小知/小和 等员工种子词条；实测命中并自然融入回答。
+- 演示兼容（无需 Supabase 即生效）；待 Supabase 配好后可把存储换成 Postgres 全文检索 / pgvector，`retrieveKnowledge` 接口不变。
+- 第二期（对话沉淀+人工审核入库）、第三期（用户级记忆）后续再做。
+
 ## [0.6.2] - 2026-05-31
 
 ### 变更（迁移到 DeepSeek V4）

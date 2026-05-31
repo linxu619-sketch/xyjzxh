@@ -49,6 +49,7 @@
 - **界面语言**：简体中文。
 - **AI 数字员工**：未配置 key 时走「演示模式」（内置示例回复）；提供方优先级 DeepSeek > Anthropic。DeepSeek 使用 **V4**（`deepseek-v4-flash` 默认 / `deepseek-v4-pro` 最高能力），思考模式用 `thinking` 参数控制；旧名 `deepseek-chat/reasoner`（2026-07-24 停用）在代码里自动映射到 v4-flash。
 - **AI 对话记忆**：当前仅单次会话内多轮连续，刷新/新会话即清空，无持久化。（如需长期记忆另行确认后实现）
+- **AI 员工知识库（RAG，第一期）**：每个 AI 员工有独立知识库 `lib/ai/knowledge.ts`（按 `employee_key` 隔离），聊天时按用户问题检索 top-K 拼进该员工 `system`。现为种子数据 + 关键词/二元组检索；待 Supabase 配好换 Postgres FTS/pgvector，`retrieveKnowledge` 接口不变。**绝不自动写入未经审核的对话内容**（第二期由协会审核后入库）。
 - **AI 对话框**：推理模型(reasoner)的思考过程由后端包进 `<think>…</think>`（不再逐 token 加 🧠），前端 `ChatWindow` 解析为**可折叠的「思考过程」**（思考时动画展开、出答案后收起）；出错显示「重试」卡片。对话页 `/ai/[key]` 为**沉浸式**（隐藏全站底栏，靠左上角返回键回 AI 大厅）。
 
 ## 启动方式
