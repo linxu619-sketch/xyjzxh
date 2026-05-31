@@ -2,9 +2,12 @@ import Link from "next/link";
 import { Search, PhoneCall, Filter, ChevronRight } from "lucide-react";
 import { EnterpriseShell } from "@/components/dashboard/shell";
 import { FilterBar } from "@/components/dashboard/section";
+import { StatFilters } from "@/components/dashboard/stat-filters";
 import { Badge } from "@/components/ui/badge";
 import { getSession } from "@/lib/auth/session";
 import { listLeadsByEnterprise, type LeadStatus } from "@/lib/data/leads";
+
+const FILTERABLE: LeadStatus[] = ["new", "contacting", "surveying", "signed", "lost"];
 
 export const metadata = { title: "客户线索 · 企业工作台" };
 
@@ -22,14 +25,20 @@ function fmt(ms: number) {
   return `${p(d.getMonth() + 1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}`;
 }
 
-export default async function LeadsPage() {
+export default async function LeadsPage({ searchParams }: { searchParams: Promise<{ f?: string }> }) {
+  const { f } = await searchParams;
   const session = await getSession();
-  const leads = session?.enterpriseId ? listLeadsByEnterprise(session.enterpriseId) : [];
+  const all = session?.enterpriseId ? listLeadsByEnterprise(session.enterpriseId) : [];
 
-  const total = leads.length;
-  const signed = leads.filter((l) => l.status === "signed").length;
-  const pending = leads.filter((l) => l.status === "new").length;
+  const total = all.length;
+  const signed = all.filter((l) => l.status === "signed").length;
+  const pending = all.filter((l) => l.status === "new").length;
   const rate = total ? `${((signed / total) * 100).toFixed(1)}%` : "—";
+
+  const active = f && FILTERABLE.includes(f as LeadStatus) ? (f as LeadStatus) : undefined;
+  const leads = active ? all.filter((l) => l.status === active) : all;
+  const base = "/dashboard/enterprise/leads";
+  const href = (st: LeadStatus) => (active === st ? base : `${base}?f=${st}`);
 
   return (
     <EnterpriseShell
@@ -37,19 +46,14 @@ export default async function LeadsPage() {
       subtitle={`累计 ${total} 条 · 待跟进 ${pending} 条 · 已签单 ${signed} 条`}
       actions={<button className="h-9 px-4 rounded-full bg-foreground text-background text-[13px] font-medium">导出 CSV</button>}
     >
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 mb-6">
-        {[
-          { l: "累计线索", v: total, c: "text-cat-decor" },
-          { l: "待跟进", v: pending, c: "text-cat-build" },
-          { l: "已签单", v: signed, c: "text-accent-tea" },
-          { l: "签单率", v: rate, c: "text-cat-design" },
-        ].map((s) => (
-          <div key={s.l} className="rounded-2xl border border-border bg-background p-5">
-            <div className="text-[11px] text-muted-foreground tracking-wider uppercase">{s.l}</div>
-            <div className={`mt-1 text-[28px] font-semibold tracking-tight ${s.c}`}>{s.v}</div>
-          </div>
-        ))}
-      </div>
+      <StatFilters
+        items={[
+          { key: "all", label: "累计线索", value: total, color: "text-cat-decor", href: base, active: !active },
+          { key: "new", label: "待跟进", value: pending, color: "text-cat-build", href: href("new"), active: active === "new" },
+          { key: "signed", label: "已签单", value: signed, color: "text-accent-tea", href: href("signed"), active: active === "signed" },
+          { key: "rate", label: "签单率", value: rate, color: "text-cat-design" },
+        ]}
+      />
 
       <FilterBar className="mb-3">
         <div className="flex items-center gap-2 flex-1 min-w-[200px]">
@@ -66,9 +70,12 @@ export default async function LeadsPage() {
       </FilterBar>
 
       <div className="rounded-2xl border border-border bg-background overflow-hidden">
-        <div className="px-5 py-3 border-b border-border text-[14px] font-semibold">客户线索 · 点击查看并跟进</div>
+        <div className="px-5 py-3 border-b border-border text-[14px] font-semibold flex items-center justify-between">
+          <span>客户线索 · 点击查看并跟进</span>
+          {active && <Link href={base} className="text-[12px] text-brand font-normal">清除筛选（{STATUS_LABEL[active]}）✕</Link>}
+        </div>
         {leads.length === 0 ? (
-          <div className="px-5 py-16 text-center text-[13px] text-muted-foreground">还没有客户线索。子站「提交需求」表单提交后会实时出现在这里。</div>
+          <div className="px-5 py-16 text-center text-[13px] text-muted-foreground">{active ? `没有「${STATUS_LABEL[active]}」的线索。` : "还没有客户线索。子站「提交需求」表单提交后会实时出现在这里。"}</div>
         ) : (
           <ul className="divide-y divide-border">
             {leads.map((l) => (

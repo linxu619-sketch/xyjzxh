@@ -2,10 +2,13 @@ import Link from "next/link";
 import { ChevronRight, ShieldCheck } from "lucide-react";
 import { AssociationShell } from "@/components/dashboard/shell";
 import { Badge } from "@/components/ui/badge";
+import { StatFilters } from "@/components/dashboard/stat-filters";
 import { ENTERPRISES } from "@/lib/data/enterprises";
-import { listApplications, type Application } from "@/lib/data/applications";
+import { listApplications, type Application, type AppStatus } from "@/lib/data/applications";
 
 export const metadata = { title: "会员审核 · 协会工作台" };
+
+const FILTERABLE: AppStatus[] = ["pending", "approved", "rejected"];
 
 const TYPE_LABEL = { enterprise: "企业会员", individual: "个人会员", customer: "业主" } as const;
 const TYPE_TONE = { enterprise: "build", individual: "design", customer: "decor" } as const;
@@ -16,38 +19,41 @@ function summarize(a: Application): string {
   return [p.entType || p.profession, p.region || p.city].filter(Boolean).join(" · ");
 }
 
-export default function MembersAdmin() {
+export default async function MembersAdmin({ searchParams }: { searchParams: Promise<{ f?: string }> }) {
+  const { f } = await searchParams;
   const all = listApplications();
-  const pending = all.filter((a) => a.status === "pending");
+  const active = f && FILTERABLE.includes(f as AppStatus) ? (f as AppStatus) : undefined;
+  const list = active ? all.filter((a) => a.status === active) : all;
+  const count = (st: AppStatus) => all.filter((a) => a.status === st).length;
+  const base = "/dashboard/association/members";
+  const href = (st: AppStatus) => (active === st ? base : `${base}?f=${st}`);
 
   return (
     <AssociationShell
       title="会员审核"
-      subtitle={`${pending.length} 份待审 · 已在册企业 ${ENTERPRISES.length} 家`}
+      subtitle={`${count("pending")} 份待审 · 已在册企业 ${ENTERPRISES.length} 家`}
     >
-      {/* KPI */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 mb-6">
-        {[
-          { l: "待审核", v: pending.length, c: "text-cat-decor" },
-          { l: "已通过", v: all.filter((a) => a.status === "approved").length, c: "text-accent-tea" },
-          { l: "已驳回", v: all.filter((a) => a.status === "rejected").length, c: "text-cat-design" },
-          { l: "在册企业", v: ENTERPRISES.length, c: "text-cat-build" },
-        ].map((s) => (
-          <div key={s.l} className="rounded-2xl border border-border bg-background p-5">
-            <div className="text-[11px] text-muted-foreground tracking-wider uppercase">{s.l}</div>
-            <div className={`mt-1 text-[28px] font-semibold tracking-tight ${s.c}`}>{s.v}</div>
-          </div>
-        ))}
-      </div>
+      {/* 可点统计筛选 */}
+      <StatFilters
+        items={[
+          { key: "pending", label: "待审核", value: count("pending"), color: "text-cat-decor", href: href("pending"), active: active === "pending" },
+          { key: "approved", label: "已通过", value: count("approved"), color: "text-accent-tea", href: href("approved"), active: active === "approved" },
+          { key: "rejected", label: "已驳回", value: count("rejected"), color: "text-cat-design", href: href("rejected"), active: active === "rejected" },
+          { key: "enterprises", label: "在册企业", value: ENTERPRISES.length, color: "text-cat-build", href: "/members" },
+        ]}
+      />
 
       {/* 入会申请（点整行进入详情处理）*/}
       <div className="rounded-2xl border border-border bg-background overflow-hidden">
-        <div className="px-5 py-3 border-b border-border text-[14px] font-semibold">入会申请 · 点击查看并处理</div>
-        {all.length === 0 ? (
-          <div className="px-5 py-16 text-center text-[13px] text-muted-foreground">暂无入会申请。用户在 /join → /register 提交后会出现在这里。</div>
+        <div className="px-5 py-3 border-b border-border text-[14px] font-semibold flex items-center justify-between">
+          <span>入会申请 · 点击查看并处理</span>
+          {active && <Link href={base} className="text-[12px] text-brand font-normal">清除筛选（{STATUS_LABEL[active]}）✕</Link>}
+        </div>
+        {list.length === 0 ? (
+          <div className="px-5 py-16 text-center text-[13px] text-muted-foreground">{active ? `没有「${STATUS_LABEL[active]}」的申请。` : "暂无入会申请。用户在 /join → /register 提交后会出现在这里。"}</div>
         ) : (
           <ul className="divide-y divide-border">
-            {all.map((a) => (
+            {list.map((a) => (
               <li key={a.id}>
                 <Link href={`/dashboard/association/members/${a.id}`} className="flex items-center gap-3 px-5 py-4 hover:bg-surface transition-colors">
                   <div className="flex-1 min-w-0">
