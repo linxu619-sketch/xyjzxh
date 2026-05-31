@@ -1,7 +1,7 @@
 import Link from "next/link";
 import {
   ExternalLink, Sparkles, AlertCircle, ChevronRight,
-  Phone, Eye, Camera, FileCheck2,
+  Phone, FileCheck2,
 } from "lucide-react";
 import { EnterpriseShell } from "@/components/dashboard/shell";
 import { StatCard, Panel } from "@/components/dashboard/widgets";
@@ -11,6 +11,8 @@ import { getEnterpriseBySlugOrId } from "@/lib/data/enterprises-source";
 import { listReportsByUid } from "@/lib/data/reports";
 import { listLeadsByEnterprise } from "@/lib/data/leads";
 import { listCasesByEnterprise } from "@/lib/data/cases";
+import { questionCounts } from "@/lib/ai/knowledge-source";
+import { AI_EMPLOYEES } from "@/lib/site";
 
 export const metadata = { title: "企业工作台 · 信阳市建筑装饰装修协会" };
 
@@ -39,6 +41,11 @@ export default async function EnterpriseDashboard() {
   const signedLeads = myLeads.filter((l) => l.status === "signed").length;
   const contactedLeads = myLeads.filter((l) => ["contacting", "surveying", "signed"].includes(l.status)).length;
   const surveyedLeads = myLeads.filter((l) => ["surveying", "signed"].includes(l.status)).length;
+  // 平台 AI 助手本月真实用量（来自 ai_questions 记录）
+  const monthStart = new Date(); monthStart.setDate(1); monthStart.setHours(0, 0, 0, 0);
+  const aiUsage = questionCounts(monthStart.getTime());
+  const aiName: Record<string, string> = Object.fromEntries(AI_EMPLOYEES.map((e) => [e.key, e.name]));
+  const topAi = Object.entries(aiUsage.byKey).sort((a, b) => b[1] - a[1]).slice(0, 4);
 
   return (
     <EnterpriseShell
@@ -75,9 +82,9 @@ export default async function EnterpriseDashboard() {
         </Link>
       </div>
 
-      {/* 示例数据提示 */}
-      <div className="mb-2 flex items-center gap-1.5 text-[11px] text-muted-foreground">
-        <Badge tone="yellow">示例</Badge> 本页线索 / 报备 / 案例 / 评分 / 转化漏斗为真实数据；AI 员工用量、今日工地为演示数据
+      {/* 数据说明 */}
+      <div className="mb-2 text-[11px] text-muted-foreground">
+        本页均为真实数据：线索 / 报备 / 案例 / 评分 / 转化漏斗为本企业数据，AI 用量为平台级统计。
       </div>
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
         <StatCard label="累计线索"   value={totalLeads} sub={`待跟进 ${newLeads}`} color="decor" />
@@ -186,59 +193,25 @@ export default async function EnterpriseDashboard() {
           )}
         </Panel>
 
-        {/* AI 员工本月 */}
-        <Panel title="AI 员工 · 本月">
-          <ul className="space-y-3 text-[13px]">
-            {[
-              { who: "小装", topic: "C 端咨询",    n: 812,  color: "text-cat-decor" },
-              { who: "小设", topic: "设计建议",    n: 416,  color: "text-cat-design" },
-              { who: "小经", topic: "后台答疑",    n: 92,   color: "text-cat-build" },
-            ].map((a) => (
-              <li key={a.who} className="flex items-center justify-between">
-                <span>
-                  <b>{a.who}</b>
-                  <span className="text-muted-foreground text-[11px] ml-1">· {a.topic}</span>
-                </span>
-                <span className={`font-semibold tabular-nums ${a.color}`}>{a.n}</span>
-              </li>
-            ))}
-          </ul>
-          <div className="mt-4 pt-4 border-t border-border flex items-center justify-between text-[12px]">
-            <span className="text-muted-foreground">本月用量</span>
-            <span className="font-semibold tabular-nums">1,320 / 1,000 次</span>
-          </div>
-          <Link href="/dashboard/enterprise/ai" className="mt-2 inline-flex items-center gap-1 text-[12px] text-brand">
+        {/* AI 助手本月（平台级真实统计） */}
+        <Panel title="AI 助手 · 本月">
+          <div className="text-[34px] font-semibold tracking-tight leading-none text-cat-design">{aiUsage.total}</div>
+          <div className="mt-1 text-[12px] text-muted-foreground">本月 AI 咨询次数 · 平台级统计</div>
+          {topAi.length > 0 ? (
+            <ul className="mt-4 space-y-2.5 text-[13px]">
+              {topAi.map(([k, n]) => (
+                <li key={k} className="flex items-center justify-between">
+                  <span><b>{aiName[k] ?? k}</b></span>
+                  <span className="font-semibold tabular-nums text-cat-design">{n}</span>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <div className="mt-4 text-[12px] text-muted-foreground">本月暂无 AI 咨询记录。访客在 AI 估价 / 咨询中提问后这里累计。</div>
+          )}
+          <Link href="/dashboard/enterprise/ai" className="mt-4 inline-flex items-center gap-1 text-[12px] text-brand">
             <Sparkles className="h-3 w-3" /> 配置专属 AI →
           </Link>
-        </Panel>
-
-        {/* 现场速览 */}
-        <Panel
-          title="今日施工 · 6 工地"
-          className="lg:col-span-3"
-          action={
-            <Link href="/dashboard/enterprise/orders" className="text-[12px] text-brand">查看 → </Link>
-          }
-        >
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
-            {[
-              { p: "金茂悦府 1602",  workers: 6, photos: 14, status: "进行中" },
-              { p: "茶都商务 22F",   workers: 12, photos: 26, status: "进行中" },
-              { p: "万象城海底捞",   workers: 8, photos: 18, status: "进行中" },
-              { p: "南湖一号 402",   workers: 4, photos: 8, status: "进行中" },
-              { p: "御景湾 801",     workers: 5, photos: 12, status: "进行中" },
-              { p: "弦山街 A 栋",    workers: 3, photos: 6, status: "已停工" },
-            ].map((s, i) => (
-              <div key={i} className="rounded-2xl border border-border bg-background p-3">
-                <div className="aspect-video rounded-xl bg-gradient-to-br from-cat-decor/30 to-surface mb-2" />
-                <div className="text-[12px] font-semibold truncate">{s.p}</div>
-                <div className="text-[10px] text-muted-foreground mt-0.5 inline-flex items-center gap-2">
-                  <span className="inline-flex items-center gap-0.5"><Eye className="h-2.5 w-2.5" /> {s.workers}人</span>
-                  <span className="inline-flex items-center gap-0.5"><Camera className="h-2.5 w-2.5" /> {s.photos}</span>
-                </div>
-              </div>
-            ))}
-          </div>
         </Panel>
       </div>
     </EnterpriseShell>

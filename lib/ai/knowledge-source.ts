@@ -117,6 +117,21 @@ export function logQuestion(employeeKey: string, question: string) {
   }
 }
 
+// 统计某时间点以来的提问数（总数 + 按员工）——用于真实 AI 用量展示
+export function questionCounts(sinceMs: number): { total: number; byKey: Record<string, number> } {
+  try {
+    const rows = getDb()
+      .prepare("SELECT employee_key AS k, COUNT(*) AS c FROM ai_questions WHERE created_at >= ? GROUP BY employee_key")
+      .all(sinceMs) as { k: string; c: number }[];
+    const byKey: Record<string, number> = {};
+    let total = 0;
+    for (const r of rows) { byKey[r.k] = r.c; total += r.c; }
+    return { total, byKey };
+  } catch {
+    return { total: 0, byKey: {} };
+  }
+}
+
 // 后台用：某员工近期去重提问
 export function recentQuestions(employeeKey: string, limit = 15): string[] {
   try {
