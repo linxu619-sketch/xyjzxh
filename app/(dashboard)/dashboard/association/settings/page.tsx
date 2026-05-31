@@ -8,7 +8,6 @@ import { Badge } from "@/components/ui/badge";
 import { SITE } from "@/lib/site";
 import { readRuntimeSettings, maskSecret } from "@/lib/runtime-config";
 import { activeProvider } from "@/lib/ai/chat";
-import { isSupabaseConfigured } from "@/lib/supabase/config";
 import { SettingsForm } from "./SettingsForm";
 import { TestRegulator, TestEqianbao } from "./IntegrationTests";
 
@@ -19,17 +18,12 @@ export default async function SystemSettings() {
   const platform = settings.platform ?? {};
   const ai = settings.ai ?? {};
   const sec = settings.security ?? {};
-  const sb = settings.supabase ?? {};
   const eq = settings.e_qianbao ?? {};
   const reg = settings.regulator ?? {};
   const esign = settings.esign ?? {};
   const provider = await activeProvider();
-  const sbConfigured = await isSupabaseConfigured();
 
   const hasDsKey = !!ai.deepseekApiKey;
-  const hasAntKey = !!ai.anthropicApiKey;
-  const hasSbAnon = !!sb.anonKey;
-  const hasSbSvc  = !!sb.serviceRoleKey;
   const hasEqKey  = !!eq.appKey;
   const hasProvKey = !!reg.provincialApiKey;
   const hasCityKey = !!reg.cityApiKey;
@@ -162,7 +156,6 @@ export default async function SystemSettings() {
                 <select name="ai.provider" defaultValue={ai.provider ?? "auto"} className="h-11 rounded-xl border border-border px-3 text-[14px]">
                   <option value="auto">自动 (推荐)</option>
                   <option value="deepseek">强制 DeepSeek</option>
-                  <option value="anthropic">强制 Anthropic Claude</option>
                 </select>
               </FormRow>
 
@@ -196,62 +189,12 @@ export default async function SystemSettings() {
                 <Input name="ai.deepseekBaseUrl" defaultValue={ai.deepseekBaseUrl} placeholder="https://api.deepseek.com" />
               </FormRow>
 
+              {/* 数据库：本地 SQLite，无需配置 */}
               <FormRow
-                label="Anthropic API Key（备用）"
-                hint={
-                  <>
-                    Claude Sonnet 4.6 · DeepSeek 不可用时降级使用。
-                    {hasAntKey && <> 当前：<code className="font-mono text-accent-tea">{maskSecret(ai.anthropicApiKey)}</code></>}
-                  </>
-                }
+                label={<span className="inline-flex items-center gap-1.5"><Database className="h-3.5 w-3.5 text-accent-tea" /> 数据库</span>}
+                hint="本平台使用本地 SQLite（零配置，数据文件 data/app.db），无需填写任何连接信息；将来上线多人访问时再迁移到服务器数据库。"
               >
-                <Input
-                  name="ai.anthropicApiKey"
-                  type="password"
-                  placeholder={hasAntKey ? "已配置 · 留空保持不变" : "sk-ant-..."}
-                  autoComplete="off"
-                />
-              </FormRow>
-
-              {/* Supabase */}
-              <FormRow
-                label={<span className="inline-flex items-center gap-1.5"><Database className="h-3.5 w-3.5 text-accent-tea" /> Supabase（数据库）</span>}
-                hint={
-                  <>
-                    后端持久化存储 · 留空将继续使用 mock 数据。{" "}
-                    <a href="https://supabase.com/dashboard/projects" target="_blank" rel="noopener" className="text-brand underline inline-flex items-center gap-0.5">
-                      去创建项目 <ExternalLink className="h-2.5 w-2.5" />
-                    </a>
-                  </>
-                }
-              >
-                <div className="space-y-2">
-                  <Input
-                    name="supabase.url"
-                    defaultValue={sb.url}
-                    placeholder="https://xxxxxxxxxxxx.supabase.co"
-                  />
-                  <Input
-                    name="supabase.anonKey"
-                    type="password"
-                    placeholder={hasSbAnon ? "anon key 已配置 · 留空保持不变" : "anon (public) key"}
-                    autoComplete="off"
-                  />
-                  <Input
-                    name="supabase.serviceRoleKey"
-                    type="password"
-                    placeholder={hasSbSvc ? "service_role key 已配置 · 留空保持不变" : "service_role key（敏感 · 仅写入用）"}
-                    autoComplete="off"
-                  />
-                  <div className="mt-1 inline-flex items-center gap-1.5 text-[11px]">
-                    {sbConfigured ? (
-                      <Badge tone="tea"><Database className="h-2.5 w-2.5 mr-1 inline" /> 已配置</Badge>
-                    ) : (
-                      <Badge tone="yellow"><Database className="h-2.5 w-2.5 mr-1 inline" /> 未配置 · 走 mock</Badge>
-                    )}
-                    <span className="text-muted-foreground">保存后访问 /members 看顶部数据源徽章</span>
-                  </div>
-                </div>
+                <Badge tone="tea"><Database className="h-2.5 w-2.5 mr-1 inline" /> 本地 SQLite · 已就绪</Badge>
               </FormRow>
 
               <FormRow
@@ -371,7 +314,7 @@ export default async function SystemSettings() {
             {/* 数据 / 备份 */}
             <SettingsCard title="数据 / 备份">
               <div id="data" />
-              <FormRow label="数据库类型"><Input defaultValue="Supabase Postgres 15 (生产) / Mock (当前)" /></FormRow>
+              <FormRow label="数据库类型"><Input defaultValue="本地 SQLite（data/app.db）" /></FormRow>
               <FormRow label="每日自动备份"><div className="flex items-center justify-between"><span className="text-[13px]">每天 03:00 全量 + 增量</span><Toggle defaultChecked /></div></FormRow>
               <FormRow label="备份保留天数"><Input defaultValue="30" /></FormRow>
               <FormRow label="导出数据"><div className="flex flex-wrap gap-2">

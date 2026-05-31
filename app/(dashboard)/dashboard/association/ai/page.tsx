@@ -4,9 +4,15 @@ import { AssociationShell } from "@/components/dashboard/shell";
 import { SettingsCard, Toggle, FormRow } from "@/components/dashboard/section";
 import { AI_EMPLOYEES } from "@/lib/site";
 import { AI_PROMPTS } from "@/lib/ai/prompts";
+import { readRuntimeSettings } from "@/lib/runtime-config";
 import { cn } from "@/lib/cn";
 
 export const metadata = { title: "AI 配置 · 协会工作台" };
+
+const LEGACY_TO_V4: Record<string, string> = {
+  "deepseek-chat": "deepseek-v4-flash",
+  "deepseek-reasoner": "deepseek-v4-flash",
+};
 
 const GRAD: Record<string, string> = {
   brand: "from-brand to-brand-600",
@@ -25,7 +31,10 @@ const USAGE = {
   mediate: { d: 47, m: 1410 }, biz: { d: 304, m: 9120 },
 };
 
-export default function AiAdmin() {
+export default async function AiAdmin() {
+  const aiCfg = (await readRuntimeSettings()).ai ?? {};
+  const rawModel = aiCfg.deepseekModel || "deepseek-v4-flash";
+  const model = LEGACY_TO_V4[rawModel] ?? rawModel;
   return (
     <AssociationShell
       title="AI 员工配置"
@@ -74,7 +83,7 @@ export default function AiAdmin() {
                 </details>
               )}
               <div className="px-5 py-3 border-t border-border flex items-center justify-between text-[12px]">
-                <span className="text-muted-foreground">模型：claude-sonnet-4-6</span>
+                <span className="text-muted-foreground">模型：{model}</span>
                 <button className="text-brand font-medium inline-flex items-center gap-1">
                   <MessageCircle className="h-3 w-3" /> 试聊
                 </button>

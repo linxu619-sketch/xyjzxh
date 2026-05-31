@@ -24,9 +24,8 @@ export async function saveSettingsAction(
   try {
     const patch: RuntimeSettings = {
       ai: {
-        provider: pickEnum(fd, "ai.provider", ["auto", "deepseek", "anthropic"]),
+        provider: pickEnum(fd, "ai.provider", ["auto", "deepseek"]),
         deepseekModel: pickString(fd, "ai.deepseekModel"),
-        anthropicModel: pickString(fd, "ai.anthropicModel"),
         deepseekBaseUrl: pickString(fd, "ai.deepseekBaseUrl"),
       },
       platform: {
@@ -46,9 +45,6 @@ export async function saveSettingsAction(
         sessionTtlDays:   pickInt(fd, "security.sessionTtlDays"),
         ipWhitelist:      pickString(fd, "security.ipWhitelist"),
       },
-      supabase: {
-        url:     pickString(fd, "supabase.url"),
-      },
       esign: {
         provider: pickEnum(fd, "esign.provider", ["native", "e_qianbao", "demo"]),
       },
@@ -67,12 +63,6 @@ export async function saveSettingsAction(
     // 仅在用户重新填写时覆盖 key
     const dsKey = String(fd.get("ai.deepseekApiKey") || "").trim();
     if (dsKey) patch.ai = { ...patch.ai, deepseekApiKey: dsKey };
-    const antKey = String(fd.get("ai.anthropicApiKey") || "").trim();
-    if (antKey) patch.ai = { ...patch.ai, anthropicApiKey: antKey };
-    const sbAnon = String(fd.get("supabase.anonKey") || "").trim();
-    if (sbAnon) patch.supabase = { ...patch.supabase, anonKey: sbAnon };
-    const sbSvc = String(fd.get("supabase.serviceRoleKey") || "").trim();
-    if (sbSvc) patch.supabase = { ...patch.supabase, serviceRoleKey: sbSvc };
     const eqKey = String(fd.get("e_qianbao.appKey") || "").trim();
     if (eqKey) patch.e_qianbao = { ...patch.e_qianbao, appKey: eqKey };
     const provKey = String(fd.get("regulator.provincialApiKey") || "").trim();
