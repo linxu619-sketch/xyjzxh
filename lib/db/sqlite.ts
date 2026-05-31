@@ -72,6 +72,7 @@ CREATE INDEX IF NOT EXISTS idx_applications_status ON applications(status, creat
 
 CREATE TABLE IF NOT EXISTS project_reports (
   id          INTEGER PRIMARY KEY AUTOINCREMENT,
+  uid         TEXT,
   code        TEXT,
   project     TEXT,
   type        TEXT,
@@ -193,6 +194,7 @@ function migrate(db: DB) {
     "ALTER TABLE insurance_orders ADD COLUMN uid TEXT",
     "ALTER TABLE mediations ADD COLUMN uid TEXT",
     "ALTER TABLE reviews ADD COLUMN uid TEXT",
+    "ALTER TABLE project_reports ADD COLUMN uid TEXT",
   ];
   for (const sql of alters) {
     try { db.exec(sql); } catch { /* 列已存在，忽略 */ }

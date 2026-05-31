@@ -57,21 +57,27 @@ function rowTo(r: Row): ProjectReport {
   };
 }
 
-export function createReport(input: ReportInput): { id: number; code: string } {
+export function createReport(input: ReportInput, uid?: string): { id: number; code: string } {
   const db = getDb();
   const info = db
     .prepare(
-      `INSERT INTO project_reports (code, project, type, enterprise, area, budget, manager, phone, payload, status, created_at)
-       VALUES ('', ?, ?, ?, ?, ?, ?, ?, ?, 'pending', ?)`,
+      `INSERT INTO project_reports (uid, code, project, type, enterprise, area, budget, manager, phone, payload, status, created_at)
+       VALUES (?, '', ?, ?, ?, ?, ?, ?, ?, ?, 'pending', ?)`,
     )
     .run(
-      input.projectName, input.projectType, input.company, input.area, input.budget,
+      uid ?? null, input.projectName, input.projectType, input.company, input.area, input.budget,
       input.manager, input.managerPhone, JSON.stringify(input), Date.now(),
     );
   const id = Number(info.lastInsertRowid);
   const code = `P-2026-${String(1000 + id).padStart(4, "0")}`;
   db.prepare("UPDATE project_reports SET code = ? WHERE id = ?").run(code, id);
   return { id, code };
+}
+
+export function listReportsByUid(uid: string): ProjectReport[] {
+  if (!uid) return [];
+  const rows = getDb().prepare("SELECT * FROM project_reports WHERE uid = ? ORDER BY created_at DESC").all(uid) as Row[];
+  return rows.map(rowTo);
 }
 
 export function listReports(status?: ReportStatus): ProjectReport[] {

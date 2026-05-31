@@ -4,12 +4,17 @@ import { EnterpriseShell } from "@/components/dashboard/shell";
 import { FilterBar, DataTable } from "@/components/dashboard/section";
 import { Badge } from "@/components/ui/badge";
 import { PROJECTS, STATUS_META } from "@/lib/data/projects";
+import { getSession } from "@/lib/auth/session";
+import { listReportsByUid } from "@/lib/data/reports";
 
 export const metadata = { title: "项目与报备 · 企业工作台" };
 
 const TYPE_TONE = { 家装: "decor", 工装: "build", 公装: "design", 市政: "tea" } as const;
+const RPT_STATUS: Record<string, string> = { pending: "待审核", approved: "已通过", rejected: "已驳回" };
 
-export default function ProjectsPage() {
+export default async function ProjectsPage() {
+  const session = await getSession();
+  const myReports = session ? listReportsByUid(session.uid) : [];
   return (
     <EnterpriseShell
       title="项目与报备"
@@ -32,6 +37,30 @@ export default function ProjectsPage() {
             <div className={`mt-1 text-[28px] font-semibold tracking-tight ${s.c}`}>{s.v}</div>
           </div>
         ))}
+      </div>
+
+      {/* 我提交的报备（实时，本企业账号） */}
+      <div className="rounded-2xl border border-border bg-background overflow-hidden mb-6">
+        <div className="px-5 py-3 border-b border-border flex items-center justify-between">
+          <div className="text-[14px] font-semibold">我提交的报备（实时）</div>
+          <Badge tone={myReports.length ? "build" : "tea"}>{myReports.length} 条</Badge>
+        </div>
+        {myReports.length === 0 ? (
+          <div className="px-5 py-8 text-center text-[13px] text-muted-foreground">
+            还没有在线报备。点右上「新建报备」走一遍 <Link href="/projects/new" className="text-brand">/projects/new</Link>，提交后会出现在这里。
+          </div>
+        ) : (
+          <div className="divide-y divide-border">
+            {myReports.map((r) => (
+              <div key={r.id} className="px-5 py-3.5 flex items-center gap-3 text-[13px]">
+                <code className="text-[12px] font-mono text-muted-foreground shrink-0">{r.code}</code>
+                <span className="font-medium truncate flex-1">{r.project}</span>
+                <span className="text-muted-foreground shrink-0 hidden sm:inline">{r.area || "—"}㎡ · {r.budget || "—"}万</span>
+                <Badge tone={r.status === "approved" ? "tea" : r.status === "rejected" ? "decor" : "yellow"}>{RPT_STATUS[r.status] ?? r.status}</Badge>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
       <FilterBar className="mb-3">
