@@ -110,6 +110,25 @@ export function createEnterpriseFromApplication(app: {
   );
 }
 
+// 企业自助编辑子站资料 → 写回 enterprises 表（子站随即生效）
+export function updateEnterpriseProfile(id: string, f: {
+  name: string; brand: string; tagline: string; short: string; tel: string; addr: string; tags: string[];
+}): boolean {
+  const db = getDb();
+  if (!db.prepare("SELECT 1 FROM enterprises WHERE id = ?").get(id)) return false;
+  db.prepare(
+    "UPDATE enterprises SET name = ?, short = ?, hero = ?, contact = ?, tags = ? WHERE id = ?",
+  ).run(
+    f.name,
+    f.short,
+    JSON.stringify({ brand: f.brand, tagline: f.tagline }),
+    JSON.stringify({ tel: f.tel, addr: f.addr }),
+    JSON.stringify(f.tags),
+    id,
+  );
+  return true;
+}
+
 export async function getEnterpriseBySlugOrId(key: string): Promise<Enterprise | undefined> {
   try {
     const row = getDb()
