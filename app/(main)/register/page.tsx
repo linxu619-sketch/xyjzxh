@@ -1,9 +1,11 @@
 import Link from "next/link";
 import { Container } from "@/components/container";
 import { ROLE_META, type Role } from "@/lib/auth";
-import { Building2, UserRound, ArrowRight, ShieldCheck, CheckCircle2, HardHat, FileText, Upload, PenLine } from "lucide-react";
+import { Building2, UserRound, ShieldCheck, CheckCircle2, HardHat } from "lucide-react";
 import { requiredAgreementsFor, type AgreementTarget } from "@/lib/data/agreements";
 import { submitApplicationAction } from "./actions";
+import { UploadSlots } from "./UploadSlots";
+import { RegisterAgreements } from "./RegisterAgreements";
 
 export const metadata = { title: "注册 · 信阳市建筑装饰装修协会" };
 
@@ -16,7 +18,7 @@ export default async function RegisterPage({ searchParams }: { searchParams: Pro
   const meta = ROLE_META[role];
 
   const target: AgreementTarget = role as AgreementTarget;
-  const requiredCount = requiredAgreementsFor(target).length;
+  const templates = requiredAgreementsFor(target).map((t) => ({ id: t.id, title: t.title, version: t.version }));
   const hasAgreed = agreed === "1";
   // 入会语境：只在「企业会员 / 个人会员」之间选择；业主属于消费者门户，不出现在入会里
   const isMember = role === "enterprise" || role === "practitioner";
@@ -94,38 +96,6 @@ export default async function RegisterPage({ searchParams }: { searchParams: Pro
           : meta.desc}
       </p>
 
-      {/* 协议签署 banner */}
-      <Link
-        href={`/register/agreements?role=${role}`}
-        className={`mt-5 block rounded-2xl p-4 border-2 active:scale-[0.99] transition-transform ${
-          hasAgreed
-            ? "bg-[#e6f7f1] border-accent-tea/30"
-            : "bg-cat-decor-soft border-cat-decor/30"
-        }`}
-      >
-        <div className="flex items-center gap-3">
-          {hasAgreed ? (
-            <CheckCircle2 className="h-6 w-6 text-accent-tea shrink-0" />
-          ) : (
-            <FileText className="h-6 w-6 text-cat-decor shrink-0" />
-          )}
-          <div className="flex-1 min-w-0">
-            <div className={`text-[13px] font-semibold ${hasAgreed ? "text-accent-tea" : "text-cat-decor"}`}>
-              {hasAgreed
-                ? `已签 ${requiredCount} 份协议 · 可以提交`
-                : `需先签署 ${requiredCount} 份必签协议（按法规要求）`}
-            </div>
-            <div className="text-[11px] text-muted-foreground mt-0.5">
-              {hasAgreed ? "存证号 ESB-2026-... 可在我的协议查看" : "入会协议 + 隐私政策 + 数据授权等 · 逐份阅读 + 单独勾选重点条款"}
-            </div>
-          </div>
-          <span className={`shrink-0 inline-flex items-center gap-1 h-9 px-3.5 rounded-full text-[12px] font-medium text-white ${hasAgreed ? "bg-accent-tea" : "bg-cat-decor"}`}>
-            {hasAgreed ? "查看协议" : (<><PenLine className="h-3.5 w-3.5" /> 去逐份签署</>)}
-            <ArrowRight className="h-3.5 w-3.5" />
-          </span>
-        </div>
-      </Link>
-
       <form action={submitApplicationAction} className="mt-6 md:mt-8 space-y-5 rounded-3xl border border-border bg-background p-5 md:p-8">
         <input type="hidden" name="role" value={role} />
         {role === "enterprise" ? (
@@ -161,21 +131,13 @@ export default async function RegisterPage({ searchParams }: { searchParams: Pro
               <Field label="短信验证码" required><input name="smsCode" className="form-input" placeholder="6 位" /></Field>
               <Field label="主营地区"><input name="region" className="form-input" placeholder="如 浉河区" /></Field>
             </Row>
-            <Field label="资质材料上传" hint="提交后由协会秘书处人工审核，1-3 个工作日。支持 JPG/PNG/PDF。">
-              <div className="space-y-2.5">
-                {[
-                  { name: "doc_license", label: "营业执照副本", required: true },
-                  { name: "doc_idcard", label: "法人身份证（正反面）", required: true },
-                  { name: "doc_qual", label: "建筑 / 装饰装修 / 设计 资质证书", required: true },
-                  { name: "doc_perf", label: "近 2 年代表项目业绩（可选）" },
-                ].map((d) => (
-                  <label key={d.name} className="flex items-center gap-3 rounded-xl border border-border p-3 hover:border-foreground/30 cursor-pointer transition-colors">
-                    <span className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-surface text-muted-foreground shrink-0"><Upload className="h-4 w-4" /></span>
-                    <span className="text-[13px] flex-1 min-w-0">{d.label}{d.required && <span className="text-cat-decor ml-0.5">*</span>}</span>
-                    <input type="file" name={d.name} accept="image/*,.pdf" className="text-[11px] text-muted-foreground max-w-[150px] file:mr-2 file:rounded-full file:border-0 file:bg-foreground file:text-background file:px-3 file:py-1 file:text-[11px] file:cursor-pointer" />
-                  </label>
-                ))}
-              </div>
+            <Field label="资质材料上传" hint="提交后由协会秘书处人工审核，1-3 个工作日。支持 JPG/PNG/PDF；选择后可预览。">
+              <UploadSlots docs={[
+                { name: "doc_license", label: "营业执照副本", required: true },
+                { name: "doc_idcard", label: "法人身份证（正反面）", required: true },
+                { name: "doc_qual", label: "建筑 / 装饰装修 / 设计 资质证书", required: true },
+                { name: "doc_perf", label: "近 2 年代表项目业绩（可选）" },
+              ]} />
             </Field>
           </>
         ) : role === "practitioner" ? (
@@ -202,20 +164,12 @@ export default async function RegisterPage({ searchParams }: { searchParams: Pro
               <Field label="身份证号" required><input name="idcard" className="form-input" placeholder="18 位"  /></Field>
               <Field label="工龄"><input name="years" type="number" inputMode="numeric" className="form-input" placeholder="例：8" /></Field>
             </Row>
-            <Field label="资格证书上传" hint="设计师证 / 二建 / 监理 / 安全员等，支持多张。提交后协会审核认定。">
-              <div className="space-y-2.5">
-                {[
-                  { name: "cert_main", label: "主项资格证书（如二建 / 设计师证）", required: true },
-                  { name: "cert_idcard", label: "本人身份证（正反面）", required: true },
-                  { name: "cert_works", label: "代表作品 / 项目证明（设计师建议）" },
-                ].map((d) => (
-                  <label key={d.name} className="flex items-center gap-3 rounded-xl border border-border p-3 hover:border-foreground/30 cursor-pointer transition-colors">
-                    <span className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-surface text-muted-foreground shrink-0"><Upload className="h-4 w-4" /></span>
-                    <span className="text-[13px] flex-1 min-w-0">{d.label}{d.required && <span className="text-cat-decor ml-0.5">*</span>}</span>
-                    <input type="file" name={d.name} accept="image/*,.pdf" className="text-[11px] text-muted-foreground max-w-[150px] file:mr-2 file:rounded-full file:border-0 file:bg-foreground file:text-background file:px-3 file:py-1 file:text-[11px] file:cursor-pointer" />
-                  </label>
-                ))}
-              </div>
+            <Field label="资格证书上传" hint="设计师证 / 二建 / 监理 / 安全员等。提交后协会审核认定；选择后可预览。">
+              <UploadSlots docs={[
+                { name: "cert_main", label: "主项资格证书（如二建 / 设计师证）", required: true },
+                { name: "cert_idcard", label: "本人身份证（正反面）", required: true },
+                { name: "cert_works", label: "代表作品 / 项目证明（设计师建议）" },
+              ]} />
             </Field>
           </>
         ) : (
@@ -240,20 +194,7 @@ export default async function RegisterPage({ searchParams }: { searchParams: Pro
           </>
         )}
 
-        <button
-          type="submit"
-          disabled={!hasAgreed}
-          className={`h-12 w-full rounded-full font-medium inline-flex items-center justify-center gap-2 transition-all ${
-            hasAgreed
-              ? "bg-foreground text-background hover:bg-brand active:scale-[0.99]"
-              : "bg-muted/30 text-muted-foreground cursor-not-allowed"
-          }`}
-        >
-          {hasAgreed
-            ? (role === "customer" ? "完成注册" : "提交入会申请")
-            : `请先签署 ${requiredCount} 份必签协议`}
-          {hasAgreed && <ArrowRight className="h-4 w-4" />}
-        </button>
+        <RegisterAgreements role={role} agreements={templates} isCustomer={role === "customer"} />
 
         <div className="text-[12px] text-muted-foreground text-center">
           已有账号？<Link href={`/login?role=${role}`} className="text-brand">立即登录</Link>
