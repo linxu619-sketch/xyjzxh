@@ -2,8 +2,9 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { ArrowLeft, Send, Sparkles, RefreshCw, Square, Brain, Loader2, AlertCircle } from "lucide-react";
+import { ArrowLeft, Send, Sparkles, RefreshCw, Square, Brain, Loader2, AlertCircle, PhoneCall, CheckCircle2, X } from "lucide-react";
 import { Container } from "@/components/container";
+import { submitAiLeadAction } from "./actions";
 import { cn } from "@/lib/cn";
 
 type Msg = { role: "user" | "assistant"; content: string };
@@ -56,18 +57,44 @@ export function ChatWindow({
   color,
   emoji,
   initialUserMessage,
+  enterpriseId,
+  enterpriseName,
 }: {
   aiKey: string;
   ai: { name: string; role: string; greeting: string; suggested: string[] };
   color: string;
   emoji: string;
   initialUserMessage?: string | null;
+  enterpriseId?: string;
+  enterpriseName?: string;
 }) {
   const [messages, setMessages] = useState<Msg[]>([
     { role: "assistant", content: ai.greeting },
   ]);
   const [input, setInput] = useState("");
   const [pending, setPending] = useState(false);
+  // 「把需求发给企业」留资
+  const [leadOpen, setLeadOpen] = useState(false);
+  const [leadName, setLeadName] = useState("");
+  const [leadPhone, setLeadPhone] = useState("");
+  const [leadBusy, setLeadBusy] = useState(false);
+  const [leadSent, setLeadSent] = useState(false);
+  const [leadErr, setLeadErr] = useState("");
+
+  async function sendLead() {
+    if (!enterpriseId) return;
+    setLeadErr(""); setLeadBusy(true);
+    const note = [...messages].reverse().find((m) => m.role === "user")?.content ?? "AI 估价咨询";
+    try {
+      const r = await submitAiLeadAction({ enterpriseId, name: leadName, phone: leadPhone, note });
+      if (r.ok) { setLeadSent(true); setLeadOpen(false); }
+      else setLeadErr(r.error ?? "提交失败");
+    } catch {
+      setLeadErr("提交失败，请重试");
+    } finally {
+      setLeadBusy(false);
+    }
+  }
   const endRef = useRef<HTMLDivElement>(null);
   const taRef = useRef<HTMLTextAreaElement>(null);
   const abortRef = useRef<AbortController | null>(null);
@@ -323,6 +350,35 @@ export function ChatWindow({
       {/* 输入栏 — 适配移动安全区 */}
       <div className="border-t border-border bg-background sticky bottom-0 pb-[env(safe-area-inset-bottom)]">
         <Container className="max-w-3xl">
+          {/* 把需求发给企业（仅来自企业入口、且已对话） */}
+          {enterpriseId && messages.length > 1 && (
+            leadSent ? (
+              <div className="mt-3 rounded-2xl border border-accent-tea/30 bg-[#e6f7f1] text-accent-tea px-4 py-2.5 text-[13px] inline-flex items-center gap-2">
+                <CheckCircle2 className="h-4 w-4 shrink-0" /> 已把需求发给{enterpriseName ?? "该企业"}，请留意回电。
+              </div>
+            ) : leadOpen ? (
+              <div className="mt-3 rounded-2xl border border-border bg-surface/50 p-3">
+                <div className="flex items-center justify-between mb-2">
+                  <div className="text-[12px] font-medium inline-flex items-center gap-1.5"><PhoneCall className="h-3.5 w-3.5 text-cat-decor" /> 把需求发给{enterpriseName ?? "该企业"} · 让他们回电</div>
+                  <button onClick={() => setLeadOpen(false)} className="h-6 w-6 rounded-full hover:bg-surface inline-flex items-center justify-center text-muted-foreground" aria-label="关闭"><X className="h-3.5 w-3.5" /></button>
+                </div>
+                <div className="flex flex-col sm:flex-row gap-2">
+                  <input value={leadName} onChange={(e) => setLeadName(e.target.value)} placeholder="您的称呼" className="sm:w-[130px] h-10 rounded-xl border border-border bg-background px-3 text-[13px] outline-none focus:border-foreground/30" />
+                  <input value={leadPhone} onChange={(e) => setLeadPhone(e.target.value)} inputMode="numeric" placeholder="11 位手机号" className="flex-1 h-10 rounded-xl border border-border bg-background px-3 text-[13px] outline-none focus:border-foreground/30" />
+                  <button onClick={sendLead} disabled={leadBusy} className="h-10 px-4 rounded-xl bg-accent-tea text-white text-[13px] font-medium inline-flex items-center justify-center gap-1.5 disabled:opacity-60 shrink-0">
+                    {leadBusy ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Send className="h-3.5 w-3.5" />} 发送
+                  </button>
+                </div>
+                {leadErr && <div className="mt-1.5 text-[11px] text-cat-decor">{leadErr}</div>}
+                <div className="mt-1.5 text-[10px] text-muted-foreground">将把本次咨询要点 + 您的联系方式发给企业，仅该企业可见。</div>
+              </div>
+            ) : (
+              <button onClick={() => setLeadOpen(true)} className="mt-3 inline-flex items-center gap-1.5 h-9 px-4 rounded-full bg-foreground text-background text-[12px] font-medium active:scale-95 transition-transform">
+                <PhoneCall className="h-3.5 w-3.5" /> 把需求发给{enterpriseName ?? "该企业"} · 让他们回电
+              </button>
+            )
+          )}
+
           <form
             onSubmit={(e) => { e.preventDefault(); send(input); }}
             className="pt-3 pb-2 flex items-end gap-2"

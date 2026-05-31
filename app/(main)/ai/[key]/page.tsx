@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { AI_PROMPTS } from "@/lib/ai/prompts";
 import { AI_EMPLOYEES } from "@/lib/site";
+import { getEnterpriseBySlugOrId } from "@/lib/data/enterprises-source";
 import { ChatWindow } from "./ChatWindow";
 
 // Static export — 编译期不能预设 searchParams，所以这里只产出 key
@@ -58,6 +59,10 @@ export default async function AiChatPage({
   const sp = await searchParams;
   const initialUserMessage = buildOpener(key, sp);
 
+  // 从子站/估价入口带来的企业 → 对话后可一键把需求发给该企业（生成线索）
+  const entKey = typeof sp.enterprise === "string" ? sp.enterprise : "";
+  const ent = entKey ? await getEnterpriseBySlugOrId(entKey) : undefined;
+
   return (
     <ChatWindow
       aiKey={key}
@@ -65,6 +70,8 @@ export default async function AiChatPage({
       color={meta.color}
       emoji={meta.emoji}
       initialUserMessage={initialUserMessage}
+      enterpriseId={ent?.id}
+      enterpriseName={ent?.hero.brand ?? ent?.name}
     />
   );
 }
