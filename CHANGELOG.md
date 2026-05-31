@@ -14,6 +14,14 @@
 
 ---
 
+## [0.12.0] - 2026-05-31
+
+### 新增（入会/注册申请真实持久化）
+- 新增 `applications` 表 + `lib/data/applications.ts`（create/list/count/setStatus）。
+- `/register` 表单从 `action="#"`（不保存）改为真实提交：所有字段补 `name`、接 `submitApplicationAction` 写库，提交后显示「已提交，等待审核」成功页。
+- 协会后台「会员审核」新增**「在线提交的入会申请（实时）」**区：列出真实待审申请，**通过/驳回**按钮真改状态（`reviewApplicationAction`，含权限校验 + revalidate）。
+- 实测：表单带 name+action 渲染、成功页、入库、后台显示与审核按钮均正常。
+
 ## [0.11.0] - 2026-05-31
 
 ### 新增（AI 从工作中学习 · 第二期-b）

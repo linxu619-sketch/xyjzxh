@@ -58,6 +58,17 @@ CREATE TABLE IF NOT EXISTS ai_questions (
   created_at   INTEGER
 );
 CREATE INDEX IF NOT EXISTS idx_ai_questions_emp ON ai_questions(employee_key, created_at);
+
+CREATE TABLE IF NOT EXISTS applications (
+  id          INTEGER PRIMARY KEY AUTOINCREMENT,
+  type        TEXT,    -- enterprise | individual | customer
+  applicant   TEXT,    -- 企业名 / 姓名 / 称呼
+  phone       TEXT,
+  payload     TEXT,    -- JSON 其余字段
+  status      TEXT DEFAULT 'pending', -- pending | approved | rejected
+  created_at  INTEGER
+);
+CREATE INDEX IF NOT EXISTS idx_applications_status ON applications(status, created_at);
 `;
 
 function seedEnterprises(db: DB) {

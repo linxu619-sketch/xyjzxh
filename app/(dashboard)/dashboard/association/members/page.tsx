@@ -4,8 +4,19 @@ import { AssociationShell } from "@/components/dashboard/shell";
 import { FilterBar, DataTable } from "@/components/dashboard/section";
 import { Badge } from "@/components/ui/badge";
 import { ENTERPRISES } from "@/lib/data/enterprises";
+import { listApplications, type Application } from "@/lib/data/applications";
+import { reviewApplicationAction } from "./actions";
 
 export const metadata = { title: "会员审核 · 协会工作台" };
+
+const APP_TYPE = { enterprise: "企业会员", individual: "个人会员", customer: "业主" } as const;
+const APP_TONE = { enterprise: "build", individual: "design", customer: "decor" } as const;
+
+function summarize(a: Application): string {
+  const p = a.payload as Record<string, string>;
+  const parts = [p.entType || p.profession, p.region || p.city, p.creditCode ? `信用码 ${p.creditCode}` : ""].filter(Boolean);
+  return parts.join(" · ");
+}
 
 const TYPE_LABEL = { build: "建筑", decor: "装修", design: "设计" } as const;
 const TYPE_TONE = { build: "build", decor: "decor", design: "design" } as const;
@@ -23,6 +34,7 @@ const PENDING_NEW = [
 export default function MembersAdmin() {
   const pending = PENDING_NEW;
   const passed = ENTERPRISES;
+  const realPending = listApplications("pending");
 
   return (
     <AssociationShell
@@ -37,7 +49,7 @@ export default function MembersAdmin() {
       {/* KPI */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 mb-6">
         {[
-          { l: "待审核", v: pending.length, c: "text-cat-decor" },
+          { l: "在线待审", v: realPending.length, c: "text-cat-decor" },
           { l: "本月新增", v: 23, c: "text-cat-build" },
           { l: "已通过", v: passed.length, c: "text-accent-tea" },
           { l: "驳回率", v: "4.2%", c: "text-cat-design" },
@@ -49,6 +61,53 @@ export default function MembersAdmin() {
         ))}
       </div>
 
+      {/* 在线提交的真实入会申请 */}
+      <div className="rounded-2xl border border-border bg-background overflow-hidden mb-6">
+        <div className="px-5 py-3 border-b border-border flex items-center justify-between">
+          <div className="text-[14px] font-semibold">在线提交的入会申请（实时）</div>
+          <Badge tone={realPending.length ? "decor" : "tea"}>{realPending.length} 待处理</Badge>
+        </div>
+        {realPending.length === 0 ? (
+          <div className="px-5 py-8 text-center text-[13px] text-muted-foreground">
+            暂无在线申请。用户在 /join → /register 提交入会后会实时出现在这里。
+          </div>
+        ) : (
+          <div className="divide-y divide-border">
+            {realPending.map((a) => (
+              <div key={a.id} className="px-5 py-4 flex flex-col md:flex-row md:items-center gap-3">
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2">
+                    <span className="font-medium">{a.applicant}</span>
+                    <Badge tone={APP_TONE[a.type]}>{APP_TYPE[a.type]}</Badge>
+                  </div>
+                  <div className="text-[12px] text-muted-foreground mt-1 truncate">
+                    {a.phone && <>电话 {a.phone}</>}
+                    {summarize(a) && <> · {summarize(a)}</>}
+                  </div>
+                </div>
+                <div className="flex items-center gap-2 shrink-0">
+                  <form action={reviewApplicationAction}>
+                    <input type="hidden" name="id" value={a.id} />
+                    <input type="hidden" name="act" value="approve" />
+                    <button className="h-9 px-3.5 rounded-full bg-[#e6f7f1] text-accent-tea text-[12px] font-medium inline-flex items-center gap-1.5">
+                      <CheckCircle2 className="h-3.5 w-3.5" /> 通过
+                    </button>
+                  </form>
+                  <form action={reviewApplicationAction}>
+                    <input type="hidden" name="id" value={a.id} />
+                    <input type="hidden" name="act" value="reject" />
+                    <button className="h-9 px-3.5 rounded-full bg-cat-decor-soft text-cat-decor text-[12px] font-medium inline-flex items-center gap-1.5">
+                      <XCircle className="h-3.5 w-3.5" /> 驳回
+                    </button>
+                  </form>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* 以下为示例数据（演示用） */}
       {/* Tabs */}
       <div className="flex items-center gap-1.5 mb-3">
         {[

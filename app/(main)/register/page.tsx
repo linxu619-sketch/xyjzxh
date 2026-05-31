@@ -3,11 +3,12 @@ import { Container } from "@/components/container";
 import { ROLE_META, type Role } from "@/lib/auth";
 import { Building2, UserRound, ArrowRight, ShieldCheck, CheckCircle2, HardHat, FileText } from "lucide-react";
 import { requiredAgreementsFor, type AgreementTarget } from "@/lib/data/agreements";
+import { submitApplicationAction } from "./actions";
 
 export const metadata = { title: "注册 · 信阳市建筑装饰装修协会" };
 
-export default async function RegisterPage({ searchParams }: { searchParams: Promise<{ role?: string; agreed?: string }> }) {
-  const { role: r, agreed } = await searchParams;
+export default async function RegisterPage({ searchParams }: { searchParams: Promise<{ role?: string; agreed?: string; submitted?: string }> }) {
+  const { role: r, agreed, submitted } = await searchParams;
   const role: Role =
     r === "enterprise" ? "enterprise" :
     r === "practitioner" ? "practitioner" :
@@ -19,6 +20,28 @@ export default async function RegisterPage({ searchParams }: { searchParams: Pro
   const hasAgreed = agreed === "1";
   // 入会语境：只在「企业会员 / 个人会员」之间选择；业主属于消费者门户，不出现在入会里
   const isMember = role === "enterprise" || role === "practitioner";
+
+  if (submitted === "1") {
+    return (
+      <Container className="py-16 md:py-24 max-w-xl text-center">
+        <div className="mx-auto h-16 w-16 rounded-full bg-[#e6f7f1] text-accent-tea inline-flex items-center justify-center">
+          <CheckCircle2 className="h-8 w-8" />
+        </div>
+        <h1 className="mt-6 text-[26px] md:text-[32px] font-semibold tracking-tight">
+          {role === "customer" ? "注册已提交" : "入会申请已提交"}
+        </h1>
+        <p className="mt-3 text-[14px] text-muted-foreground leading-7">
+          {role === "customer"
+            ? "我们已收到你的注册信息。"
+            : "协会秘书处将在 1-3 个工作日内完成审核，结果会通过手机通知你。"}
+        </p>
+        <div className="mt-8 flex flex-col sm:flex-row gap-3 justify-center">
+          <Link href="/" className="h-11 px-6 rounded-full bg-foreground text-background text-[14px] font-medium inline-flex items-center justify-center">返回首页</Link>
+          <Link href={`/login?role=${role}`} className="h-11 px-6 rounded-full border border-border text-[14px] font-medium inline-flex items-center justify-center">去登录</Link>
+        </div>
+      </Container>
+    );
+  }
 
   return (
     <Container className="py-12 md:py-20 max-w-3xl">
@@ -100,20 +123,21 @@ export default async function RegisterPage({ searchParams }: { searchParams: Pro
         </div>
       </Link>
 
-      <form action="#" className="mt-6 md:mt-8 space-y-5 rounded-3xl border border-border bg-background p-5 md:p-8">
+      <form action={submitApplicationAction} className="mt-6 md:mt-8 space-y-5 rounded-3xl border border-border bg-background p-5 md:p-8">
+        <input type="hidden" name="role" value={role} />
         {role === "enterprise" ? (
           <>
             <Row>
               <Field label="企业全称" required>
-                <input className="form-input" placeholder="如：信阳 xxx 装饰有限公司" />
+                <input name="entName" className="form-input" placeholder="如：信阳 xxx 装饰有限公司" />
               </Field>
               <Field label="统一社会信用代码" required>
-                <input className="form-input" placeholder="18 位" />
+                <input name="creditCode" className="form-input" placeholder="18 位" />
               </Field>
             </Row>
             <Row>
               <Field label="企业类型" required>
-                <select className="form-input">
+                <select name="entType" className="form-input">
                   <option>建筑施工</option>
                   <option>装饰装修</option>
                   <option>设计公司</option>
@@ -121,18 +145,18 @@ export default async function RegisterPage({ searchParams }: { searchParams: Pro
               </Field>
               <Field label="期望子域名" required>
                 <div className="flex items-center gap-2">
-                  <input className="form-input flex-1" placeholder="如 huatai" />
+                  <input name="subdomain" className="form-input flex-1" placeholder="如 huatai" />
                   <span className="text-[13px] text-muted-foreground">.xyjzxh.com</span>
                 </div>
               </Field>
             </Row>
             <Row>
-              <Field label="联系人姓名" required><input className="form-input" /></Field>
-              <Field label="联系人手机" required><input type="tel" className="form-input" placeholder="11 位手机号" /></Field>
+              <Field label="联系人姓名" required><input name="contactName" className="form-input" /></Field>
+              <Field label="联系人手机" required><input name="contactPhone" type="tel" className="form-input" placeholder="11 位手机号" /></Field>
             </Row>
             <Row>
-              <Field label="短信验证码" required><input className="form-input" placeholder="6 位" /></Field>
-              <Field label="主营地区"><input className="form-input" placeholder="如 浉河区" /></Field>
+              <Field label="短信验证码" required><input name="smsCode" className="form-input" placeholder="6 位" /></Field>
+              <Field label="主营地区"><input name="region" className="form-input" placeholder="如 浉河区" /></Field>
             </Row>
             <Field label="资质上传">
               <div className="border-2 border-dashed border-border rounded-2xl p-6 text-center text-[12px] text-muted-foreground">
@@ -143,9 +167,9 @@ export default async function RegisterPage({ searchParams }: { searchParams: Pro
         ) : role === "practitioner" ? (
           <>
             <Row>
-              <Field label="真实姓名" required><input className="form-input" placeholder="与身份证一致" /></Field>
+              <Field label="真实姓名" required><input name="realName" className="form-input" placeholder="与身份证一致" /></Field>
               <Field label="专业 / 工种" required>
-                <select className="form-input">
+                <select name="profession" className="form-input">
                   <option>设计师</option>
                   <option>项目经理</option>
                   <option>监理</option>
@@ -157,12 +181,12 @@ export default async function RegisterPage({ searchParams }: { searchParams: Pro
               </Field>
             </Row>
             <Row>
-              <Field label="手机号" required><input type="tel" inputMode="numeric" className="form-input" placeholder="11 位手机号" /></Field>
-              <Field label="短信验证码" required><input className="form-input" inputMode="numeric" placeholder="6 位" /></Field>
+              <Field label="手机号" required><input name="phone" type="tel" inputMode="numeric" className="form-input" placeholder="11 位手机号" /></Field>
+              <Field label="短信验证码" required><input name="smsCode" className="form-input" inputMode="numeric" placeholder="6 位" /></Field>
             </Row>
             <Row>
-              <Field label="身份证号" required><input className="form-input" placeholder="18 位"  /></Field>
-              <Field label="工龄"><input type="number" inputMode="numeric" className="form-input" placeholder="例：8" /></Field>
+              <Field label="身份证号" required><input name="idcard" className="form-input" placeholder="18 位"  /></Field>
+              <Field label="工龄"><input name="years" type="number" inputMode="numeric" className="form-input" placeholder="例：8" /></Field>
             </Row>
             <Field label="持有证书（可选）">
               <div className="border-2 border-dashed border-border rounded-2xl p-6 text-center text-[12px] text-muted-foreground">
@@ -173,18 +197,18 @@ export default async function RegisterPage({ searchParams }: { searchParams: Pro
         ) : (
           <>
             <Row>
-              <Field label="您的称呼" required><input className="form-input" placeholder="如 刘女士" /></Field>
-              <Field label="所在城市"><input className="form-input" placeholder="如 信阳市浉河区" /></Field>
+              <Field label="您的称呼" required><input name="nickname" className="form-input" placeholder="如 刘女士" /></Field>
+              <Field label="所在城市"><input name="city" className="form-input" placeholder="如 信阳市浉河区" /></Field>
             </Row>
             <Row>
-              <Field label="手机号" required><input type="tel" inputMode="numeric" className="form-input" placeholder="11 位手机号" /></Field>
-              <Field label="短信验证码" required><input className="form-input" inputMode="numeric" placeholder="6 位" /></Field>
+              <Field label="手机号" required><input name="phone" type="tel" inputMode="numeric" className="form-input" placeholder="11 位手机号" /></Field>
+              <Field label="短信验证码" required><input name="smsCode" className="form-input" inputMode="numeric" placeholder="6 位" /></Field>
             </Row>
             <Field label="意向">
               <div className="flex flex-wrap gap-2">
                 {["家装", "工装", "买保险", "找设计", "咨询调解"].map((t) => (
                   <label key={t} className="inline-flex items-center gap-1.5 rounded-full bg-surface px-3.5 py-1.5 text-[13px] cursor-pointer">
-                    <input type="checkbox" className="accent-brand" /> {t}
+                    <input type="checkbox" name="intents" value={t} className="accent-brand" /> {t}
                   </label>
                 ))}
               </div>
