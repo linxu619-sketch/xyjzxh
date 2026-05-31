@@ -1,4 +1,5 @@
-import { Sparkles, Activity, Pencil, Power, MessageCircle } from "lucide-react";
+import Link from "next/link";
+import { Sparkles, Activity, Pencil, Power, MessageCircle, BookOpen } from "lucide-react";
 import { AssociationShell } from "@/components/dashboard/shell";
 import { SettingsCard, Toggle, FormRow } from "@/components/dashboard/section";
 import { AI_EMPLOYEES } from "@/lib/site";
@@ -30,9 +31,14 @@ export default function AiAdmin() {
       title="AI 员工配置"
       subtitle={`全站 10 位 AI · 本月对话 12.9 万次 · 满意度 4.7 / 5.0 · Token 消耗 ¥2,840`}
       actions={
-        <button className="h-9 px-4 rounded-full bg-foreground text-background text-[13px] font-medium inline-flex items-center gap-1.5">
-          <Activity className="h-3.5 w-3.5" /> 使用分析
-        </button>
+        <div className="flex items-center gap-2">
+          <Link href="/dashboard/association/ai/knowledge" className="h-9 px-4 rounded-full bg-foreground text-background text-[13px] font-medium inline-flex items-center gap-1.5">
+            <BookOpen className="h-3.5 w-3.5" /> 知识库维护
+          </Link>
+          <button className="h-9 px-4 rounded-full bg-surface text-[13px] font-medium inline-flex items-center gap-1.5">
+            <Activity className="h-3.5 w-3.5" /> 使用分析
+          </button>
+        </div>
       }
     >
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
