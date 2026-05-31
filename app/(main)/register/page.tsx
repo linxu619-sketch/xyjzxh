@@ -133,10 +133,11 @@ export default async function RegisterPage({ searchParams }: { searchParams: Pro
             </Row>
             <Field label="资质材料上传" hint="提交后由协会秘书处人工审核，1-3 个工作日。支持 JPG/PNG/PDF；选择后可预览。">
               <UploadSlots docs={[
-                { name: "doc_license", label: "营业执照副本", required: true },
-                { name: "doc_idcard", label: "法人身份证（正反面）", required: true },
-                { name: "doc_qual", label: "建筑 / 装饰装修 / 设计 资质证书", required: true },
-                { name: "doc_perf", label: "近 2 年代表项目业绩（可选）" },
+                { name: "doc_license", label: "营业执照副本（横版）", required: true, aspect: "297 / 210" },
+                { name: "doc_qual", label: "建筑 / 装饰装修 / 设计 资质证书", required: true, aspect: "297 / 210" },
+                { name: "doc_id_front", label: "法人身份证 · 人像面", required: true, aspect: "85.6 / 54" },
+                { name: "doc_id_back", label: "法人身份证 · 国徽面", required: true, aspect: "85.6 / 54" },
+                { name: "doc_perf", label: "近 2 年代表项目业绩（可选）", aspect: "4 / 3" },
               ]} />
             </Field>
           </>
@@ -166,9 +167,10 @@ export default async function RegisterPage({ searchParams }: { searchParams: Pro
             </Row>
             <Field label="资格证书上传" hint="设计师证 / 二建 / 监理 / 安全员等。提交后协会审核认定；选择后可预览。">
               <UploadSlots docs={[
-                { name: "cert_main", label: "主项资格证书（如二建 / 设计师证）", required: true },
-                { name: "cert_idcard", label: "本人身份证（正反面）", required: true },
-                { name: "cert_works", label: "代表作品 / 项目证明（设计师建议）" },
+                { name: "cert_id_front", label: "身份证 · 人像面", required: true, aspect: "85.6 / 54" },
+                { name: "cert_id_back", label: "身份证 · 国徽面", required: true, aspect: "85.6 / 54" },
+                { name: "cert_main", label: "主项资格证书（如二建 / 设计师证）", required: true, aspect: "297 / 210" },
+                { name: "cert_works", label: "代表作品 / 项目证明（设计师建议）", aspect: "4 / 3" },
               ]} />
             </Field>
           </>

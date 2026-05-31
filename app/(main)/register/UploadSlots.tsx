@@ -3,7 +3,7 @@
 import { useRef, useState } from "react";
 import { Upload, FileText, X, Check } from "lucide-react";
 
-type Doc = { name: string; label: string; required?: boolean };
+type Doc = { name: string; label: string; required?: boolean; aspect?: string };
 
 export function UploadSlots({ docs }: { docs: Doc[] }) {
   return (
@@ -58,7 +58,7 @@ function Slot({ doc }: { doc: Doc }) {
   // 已上传：整卡可点重选，移除按钮阻止冒泡
   if (fileName) {
     return (
-      <label className="relative block rounded-2xl border border-border overflow-hidden bg-background h-[150px] cursor-pointer">
+      <label className="relative block rounded-2xl border border-border overflow-hidden bg-background min-h-[120px] cursor-pointer" style={{ aspectRatio: doc.aspect ?? "4 / 3" }}>
         {input}
         {preview ? (
           // eslint-disable-next-line @next/next/no-img-element
@@ -94,7 +94,8 @@ function Slot({ doc }: { doc: Doc }) {
       onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
       onDragLeave={() => setDragOver(false)}
       onDrop={onDrop}
-      className={`relative flex flex-col items-center justify-center gap-2 rounded-2xl border-2 border-dashed h-[150px] p-4 text-center cursor-pointer transition-colors ${
+      style={{ aspectRatio: doc.aspect ?? "4 / 3" }}
+      className={`relative flex flex-col items-center justify-center gap-2 rounded-2xl border-2 border-dashed min-h-[120px] p-4 text-center cursor-pointer transition-colors ${
         dragOver ? "border-brand bg-brand-50/50" : "border-border bg-surface/40 hover:border-foreground/30 hover:bg-surface"
       }`}
     >
