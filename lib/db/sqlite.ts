@@ -88,6 +88,7 @@ CREATE INDEX IF NOT EXISTS idx_reports_status ON project_reports(status, created
 
 CREATE TABLE IF NOT EXISTS reviews (
   id          INTEGER PRIMARY KEY AUTOINCREMENT,
+  uid         TEXT,
   user        TEXT,
   enterprise  TEXT,
   project     TEXT,
@@ -112,6 +113,7 @@ CREATE INDEX IF NOT EXISTS idx_ins_status ON insurance_orders(status, created_at
 
 CREATE TABLE IF NOT EXISTS mediations (
   id          INTEGER PRIMARY KEY AUTOINCREMENT,
+  uid         TEXT,
   applicant   TEXT,
   phone       TEXT,
   respondent  TEXT,   -- 被投诉方（企业/项目）
@@ -189,6 +191,8 @@ function init(): DB {
 function migrate(db: DB) {
   const alters = [
     "ALTER TABLE insurance_orders ADD COLUMN uid TEXT",
+    "ALTER TABLE mediations ADD COLUMN uid TEXT",
+    "ALTER TABLE reviews ADD COLUMN uid TEXT",
   ];
   for (const sql of alters) {
     try { db.exec(sql); } catch { /* 列已存在，忽略 */ }

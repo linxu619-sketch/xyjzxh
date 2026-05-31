@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createReview } from "@/lib/data/reviews";
 import { ENTERPRISES } from "@/lib/data/enterprises";
+import { getSession } from "@/lib/auth/session";
 
 export async function submitReviewAction(fd: FormData) {
   const user = String(fd.get("user") || "").trim() || "匿名业主";
@@ -13,9 +14,11 @@ export async function submitReviewAction(fd: FormData) {
   const content = String(fd.get("content") || "").trim();
 
   if (enterprise && content) {
+    const s = await getSession();
     const ent = ENTERPRISES.find((e) => e.name === enterprise || e.hero.brand === enterprise);
-    createReview({ user, enterprise, project, rating, content, category: ent?.category ?? "decor" });
+    createReview({ user, enterprise, project, rating, content, category: ent?.category ?? "decor", uid: s?.uid });
     revalidatePath("/review");
+    revalidatePath("/dashboard/customer");
   }
   redirect("/review?posted=1");
 }

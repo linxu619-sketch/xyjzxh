@@ -9,6 +9,8 @@ import { Container } from "@/components/container";
 import { Badge } from "@/components/ui/badge";
 import { getSession } from "@/lib/auth/session";
 import { ORDER_DEMO } from "@/lib/data/orders";
+import { listReviewsByUid } from "@/lib/data/reviews";
+import { listMediationsByUid } from "@/lib/data/mediations";
 import { CUSTOMER_TABS } from "@/lib/dashboard/nav";
 import { CustomerBottomNav } from "@/components/dashboard/customer-bottom-nav";
 import { ResignBanner } from "@/components/agreements/resign-banner";
@@ -23,6 +25,8 @@ const DEMO_RESIGNS = [
   },
 ];
 
+const MED_STATUS: Record<string, string> = { pending: "待受理", accepted: "受理中", closed: "已结案", rejected: "已驳回" };
+
 export const metadata = { title: "我的 · 信阳市建筑装饰装修协会" };
 
 export default async function CustomerDashboard() {
@@ -30,6 +34,9 @@ export default async function CustomerDashboard() {
   if (!session || session.role !== "customer") {
     redirect("/login?role=customer");
   }
+
+  const myReviews = listReviewsByUid(session.uid);
+  const myMediations = listMediationsByUid(session.uid);
 
   const o = ORDER_DEMO;
   const progress = Math.round(o.schedule.reduce((a, t) => a + t.progress, 0) / o.schedule.length);
@@ -253,6 +260,52 @@ export default async function CustomerDashboard() {
             <ArrowUpRight className="h-5 w-5" />
           </div>
         </Link>
+
+        {/* 我的评价（按登录账号）*/}
+        <div className="rounded-3xl border border-border bg-background p-5">
+          <div className="flex items-center justify-between mb-3">
+            <div className="text-[14px] font-semibold inline-flex items-center gap-1.5"><MessageSquareHeart className="h-4 w-4 text-cat-decor" /> 我的评价</div>
+            <Link href="/review" className="text-[12px] text-brand">去评价 →</Link>
+          </div>
+          {myReviews.length === 0 ? (
+            <div className="text-[12px] text-muted-foreground py-1">还没有评价。完工后到 <Link href="/review" className="text-brand">口碑评价</Link> 给装企打分。</div>
+          ) : (
+            <div className="space-y-2">
+              {myReviews.map((r) => (
+                <div key={r.id} className="rounded-2xl bg-surface p-3">
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="text-[13px] font-medium truncate">{r.enterprise}</span>
+                    <span className="text-[12px] text-[#FFB400] shrink-0">{"★".repeat(r.rating)}</span>
+                  </div>
+                  <div className="text-[12px] text-muted-foreground mt-1 line-clamp-2">{r.content}</div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* 我的调解申请（按登录账号）*/}
+        <div className="rounded-3xl border border-border bg-background p-5">
+          <div className="flex items-center justify-between mb-3">
+            <div className="text-[14px] font-semibold inline-flex items-center gap-1.5"><MessageSquareWarning className="h-4 w-4 text-cat-decor" /> 我的调解申请</div>
+            <Link href="/mediate" className="text-[12px] text-brand">申请调解 →</Link>
+          </div>
+          {myMediations.length === 0 ? (
+            <div className="text-[12px] text-muted-foreground py-1">没有调解申请。遇到纠纷可到 <Link href="/mediate" className="text-brand">协会调解</Link> 提交。</div>
+          ) : (
+            <div className="space-y-2">
+              {myMediations.map((m) => (
+                <div key={m.id} className="rounded-2xl bg-surface p-3">
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="text-[13px] font-medium truncate">{m.respondent || "调解申请"}</span>
+                    <Badge tone={m.status === "closed" ? "tea" : m.status === "rejected" ? "decor" : "yellow"}>{MED_STATUS[m.status] ?? m.status}</Badge>
+                  </div>
+                  <div className="text-[12px] text-muted-foreground mt-1 line-clamp-2">{m.detail}</div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
       </Container>
 
       <CustomerBottomNav tabs={CUSTOMER_TABS} />

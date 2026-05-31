@@ -25,11 +25,11 @@ function rowTo(r: Row): Review {
 }
 
 export function createReview(input: {
-  user: string; enterprise: string; project: string; rating: number; content: string; category: string;
+  user: string; enterprise: string; project: string; rating: number; content: string; category: string; uid?: string;
 }): number {
   const info = getDb()
-    .prepare("INSERT INTO reviews (user, enterprise, project, rating, content, category, created_at) VALUES (?,?,?,?,?,?,?)")
-    .run(input.user, input.enterprise, input.project, input.rating, input.content, input.category, Date.now());
+    .prepare("INSERT INTO reviews (uid, user, enterprise, project, rating, content, category, created_at) VALUES (?,?,?,?,?,?,?,?)")
+    .run(input.uid ?? null, input.user, input.enterprise, input.project, input.rating, input.content, input.category, Date.now());
   return Number(info.lastInsertRowid);
 }
 
@@ -37,5 +37,11 @@ export function listReviews(limit = 20): Review[] {
   const rows = getDb()
     .prepare("SELECT * FROM reviews ORDER BY created_at DESC LIMIT ?")
     .all(limit) as Row[];
+  return rows.map(rowTo);
+}
+
+export function listReviewsByUid(uid: string): Review[] {
+  if (!uid) return [];
+  const rows = getDb().prepare("SELECT * FROM reviews WHERE uid = ? ORDER BY created_at DESC").all(uid) as Row[];
   return rows.map(rowTo);
 }

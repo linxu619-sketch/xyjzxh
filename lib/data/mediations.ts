@@ -15,11 +15,17 @@ function rowTo(r: Row): Mediation {
   };
 }
 
-export function createMediation(input: { applicant: string; phone: string; respondent: string; detail: string }): number {
+export function createMediation(input: { applicant: string; phone: string; respondent: string; detail: string; uid?: string }): number {
   const info = getDb()
-    .prepare("INSERT INTO mediations (applicant, phone, respondent, detail, status, created_at) VALUES (?,?,?,?, 'pending', ?)")
-    .run(input.applicant, input.phone, input.respondent, input.detail, Date.now());
+    .prepare("INSERT INTO mediations (uid, applicant, phone, respondent, detail, status, created_at) VALUES (?,?,?,?,?, 'pending', ?)")
+    .run(input.uid ?? null, input.applicant, input.phone, input.respondent, input.detail, Date.now());
   return Number(info.lastInsertRowid);
+}
+
+export function listMediationsByUid(uid: string): Mediation[] {
+  if (!uid) return [];
+  const rows = getDb().prepare("SELECT * FROM mediations WHERE uid = ? ORDER BY created_at DESC").all(uid) as Row[];
+  return rows.map(rowTo);
 }
 
 export function listMediations(status?: MediationStatus): Mediation[] {
