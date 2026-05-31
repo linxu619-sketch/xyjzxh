@@ -7,6 +7,7 @@ import {
 import { ENTERPRISES } from "@/lib/data/enterprises";
 import { getEnterpriseBySlugOrId } from "@/lib/data/enterprises-source";
 import { listReviews } from "@/lib/data/reviews";
+import { listCasesByEnterprise } from "@/lib/data/cases";
 import { Container } from "@/components/container";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -37,8 +38,10 @@ export default async function TenantHome({ params }: { params: Promise<{ tenant:
 
   // 真实评价（按企业简称/全称匹配 reviews 表）；新入会企业暂无 → 优雅留空
   const realReviews = listReviews(50).filter((r) => r.enterprise === e.hero.brand || r.enterprise === e.name).slice(0, 6);
-  // 是否有可展示的案例/团队素材（mock 种子企业有 tags+cases；真实新会员暂无 → 不编造）
-  const hasShowcase = e.tags.length > 0 && e.cases > 0;
+  // 真实案例（企业自助上传）
+  const cases = listCasesByEnterprise(e.id);
+  // 团队展示素材：mock 种子企业(有成立年份)显示演示团队；真实新会员暂无 → 不编造
+  const hasShowcase = e.founded > 0;
 
   return (
     <>
@@ -140,20 +143,21 @@ export default async function TenantHome({ params }: { params: Promise<{ tenant:
       {/* 案例 · 移动横滑 / 桌面网格 */}
       <section id="cases" className="py-14 md:py-24 bg-surface">
         <Container>
-          <SectionTitle eyebrow="CASES" title={hasShowcase ? `已交付 ${e.cases} 案例` : "案例展示"} action={hasShowcase ? "查看全部 →" : undefined} />
+          <SectionTitle eyebrow="CASES" title={cases.length ? `精选案例 · ${cases.length}` : "案例展示"} />
 
-          {hasShowcase ? (
+          {cases.length > 0 ? (
             <>
               {/* 移动横滑 */}
               <div className="md:hidden mt-6 -mx-5 px-5 overflow-x-auto snap-x snap-mandatory [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
                 <div className="flex gap-3 pb-2">
-                  {[...Array(8)].map((_, i) => (
-                    <div key={i} className="snap-start shrink-0 w-[58vw] max-w-[240px] group relative aspect-[4/5] rounded-2xl overflow-hidden bg-foreground/5">
-                      <div className={cn("absolute inset-0 opacity-25", BG[e.color])} />
-                      <div className="absolute inset-0 bg-gradient-to-t from-foreground/60 via-transparent to-transparent" />
+                  {cases.map((c) => (
+                    <div key={c.id} className="snap-start shrink-0 w-[58vw] max-w-[240px] group relative aspect-[4/3] rounded-2xl overflow-hidden bg-foreground/5">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={c.cover} alt={c.title} className="absolute inset-0 h-full w-full object-cover" />
+                      <div className="absolute inset-0 bg-gradient-to-t from-foreground/70 via-transparent to-transparent" />
                       <div className="absolute bottom-3 left-3 right-3 text-white">
-                        <div className="text-[11px] opacity-80">案例 {String(i + 1).padStart(2, "0")}</div>
-                        <div className="text-[13px] font-medium mt-0.5 line-clamp-1">{e.tags[i % e.tags.length]} · {120 + i * 18}㎡</div>
+                        <div className="text-[13px] font-medium line-clamp-1">{c.title}</div>
+                        <div className="text-[11px] opacity-80 mt-0.5">{[c.area && `${c.area}㎡`, c.tag].filter(Boolean).join(" · ")}</div>
                       </div>
                     </div>
                   ))}
@@ -163,13 +167,14 @@ export default async function TenantHome({ params }: { params: Promise<{ tenant:
 
               {/* 桌面网格 */}
               <div className="hidden md:grid mt-10 grid-cols-4 gap-4">
-                {[...Array(8)].map((_, i) => (
-                  <div key={i} className="group relative aspect-[4/5] rounded-2xl overflow-hidden bg-foreground/5 hover:shadow-lg transition-all hover:-translate-y-1">
-                    <div className={cn("absolute inset-0 opacity-25", BG[e.color])} />
-                    <div className="absolute inset-0 bg-gradient-to-t from-foreground/60 via-transparent to-transparent" />
+                {cases.map((c) => (
+                  <div key={c.id} className="group relative aspect-[4/3] rounded-2xl overflow-hidden bg-foreground/5 hover:shadow-lg transition-all hover:-translate-y-1">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={c.cover} alt={c.title} className="absolute inset-0 h-full w-full object-cover" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-foreground/70 via-transparent to-transparent" />
                     <div className="absolute bottom-3 left-3 right-3 text-white">
-                      <div className="text-[12px] opacity-80">案例 {String(i + 1).padStart(2, "0")}</div>
-                      <div className="text-[14px] font-medium mt-0.5">{e.tags[i % e.tags.length]} · {120 + i * 18}㎡</div>
+                      <div className="text-[14px] font-medium line-clamp-1">{c.title}</div>
+                      <div className="text-[12px] opacity-80 mt-0.5">{[c.area && `${c.area}㎡`, c.tag].filter(Boolean).join(" · ")}</div>
                     </div>
                   </div>
                 ))}

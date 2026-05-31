@@ -5,15 +5,18 @@ import { SettingsCard, FormRow, Input, Textarea } from "@/components/dashboard/s
 import { getSession } from "@/lib/auth/session";
 import { getEnterpriseBySlugOrId } from "@/lib/data/enterprises-source";
 import { listLeadsByEnterprise } from "@/lib/data/leads";
+import { listCasesByEnterprise } from "@/lib/data/cases";
 import { saveSiteAction } from "./actions";
+import { CasesManager } from "./CasesManager";
 
 export const metadata = { title: "我的子站 · 企业工作台" };
 
-export default async function SitePage({ searchParams }: { searchParams: Promise<{ ok?: string; err?: string }> }) {
-  const { ok, err } = await searchParams;
+export default async function SitePage({ searchParams }: { searchParams: Promise<{ ok?: string; err?: string; cok?: string; cerr?: string }> }) {
+  const { ok, err, cok, cerr } = await searchParams;
   const session = await getSession();
   const ent = session?.enterpriseId ? await getEnterpriseBySlugOrId(session.enterpriseId) : undefined;
   const leads = session?.enterpriseId ? listLeadsByEnterprise(session.enterpriseId) : [];
+  const cases = session?.enterpriseId ? listCasesByEnterprise(session.enterpriseId) : [];
 
   const slug = ent?.slug ?? "";
   const signed = leads.filter((l) => l.status === "signed").length;
@@ -41,6 +44,16 @@ export default async function SitePage({ searchParams }: { searchParams: Promise
           <AlertCircle className="h-5 w-5 shrink-0" /><div className="text-[13px]">保存失败：未找到绑定企业。</div>
         </div>
       )}
+      {cok && (
+        <div className="mb-5 rounded-2xl border border-accent-tea/30 bg-[#e6f7f1] text-accent-tea p-4 flex items-center gap-3">
+          <CheckCircle2 className="h-5 w-5 shrink-0" /><div className="text-[13px]"><b>案例已添加！</b>已展示在您的子站案例区。</div>
+        </div>
+      )}
+      {cerr && (
+        <div className="mb-5 rounded-2xl border border-cat-decor/30 bg-cat-decor-soft text-cat-decor p-4 flex items-center gap-3">
+          <AlertCircle className="h-5 w-5 shrink-0" /><div className="text-[13px]">案例添加失败：请填写标题并上传封面图。</div>
+        </div>
+      )}
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 mb-6">
         {[
@@ -59,6 +72,7 @@ export default async function SitePage({ searchParams }: { searchParams: Promise
       {!ent ? (
         <div className="rounded-2xl border border-border bg-background p-10 text-center text-[14px] text-muted-foreground">当前账号未绑定企业，无法编辑子站。</div>
       ) : (
+        <>
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
           <form action={saveSiteAction} className="lg:col-span-2 space-y-4">
             <SettingsCard
@@ -110,6 +124,11 @@ export default async function SitePage({ searchParams }: { searchParams: Promise
             </div>
           </div>
         </div>
+
+        <div className="mt-4">
+          <CasesManager cases={cases.map((c) => ({ id: c.id, title: c.title, cover: c.cover, area: c.area, tag: c.tag }))} />
+        </div>
+        </>
       )}
     </EnterpriseShell>
   );
