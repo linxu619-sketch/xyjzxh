@@ -2,11 +2,12 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import {
   Phone, ArrowLeft, ShieldCheck, Sparkles, Clock, MessageSquareText,
-  ArrowRight, Send, Bot,
+  ArrowRight, Send, Bot, CheckCircle2, AlertCircle, PhoneCall,
 } from "lucide-react";
 import { Container } from "@/components/container";
 import { Badge } from "@/components/ui/badge";
 import { getEnterpriseBySlugOrId } from "@/lib/data/enterprises-source";
+import { submitInquiryLeadAction } from "./actions";
 import { cn } from "@/lib/cn";
 
 const BG: Record<string, string> = {
@@ -26,8 +27,14 @@ const QUICK_QUESTIONS = [
   "施工质保多少年？怎么理赔？",
 ];
 
-export default async function InquiryPage({ params }: { params: Promise<{ tenant: string }> }) {
+export default async function InquiryPage({
+  params, searchParams,
+}: {
+  params: Promise<{ tenant: string }>;
+  searchParams: Promise<{ ok?: string; err?: string }>;
+}) {
   const { tenant } = await params;
+  const { ok, err } = await searchParams;
   const e = await getEnterpriseBySlugOrId(tenant);
   if (!e) notFound();
 
@@ -39,6 +46,19 @@ export default async function InquiryPage({ params }: { params: Promise<{ tenant
       >
         <ArrowLeft className="h-3.5 w-3.5" /> 返回 {e.hero.brand}
       </Link>
+
+      {ok && (
+        <div className="mb-6 rounded-2xl border border-accent-tea/30 bg-[#e6f7f1] text-accent-tea p-4 flex items-center gap-3">
+          <CheckCircle2 className="h-5 w-5 shrink-0" />
+          <div className="text-[13px]"><b>已收到！</b>{e.hero.brand} 客户经理会尽快回电，请留意来电。</div>
+        </div>
+      )}
+      {err && (
+        <div className="mb-6 rounded-2xl border border-cat-decor/30 bg-cat-decor-soft text-cat-decor p-4 flex items-center gap-3">
+          <AlertCircle className="h-5 w-5 shrink-0" />
+          <div className="text-[13px]"><b>提交失败：</b>请填写称呼并确认手机号为 11 位。</div>
+        </div>
+      )}
 
       {/* Hero */}
       <div className="flex items-start md:items-end justify-between gap-4 flex-col md:flex-row mb-6 md:mb-10">
@@ -149,6 +169,25 @@ export default async function InquiryPage({ params }: { params: Promise<{ tenant
 
         {/* 右侧侧栏 */}
         <aside className="lg:col-span-2 space-y-3">
+          {/* 可选留资 · 让企业主动回电 */}
+          <form action={submitInquiryLeadAction} className="rounded-3xl border border-border bg-background p-5 md:p-6">
+            <input type="hidden" name="tenant" value={tenant} />
+            <input type="hidden" name="enterpriseId" value={e.id} />
+            <div className="flex items-center gap-1.5 mb-1">
+              <PhoneCall className={cn("h-4 w-4", e.color === "build" ? "text-cat-build" : e.color === "decor" ? "text-cat-decor" : "text-cat-design")} />
+              <div className="text-[14px] font-semibold">想让客服主动回电？</div>
+            </div>
+            <p className="text-[11px] text-muted-foreground mb-3 leading-5">可选 · 留下联系方式，{e.hero.brand} 30 分钟内回电；信息仅本企业可见、协会平台留痕。</p>
+            <div className="space-y-2.5">
+              <input name="name" required placeholder="您的称呼，如 刘女士" className="w-full h-11 rounded-xl border border-border bg-background px-3.5 text-[14px] outline-none focus:border-foreground/30" />
+              <input name="phone" type="tel" inputMode="numeric" pattern="1[0-9]{10}" required placeholder="11 位手机号" className="w-full h-11 rounded-xl border border-border bg-background px-3.5 text-[14px] outline-none focus:border-foreground/30" />
+              <input name="note" placeholder="一句话需求（可选），如 120㎡ 预算 30 万" className="w-full h-11 rounded-xl border border-border bg-background px-3.5 text-[14px] outline-none focus:border-foreground/30" />
+              <button type="submit" className={cn("w-full h-11 rounded-full text-white text-[13px] font-medium inline-flex items-center justify-center gap-1.5 active:scale-[0.99]", BG[e.color])}>
+                让客服回电我 <ArrowRight className="h-3.5 w-3.5" />
+              </button>
+            </div>
+          </form>
+
           <div className="rounded-3xl border border-border bg-background p-5 md:p-6">
             <div className="text-[11px] tracking-wider uppercase text-muted-foreground mb-3">为什么放心咨询？</div>
             <ul className="space-y-3 text-[13px]">
