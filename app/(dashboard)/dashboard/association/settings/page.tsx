@@ -183,10 +183,12 @@ export default async function SystemSettings() {
                 />
               </FormRow>
 
-              <FormRow label="DeepSeek 模型">
-                <select name="ai.deepseekModel" defaultValue={ai.deepseekModel ?? "deepseek-chat"} className="h-11 rounded-xl border border-border px-3 text-[14px]">
-                  <option value="deepseek-chat">deepseek-chat (V3 · 通用 · 快)</option>
-                  <option value="deepseek-reasoner">deepseek-reasoner (R1 · 推理 · 强)</option>
+              <FormRow label="DeepSeek 模型" hint="V4：flash 性价比 / pro 最强（思考模式自动开启）。旧 V3/R1 将于 2026-07-24 停用，选了也会自动映射到 V4。">
+                <select name="ai.deepseekModel" defaultValue={ai.deepseekModel ?? "deepseek-v4-flash"} className="h-11 rounded-xl border border-border px-3 text-[14px]">
+                  <option value="deepseek-v4-flash">deepseek-v4-flash (V4 · 性价比 · 推荐)</option>
+                  <option value="deepseek-v4-pro">deepseek-v4-pro (V4 · 最高能力)</option>
+                  <option value="deepseek-chat">deepseek-chat (旧 V3 · 2026-07-24 停用)</option>
+                  <option value="deepseek-reasoner">deepseek-reasoner (旧 R1 · 2026-07-24 停用)</option>
                 </select>
               </FormRow>
 
