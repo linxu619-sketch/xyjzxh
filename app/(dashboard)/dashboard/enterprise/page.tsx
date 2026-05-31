@@ -10,6 +10,7 @@ import { getSession } from "@/lib/auth/session";
 import { getEnterpriseBySlugOrId } from "@/lib/data/enterprises-source";
 import { listReportsByUid } from "@/lib/data/reports";
 import { listLeadsByEnterprise } from "@/lib/data/leads";
+import { listCasesByEnterprise } from "@/lib/data/cases";
 
 export const metadata = { title: "企业工作台 · 信阳市建筑装饰装修协会" };
 
@@ -30,8 +31,14 @@ export default async function EnterpriseDashboard() {
   const slug = ent?.slug ?? "mingjia";
   const myReports = session ? listReportsByUid(session.uid) : [];
   const myLeads = session?.enterpriseId ? listLeadsByEnterprise(session.enterpriseId) : [];
+  const myCases = session?.enterpriseId ? listCasesByEnterprise(session.enterpriseId) : [];
   const newLeads = myLeads.filter((l) => l.status === "new").length;
   const pendingReports = myReports.filter((r) => r.status === "pending").length;
+  // 真实线索漏斗
+  const totalLeads = myLeads.length;
+  const signedLeads = myLeads.filter((l) => l.status === "signed").length;
+  const contactedLeads = myLeads.filter((l) => ["contacting", "surveying", "signed"].includes(l.status)).length;
+  const surveyedLeads = myLeads.filter((l) => ["surveying", "signed"].includes(l.status)).length;
 
   return (
     <EnterpriseShell
@@ -70,13 +77,13 @@ export default async function EnterpriseDashboard() {
 
       {/* 示例数据提示 */}
       <div className="mb-2 flex items-center gap-1.5 text-[11px] text-muted-foreground">
-        <Badge tone="yellow">示例</Badge> 本页「最新线索」「我的工装报备」为真实数据；经营指标 / 子站健康度 / 工地速览等仍为演示数据，接入业务系统后替换
+        <Badge tone="yellow">示例</Badge> 本页线索 / 报备 / 案例 / 评分 / 转化漏斗为真实数据；AI 员工用量、今日工地为演示数据
       </div>
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
-        <StatCard label="本月线索"     value="184"   sub="较上月" trend={{ dir: "up", value: "32" }} color="decor" />
-        <StatCard label="子站访客"     value="9,284" sub="转化率 1.98%" trend={{ dir: "up", value: "18%" }} color="brand" />
-        <StatCard label="进行中项目"   value="42"    sub="2 项待补材料" color="build" />
-        <StatCard label="平均评分"     value="4.8"   sub="共 1,284 条" color="design" />
+        <StatCard label="累计线索"   value={totalLeads} sub={`待跟进 ${newLeads}`} color="decor" />
+        <StatCard label="已签单"     value={signedLeads} sub={totalLeads ? `签单率 ${((signedLeads / totalLeads) * 100).toFixed(0)}%` : "—"} color="tea" />
+        <StatCard label="子站案例"   value={myCases.length} sub="展示于子站" color="build" />
+        <StatCard label="口碑评分"   value={(ent?.rating ?? 0).toFixed(1)} sub={`共 ${ent?.reviews ?? 0} 评价`} color="design" />
       </div>
 
       <div className="mt-6 grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-5">
@@ -121,19 +128,25 @@ export default async function EnterpriseDashboard() {
           )}
         </Panel>
 
-        {/* 子站健康度 */}
-        <Panel title="子站健康度">
-          <div className="space-y-3 text-[13px]">
-            <FunnelRow label="访客" value="9,284" total={9284} color="text-foreground" />
-            <FunnelRow label="表单填写" value="632" total={9284} color="text-cat-build" />
-            <FunnelRow label="量房" value="265" total={9284} color="text-cat-decor" />
-            <FunnelRow label="签单" value="101" total={9284} color="text-accent-tea" />
-          </div>
+        {/* 线索转化漏斗（真实） */}
+        <Panel title="线索转化漏斗">
+          {totalLeads === 0 ? (
+            <div className="py-6 text-center text-[13px] text-muted-foreground">暂无线索数据。子站留资后这里显示真实转化。</div>
+          ) : (
+            <div className="space-y-3 text-[13px]">
+              <FunnelRow label="线索" value={String(totalLeads)} total={totalLeads} color="text-foreground" />
+              <FunnelRow label="已跟进" value={String(contactedLeads)} total={totalLeads} color="text-cat-build" />
+              <FunnelRow label="已量房" value={String(surveyedLeads)} total={totalLeads} color="text-cat-decor" />
+              <FunnelRow label="已签单" value={String(signedLeads)} total={totalLeads} color="text-accent-tea" />
+            </div>
+          )}
           <div className="mt-4 rounded-2xl bg-foreground text-background p-4 flex items-start gap-2.5 relative overflow-hidden">
             <div className="absolute -right-10 -top-10 h-24 w-24 rounded-full bg-cat-design/30 blur-2xl" />
             <Sparkles className="relative h-4 w-4 text-accent-yellow mt-0.5 shrink-0" />
             <div className="relative text-[12px] leading-5">
-              <b>AI 小经：</b>本周末更新 3 套新案例，预计 +12% 停留时间。
+              {newLeads > 0
+                ? <><b>提示：</b>有 {newLeads} 条新线索待跟进，及时回电可提升签单率。</>
+                : <><b>提示：</b>完善子站案例与团队，有助于提升留资转化。</>}
             </div>
           </div>
         </Panel>
