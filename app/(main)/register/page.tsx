@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { Container } from "@/components/container";
 import { ROLE_META, type Role } from "@/lib/auth";
-import { Building2, UserRound, ArrowRight, ShieldCheck, CheckCircle2, HardHat, FileText } from "lucide-react";
+import { Building2, UserRound, ArrowRight, ShieldCheck, CheckCircle2, HardHat, FileText, Upload, PenLine } from "lucide-react";
 import { requiredAgreementsFor, type AgreementTarget } from "@/lib/data/agreements";
 import { submitApplicationAction } from "./actions";
 
@@ -119,7 +119,10 @@ export default async function RegisterPage({ searchParams }: { searchParams: Pro
               {hasAgreed ? "存证号 ESB-2026-... 可在我的协议查看" : "入会协议 + 隐私政策 + 数据授权等 · 逐份阅读 + 单独勾选重点条款"}
             </div>
           </div>
-          {!hasAgreed && <ArrowRight className="h-4 w-4 text-cat-decor" />}
+          <span className={`shrink-0 inline-flex items-center gap-1 h-9 px-3.5 rounded-full text-[12px] font-medium text-white ${hasAgreed ? "bg-accent-tea" : "bg-cat-decor"}`}>
+            {hasAgreed ? "查看协议" : (<><PenLine className="h-3.5 w-3.5" /> 去逐份签署</>)}
+            <ArrowRight className="h-3.5 w-3.5" />
+          </span>
         </div>
       </Link>
 
@@ -158,9 +161,20 @@ export default async function RegisterPage({ searchParams }: { searchParams: Pro
               <Field label="短信验证码" required><input name="smsCode" className="form-input" placeholder="6 位" /></Field>
               <Field label="主营地区"><input name="region" className="form-input" placeholder="如 浉河区" /></Field>
             </Row>
-            <Field label="资质上传">
-              <div className="border-2 border-dashed border-border rounded-2xl p-6 text-center text-[12px] text-muted-foreground">
-                拖拽 / 点击上传营业执照、资质证书等附件（提交后由协会秘书处人工审核，1-3 个工作日）
+            <Field label="资质材料上传" hint="提交后由协会秘书处人工审核，1-3 个工作日。支持 JPG/PNG/PDF。">
+              <div className="space-y-2.5">
+                {[
+                  { name: "doc_license", label: "营业执照副本", required: true },
+                  { name: "doc_idcard", label: "法人身份证（正反面）", required: true },
+                  { name: "doc_qual", label: "建筑 / 装饰装修 / 设计 资质证书", required: true },
+                  { name: "doc_perf", label: "近 2 年代表项目业绩（可选）" },
+                ].map((d) => (
+                  <label key={d.name} className="flex items-center gap-3 rounded-xl border border-border p-3 hover:border-foreground/30 cursor-pointer transition-colors">
+                    <span className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-surface text-muted-foreground shrink-0"><Upload className="h-4 w-4" /></span>
+                    <span className="text-[13px] flex-1 min-w-0">{d.label}{d.required && <span className="text-cat-decor ml-0.5">*</span>}</span>
+                    <input type="file" name={d.name} accept="image/*,.pdf" className="text-[11px] text-muted-foreground max-w-[150px] file:mr-2 file:rounded-full file:border-0 file:bg-foreground file:text-background file:px-3 file:py-1 file:text-[11px] file:cursor-pointer" />
+                  </label>
+                ))}
               </div>
             </Field>
           </>
@@ -188,9 +202,19 @@ export default async function RegisterPage({ searchParams }: { searchParams: Pro
               <Field label="身份证号" required><input name="idcard" className="form-input" placeholder="18 位"  /></Field>
               <Field label="工龄"><input name="years" type="number" inputMode="numeric" className="form-input" placeholder="例：8" /></Field>
             </Row>
-            <Field label="持有证书（可选）">
-              <div className="border-2 border-dashed border-border rounded-2xl p-6 text-center text-[12px] text-muted-foreground">
-                上传二建 / 安全员 / 木工等证书照片
+            <Field label="资格证书上传" hint="设计师证 / 二建 / 监理 / 安全员等，支持多张。提交后协会审核认定。">
+              <div className="space-y-2.5">
+                {[
+                  { name: "cert_main", label: "主项资格证书（如二建 / 设计师证）", required: true },
+                  { name: "cert_idcard", label: "本人身份证（正反面）", required: true },
+                  { name: "cert_works", label: "代表作品 / 项目证明（设计师建议）" },
+                ].map((d) => (
+                  <label key={d.name} className="flex items-center gap-3 rounded-xl border border-border p-3 hover:border-foreground/30 cursor-pointer transition-colors">
+                    <span className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-surface text-muted-foreground shrink-0"><Upload className="h-4 w-4" /></span>
+                    <span className="text-[13px] flex-1 min-w-0">{d.label}{d.required && <span className="text-cat-decor ml-0.5">*</span>}</span>
+                    <input type="file" name={d.name} accept="image/*,.pdf" className="text-[11px] text-muted-foreground max-w-[150px] file:mr-2 file:rounded-full file:border-0 file:bg-foreground file:text-background file:px-3 file:py-1 file:text-[11px] file:cursor-pointer" />
+                  </label>
+                ))}
               </div>
             </Field>
           </>

@@ -12,7 +12,8 @@ export async function submitApplicationAction(fd: FormData) {
   const payload: Record<string, string> = {};
   for (const [k, v] of fd.entries()) {
     if (k === "role") continue;
-    const val = String(v).trim();
+    if (typeof v !== "string") continue; // 跳过文件（附件暂不存储，仅人工审核时另行收取）
+    const val = v.trim();
     if (val) payload[k] = val;
   }
 
