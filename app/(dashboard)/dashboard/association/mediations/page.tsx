@@ -3,8 +3,17 @@ import { Search, Clock, CheckCircle2, AlertTriangle, Sparkles } from "lucide-rea
 import { AssociationShell } from "@/components/dashboard/shell";
 import { FilterBar } from "@/components/dashboard/section";
 import { Badge } from "@/components/ui/badge";
+import { CheckCircle2 as Check2, XCircle } from "lucide-react";
+import { listMediations } from "@/lib/data/mediations";
+import { reviewMediationAction } from "./actions";
 
 export const metadata = { title: "调解纠纷 · 协会工作台" };
+
+function fmtD(ts: number) {
+  if (!ts) return "";
+  const d = new Date(ts);
+  return `${d.getMonth() + 1}-${String(d.getDate()).padStart(2, "0")} ${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
+}
 
 type Case = {
   id: string; tag: "工期" | "质量" | "材料" | "合同";
@@ -44,6 +53,7 @@ const SEV: Record<Case["severity"], string> = {
 
 export default function MediationsAdmin() {
   const pending = CASES.filter((c) => c.status === "待受理");
+  const realPending = listMediations("pending");
   return (
     <AssociationShell
       title="调解纠纷"
@@ -125,6 +135,44 @@ export default function MediationsAdmin() {
             </div>
           </div>
         ))}
+      </div>
+      {/* 在线提交的调解申请（实时） */}
+      <div className="mt-6 rounded-2xl border border-border bg-background overflow-hidden">
+        <div className="px-5 py-3 border-b border-border flex items-center justify-between">
+          <div className="text-[14px] font-semibold">在线提交的调解申请（实时）</div>
+          <Badge tone={realPending.length ? "decor" : "tea"}>{realPending.length} 待受理</Badge>
+        </div>
+        {realPending.length === 0 ? (
+          <div className="px-5 py-8 text-center text-[13px] text-muted-foreground">暂无在线调解申请。用户在 /mediate 提交后会出现在这里。</div>
+        ) : (
+          <div className="divide-y divide-border">
+            {realPending.map((m) => (
+              <div key={m.id} className="px-5 py-4 flex flex-col md:flex-row md:items-start gap-3">
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 text-[13px] flex-wrap">
+                    <span className="font-medium">{m.applicant}</span>
+                    <span className="text-muted-foreground">{m.phone}</span>
+                    {m.respondent && <Badge tone="decor">{m.respondent}</Badge>}
+                    <span className="text-muted-foreground text-[11px] ml-auto">{fmtD(m.createdAt)}</span>
+                  </div>
+                  <p className="mt-1.5 text-[13px] text-muted-foreground line-clamp-2">{m.detail}</p>
+                </div>
+                <div className="flex items-center gap-2 shrink-0">
+                  <form action={reviewMediationAction}>
+                    <input type="hidden" name="id" value={m.id} />
+                    <input type="hidden" name="act" value="accept" />
+                    <button className="h-9 px-3.5 rounded-full bg-[#e6f7f1] text-accent-tea text-[12px] font-medium inline-flex items-center gap-1.5"><Check2 className="h-3.5 w-3.5" /> 受理</button>
+                  </form>
+                  <form action={reviewMediationAction}>
+                    <input type="hidden" name="id" value={m.id} />
+                    <input type="hidden" name="act" value="reject" />
+                    <button className="h-9 px-3.5 rounded-full bg-cat-decor-soft text-cat-decor text-[12px] font-medium inline-flex items-center gap-1.5"><XCircle className="h-3.5 w-3.5" /> 驳回</button>
+                  </form>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </AssociationShell>
   );

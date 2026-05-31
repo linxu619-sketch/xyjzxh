@@ -1,10 +1,11 @@
 import Link from "next/link";
-import { ArrowUpRight, ShieldCheck, Umbrella, Sparkles, AlertCircle } from "lucide-react";
+import { ArrowUpRight, ShieldCheck, Umbrella, Sparkles, AlertCircle, CheckCircle2 } from "lucide-react";
 import { Container } from "@/components/container";
 import { PageHeader } from "@/components/page-header";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { INSURANCE_PRODUCTS } from "@/lib/data/finance";
+import { submitInsuranceAction } from "./actions";
 
 const COLOR: Record<string, string> = {
   brand: "from-brand to-brand-600",
@@ -17,7 +18,8 @@ const COLOR: Record<string, string> = {
 
 export const metadata = { title: "消费保险 · 信阳市建筑装饰装修协会" };
 
-export default function InsurancePage() {
+export default async function InsurancePage({ searchParams }: { searchParams: Promise<{ ordered?: string }> }) {
+  const { ordered } = await searchParams;
   return (
     <>
       <PageHeader
@@ -47,7 +49,7 @@ export default function InsurancePage() {
                 <span className="text-white/80">起 · 最高 50 万保额</span>
               </div>
               <div className="mt-7 flex flex-col sm:flex-row gap-3">
-                <Button href="#" size="lg" variant="primary" className="!bg-white !text-foreground hover:!bg-accent-yellow">
+                <Button href="#apply" size="lg" variant="primary" className="!bg-white !text-foreground hover:!bg-accent-yellow">
                   立即投保
                   <ArrowUpRight className="h-4 w-4" />
                 </Button>
@@ -75,6 +77,32 @@ export default function InsurancePage() {
           </div>
         </div>
 
+        {/* 在线投保申请 */}
+        <div id="apply" className="mt-12 scroll-mt-24 rounded-3xl border border-border bg-background p-6 md:p-8">
+          <h2 className="text-[22px] md:text-[28px] font-semibold tracking-tight">在线投保申请</h2>
+          <p className="mt-1.5 text-[13px] text-muted-foreground">提交后协会保险顾问会尽快与你联系确认方案与保费。</p>
+          {ordered === "1" && (
+            <div className="mt-4 rounded-2xl bg-[#e6f7f1] border border-accent-tea/30 px-4 py-3 text-[13px] text-accent-tea inline-flex items-center gap-2">
+              <CheckCircle2 className="h-4 w-4" /> 投保申请已提交，顾问会尽快联系你。
+            </div>
+          )}
+          <form action={submitInsuranceAction} className="mt-5 space-y-3">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <select name="product" required defaultValue="" className="h-11 w-full rounded-xl border border-border bg-background px-3.5 text-[14px] outline-none focus:border-foreground/30">
+                <option value="" disabled>选择险种</option>
+                <option>安心家装险（协会版）</option>
+                {INSURANCE_PRODUCTS.map((p) => <option key={p.id} value={p.name}>{p.name}</option>)}
+              </select>
+              <input name="applicant" placeholder="你的称呼" className="h-11 w-full rounded-xl border border-border bg-background px-3.5 text-[14px] outline-none focus:border-foreground/30" />
+              <input name="phone" required placeholder="联系电话（必填）" type="tel" className="h-11 w-full rounded-xl border border-border bg-background px-3.5 text-[14px] outline-none focus:border-foreground/30" />
+              <input name="note" placeholder="备注（项目/面积/疑问，可选）" className="h-11 w-full rounded-xl border border-border bg-background px-3.5 text-[14px] outline-none focus:border-foreground/30" />
+            </div>
+            <button type="submit" className="h-11 px-6 rounded-full bg-foreground text-background text-[14px] font-medium inline-flex items-center gap-1.5">
+              <ShieldCheck className="h-4 w-4" /> 提交投保申请
+            </button>
+          </form>
+        </div>
+
         {/* 其他险种 */}
         <div className="mt-12">
           <h2 className="text-[26px] md:text-[32px] font-semibold tracking-tight">其他险种</h2>
@@ -100,7 +128,7 @@ export default function InsurancePage() {
                     ))}
                   </ul>
                   <div className="mt-3 text-[11px] text-muted-foreground">适用：{p.forWhom}</div>
-                  <Link href="#" className="mt-4 inline-flex w-full h-10 items-center justify-center gap-1 rounded-full bg-foreground text-background text-[13px] font-medium hover:bg-brand">
+                  <Link href="#apply" className="mt-4 inline-flex w-full h-10 items-center justify-center gap-1 rounded-full bg-foreground text-background text-[13px] font-medium hover:bg-brand">
                     投保 / 咨询
                   </Link>
                 </div>

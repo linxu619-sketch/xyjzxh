@@ -97,6 +97,28 @@ CREATE TABLE IF NOT EXISTS reviews (
   created_at  INTEGER
 );
 CREATE INDEX IF NOT EXISTS idx_reviews_created ON reviews(created_at);
+
+CREATE TABLE IF NOT EXISTS insurance_orders (
+  id          INTEGER PRIMARY KEY AUTOINCREMENT,
+  product     TEXT,
+  applicant   TEXT,
+  phone       TEXT,
+  note        TEXT,
+  status      TEXT DEFAULT 'pending', -- pending | contacted | done
+  created_at  INTEGER
+);
+CREATE INDEX IF NOT EXISTS idx_ins_status ON insurance_orders(status, created_at);
+
+CREATE TABLE IF NOT EXISTS mediations (
+  id          INTEGER PRIMARY KEY AUTOINCREMENT,
+  applicant   TEXT,
+  phone       TEXT,
+  respondent  TEXT,   -- 被投诉方（企业/项目）
+  detail      TEXT,
+  status      TEXT DEFAULT 'pending', -- pending | accepted | closed | rejected
+  created_at  INTEGER
+);
+CREATE INDEX IF NOT EXISTS idx_mediations_status ON mediations(status, created_at);
 `;
 
 function seedEnterprises(db: DB) {

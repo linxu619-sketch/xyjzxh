@@ -2,10 +2,18 @@ import { Wallet, TrendingUp, ShieldCheck, Sparkles } from "lucide-react";
 import { AssociationShell } from "@/components/dashboard/shell";
 import { Badge } from "@/components/ui/badge";
 import { FINANCE_PRODUCTS, INSURANCE_PRODUCTS } from "@/lib/data/finance";
+import { listInsuranceOrders } from "@/lib/data/insurance-orders";
 
 export const metadata = { title: "金融保险合作 · 协会工作台" };
 
+function fmt(ts: number) {
+  if (!ts) return "";
+  const d = new Date(ts);
+  return `${d.getMonth() + 1}-${String(d.getDate()).padStart(2, "0")}`;
+}
+
 export default function FinanceAdmin() {
+  const orders = listInsuranceOrders(50);
   return (
     <AssociationShell
       title="金融 / 保险 合作"
@@ -71,6 +79,26 @@ export default function FinanceAdmin() {
           ))}
         </div>
       </section>
+      {/* 在线投保申请（实时） */}
+      <div className="mt-6 rounded-2xl border border-border bg-background overflow-hidden">
+        <div className="px-5 py-3 border-b border-border flex items-center justify-between">
+          <div className="text-[14px] font-semibold">在线投保申请（实时）</div>
+          <Badge tone={orders.length ? "decor" : "tea"}>{orders.length} 条</Badge>
+        </div>
+        {orders.length === 0 ? (
+          <div className="px-5 py-8 text-center text-[13px] text-muted-foreground">暂无在线投保申请。用户在 /insurance 提交后会出现在这里。</div>
+        ) : (
+          <div className="divide-y divide-border">
+            {orders.map((o) => (
+              <div key={o.id} className="px-5 py-3.5 flex items-center gap-3 text-[13px]">
+                <span className="text-muted-foreground tabular-nums shrink-0">{fmt(o.createdAt)}</span>
+                <span className="font-medium shrink-0">{o.product}</span>
+                <span className="text-muted-foreground truncate flex-1">{o.applicant} · {o.phone}{o.note ? ` · ${o.note}` : ""}</span>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
     </AssociationShell>
   );
 }

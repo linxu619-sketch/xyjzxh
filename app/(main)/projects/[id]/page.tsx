@@ -110,7 +110,7 @@ export default async function ProjectDetail({ params }: { params: Promise<{ id: 
           <div className="rounded-3xl bg-foreground text-background p-6">
             <div className="text-[12px] tracking-wider uppercase text-background/60">遇到问题？</div>
             <div className="mt-2 text-[15px] font-semibold">协会调解委员会 14 天介入</div>
-            <Link href="/ai/mediate" className="mt-4 inline-flex items-center gap-1.5 h-9 px-4 rounded-full bg-accent-yellow text-foreground text-[12px] font-medium">
+            <Link href="/mediate" className="mt-4 inline-flex items-center gap-1.5 h-9 px-4 rounded-full bg-accent-yellow text-foreground text-[12px] font-medium">
               申请调解
             </Link>
           </div>
