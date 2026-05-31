@@ -21,6 +21,9 @@ export default async function ReportDetail({ params }: { params: Promise<{ id: s
   }
 
   const p = r.payload as Record<string, string>;
+  const SHOWN = ["planStart", "planEnd", "address", "summary", "safetyOfficer"];
+  const EXTRA_LABEL: Record<string, string> = { contractAmount: "合同金额", workers: "工人数", contact: "现场联系人" };
+  const extras = Object.entries(p).filter(([k, v]) => !SHOWN.includes(k) && String(v).trim());
   const statusTone = r.status === "approved" ? "tea" : r.status === "rejected" ? "decor" : "yellow";
   const statusLabel = r.status === "approved" ? "已通过" : r.status === "rejected" ? "已驳回" : "待审核";
 
@@ -38,6 +41,8 @@ export default async function ReportDetail({ params }: { params: Promise<{ id: s
           <Badge tone={statusTone}>{statusLabel}</Badge>
         </div>
         <dl className="divide-y divide-border">
+          <Row k="报备编号" v={r.code} />
+          <Row k="报备时间" v={fmtTime(r.createdAt)} />
           <Row k="施工企业" v={r.enterprise} />
           <Row k="面积 / 价款" v={`${r.area || "—"} ㎡ · ${r.budget || "—"} 万`} />
           <Row k="负责人" v={`${r.manager || "—"} · ${r.phone || "—"}`} />
@@ -45,6 +50,7 @@ export default async function ReportDetail({ params }: { params: Promise<{ id: s
           <Row k="项目地址" v={p.address || "—"} />
           <Row k="项目摘要" v={p.summary || "—"} />
           <Row k="安全员" v={p.safetyOfficer || "—"} />
+          {extras.map(([k, v]) => <Row key={k} k={EXTRA_LABEL[k] ?? k} v={String(v)} />)}
         </dl>
       </div>
 
@@ -66,6 +72,13 @@ export default async function ReportDetail({ params }: { params: Promise<{ id: s
       )}
     </AssociationShell>
   );
+}
+
+function fmtTime(ms: number) {
+  if (!ms) return "—";
+  const d = new Date(ms);
+  const p = (n: number) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}`;
 }
 
 function Row({ k, v }: { k: string; v: string }) {

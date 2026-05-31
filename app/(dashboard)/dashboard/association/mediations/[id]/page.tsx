@@ -34,6 +34,9 @@ export default async function MediationDetail({ params }: { params: Promise<{ id
           <Badge tone={statusTone}>{STATUS[m.status] ?? m.status}</Badge>
         </div>
         <dl className="divide-y divide-border">
+          <Row k="申请编号" v={`#${m.id}`} />
+          <Row k="申请时间" v={fmtTime(m.createdAt)} />
+          <Row k="申请人" v={m.applicant} />
           <Row k="联系电话" v={m.phone} />
           <Row k="被投诉方" v={m.respondent || "—"} />
           <Row k="纠纷经过 / 诉求" v={m.detail} />
@@ -68,6 +71,13 @@ export default async function MediationDetail({ params }: { params: Promise<{ id
       </div>
     </AssociationShell>
   );
+}
+
+function fmtTime(ms: number) {
+  if (!ms) return "—";
+  const d = new Date(ms);
+  const p = (n: number) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}`;
 }
 
 function Row({ k, v }: { k: string; v: string }) {
