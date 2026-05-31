@@ -90,23 +90,23 @@ export function MultiUpload({
         {label} <span className="text-muted-foreground font-normal">（{items.length}/{max}）</span>
       </div>
       {hint && <div className="text-[11px] text-muted-foreground mb-2">{hint}</div>}
-      <div className="flex flex-wrap gap-2">
+      <div className="flex flex-wrap gap-2.5">
         {items.map((it, idx) => (
-          <div key={idx} className="relative h-20 w-20 border border-border overflow-hidden bg-background">
+          <div key={idx} className="relative w-[180px] max-w-full border border-border overflow-hidden bg-background" style={{ aspectRatio: "85.6 / 54" }}>
             {it.preview ? (
               // eslint-disable-next-line @next/next/no-img-element
-              <img src={it.preview} alt={it.name} className="h-full w-full object-cover" />
+              <img src={it.preview} alt={it.name} className="absolute inset-0 h-full w-full object-cover" />
             ) : (
-              <div className="h-full w-full flex items-center justify-center text-muted-foreground"><FileText className="h-6 w-6" /></div>
+              <div className="absolute inset-0 flex items-center justify-center text-muted-foreground"><FileText className="h-7 w-7" /></div>
             )}
-            <button type="button" onClick={() => remove(idx)} className="absolute top-0.5 right-0.5 h-5 w-5 rounded-full bg-foreground/60 text-white inline-flex items-center justify-center"><X className="h-3 w-3" /></button>
+            <button type="button" onClick={() => remove(idx)} className="absolute top-1.5 right-1.5 h-6 w-6 rounded-full bg-foreground/60 text-white inline-flex items-center justify-center"><X className="h-3.5 w-3.5" /></button>
           </div>
         ))}
         {items.length < max && (
-          <label className="h-20 w-20 border-2 border-dashed border-border bg-surface/40 hover:border-foreground/30 hover:bg-surface flex flex-col items-center justify-center gap-0.5 cursor-pointer text-muted-foreground transition-colors">
+          <label className="w-[180px] max-w-full border-2 border-dashed border-border bg-surface/40 hover:border-foreground/30 hover:bg-surface flex flex-col items-center justify-center gap-1 cursor-pointer text-muted-foreground transition-colors" style={{ aspectRatio: "85.6 / 54" }}>
             <input ref={ref} type="file" accept="image/*" multiple className="hidden" onChange={(e) => add(e.target.files)} />
             <Plus className="h-5 w-5" />
-            <span className="text-[10px]">添加</span>
+            <span className="text-[11px]">添加</span>
           </label>
         )}
       </div>
