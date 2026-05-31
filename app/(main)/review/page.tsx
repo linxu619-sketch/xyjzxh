@@ -1,11 +1,24 @@
 import Link from "next/link";
-import { Star, Search, ShieldCheck, MessageSquareHeart, ArrowUpRight } from "lucide-react";
+import { Star, Search, ShieldCheck, MessageSquareHeart, ArrowUpRight, CheckCircle2, PencilLine } from "lucide-react";
 import { Container } from "@/components/container";
 import { PageHeader } from "@/components/page-header";
 import { Badge } from "@/components/ui/badge";
 import { ENTERPRISES } from "@/lib/data/enterprises";
+import { listReviews } from "@/lib/data/reviews";
+import { submitReviewAction } from "./actions";
 
 export const metadata = { title: "口碑评价 · 信阳市建筑装饰装修协会" };
+
+const CAT_LABEL = { build: "建筑", decor: "装修", design: "设计" } as const;
+function maskName(n: string) {
+  if (!n || n === "匿名业主") return "匿名业主";
+  return n.slice(0, 1) + "**";
+}
+function fmtDate(ts: number) {
+  if (!ts) return "";
+  const d = new Date(ts);
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+}
 
 const SAMPLE = [
   { id: "R001", user: "刘**", enterprise: "名家装饰",         project: "金茂悦府 1602",      rating: 5, content: "项目经理特别负责，水电改造的时候多次主动来工地，质量超预期。", date: "2026-05-26", cat: "decor" as const },
@@ -15,9 +28,22 @@ const SAMPLE = [
   { id: "R005", user: "王**", enterprise: "万家美装饰",       project: "弦山街老房翻新",      rating: 4, content: "县域价格做出市区品质，性价比之选。", date: "2026-05-05", cat: "decor" as const },
 ];
 
-export default function ReviewsHubPage() {
+export default async function ReviewsHubPage({ searchParams }: { searchParams: Promise<{ posted?: string }> }) {
+  const { posted } = await searchParams;
   const total = 12640;
   const avg = 4.8;
+
+  const realItems = listReviews(20).map((r) => ({
+    id: `db${r.id}`,
+    user: maskName(r.user),
+    enterprise: r.enterprise,
+    project: r.project,
+    rating: r.rating,
+    content: r.content,
+    date: fmtDate(r.createdAt),
+    cat: (["build", "decor", "design"].includes(r.category) ? r.category : "decor") as "build" | "decor" | "design",
+  }));
+  const feed = [...realItems, ...SAMPLE];
   return (
     <>
       <PageHeader
@@ -63,10 +89,39 @@ export default function ReviewsHubPage() {
           </div>
         </div>
 
+        {/* 写评价 */}
+        {posted === "1" && (
+          <div className="mb-4 rounded-2xl bg-[#e6f7f1] border border-accent-tea/30 px-4 py-3 text-[13px] text-accent-tea inline-flex items-center gap-2">
+            <CheckCircle2 className="h-4 w-4" /> 评价已发布，感谢你的反馈！
+          </div>
+        )}
+        <details className="rounded-3xl border border-border bg-background p-5 mb-6">
+          <summary className="cursor-pointer font-semibold inline-flex items-center gap-2 list-none [&::-webkit-details-marker]:hidden">
+            <PencilLine className="h-4 w-4 text-cat-decor" /> 写一条评价
+          </summary>
+          <form action={submitReviewAction} className="mt-4 space-y-3">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <input name="user" placeholder="你的称呼（如 刘女士）" className="h-11 w-full rounded-xl border border-border bg-background px-3.5 text-[14px] outline-none focus:border-foreground/30" />
+              <select name="enterprise" required defaultValue="" className="h-11 w-full rounded-xl border border-border bg-background px-3.5 text-[14px] outline-none focus:border-foreground/30">
+                <option value="" disabled>选择被评价企业</option>
+                {ENTERPRISES.map((e) => <option key={e.id} value={e.name}>{e.name}</option>)}
+              </select>
+              <input name="project" placeholder="项目（如 金茂悦府 1602）" className="h-11 w-full rounded-xl border border-border bg-background px-3.5 text-[14px] outline-none focus:border-foreground/30" />
+              <select name="rating" defaultValue="5" className="h-11 w-full rounded-xl border border-border bg-background px-3.5 text-[14px] outline-none focus:border-foreground/30">
+                {[5, 4, 3, 2, 1].map((n) => <option key={n} value={n}>{n} 星</option>)}
+              </select>
+            </div>
+            <textarea name="content" rows={3} required placeholder="说说你的真实装修体验…（发布后企业可回复但不可删除）" className="w-full rounded-xl border border-border bg-background p-3.5 text-[13px] leading-6 outline-none focus:border-foreground/30" />
+            <button type="submit" className="h-10 px-5 rounded-full bg-foreground text-background text-[13px] font-medium inline-flex items-center gap-1.5">
+              <PencilLine className="h-3.5 w-3.5" /> 发布评价
+            </button>
+          </form>
+        </details>
+
         {/* 评价流 */}
         <h2 className="text-[18px] font-semibold mb-3">最新评价</h2>
         <div className="space-y-3">
-          {SAMPLE.map((r) => (
+          {feed.map((r) => (
             <article key={r.id} className="rounded-3xl border border-border bg-background p-5">
               <div className="flex items-start gap-3">
                 <span className="h-10 w-10 rounded-full bg-surface inline-flex items-center justify-center text-[13px] font-semibold shrink-0">

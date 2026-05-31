@@ -85,6 +85,18 @@ CREATE TABLE IF NOT EXISTS project_reports (
   created_at  INTEGER
 );
 CREATE INDEX IF NOT EXISTS idx_reports_status ON project_reports(status, created_at);
+
+CREATE TABLE IF NOT EXISTS reviews (
+  id          INTEGER PRIMARY KEY AUTOINCREMENT,
+  user        TEXT,
+  enterprise  TEXT,
+  project     TEXT,
+  rating      INTEGER,
+  content     TEXT,
+  category    TEXT,
+  created_at  INTEGER
+);
+CREATE INDEX IF NOT EXISTS idx_reviews_created ON reviews(created_at);
 `;
 
 function seedEnterprises(db: DB) {
