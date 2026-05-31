@@ -1,4 +1,7 @@
-# 接入 Supabase · 5 步
+> ⚠️ **当前默认数据库是本地 SQLite（零配置）**：用 Node 内置 `node:sqlite`，库文件 `data/app.db`，双击启动自动建库灌种子，**无需做下面任何步骤**。
+> 下面的 Supabase 接入仅在「将来上线、多人访问」时需要；届时再按此操作并把数据源从 SQLite 切到 Supabase。
+
+# （可选 · 上线用）接入 Supabase · 5 步
 
 ## 1. 建项目
 

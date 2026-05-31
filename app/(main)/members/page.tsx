@@ -22,9 +22,9 @@ export default async function MembersPage({
         title={<>{enterprises.length.toLocaleString()} 家协会认证企业<br className="md:hidden" /> 一处直达</>}
         description="所有入驻企业均经资质核验、信用评估与现场核查，按品类、区域、口碑自由筛选。点击企业可访问其专属子站。"
         actions={
-          <Badge tone={source === "supabase" ? "tea" : "yellow"} className="!inline-flex !items-center !gap-1">
+          <Badge tone={source === "sqlite" ? "tea" : "yellow"} className="!inline-flex !items-center !gap-1">
             <Database className="h-3 w-3" />
-            {source === "supabase" ? "数据来自 Supabase" : "数据来自 Mock"}
+            {source === "sqlite" ? "数据来自 SQLite" : "数据来自 Mock"}
           </Badge>
         }
       />

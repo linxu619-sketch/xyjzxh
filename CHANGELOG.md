@@ -14,6 +14,16 @@
 
 ---
 
+## [0.9.0] - 2026-05-31
+
+### 变更（数据库换成本地 SQLite · 零配置）
+- 不再需要 Supabase 的云端注册/填 key/跑 SQL。改用 Node 24 内置 `node:sqlite`：
+  - 新增 `lib/db/sqlite.ts`：库文件 `data/app.db`（gitignore），首次访问自动建表并用 `lib/data/*` 种子灌库。
+  - `lib/data/enterprises-source.ts` 改为查 SQLite（失败回退 mock）；`lastDataSource` 返回 `sqlite`。
+  - `/members` 徽章改为「数据来自 SQLite」。
+  - 实测：`/members` 与企业详情页正常，库内 12 家企业。
+- Supabase 接入代码保留为休眠（上线多人访问时再迁，见 db/README.md）。
+
 ## [0.8.2] - 2026-05-31
 
 ### 修复

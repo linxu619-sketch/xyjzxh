@@ -1,12 +1,9 @@
 import "server-only";
 import { ENTERPRISES, type Enterprise } from "./enterprises";
-import { getSupabaseAdmin, getSupabaseAnon } from "@/lib/supabase/server";
+import { getDb } from "@/lib/db/sqlite";
 
 /* ============================================================
-   企业数据源切换器
-   ------------------------------------------------------------
-   优先 Supabase（如已配置且 enterprises 表存在），否则用 mock。
-   失败时静默回退 mock，保证 UI 不崩溃。
+   企业数据源：本地 SQLite（失败回退 mock，保证 UI 不崩）
    ============================================================ */
 
 type Row = {
@@ -17,19 +14,26 @@ type Row = {
   district: string | null;
   founded: number | null;
   staff_size: string | null;
-  qualification: string[] | null;
-  tags: string[] | null;
+  qualification: string | null; // JSON
+  tags: string | null;          // JSON
   short: string | null;
-  hero: { brand?: string; tagline?: string } | null;
-  contact: { tel?: string; addr?: string } | null;
+  hero: string | null;          // JSON
+  contact: string | null;       // JSON
   rating: number | null;
   reviews: number | null;
   cases: number | null;
-  verified: boolean | null;
-  featured: boolean | null;
+  verified: number | null;      // 0/1
+  featured: number | null;      // 0/1
 };
 
+function parseJson<T>(s: string | null, fallback: T): T {
+  if (!s) return fallback;
+  try { return JSON.parse(s) as T; } catch { return fallback; }
+}
+
 function rowToEnterprise(r: Row): Enterprise {
+  const hero = parseJson<{ brand?: string; tagline?: string }>(r.hero, {});
+  const contact = parseJson<{ tel?: string; addr?: string }>(r.contact, {});
   return {
     id: r.id,
     slug: r.slug,
@@ -41,46 +45,30 @@ function rowToEnterprise(r: Row): Enterprise {
     cases: r.cases ?? 0,
     founded: r.founded ?? 0,
     staff: r.staff_size ?? "—",
-    qualification: r.qualification ?? [],
-    tags: r.tags ?? [],
+    qualification: parseJson<string[]>(r.qualification, []),
+    tags: parseJson<string[]>(r.tags, []),
     short: r.short ?? "",
-    hero: {
-      brand: r.hero?.brand ?? r.name,
-      tagline: r.hero?.tagline ?? "",
-    },
-    contact: {
-      tel: r.contact?.tel ?? "",
-      addr: r.contact?.addr ?? "",
-    },
+    hero: { brand: hero.brand ?? r.name, tagline: hero.tagline ?? "" },
+    contact: { tel: contact.tel ?? "", addr: contact.addr ?? "" },
     verified: !!r.verified,
-    featured: r.featured ?? false,
+    featured: !!r.featured,
     color: r.category as "build" | "decor" | "design",
   };
 }
 
-let lastSource: "supabase" | "mock" = "mock";
+let lastSource: "sqlite" | "mock" = "mock";
 
 export function lastDataSource() {
   return lastSource;
 }
 
 export async function getEnterprises(): Promise<Enterprise[]> {
-  const client = (await getSupabaseAnon()) ?? (await getSupabaseAdmin());
-  if (!client) {
-    lastSource = "mock";
-    return ENTERPRISES;
-  }
   try {
-    const { data, error } = await client
-      .from("enterprises")
-      .select("id,slug,name,category,district,founded,staff_size,qualification,tags,short,hero,contact,rating,reviews,cases,verified,featured")
-      .eq("status", "active");
-    if (error || !data) {
-      lastSource = "mock";
-      return ENTERPRISES;
-    }
-    lastSource = "supabase";
-    return (data as Row[]).map(rowToEnterprise);
+    const rows = getDb()
+      .prepare("SELECT * FROM enterprises WHERE status = 'active'")
+      .all() as Row[];
+    lastSource = "sqlite";
+    return rows.map(rowToEnterprise);
   } catch {
     lastSource = "mock";
     return ENTERPRISES;
@@ -88,23 +76,12 @@ export async function getEnterprises(): Promise<Enterprise[]> {
 }
 
 export async function getEnterpriseBySlugOrId(key: string): Promise<Enterprise | undefined> {
-  const client = (await getSupabaseAnon()) ?? (await getSupabaseAdmin());
-  if (!client) {
-    lastSource = "mock";
-    return ENTERPRISES.find((e) => e.slug === key || e.id === key);
-  }
   try {
-    const { data, error } = await client
-      .from("enterprises")
-      .select("id,slug,name,category,district,founded,staff_size,qualification,tags,short,hero,contact,rating,reviews,cases,verified,featured")
-      .or(`slug.eq.${key},id.eq.${key}`)
-      .maybeSingle();
-    if (error || !data) {
-      lastSource = "mock";
-      return ENTERPRISES.find((e) => e.slug === key || e.id === key);
-    }
-    lastSource = "supabase";
-    return rowToEnterprise(data as Row);
+    const row = getDb()
+      .prepare("SELECT * FROM enterprises WHERE slug = ? OR id = ? LIMIT 1")
+      .get(key, key) as Row | undefined;
+    lastSource = "sqlite";
+    return row ? rowToEnterprise(row) : undefined;
   } catch {
     lastSource = "mock";
     return ENTERPRISES.find((e) => e.slug === key || e.id === key);

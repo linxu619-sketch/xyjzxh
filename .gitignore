@@ -49,3 +49,6 @@ next-env.d.ts
 *_test.log
 _*.log
 server.log
+
+# 本地 SQLite 数据库文件
+/data/
