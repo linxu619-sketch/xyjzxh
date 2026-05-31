@@ -119,6 +119,20 @@ CREATE TABLE IF NOT EXISTS mediations (
   created_at  INTEGER
 );
 CREATE INDEX IF NOT EXISTS idx_mediations_status ON mediations(status, created_at);
+
+CREATE TABLE IF NOT EXISTS practitioners (
+  id          INTEGER PRIMARY KEY AUTOINCREMENT,
+  app_id      INTEGER UNIQUE,  -- 来源入会申请 id（防重复入册）
+  name        TEXT,
+  kind        TEXT,
+  years       INTEGER,
+  rating      REAL,
+  jobs        INTEGER,
+  city        TEXT,
+  insured     INTEGER,
+  phone       TEXT,
+  created_at  INTEGER
+);
 `;
 
 function seedEnterprises(db: DB) {

@@ -8,6 +8,7 @@ import { PageHeader } from "@/components/page-header";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { PRACTITIONERS_LIST, PRACTITIONER_JOBS } from "@/lib/data/practitioners";
+import { listPractitioners } from "@/lib/data/practitioners-source";
 import { cn } from "@/lib/cn";
 
 export const metadata = { title: "从业者门户 · 信阳市建筑装饰装修协会" };
@@ -37,6 +38,7 @@ const TONE: Record<string, string> = {
 };
 
 export default function PractitionersLanding() {
+  const list = [...listPractitioners(), ...PRACTITIONERS_LIST];
   return (
     <>
       <PageHeader
@@ -118,7 +120,7 @@ export default function PractitionersLanding() {
         <h2 className="mt-14 text-[26px] md:text-[32px] font-semibold tracking-tight">协会认证工长 / 师傅</h2>
         <p className="mt-2 text-[14px] text-muted-foreground">真实评价 · 历史项目可追溯 · 工伤险全员覆盖</p>
         <div className="mt-6 grid grid-cols-2 md:grid-cols-4 gap-3">
-          {PRACTITIONERS_LIST.map((p) => (
+          {list.map((p) => (
             <div key={p.id} className="rounded-3xl border border-border bg-background p-5">
               <div className="flex items-center gap-2">
                 <span className="h-12 w-12 rounded-full bg-cat-design text-white inline-flex items-center justify-center text-[18px] font-semibold">{p.name.slice(0, 1)}</span>

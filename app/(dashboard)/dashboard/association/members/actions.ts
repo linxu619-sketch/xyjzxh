@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { getSession } from "@/lib/auth/session";
 import { getApplication, setApplicationStatus } from "@/lib/data/applications";
 import { createEnterpriseFromApplication } from "@/lib/data/enterprises-source";
+import { createPractitionerFromApplication } from "@/lib/data/practitioners-source";
 
 export async function reviewApplicationAction(fd: FormData) {
   const s = await getSession();
@@ -21,6 +22,11 @@ export async function reviewApplicationAction(fd: FormData) {
   if (act === "approve" && app?.type === "enterprise") {
     createEnterpriseFromApplication(app);
     revalidatePath("/members");
+  }
+  // 个人会员申请通过 → 进入从业者 / 个人会员名录，出现在 /practitioners
+  if (act === "approve" && app?.type === "individual") {
+    createPractitionerFromApplication(app);
+    revalidatePath("/practitioners");
   }
 
   revalidatePath("/dashboard/association/members");
