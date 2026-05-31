@@ -165,6 +165,16 @@ CREATE TABLE IF NOT EXISTS enterprise_cases (
   created_at    INTEGER
 );
 CREATE INDEX IF NOT EXISTS idx_cases_ent ON enterprise_cases(enterprise_id, created_at);
+
+CREATE TABLE IF NOT EXISTS enterprise_team (
+  id            INTEGER PRIMARY KEY AUTOINCREMENT,
+  enterprise_id TEXT,
+  name          TEXT,
+  role          TEXT,
+  exp           TEXT,
+  created_at    INTEGER
+);
+CREATE INDEX IF NOT EXISTS idx_team_ent ON enterprise_team(enterprise_id, created_at);
 `;
 
 function seedEnterprises(db: DB) {
@@ -334,6 +344,19 @@ function seedCases(db: DB) {
   rows.forEach((r, i) => stmt.run(r[0], r[1], r[2], r[3], now - i * DAY));
 }
 
+function seedTeam(db: DB) {
+  if (!isEmpty(db, "enterprise_team")) return;
+  const rows: [string, string, string][] = [
+    ["李工", "首席设计师", "15 年经验 · 注册一级"],
+    ["张工", "项目总监", "20 年 · 一级建造师"],
+    ["王工", "技术总工", "12 年 · BIM 专家"],
+    ["赵工", "材料主管", "10 年 · 供应链"],
+  ];
+  const stmt = db.prepare("INSERT INTO enterprise_team (enterprise_id,name,role,exp,created_at) VALUES ('e002',?,?,?,?)");
+  const now = Date.now();
+  rows.forEach((r, i) => stmt.run(r[0], r[1], r[2], now - i * 3600000));
+}
+
 function init(): DB {
   const dir = join(process.cwd(), "data");
   mkdirSync(dir, { recursive: true });
@@ -351,6 +374,7 @@ function init(): DB {
   seedMediations(db);
   seedLeads(db);
   seedCases(db);
+  seedTeam(db);
   return db;
 }
 

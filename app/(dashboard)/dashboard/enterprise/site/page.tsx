@@ -6,17 +6,20 @@ import { getSession } from "@/lib/auth/session";
 import { getEnterpriseBySlugOrId } from "@/lib/data/enterprises-source";
 import { listLeadsByEnterprise } from "@/lib/data/leads";
 import { listCasesByEnterprise } from "@/lib/data/cases";
+import { listTeamByEnterprise } from "@/lib/data/team";
 import { saveSiteAction } from "./actions";
 import { CasesManager } from "./CasesManager";
+import { TeamManager } from "./TeamManager";
 
 export const metadata = { title: "我的子站 · 企业工作台" };
 
-export default async function SitePage({ searchParams }: { searchParams: Promise<{ ok?: string; err?: string; cok?: string; cerr?: string }> }) {
-  const { ok, err, cok, cerr } = await searchParams;
+export default async function SitePage({ searchParams }: { searchParams: Promise<{ ok?: string; err?: string; cok?: string; cerr?: string; tok?: string; terr?: string }> }) {
+  const { ok, err, cok, cerr, tok, terr } = await searchParams;
   const session = await getSession();
   const ent = session?.enterpriseId ? await getEnterpriseBySlugOrId(session.enterpriseId) : undefined;
   const leads = session?.enterpriseId ? listLeadsByEnterprise(session.enterpriseId) : [];
   const cases = session?.enterpriseId ? listCasesByEnterprise(session.enterpriseId) : [];
+  const team = session?.enterpriseId ? listTeamByEnterprise(session.enterpriseId) : [];
 
   const slug = ent?.slug ?? "";
   const signed = leads.filter((l) => l.status === "signed").length;
@@ -52,6 +55,16 @@ export default async function SitePage({ searchParams }: { searchParams: Promise
       {cerr && (
         <div className="mb-5 rounded-2xl border border-cat-decor/30 bg-cat-decor-soft text-cat-decor p-4 flex items-center gap-3">
           <AlertCircle className="h-5 w-5 shrink-0" /><div className="text-[13px]">案例添加失败：请填写标题并上传封面图。</div>
+        </div>
+      )}
+      {tok && (
+        <div className="mb-5 rounded-2xl border border-accent-tea/30 bg-[#e6f7f1] text-accent-tea p-4 flex items-center gap-3">
+          <CheckCircle2 className="h-5 w-5 shrink-0" /><div className="text-[13px]"><b>成员已添加！</b>已展示在您的子站团队区。</div>
+        </div>
+      )}
+      {terr && (
+        <div className="mb-5 rounded-2xl border border-cat-decor/30 bg-cat-decor-soft text-cat-decor p-4 flex items-center gap-3">
+          <AlertCircle className="h-5 w-5 shrink-0" /><div className="text-[13px]">成员添加失败：请填写姓名与职务。</div>
         </div>
       )}
 
@@ -127,6 +140,10 @@ export default async function SitePage({ searchParams }: { searchParams: Promise
 
         <div className="mt-4">
           <CasesManager cases={cases.map((c) => ({ id: c.id, title: c.title, cover: c.cover, area: c.area, tag: c.tag }))} />
+        </div>
+
+        <div className="mt-4">
+          <TeamManager team={team.map((m) => ({ id: m.id, name: m.name, role: m.role, exp: m.exp }))} />
         </div>
         </>
       )}

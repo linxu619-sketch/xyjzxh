@@ -8,6 +8,7 @@ import { ENTERPRISES } from "@/lib/data/enterprises";
 import { getEnterpriseBySlugOrId } from "@/lib/data/enterprises-source";
 import { listReviews } from "@/lib/data/reviews";
 import { listCasesByEnterprise } from "@/lib/data/cases";
+import { listTeamByEnterprise } from "@/lib/data/team";
 import { Container } from "@/components/container";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -38,10 +39,9 @@ export default async function TenantHome({ params }: { params: Promise<{ tenant:
 
   // 真实评价（按企业简称/全称匹配 reviews 表）；新入会企业暂无 → 优雅留空
   const realReviews = listReviews(50).filter((r) => r.enterprise === e.hero.brand || r.enterprise === e.name).slice(0, 6);
-  // 真实案例（企业自助上传）
+  // 真实案例 / 团队（企业自助维护）
   const cases = listCasesByEnterprise(e.id);
-  // 团队展示素材：mock 种子企业(有成立年份)显示演示团队；真实新会员暂无 → 不编造
-  const hasShowcase = e.founded > 0;
+  const team = listTeamByEnterprise(e.id);
 
   return (
     <>
@@ -188,16 +188,16 @@ export default async function TenantHome({ params }: { params: Promise<{ tenant:
         </Container>
       </section>
 
-      {/* 团队 · 移动横滑 / 桌面网格 */}
-      {hasShowcase && (
+      {/* 团队 · 真实成员（企业维护，无则不显示） */}
+      {team.length > 0 && (
       <section id="team" className="py-14 md:py-24">
         <Container>
           <SectionTitle eyebrow="TEAM" title="核心团队" />
 
           <div className="md:hidden mt-6 -mx-5 px-5 overflow-x-auto snap-x snap-mandatory [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
             <div className="flex gap-3 pb-2">
-              {SAMPLE_TEAM.map((m, i) => (
-                <div key={i} className="snap-start shrink-0 w-[40vw] max-w-[160px] rounded-3xl border border-border bg-background p-4 text-center">
+              {team.map((m) => (
+                <div key={m.id} className="snap-start shrink-0 w-[40vw] max-w-[160px] rounded-3xl border border-border bg-background p-4 text-center">
                   <div className={cn("mx-auto h-14 w-14 rounded-full text-white flex items-center justify-center text-[20px] font-semibold", BG[e.color])}>
                     {m.name.slice(0, 1)}
                   </div>
@@ -210,8 +210,8 @@ export default async function TenantHome({ params }: { params: Promise<{ tenant:
           </div>
 
           <div className="hidden md:grid mt-10 grid-cols-4 gap-4">
-            {SAMPLE_TEAM.map((m, i) => (
-              <div key={i} className="rounded-3xl border border-border bg-background p-5 text-center hover:shadow-md transition-shadow">
+            {team.map((m) => (
+              <div key={m.id} className="rounded-3xl border border-border bg-background p-5 text-center hover:shadow-md transition-shadow">
                 <div className={cn("mx-auto h-20 w-20 rounded-full text-white flex items-center justify-center text-[26px] font-semibold", BG[e.color])}>
                   {m.name.slice(0, 1)}
                 </div>
@@ -382,9 +382,3 @@ function SectionTitle({ eyebrow, title, action }: { eyebrow: string; title: stri
   );
 }
 
-const SAMPLE_TEAM = [
-  { name: "李工", role: "首席设计师", exp: "15 年经验 · 注册一级" },
-  { name: "张工", role: "项目总监", exp: "20 年 · 一级建造师" },
-  { name: "王工", role: "技术总工", exp: "12 年 · BIM 专家" },
-  { name: "赵工", role: "材料主管", exp: "10 年 · 供应链" },
-];
