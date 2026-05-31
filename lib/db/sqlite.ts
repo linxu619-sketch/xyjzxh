@@ -216,11 +216,11 @@ function seedReviews(db: DB) {
 function seedApplications(db: DB) {
   if (!isEmpty(db, "applications")) return;
   const rows: [string, string, string, Record<string, string>, string][] = [
-    ["enterprise", "信阳同信建工有限公司", "13800010001", { entName: "信阳同信建工有限公司", entType: "建筑施工", region: "浉河区", creditCode: "91411500AAAA0001", contactName: "同先生", contactPhone: "13800010001" }, "pending"],
-    ["enterprise", "明禾装饰工程有限公司", "13800010002", { entName: "明禾装饰工程有限公司", entType: "装饰装修", region: "羊山新区", creditCode: "91411500AAAA0002", contactName: "何女士", contactPhone: "13800010002" }, "pending"],
-    ["individual", "林之远", "13800010003", { realName: "林之远", profession: "设计师", idcard: "411500199001011234", years: "9", phone: "13800010003" }, "pending"],
-    ["enterprise", "鹿鸣空间设计有限公司", "13800010004", { entName: "鹿鸣空间设计有限公司", entType: "设计公司", region: "平桥区", contactName: "鹿女士", contactPhone: "13800010004" }, "approved"],
-    ["individual", "吴小明", "13800010005", { realName: "吴小明", profession: "独立工长", idcard: "411500198805053456", years: "6", phone: "13800010005" }, "rejected"],
+    ["enterprise", "信阳同信建工有限公司", "13800010001", { entName: "信阳同信建工有限公司", entType: "建筑施工", region: "浉河区", creditCode: "91411500AAAA0001", subdomain: "tongxin", contactName: "同先生", contactPhone: "13800010001", "营业执照": "营业执照.jpg", "身份证人像面": "身份证-人像面.jpg", "身份证国徽面": "身份证-国徽面.jpg", "资质证书": "建筑工程施工总承包二级.jpg；安全生产许可证.jpg", "项目业绩": "信阳茶博园主体工程.jpg；浉河花园三期.jpg" }, "pending"],
+    ["enterprise", "明禾装饰工程有限公司", "13800010002", { entName: "明禾装饰工程有限公司", entType: "装饰装修", region: "羊山新区", creditCode: "91411500AAAA0002", subdomain: "minghe", contactName: "何女士", contactPhone: "13800010002", "营业执照": "营业执照.jpg", "身份证人像面": "身份证-人像面.jpg", "身份证国徽面": "身份证-国徽面.jpg", "资质证书": "建筑装修装饰工程专业承包二级.jpg", "项目业绩": "万象城商铺装修.jpg；茶都商务大厦 18F.jpg；金茂悦府样板间.jpg" }, "pending"],
+    ["individual", "林之远", "13800010003", { realName: "林之远", profession: "设计师", idcard: "411500199001011234", years: "9", phone: "13800010003", "身份证人像面": "身份证-人像面.jpg", "身份证国徽面": "身份证-国徽面.jpg", "资格证书": "高级室内设计师证.jpg", "代表作品": "御景湾别墅软装.jpg；茶都办公空间.jpg" }, "pending"],
+    ["enterprise", "鹿鸣空间设计有限公司", "13800010004", { entName: "鹿鸣空间设计有限公司", entType: "设计公司", region: "平桥区", creditCode: "91411500AAAA0004", subdomain: "luming", contactName: "鹿女士", contactPhone: "13800010004", "营业执照": "营业执照.jpg", "身份证人像面": "身份证-人像面.jpg", "身份证国徽面": "身份证-国徽面.jpg", "项目业绩": "御景湾别墅整案.jpg；星河湾会所.jpg" }, "approved"],
+    ["individual", "吴小明", "13800010005", { realName: "吴小明", profession: "独立工长", idcard: "411500198805053456", years: "6", phone: "13800010005", "身份证人像面": "身份证-人像面.jpg", "身份证国徽面": "身份证-国徽面.jpg", "代表作品": "弦山街老房翻新.jpg" }, "rejected"],
   ];
   const stmt = db.prepare("INSERT INTO applications (type,applicant,phone,payload,status,created_at) VALUES (?,?,?,?,?,?)");
   const now = Date.now();

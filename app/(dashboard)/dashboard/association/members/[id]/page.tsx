@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowLeft, CheckCircle2, XCircle, ShieldCheck } from "lucide-react";
+import { ArrowLeft, CheckCircle2, XCircle, ShieldCheck, FileImage } from "lucide-react";
 import { AssociationShell } from "@/components/dashboard/shell";
 import { Badge } from "@/components/ui/badge";
 import { getApplication } from "@/lib/data/applications";
@@ -29,7 +29,9 @@ export default async function ApplicationDetail({ params }: { params: Promise<{ 
     );
   }
 
-  const entries = Object.entries(app.payload).filter(([k, v]) => !HIDE.has(k) && String(v).trim());
+  // 基本信息（已知字段）与上传材料（其余键＝向导上传的文件名）分开展示
+  const basic = Object.entries(app.payload).filter(([k, v]) => k in FIELD_LABEL && !HIDE.has(k) && String(v).trim());
+  const materials = Object.entries(app.payload).filter(([k, v]) => !(k in FIELD_LABEL) && !HIDE.has(k) && String(v).trim());
   const statusTone = app.status === "approved" ? "tea" : app.status === "rejected" ? "decor" : "yellow";
   const statusLabel = app.status === "approved" ? "已通过" : app.status === "rejected" ? "已驳回" : "待审核";
 
@@ -45,10 +47,33 @@ export default async function ApplicationDetail({ params }: { params: Promise<{ 
           </div>
           <Badge tone={statusTone}>{statusLabel}</Badge>
         </div>
+
         <dl className="divide-y divide-border">
+          <Row k="申请编号" v={`#${app.id}`} />
+          <Row k="申请时间" v={fmtTime(app.createdAt)} />
           <Row k="联系电话" v={app.phone} />
-          {entries.map(([k, v]) => <Row key={k} k={FIELD_LABEL[k] ?? k} v={String(v)} />)}
+          {basic.map(([k, v]) => <Row key={k} k={FIELD_LABEL[k] ?? k} v={String(v)} />)}
         </dl>
+
+        {materials.length > 0 && (
+          <div className="border-t border-border px-5 py-4">
+            <div className="text-[13px] font-semibold text-muted-foreground mb-3">上传材料</div>
+            <div className="space-y-3">
+              {materials.map(([k, v]) => (
+                <div key={k}>
+                  <div className="text-[12px] text-muted-foreground mb-1.5">{k}</div>
+                  <div className="flex flex-wrap gap-2">
+                    {String(v).split(/[；;]/).map((f) => f.trim()).filter(Boolean).map((f, i) => (
+                      <span key={i} className="inline-flex items-center gap-1.5 px-2.5 py-1.5 bg-surface border border-border text-[12px]">
+                        <FileImage className="h-3.5 w-3.5 text-cat-design shrink-0" />{f}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
 
       {app.status === "pending" ? (
@@ -69,6 +94,13 @@ export default async function ApplicationDetail({ params }: { params: Promise<{ 
       )}
     </AssociationShell>
   );
+}
+
+function fmtTime(ms: number) {
+  if (!ms) return "—";
+  const d = new Date(ms);
+  const p = (n: number) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}`;
 }
 
 function Row({ k, v }: { k: string; v: string }) {
