@@ -1,14 +1,14 @@
 import Link from "next/link";
-import { Plus, Trash2, Save, Power, BookOpen } from "lucide-react";
+import { Trash2, Save, Power, BookOpen } from "lucide-react";
 import { AssociationShell } from "@/components/dashboard/shell";
 import { AI_EMPLOYEES } from "@/lib/site";
-import { listKnowledge } from "@/lib/ai/knowledge-source";
+import { listKnowledge, recentQuestions } from "@/lib/ai/knowledge-source";
 import {
-  addKnowledgeAction,
   updateKnowledgeAction,
   deleteKnowledgeAction,
   toggleKnowledgeAction,
 } from "./actions";
+import { KnowledgeComposer } from "./KnowledgeComposer";
 import { cn } from "@/lib/cn";
 
 export const metadata = { title: "AI 知识库 · 协会工作台" };
@@ -52,25 +52,8 @@ export default async function KnowledgeAdmin({
         })}
       </div>
 
-      {/* 新增词条 */}
-      <div className="rounded-2xl border border-border bg-background p-5 mb-6">
-        <div className="flex items-center gap-2 mb-4">
-          <span className="inline-flex h-8 w-8 items-center justify-center rounded-xl bg-brand-50 text-brand"><Plus className="h-4 w-4" /></span>
-          <div className="text-[15px] font-semibold">给「{current.name} · {current.role}」新增知识词条</div>
-        </div>
-        <form action={addKnowledgeAction} className="space-y-3">
-          <input type="hidden" name="emp" value={emp} />
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            <input name="title" placeholder="标题（如：企业会员入会材料）" className={INPUT} required />
-            <input name="source" placeholder="来源（可选，如：协会章程）" className={INPUT} />
-          </div>
-          <input name="keywords" placeholder="关键词（命中即强相关，用逗号/空格分隔，如：入会,材料,流程）" className={INPUT} />
-          <textarea name="content" rows={3} placeholder="知识内容：AI 回答时会参考并自然融入，请写准确、可执行" className={TEXTAREA} required />
-          <button type="submit" className="h-10 px-4 rounded-full bg-foreground text-background text-[13px] font-medium inline-flex items-center gap-1.5">
-            <Plus className="h-3.5 w-3.5" /> 添加词条
-          </button>
-        </form>
-      </div>
+      {/* 新增词条（AI 从真实问题提炼 + 人审入库）*/}
+      <KnowledgeComposer emp={emp} name={current.name} recent={recentQuestions(emp)} />
 
       {/* 词条列表 */}
       <div className="flex items-center gap-2 mb-3 text-[13px] text-muted-foreground">

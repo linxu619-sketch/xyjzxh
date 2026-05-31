@@ -101,3 +101,34 @@ export function deleteKnowledge(id: string) {
 export function setKnowledgeEnabled(id: string, enabled: boolean) {
   getDb().prepare("UPDATE ai_knowledge SET enabled=? WHERE id=?").run(enabled ? 1 : 0, id);
 }
+
+/* ---------------- 用户提问日志（用于"从工作中学习"）---------------- */
+
+// 记录一条用户提问（best-effort，失败不影响聊天）
+export function logQuestion(employeeKey: string, question: string) {
+  const q = question.trim();
+  if (!q) return;
+  try {
+    getDb()
+      .prepare("INSERT INTO ai_questions (employee_key, question, created_at) VALUES (?,?,?)")
+      .run(employeeKey, q.slice(0, 500), Date.now());
+  } catch {
+    /* 忽略日志失败 */
+  }
+}
+
+// 后台用：某员工近期去重提问
+export function recentQuestions(employeeKey: string, limit = 15): string[] {
+  try {
+    const rows = getDb()
+      .prepare(
+        `SELECT question, MAX(created_at) AS t FROM ai_questions
+         WHERE employee_key = ?
+         GROUP BY question ORDER BY t DESC LIMIT ?`,
+      )
+      .all(employeeKey, limit) as { question: string }[];
+    return rows.map((r) => r.question);
+  } catch {
+    return [];
+  }
+}

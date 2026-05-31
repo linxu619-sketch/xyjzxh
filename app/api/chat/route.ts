@@ -2,7 +2,7 @@ import { NextRequest } from "next/server";
 import { getAi } from "@/lib/ai/prompts";
 import { streamChat, type Msg } from "@/lib/ai/chat";
 import { buildKnowledgeBlock } from "@/lib/ai/knowledge";
-import { retrieveKnowledge } from "@/lib/ai/knowledge-source";
+import { retrieveKnowledge, logQuestion } from "@/lib/ai/knowledge-source";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -14,6 +14,7 @@ export async function POST(req: NextRequest) {
 
   // RAG：按最新一条用户问题检索该员工的知识库，拼进 system 提示词
   const lastUser = [...messages].reverse().find((m) => m.role === "user")?.content ?? "";
+  logQuestion(key, lastUser);
   const hits = retrieveKnowledge(key, lastUser, 3);
   const system = ai.system + buildKnowledgeBlock(hits);
 

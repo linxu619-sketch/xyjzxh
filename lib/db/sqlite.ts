@@ -50,6 +50,14 @@ CREATE TABLE IF NOT EXISTS ai_knowledge (
   created_at   INTEGER
 );
 CREATE INDEX IF NOT EXISTS idx_ai_knowledge_emp ON ai_knowledge(employee_key);
+
+CREATE TABLE IF NOT EXISTS ai_questions (
+  id           INTEGER PRIMARY KEY AUTOINCREMENT,
+  employee_key TEXT,
+  question     TEXT,
+  created_at   INTEGER
+);
+CREATE INDEX IF NOT EXISTS idx_ai_questions_emp ON ai_questions(employee_key, created_at);
 `;
 
 function seedEnterprises(db: DB) {
