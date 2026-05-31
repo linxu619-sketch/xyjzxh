@@ -52,3 +52,6 @@ server.log
 
 # 本地 SQLite 数据库文件
 /data/
+
+# 用户上传的图片（运行时写入，不入仓）
+/public/uploads/
