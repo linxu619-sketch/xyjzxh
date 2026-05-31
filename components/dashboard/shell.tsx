@@ -8,7 +8,7 @@ import { ASSOC_NAV, ENT_NAV } from "@/lib/dashboard/nav";
 import { countByStatus } from "@/lib/data/applications";
 import { listReports, listReportsByUid } from "@/lib/data/reports";
 import { listMediations } from "@/lib/data/mediations";
-import { getEnterprise } from "@/lib/data/enterprises";
+import { getEnterpriseBySlugOrId } from "@/lib/data/enterprises-source";
 
 type ShellProps = {
   title: string;
@@ -74,8 +74,8 @@ export async function EnterpriseShell({ title, subtitle, actions, children }: Sh
   const items = withBadges(ENT_NAV, {
     "/dashboard/enterprise/projects": pendingReports,
   });
-  // 品牌名按登录企业动态显示（演示登录统一绑定到 e002 名家装饰）
-  const ent = session.enterpriseId ? getEnterprise(session.enterpriseId) : undefined;
+  // 品牌名按登录企业动态显示（解析 mock 的 e001~ 与入会建档的 app-X 企业）
+  const ent = session.enterpriseId ? await getEnterpriseBySlugOrId(session.enterpriseId) : undefined;
   const brand = ent?.hero.brand ?? ent?.name ?? session.name ?? "企业工作台";
   return (
     <div className="flex">

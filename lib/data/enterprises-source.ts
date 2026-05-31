@@ -116,9 +116,26 @@ export async function getEnterpriseBySlugOrId(key: string): Promise<Enterprise |
       .prepare("SELECT * FROM enterprises WHERE slug = ? OR id = ? LIMIT 1")
       .get(key, key) as Row | undefined;
     lastSource = "sqlite";
-    return row ? rowToEnterprise(row) : undefined;
+    if (row) return rowToEnterprise(row);
   } catch {
     lastSource = "mock";
-    return ENTERPRISES.find((e) => e.slug === key || e.id === key);
   }
+  // DB 无此企业（如 mock 的 e001~e012）→ 回退 mock
+  return ENTERPRISES.find((e) => e.slug === key || e.id === key);
+}
+
+// 按联系电话匹配正式会员企业（用于企业登录绑定到本企业工作台）
+export function findEnterpriseByContactPhone(phone: string): { id: string; name: string } | undefined {
+  const clean = phone.trim();
+  if (!clean) return undefined;
+  try {
+    const rows = getDb()
+      .prepare("SELECT id, name, contact FROM enterprises WHERE status = 'active'")
+      .all() as { id: string; name: string; contact: string | null }[];
+    for (const r of rows) {
+      const tel = (parseJson<{ tel?: string }>(r.contact, {}).tel ?? "").trim();
+      if (tel === clean) return { id: r.id, name: r.name };
+    }
+  } catch { /* DB 不可用，忽略 */ }
+  return undefined;
 }

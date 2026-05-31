@@ -1,6 +1,7 @@
 import "server-only";
 import { SYSTEM_ADMIN } from "./system-admin";
 import { findStaffByPhone } from "@/lib/data/users-seed";
+import { findEnterpriseByContactPhone } from "@/lib/data/enterprises-source";
 import { verifyPassword } from "./password";
 import type { Session } from "./session";
 
@@ -125,16 +126,34 @@ export async function loginEnterpriseWithPassword(
   if (password.length < 6) {
     return { ok: false, error: "密码长度不能少于 6 位" };
   }
-  // 演示账号：任意 11 位手机号 + ≥ 6 位密码均通过
+  const cleanPhone = phone.trim();
+
+  // —— 真实绑定：手机号匹配到正式会员企业（入会通过后建档，联系电话即登录账号）——
+  const ent = findEnterpriseByContactPhone(cleanPhone);
+  if (ent) {
+    return {
+      ok: true,
+      isSystemAdmin: false,
+      session: {
+        uid: `ent-${ent.id}`,
+        role: "enterprise",
+        name: ent.name,
+        phone: cleanPhone,
+        enterpriseId: ent.id,
+      },
+    };
+  }
+
+  // —— 演示回退：未匹配到正式会员企业 → 绑定到演示企业「名家装饰」(e002)，方便本地试用 ——
   return {
     ok: true,
     isSystemAdmin: false,
     session: {
-      uid: `ent-${phone.slice(-4)}`,
+      uid: `ent-${cleanPhone.slice(-4)}`,
       role: "enterprise",
-      name: `企业用户 ${phone.slice(-4)}`,
-      phone,
-      enterpriseId: "e002", // 演示绑定到「名家装饰」
+      name: `企业用户 ${cleanPhone.slice(-4)}`,
+      phone: cleanPhone,
+      enterpriseId: "e002",
     },
   };
 }
