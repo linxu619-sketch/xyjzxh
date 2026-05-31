@@ -8,6 +8,7 @@ import { ASSOC_NAV, ENT_NAV } from "@/lib/dashboard/nav";
 import { countByStatus } from "@/lib/data/applications";
 import { listReports, listReportsByUid } from "@/lib/data/reports";
 import { listMediations } from "@/lib/data/mediations";
+import { getEnterprise } from "@/lib/data/enterprises";
 
 type ShellProps = {
   title: string;
@@ -73,13 +74,16 @@ export async function EnterpriseShell({ title, subtitle, actions, children }: Sh
   const items = withBadges(ENT_NAV, {
     "/dashboard/enterprise/projects": pendingReports,
   });
+  // 品牌名按登录企业动态显示（演示登录统一绑定到 e002 名家装饰）
+  const ent = session.enterpriseId ? getEnterprise(session.enterpriseId) : undefined;
+  const brand = ent?.hero.brand ?? ent?.name ?? session.name ?? "企业工作台";
   return (
     <div className="flex">
       <Sidebar
-        brand="名家装饰"
-        role="Enterprise Console"
+        brand={brand}
+        role={ent?.name ?? "Enterprise Console"}
         items={items}
-        user={{ name: session.name, meta: `owner · ${maskPhone(session.phone)}` }}
+        user={{ name: session.name, meta: `企业管理员 · ${maskPhone(session.phone)}` }}
         tone="build"
       />
       <div className="flex-1 bg-surface min-h-screen">
