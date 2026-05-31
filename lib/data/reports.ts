@@ -1,0 +1,87 @@
+import "server-only";
+import { getDb } from "@/lib/db/sqlite";
+
+/* ============================================================
+   工装报备（真实写入 SQLite）
+   ============================================================ */
+
+export type ReportStatus = "pending" | "approved" | "rejected";
+
+export type ReportInput = {
+  projectName: string;
+  projectType: string;
+  area: string;
+  budget: string;
+  planStart: string;
+  planEnd: string;
+  address: string;
+  summary: string;
+  company: string;
+  creditCode: string;
+  manager: string;
+  managerPhone: string;
+  safetyOfficer: string;
+  safetyCert: string;
+};
+
+export type ProjectReport = {
+  id: number;
+  code: string;
+  project: string;
+  type: string;
+  enterprise: string;
+  area: string;
+  budget: string;
+  manager: string;
+  phone: string;
+  payload: Record<string, unknown>;
+  status: ReportStatus;
+  createdAt: number;
+};
+
+type Row = {
+  id: number; code: string | null; project: string | null; type: string | null;
+  enterprise: string | null; area: string | null; budget: string | null;
+  manager: string | null; phone: string | null; payload: string | null;
+  status: string; created_at: number | null;
+};
+
+function rowTo(r: Row): ProjectReport {
+  let payload: Record<string, unknown> = {};
+  try { payload = r.payload ? JSON.parse(r.payload) : {}; } catch { payload = {}; }
+  return {
+    id: r.id, code: r.code ?? "", project: r.project ?? "", type: r.type ?? "",
+    enterprise: r.enterprise ?? "", area: r.area ?? "", budget: r.budget ?? "",
+    manager: r.manager ?? "", phone: r.phone ?? "", payload,
+    status: (r.status as ReportStatus) ?? "pending", createdAt: r.created_at ?? 0,
+  };
+}
+
+export function createReport(input: ReportInput): { id: number; code: string } {
+  const db = getDb();
+  const info = db
+    .prepare(
+      `INSERT INTO project_reports (code, project, type, enterprise, area, budget, manager, phone, payload, status, created_at)
+       VALUES ('', ?, ?, ?, ?, ?, ?, ?, ?, 'pending', ?)`,
+    )
+    .run(
+      input.projectName, input.projectType, input.company, input.area, input.budget,
+      input.manager, input.managerPhone, JSON.stringify(input), Date.now(),
+    );
+  const id = Number(info.lastInsertRowid);
+  const code = `P-2026-${String(1000 + id).padStart(4, "0")}`;
+  db.prepare("UPDATE project_reports SET code = ? WHERE id = ?").run(code, id);
+  return { id, code };
+}
+
+export function listReports(status?: ReportStatus): ProjectReport[] {
+  const db = getDb();
+  const rows = (status
+    ? db.prepare("SELECT * FROM project_reports WHERE status = ? ORDER BY created_at DESC").all(status)
+    : db.prepare("SELECT * FROM project_reports ORDER BY created_at DESC").all()) as Row[];
+  return rows.map(rowTo);
+}
+
+export function setReportStatus(id: number, status: ReportStatus) {
+  getDb().prepare("UPDATE project_reports SET status = ? WHERE id = ?").run(status, id);
+}

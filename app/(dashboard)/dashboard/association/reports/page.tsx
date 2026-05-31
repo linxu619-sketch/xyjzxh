@@ -4,6 +4,8 @@ import { AssociationShell } from "@/components/dashboard/shell";
 import { FilterBar, DataTable } from "@/components/dashboard/section";
 import { Badge } from "@/components/ui/badge";
 import { PROJECTS, STATUS_META } from "@/lib/data/projects";
+import { listReports } from "@/lib/data/reports";
+import { reviewReportAction } from "./actions";
 
 export const metadata = { title: "工装报备审批 · 协会工作台" };
 
@@ -11,6 +13,7 @@ const TYPE_TONE = { 家装: "decor", 工装: "build", 公装: "design", 市政: 
 
 export default function ReportsAdmin() {
   const pending = PROJECTS.filter((p) => p.status === "submitted" || p.status === "reviewing");
+  const realPending = listReports("pending");
   return (
     <AssociationShell
       title="工装报备审批"
@@ -23,7 +26,7 @@ export default function ReportsAdmin() {
     >
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 mb-6">
         {[
-          { l: "待审", v: pending.length, c: "text-cat-decor" },
+          { l: "在线待审", v: realPending.length, c: "text-cat-decor" },
           { l: "本月已受理", v: 187, c: "text-cat-build" },
           { l: "已购履约险", v: "63%", c: "text-accent-tea" },
           { l: "省厅同步", v: "100%", c: "text-cat-design" },
@@ -35,6 +38,53 @@ export default function ReportsAdmin() {
         ))}
       </div>
 
+      {/* 在线提交的真实报备 */}
+      <div className="rounded-2xl border border-border bg-background overflow-hidden mb-6">
+        <div className="px-5 py-3 border-b border-border flex items-center justify-between">
+          <div className="text-[14px] font-semibold">在线提交的工装报备（实时）</div>
+          <Badge tone={realPending.length ? "decor" : "tea"}>{realPending.length} 待处理</Badge>
+        </div>
+        {realPending.length === 0 ? (
+          <div className="px-5 py-8 text-center text-[13px] text-muted-foreground">
+            暂无在线报备。企业在 /projects/new 提交报备后会实时出现在这里。
+          </div>
+        ) : (
+          <div className="divide-y divide-border">
+            {realPending.map((r) => (
+              <div key={r.id} className="px-5 py-4 flex flex-col md:flex-row md:items-center gap-3">
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <code className="text-[12px] font-mono text-muted-foreground">{r.code}</code>
+                    <span className="font-medium">{r.project}</span>
+                    {r.type && <Badge tone={TYPE_TONE[r.type as keyof typeof TYPE_TONE] ?? "build"}>{r.type}</Badge>}
+                  </div>
+                  <div className="text-[12px] text-muted-foreground mt-1 truncate">
+                    {r.enterprise} · {r.area || "—"}㎡ · {r.budget || "—"}万 · 负责人 {r.manager || "—"} {r.phone}
+                  </div>
+                </div>
+                <div className="flex items-center gap-2 shrink-0">
+                  <form action={reviewReportAction}>
+                    <input type="hidden" name="id" value={r.id} />
+                    <input type="hidden" name="act" value="approve" />
+                    <button className="h-9 px-3.5 rounded-full bg-[#e6f7f1] text-accent-tea text-[12px] font-medium inline-flex items-center gap-1.5">
+                      <CheckCircle2 className="h-3.5 w-3.5" /> 通过
+                    </button>
+                  </form>
+                  <form action={reviewReportAction}>
+                    <input type="hidden" name="id" value={r.id} />
+                    <input type="hidden" name="act" value="reject" />
+                    <button className="h-9 px-3.5 rounded-full bg-cat-decor-soft text-cat-decor text-[12px] font-medium inline-flex items-center gap-1.5">
+                      <XCircle className="h-3.5 w-3.5" /> 驳回
+                    </button>
+                  </form>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* 以下为示例数据（演示用） */}
       <div className="flex items-center gap-1.5 mb-3">
         {["待审 (2)", "审核中", "已通过", "施工中", "已竣工", "全部"].map((t, i) => (
           <button key={t} className={`h-9 px-4 rounded-full text-[13px] font-medium ${i === 0 ? "bg-foreground text-background" : "bg-background border border-border text-muted-foreground hover:text-foreground"}`}>

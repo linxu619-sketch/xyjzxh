@@ -69,6 +69,22 @@ CREATE TABLE IF NOT EXISTS applications (
   created_at  INTEGER
 );
 CREATE INDEX IF NOT EXISTS idx_applications_status ON applications(status, created_at);
+
+CREATE TABLE IF NOT EXISTS project_reports (
+  id          INTEGER PRIMARY KEY AUTOINCREMENT,
+  code        TEXT,
+  project     TEXT,
+  type        TEXT,
+  enterprise  TEXT,
+  area        TEXT,
+  budget      TEXT,
+  manager     TEXT,
+  phone       TEXT,
+  payload     TEXT,    -- JSON 其余字段
+  status      TEXT DEFAULT 'pending', -- pending | approved | rejected
+  created_at  INTEGER
+);
+CREATE INDEX IF NOT EXISTS idx_reports_status ON project_reports(status, created_at);
 `;
 
 function seedEnterprises(db: DB) {

@@ -2,8 +2,10 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { ArrowLeft, ArrowRight, CheckCircle2, FileCheck2, Sparkles, Upload, ShieldCheck } from "lucide-react";
+import { ArrowLeft, ArrowRight, CheckCircle2, FileCheck2, Sparkles, Upload, ShieldCheck, Loader2 } from "lucide-react";
 import { cn } from "@/lib/cn";
+import { submitReportAction } from "./actions";
+import type { ReportInput } from "@/lib/data/reports";
 
 const STEPS = [
   { key: 1, title: "项目基本信息", desc: "名称、类型、地址" },
@@ -13,11 +15,37 @@ const STEPS = [
   { key: 5, title: "确认提交", desc: "签字提交省厅" },
 ];
 
+const EMPTY: ReportInput = {
+  projectName: "", projectType: "家装", area: "", budget: "", planStart: "", planEnd: "",
+  address: "", summary: "", company: "名家装饰", creditCode: "", manager: "", managerPhone: "",
+  safetyOfficer: "", safetyCert: "",
+};
+
 export function NewProjectWizard() {
   const [step, setStep] = useState(1);
   const [done, setDone] = useState(false);
+  const [code, setCode] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const [err, setErr] = useState("");
+  const [data, setData] = useState<ReportInput>(EMPTY);
+  const set = <K extends keyof ReportInput>(k: K, v: ReportInput[K]) => setData((d) => ({ ...d, [k]: v }));
 
-  if (done) return <Done />;
+  async function submit() {
+    setErr("");
+    if (!data.projectName.trim()) { setErr("请填写项目名称（第 1 步）"); setStep(1); return; }
+    setSubmitting(true);
+    try {
+      const r = await submitReportAction(data);
+      setCode(r.code);
+      setDone(true);
+    } catch (e) {
+      setErr(`提交失败：${String(e)}`);
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  if (done) return <Done code={code} />;
 
   return (
     <>
@@ -37,7 +65,6 @@ export function NewProjectWizard() {
         </Link>
       </div>
 
-      {/* Steps · sticky 顶部 on mobile */}
       <div className="sticky top-16 z-30 -mx-5 sm:-mx-8 lg:-mx-12 px-5 sm:px-8 lg:px-12 py-3 bg-background/85 backdrop-blur-xl border-b border-border md:relative md:top-0 md:p-0 md:bg-transparent md:backdrop-blur-none md:border-0 mb-5 md:mb-8">
         <ol className="grid grid-cols-5 gap-2">
           {STEPS.map((s) => {
@@ -64,11 +91,13 @@ export function NewProjectWizard() {
       </div>
 
       <div className="rounded-3xl border border-border bg-background p-5 md:p-8">
-        {step === 1 && <Step1 />}
-        {step === 2 && <Step2 />}
+        {step === 1 && <Step1 data={data} set={set} />}
+        {step === 2 && <Step2 data={data} set={set} />}
         {step === 3 && <Step3 />}
         {step === 4 && <Step4 />}
-        {step === 5 && <Step5 />}
+        {step === 5 && <Step5 data={data} />}
+
+        {err && <div className="mt-4 text-[12px] text-cat-decor">{err}</div>}
 
         <div className="mt-6 md:mt-8 flex items-center justify-between pt-5 md:pt-6 border-t border-border gap-2">
           <button
@@ -79,7 +108,7 @@ export function NewProjectWizard() {
             上一步
           </button>
           <div className="text-[11px] text-muted-foreground hidden md:block">
-            第 {step} / {STEPS.length} 步 · 自动保存
+            第 {step} / {STEPS.length} 步
           </div>
           {step < 5 ? (
             <button
@@ -90,10 +119,12 @@ export function NewProjectWizard() {
             </button>
           ) : (
             <button
-              onClick={() => setDone(true)}
-              className="h-11 px-5 md:px-6 rounded-full bg-accent-tea text-white text-[12px] md:text-[13px] font-medium inline-flex items-center gap-1.5 active:scale-95 transition-transform"
+              onClick={submit}
+              disabled={submitting}
+              className="h-11 px-5 md:px-6 rounded-full bg-accent-tea text-white text-[12px] md:text-[13px] font-medium inline-flex items-center gap-1.5 active:scale-95 transition-transform disabled:opacity-60"
             >
-              确认提交 <CheckCircle2 className="h-3.5 w-3.5" />
+              {submitting ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <CheckCircle2 className="h-3.5 w-3.5" />}
+              {submitting ? "提交中…" : "确认提交"}
             </button>
           )}
         </div>
@@ -122,50 +153,49 @@ function Field({ label, required, children, hint }: { label: string; required?: 
   );
 }
 
-function Step1() {
+type StepProps = { data: ReportInput; set: <K extends keyof ReportInput>(k: K, v: ReportInput[K]) => void };
+
+function Step1({ data, set }: StepProps) {
   return (
     <div className="space-y-5">
       <h2 className="text-[18px] font-semibold">1 / 5 · 项目基本信息</h2>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <Field label="项目名称" required>
-          <input className="form-input" placeholder="例：金茂悦府 12 栋 1602 户型整装" />
+          <input className="form-input" placeholder="例：金茂悦府 12 栋 1602 户型整装" value={data.projectName} onChange={(e) => set("projectName", e.target.value)} />
         </Field>
         <Field label="项目类型" required>
-          <select className="form-input">
-            <option>家装</option>
-            <option>工装</option>
-            <option>公装</option>
-            <option>市政</option>
+          <select className="form-input" value={data.projectType} onChange={(e) => set("projectType", e.target.value)}>
+            <option>家装</option><option>工装</option><option>公装</option><option>市政</option>
           </select>
         </Field>
-        <Field label="施工面积 (㎡)" required><input type="number" className="form-input" /></Field>
-        <Field label="合同价款 (万元)" required><input type="number" className="form-input" /></Field>
-        <Field label="计划开工" required><input type="date" className="form-input" /></Field>
-        <Field label="计划竣工" required><input type="date" className="form-input" /></Field>
+        <Field label="施工面积 (㎡)" required><input type="number" className="form-input" value={data.area} onChange={(e) => set("area", e.target.value)} /></Field>
+        <Field label="合同价款 (万元)" required><input type="number" className="form-input" value={data.budget} onChange={(e) => set("budget", e.target.value)} /></Field>
+        <Field label="计划开工" required><input type="date" className="form-input" value={data.planStart} onChange={(e) => set("planStart", e.target.value)} /></Field>
+        <Field label="计划竣工" required><input type="date" className="form-input" value={data.planEnd} onChange={(e) => set("planEnd", e.target.value)} /></Field>
       </div>
       <Field label="项目地址" required>
-        <input className="form-input" placeholder="信阳市浉河区 xx 路 xx 号" />
+        <input className="form-input" placeholder="信阳市浉河区 xx 路 xx 号" value={data.address} onChange={(e) => set("address", e.target.value)} />
       </Field>
       <Field label="项目摘要" hint="供协会档案与省厅匹配，建议 200 字以内">
-        <textarea rows={3} className="form-input" placeholder="主要施工内容、特殊工艺、安全注意事项…" />
+        <textarea rows={3} className="form-input" placeholder="主要施工内容、特殊工艺、安全注意事项…" value={data.summary} onChange={(e) => set("summary", e.target.value)} />
       </Field>
     </div>
   );
 }
 
-function Step2() {
+function Step2({ data, set }: StepProps) {
   return (
     <div className="space-y-5">
       <h2 className="text-[18px] font-semibold">2 / 5 · 施工单位</h2>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <Field label="施工企业" required>
-          <input className="form-input" defaultValue="名家装饰" />
+          <input className="form-input" value={data.company} onChange={(e) => set("company", e.target.value)} />
         </Field>
-        <Field label="统一社会信用代码"><input className="form-input" placeholder="自动从协会档案带入" /></Field>
-        <Field label="项目负责人" required><input className="form-input" placeholder="姓名" /></Field>
-        <Field label="负责人联系电话" required><input type="tel" className="form-input" placeholder="11 位手机号" /></Field>
-        <Field label="安全员"><input className="form-input" /></Field>
-        <Field label="安全员证号"><input className="form-input" placeholder="如 C 证 / B 证" /></Field>
+        <Field label="统一社会信用代码"><input className="form-input" placeholder="自动从协会档案带入" value={data.creditCode} onChange={(e) => set("creditCode", e.target.value)} /></Field>
+        <Field label="项目负责人" required><input className="form-input" placeholder="姓名" value={data.manager} onChange={(e) => set("manager", e.target.value)} /></Field>
+        <Field label="负责人联系电话" required><input type="tel" className="form-input" placeholder="11 位手机号" value={data.managerPhone} onChange={(e) => set("managerPhone", e.target.value)} /></Field>
+        <Field label="安全员"><input className="form-input" value={data.safetyOfficer} onChange={(e) => set("safetyOfficer", e.target.value)} /></Field>
+        <Field label="安全员证号"><input className="form-input" placeholder="如 C 证 / B 证" value={data.safetyCert} onChange={(e) => set("safetyCert", e.target.value)} /></Field>
       </div>
       <div className="rounded-xl bg-surface p-4 flex items-start gap-2.5 text-[12px] text-muted-foreground">
         <ShieldCheck className="h-4 w-4 text-accent-tea mt-0.5" />
@@ -182,16 +212,11 @@ function Step3() {
       <Field label="平面布置图 (dwg / pdf)" required>
         <div className="border-2 border-dashed border-border rounded-2xl p-8 text-center text-[13px] text-muted-foreground hover:border-foreground/30">
           <Upload className="h-6 w-6 mx-auto mb-2" />
-          拖拽或点击上传，支持多文件，单个文件 ≤ 50MB
+          拖拽或点击上传，支持多文件，单个文件 ≤ 50MB（演示版暂不保存附件）
         </div>
       </Field>
       <Field label="水电点位图"><div className="border-2 border-dashed border-border rounded-2xl p-6 text-center text-[12px] text-muted-foreground">可选</div></Field>
       <Field label="施工组织方案" required><textarea rows={4} className="form-input" placeholder="工序、材料、用工组织等" /></Field>
-      <div className="rounded-xl bg-brand-50 text-brand p-4 text-[12px] flex items-start gap-2">
-        <Sparkles className="h-4 w-4 mt-0.5" />
-        AI 小报已识别到您上传的方案缺少 "防水验收节点"，是否一键补全？
-        <button className="ml-auto rounded-full bg-brand text-white px-3 h-7 text-[11px] font-medium">补全</button>
-      </div>
     </div>
   );
 }
@@ -207,7 +232,6 @@ function Step4() {
             <input type="checkbox" defaultChecked className="accent-brand" />
           </div>
           <div className="mt-1 text-[12px] text-muted-foreground">替代保证金 · 平安产险 · 费率 0.7%</div>
-          <div className="mt-2 text-[12px] font-medium">约 ¥2,240</div>
         </label>
         <label className="rounded-2xl border border-border p-4 cursor-pointer hover:border-foreground/20">
           <div className="flex items-center justify-between">
@@ -215,21 +239,6 @@ function Step4() {
             <input type="checkbox" defaultChecked className="accent-brand" />
           </div>
           <div className="mt-1 text-[12px] text-muted-foreground">120 元/人/年 · 国寿财险</div>
-          <div className="mt-2 text-[12px] font-medium">人数：<input type="number" defaultValue={12} className="w-20 ml-1 px-2 py-0.5 border border-border rounded-md text-[12px]" /></div>
-        </label>
-        <label className="rounded-2xl border border-border p-4 cursor-pointer hover:border-foreground/20">
-          <div className="flex items-center justify-between">
-            <span className="text-[14px] font-semibold">施工现场公众责任险</span>
-            <input type="checkbox" className="accent-brand" />
-          </div>
-          <div className="mt-1 text-[12px] text-muted-foreground">0.4‰ 起 · 太平洋产险</div>
-        </label>
-        <label className="rounded-2xl border border-border p-4 cursor-pointer hover:border-foreground/20">
-          <div className="flex items-center justify-between">
-            <span className="text-[14px] font-semibold">材料运输一切险</span>
-            <input type="checkbox" className="accent-brand" />
-          </div>
-          <div className="mt-1 text-[12px] text-muted-foreground">0.6‰ 起 · 中华联合</div>
         </label>
       </div>
       <Field label="风险预案附件"><div className="border-2 border-dashed border-border rounded-2xl p-6 text-center text-[12px] text-muted-foreground">可选 · PDF / DOC</div></Field>
@@ -237,17 +246,17 @@ function Step4() {
   );
 }
 
-function Step5() {
+function Step5({ data }: { data: ReportInput }) {
   return (
     <div className="space-y-5">
       <h2 className="text-[18px] font-semibold">5 / 5 · 确认提交</h2>
       <div className="rounded-2xl bg-surface p-6 text-[13px] space-y-2">
-        <Row k="项目名称" v="金茂悦府 12 栋 1602 户型整装" />
-        <Row k="类型" v="家装 · 168㎡ · 32 万" />
-        <Row k="施工企业" v="名家装饰（E002 · 协会认证）" />
-        <Row k="工期" v="2026-05-20 → 2026-08-15（87 天）" />
-        <Row k="附件" v="平面图 1 · 方案 1（AI 已预审）" />
-        <Row k="保险" v="履约险 + 工人意外险（12 人）" />
+        <Row k="项目名称" v={data.projectName || "（未填写）"} />
+        <Row k="类型 / 面积 / 价款" v={`${data.projectType} · ${data.area || "—"}㎡ · ${data.budget || "—"}万`} />
+        <Row k="施工企业" v={data.company || "—"} />
+        <Row k="工期" v={`${data.planStart || "—"} → ${data.planEnd || "—"}`} />
+        <Row k="负责人" v={`${data.manager || "—"} · ${data.managerPhone || "—"}`} />
+        <Row k="地址" v={data.address || "—"} />
       </div>
       <label className="flex items-start gap-2.5 text-[12px] text-muted-foreground">
         <input type="checkbox" defaultChecked className="mt-0.5 accent-brand" />
@@ -266,7 +275,7 @@ function Row({ k, v }: { k: string; v: string }) {
   );
 }
 
-function Done() {
+function Done({ code }: { code: string }) {
   return (
     <div className="py-20 text-center">
       <div className="mx-auto h-16 w-16 rounded-full bg-accent-tea text-white flex items-center justify-center">
@@ -274,11 +283,11 @@ function Done() {
       </div>
       <h1 className="mt-6 text-[32px] font-semibold tracking-tight">提交成功</h1>
       <p className="mt-3 text-[14px] text-muted-foreground max-w-md mx-auto">
-        报备号 <b className="text-foreground">P-2026-0598</b>，预计 24 小时内反馈。可在「我的报备」中追踪进度。
+        报备号 <b className="text-foreground">{code}</b>，已提交协会审核，预计 24 小时内反馈。可在「我的报备」中追踪进度。
       </p>
       <div className="mt-8 flex justify-center gap-2">
         <Link href="/projects" className="h-11 px-6 rounded-full bg-foreground text-background text-[13px] font-medium inline-flex items-center">返回列表</Link>
-        <Link href="/projects/P-2026-0501" className="h-11 px-6 rounded-full border border-border text-[13px] inline-flex items-center"><FileCheck2 className="h-3.5 w-3.5 mr-1.5" />查看示例</Link>
+        <Link href="/dashboard/customer" className="h-11 px-6 rounded-full border border-border text-[13px] inline-flex items-center"><FileCheck2 className="h-3.5 w-3.5 mr-1.5" />我的报备</Link>
       </div>
     </div>
   );

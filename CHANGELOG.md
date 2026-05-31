@@ -14,6 +14,14 @@
 
 ---
 
+## [0.14.0] - 2026-05-31
+
+### 新增（工装报备真实持久化）
+- 新增 `project_reports` 表 + `lib/data/reports.ts`（create/list/setStatus，自动生成报备号 P-2026-xxxx）。
+- 重写 `/projects/new` 多步 Wizard：字段提到共享 state（修复非当前步骤卸载丢值）、最后一步**真提交** `submitReportAction`、成功页显示真实报备号。
+- 协会「工装报备审批」新增**实时在线报备**列表 + 通过/驳回（`reviewReportAction`，权限校验 + revalidate）。
+- 实测：Wizard 编译、报备入库、后台显示与审核按钮均正常。
+
 ## [0.13.0] - 2026-05-31
 
 ### 新增（入会闭环：审核通过 → 自动成为正式会员）
