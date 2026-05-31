@@ -17,7 +17,7 @@ const DEFAULT_MODEL = "deepseek-chat";
 export async function streamDeepseek({
   system,
   messages,
-  maxTokens = 1024,
+  maxTokens = 2048,
 }: {
   system: string;
   messages: ChatMessage[];
@@ -58,10 +58,20 @@ function parseSseToText(upstream: ReadableStream<Uint8Array>): ReadableStream<Ui
   const decoder = new TextDecoder();
   const encoder = new TextEncoder();
   let buffer = "";
+  // 推理模型(reasoner)会先吐 reasoning_content 再吐 content；
+  // 把思考整体包进 <think>…</think>，前端据此渲染可折叠的「思考过程」。
+  let thinkOpen = false;
+  let closed = false;
 
   return new ReadableStream({
     async start(controller) {
       const reader = upstream.getReader();
+      const safeEnqueue = (s: string) => {
+        if (!closed && s) controller.enqueue(encoder.encode(s));
+      };
+      const safeClose = () => {
+        if (!closed) { closed = true; controller.close(); }
+      };
       try {
         while (true) {
           const { value, done } = await reader.read();
@@ -73,24 +83,39 @@ function parseSseToText(upstream: ReadableStream<Uint8Array>): ReadableStream<Ui
           while ((idx = buffer.indexOf("\n\n")) !== -1) {
             const raw = buffer.slice(0, idx);
             buffer = buffer.slice(idx + 2);
-            const text = handleEvent(raw);
-            if (text === "__DONE__") {
-              controller.close();
+            const ev = handleEvent(raw);
+            if (!ev) continue;
+            if (ev.done) {
+              if (thinkOpen) { safeEnqueue("</think>"); thinkOpen = false; }
+              safeClose();
               return;
             }
-            if (text) controller.enqueue(encoder.encode(text));
+            let out = "";
+            if (ev.reasoning) {
+              if (!thinkOpen) { out += "<think>"; thinkOpen = true; }
+              out += ev.reasoning;
+            }
+            if (ev.content) {
+              if (thinkOpen) { out += "</think>"; thinkOpen = false; }
+              out += ev.content;
+            }
+            safeEnqueue(out);
           }
         }
-      } catch (err) {
-        controller.enqueue(encoder.encode(`\n\n[DeepSeek 流式错误] ${String(err)}`));
+        if (thinkOpen) { safeEnqueue("</think>"); thinkOpen = false; }
+      } catch {
+        if (thinkOpen) { safeEnqueue("</think>"); thinkOpen = false; }
+        safeEnqueue("\n\n[出错] 与 AI 的连接中断了，请点重试。");
       } finally {
-        controller.close();
+        safeClose();
       }
     },
   });
 }
 
-function handleEvent(raw: string): string | "__DONE__" | null {
+type Delta = { done?: boolean; reasoning?: string; content?: string };
+
+function handleEvent(raw: string): Delta | null {
   // 一个事件可能有多行：data: xxx / data: xxx / event: ...
   const lines = raw.split("\n");
   let dataPayload = "";
@@ -99,18 +124,15 @@ function handleEvent(raw: string): string | "__DONE__" | null {
   }
   dataPayload = dataPayload.trim();
   if (!dataPayload) return null;
-  if (dataPayload === "[DONE]") return "__DONE__";
+  if (dataPayload === "[DONE]") return { done: true };
 
   try {
     const obj = JSON.parse(dataPayload) as {
       choices?: Array<{ delta?: { content?: string; reasoning_content?: string } }>;
     };
     const delta = obj.choices?.[0]?.delta;
-    // R1 推理模型在结束前可能输出 reasoning_content，再输出 content；这里都传给前端
-    const piece =
-      (delta?.reasoning_content ? `🧠 ${delta.reasoning_content}` : "") +
-      (delta?.content ?? "");
-    return piece || null;
+    if (!delta) return null;
+    return { reasoning: delta.reasoning_content ?? undefined, content: delta.content ?? undefined };
   } catch {
     return null;
   }

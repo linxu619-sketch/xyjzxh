@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { ArrowLeft, Send, Sparkles, RefreshCw, Square } from "lucide-react";
+import { ArrowLeft, Send, Sparkles, RefreshCw, Square, Brain, Loader2, AlertCircle } from "lucide-react";
 import { Container } from "@/components/container";
 import { cn } from "@/lib/cn";
 
@@ -25,6 +25,30 @@ const BUBBLE_BG: Record<string, string> = {
   tea: "bg-[#e6f7f1]",
   yellow: "bg-[#fff6d6]",
 };
+
+// 把流式文本拆成 思考过程 / 正文 / 错误三段
+// 推理模型的思考被后端包进 <think>…</think>
+function parseAssistant(content: string) {
+  let thinking = "";
+  let body = content;
+  let thinkingDone = true;
+  if (content.startsWith("<think>")) {
+    const rest = content.slice("<think>".length);
+    const j = rest.indexOf("</think>");
+    if (j === -1) {
+      thinking = rest;
+      body = "";
+      thinkingDone = false;
+    } else {
+      thinking = rest.slice(0, j);
+      body = rest.slice(j + "</think>".length);
+    }
+  }
+  const errIdx = body.indexOf("[出错]");
+  const answer = errIdx === -1 ? body : body.slice(0, errIdx);
+  const error = errIdx === -1 ? "" : body.slice(errIdx);
+  return { thinking: thinking.trim(), answer, error, thinkingDone };
+}
 
 export function ChatWindow({
   aiKey,
@@ -72,14 +96,10 @@ export function ChatWindow({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initialUserMessage]);
 
-  async function send(text: string) {
-    if (!text.trim() || pending) return;
-    const next: Msg[] = [...messages, { role: "user", content: text }];
-    setMessages(next);
-    setInput("");
+  // 给定一段以「用户消息」结尾的历史，流式生成助手回复
+  async function runChat(history: Msg[]) {
     setPending(true);
-
-    const apiMessages = next.filter((m, i) => !(i === 0 && m.role === "assistant"));
+    const apiMessages = history.filter((m, i) => !(i === 0 && m.role === "assistant"));
     const ctrl = new AbortController();
     abortRef.current = ctrl;
 
@@ -91,31 +111,53 @@ export function ChatWindow({
         signal: ctrl.signal,
       });
 
+      if (!res.ok && !res.body) {
+        setMessages([...history, { role: "assistant", content: `[出错] 服务器返回 ${res.status}，请稍后重试。` }]);
+        return;
+      }
       if (!res.body) {
-        setMessages([...next, { role: "assistant", content: "（无响应）" }]);
+        setMessages([...history, { role: "assistant", content: "[出错] 没有收到回复，请重试。" }]);
         return;
       }
 
       const reader = res.body.getReader();
       const decoder = new TextDecoder();
       let acc = "";
-      setMessages([...next, { role: "assistant", content: "" }]);
+      setMessages([...history, { role: "assistant", content: "" }]);
 
       while (true) {
         const { value, done } = await reader.read();
         if (done) break;
         acc += decoder.decode(value, { stream: true });
-        setMessages([...next, { role: "assistant", content: acc }]);
+        setMessages([...history, { role: "assistant", content: acc }]);
       }
     } catch (e: unknown) {
       const aborted = e instanceof Error && e.name === "AbortError";
       if (!aborted) {
-        setMessages([...next, { role: "assistant", content: `[出错] ${String(e)}` }]);
+        setMessages([...history, { role: "assistant", content: `[出错] ${String(e)}` }]);
       }
     } finally {
       setPending(false);
       abortRef.current = null;
     }
+  }
+
+  function send(text: string) {
+    if (!text.trim() || pending) return;
+    const next: Msg[] = [...messages, { role: "user", content: text }];
+    setMessages(next);
+    setInput("");
+    runChat(next);
+  }
+
+  // 出错后重试：去掉结尾的助手消息，用最后一条用户消息重新生成
+  function retryLast() {
+    if (pending) return;
+    const copy = [...messages];
+    while (copy.length && copy[copy.length - 1].role === "assistant") copy.pop();
+    if (!copy.length || copy[copy.length - 1].role !== "user") return;
+    setMessages(copy);
+    runChat(copy);
   }
 
   function stop() {
@@ -167,34 +209,94 @@ export function ChatWindow({
       <div className="flex-1 overflow-y-auto bg-surface">
         <Container className="py-4 md:py-8 max-w-3xl">
           <div className="space-y-3 md:space-y-4">
-            {messages.map((m, i) => (
-              <div key={i} className={cn("flex gap-2 md:gap-3", m.role === "user" ? "justify-end" : "justify-start")}>
-                {m.role === "assistant" && (
+            {messages.map((m, i) => {
+              if (m.role === "user") {
+                return (
+                  <div key={i} className="flex gap-2 md:gap-3 justify-end">
+                    <div className="max-w-[82%] md:max-w-[78%] rounded-2xl rounded-br-sm px-3.5 md:px-4 py-2.5 md:py-3 text-[14px] leading-6 md:leading-7 whitespace-pre-wrap break-words bg-foreground text-background">
+                      {m.content}
+                    </div>
+                  </div>
+                );
+              }
+
+              const { thinking, answer, error, thinkingDone } = parseAssistant(m.content);
+              const isStreamingThis = pending && i === messages.length - 1;
+              const empty = !thinking && !answer && !error;
+
+              return (
+                <div key={i} className="flex gap-2 md:gap-3 justify-start">
                   <div className={cn(
                     "h-7 w-7 md:h-8 md:w-8 rounded-xl flex items-center justify-center text-white text-sm md:text-base bg-gradient-to-br shrink-0",
                     GRAD[color],
                   )}>
                     {emoji}
                   </div>
-                )}
-                <div
-                  className={cn(
-                    "max-w-[82%] md:max-w-[78%] rounded-2xl px-3.5 md:px-4 py-2.5 md:py-3 text-[14px] leading-6 md:leading-7 whitespace-pre-wrap break-words",
-                    m.role === "user"
-                      ? "bg-foreground text-background rounded-br-sm"
-                      : cn("text-foreground rounded-bl-sm", BUBBLE_BG[color]),
-                  )}
-                >
-                  {m.content || (
-                    <span className="inline-flex items-center gap-1.5 text-muted-foreground">
-                      <span className="h-1.5 w-1.5 rounded-full bg-foreground/40 animate-bounce" style={{ animationDelay: "0ms" }} />
-                      <span className="h-1.5 w-1.5 rounded-full bg-foreground/40 animate-bounce" style={{ animationDelay: "120ms" }} />
-                      <span className="h-1.5 w-1.5 rounded-full bg-foreground/40 animate-bounce" style={{ animationDelay: "240ms" }} />
-                    </span>
-                  )}
+                  <div className="max-w-[82%] md:max-w-[78%] min-w-0 space-y-2">
+                    {/* 思考过程 */}
+                    {thinking && (
+                      <details
+                        open={!thinkingDone}
+                        className="rounded-2xl border border-border bg-background/70 text-[12px] overflow-hidden"
+                      >
+                        <summary className="cursor-pointer select-none px-3 py-2 inline-flex items-center gap-1.5 text-muted-foreground list-none [&::-webkit-details-marker]:hidden">
+                          {thinkingDone ? (
+                            <Brain className="h-3.5 w-3.5 text-cat-design" />
+                          ) : (
+                            <Loader2 className="h-3.5 w-3.5 text-cat-design animate-spin" />
+                          )}
+                          {thinkingDone ? "思考过程（点击展开）" : "正在思考…"}
+                        </summary>
+                        <div className="px-3 pb-2.5 pt-0.5 text-muted-foreground/90 whitespace-pre-wrap break-words leading-5 max-h-56 overflow-y-auto border-t border-border/60">
+                          {thinking}
+                        </div>
+                      </details>
+                    )}
+
+                    {/* 正文 */}
+                    {answer && (
+                      <div className={cn(
+                        "rounded-2xl rounded-bl-sm px-3.5 md:px-4 py-2.5 md:py-3 text-[14px] leading-6 md:leading-7 whitespace-pre-wrap break-words text-foreground",
+                        BUBBLE_BG[color],
+                      )}>
+                        {answer}
+                        {isStreamingThis && answer && (
+                          <span className="inline-block w-1.5 h-4 ml-0.5 align-middle bg-foreground/50 animate-pulse" />
+                        )}
+                      </div>
+                    )}
+
+                    {/* 初始加载点 */}
+                    {empty && (
+                      <div className={cn("rounded-2xl rounded-bl-sm px-3.5 md:px-4 py-3 inline-flex", BUBBLE_BG[color])}>
+                        <span className="inline-flex items-center gap-1.5 text-muted-foreground">
+                          <span className="h-1.5 w-1.5 rounded-full bg-foreground/40 animate-bounce" style={{ animationDelay: "0ms" }} />
+                          <span className="h-1.5 w-1.5 rounded-full bg-foreground/40 animate-bounce" style={{ animationDelay: "120ms" }} />
+                          <span className="h-1.5 w-1.5 rounded-full bg-foreground/40 animate-bounce" style={{ animationDelay: "240ms" }} />
+                        </span>
+                      </div>
+                    )}
+
+                    {/* 错误卡片 + 重试 */}
+                    {error && (
+                      <div className="rounded-2xl border border-cat-decor/30 bg-cat-decor-soft px-3.5 py-3">
+                        <div className="flex items-start gap-2 text-[13px] text-cat-decor">
+                          <AlertCircle className="h-4 w-4 mt-0.5 shrink-0" />
+                          <span className="leading-5">出错了，回复未能完成。</span>
+                        </div>
+                        <button
+                          onClick={retryLast}
+                          disabled={pending}
+                          className="mt-2.5 inline-flex items-center gap-1.5 h-8 px-3 rounded-full bg-foreground text-background text-[12px] font-medium disabled:opacity-50 active:scale-95 transition-transform"
+                        >
+                          <RefreshCw className="h-3.5 w-3.5" /> 重试
+                        </button>
+                      </div>
+                    )}
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
             <div ref={endRef} />
           </div>
 

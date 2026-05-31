@@ -45,7 +45,9 @@
       "Bash(xargs -0 -I{} sed -i 's/xyzhxh\\\\.org/xyjzxh.com/g' \"{}\")",
       "Bash(rm -f _bat_out.log _bat_err.log _live.log)",
       "Bash(curl -s -o /dev/null -w \"port3000 now: HTTP %{http_code}\\\\n\" --max-time 3 http://localhost:3000/)",
-      "Bash(xxd)"
+      "Bash(xxd)",
+      "Bash(grep -iE \"DEEPSEEK_MODEL|AI_PROVIDER|ANTHROPIC_MODEL\" .env.local)",
+      "Bash(grep -qE \"^DEEPSEEK_API_KEY=.+\" .env.local)"
     ]
   }
 }
