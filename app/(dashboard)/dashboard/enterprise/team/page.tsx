@@ -63,7 +63,7 @@ export default function TeamPage() {
         </select>
       </FilterBar>
 
-      <DataTable
+      <DataTable dropActionCol
         head={["成员", "手机", "角色", "签单(本月)", "最后登录", "状态", "操作"]}
         rows={TEAM.map((m) => [
           <div key="n" className="flex items-center gap-2.5">

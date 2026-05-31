@@ -84,7 +84,7 @@ export default function SuppliersAdmin() {
 
       {/* 供应商列表 */}
       <h2 className="text-[18px] font-semibold mb-3">在册供应商</h2>
-      <DataTable
+      <DataTable dropActionCol
         head={["供应商", "类目", "区域", "评分", "履约 SLA", "月供货量", "标签", "操作"]}
         rows={SUPPLIERS.map((s) => [
           <div key="n">

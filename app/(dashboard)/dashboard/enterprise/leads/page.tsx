@@ -61,7 +61,7 @@ export default function LeadsPage() {
         <button className="h-9 px-3 rounded-full bg-surface text-[12px] inline-flex items-center gap-1.5"><Filter className="h-3 w-3" /> 高级</button>
       </FilterBar>
 
-      <DataTable
+      <DataTable dropActionCol
         head={["客户", "诉求", "预算", "意向", "来源", "状态", "负责人", "首触时间", "操作"]}
         rows={LEADS.map((l) => [
           <div key="n" className="flex items-center gap-2">

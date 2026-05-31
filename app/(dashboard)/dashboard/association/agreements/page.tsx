@@ -96,7 +96,7 @@ export default function AssociationAgreements() {
         <input placeholder="搜索协议名 / 编号 / 分类" className="flex-1 bg-transparent outline-none text-[14px] py-1" />
       </div>
 
-      <DataTable
+      <DataTable dropActionCol
         head={["编号 / 标题", "面向", "分类", "版本", "最少阅读", "PIPL", "更新", "操作"]}
         rows={published.map((t) => [
           <Link key="t" href={`/dashboard/association/agreements/${t.id}`} className="block hover:text-brand">

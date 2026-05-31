@@ -66,7 +66,7 @@ export default function OrdersPage() {
         </select>
       </FilterBar>
 
-      <DataTable
+      <DataTable dropActionCol
         head={["订单号", "客户", "范围", "金额", "阶段", "进度", "回款", "待办", "操作"]}
         rows={ORDERS_LIST.map((o) => {
           const totalPending = o.pendingCounts.acceptance + o.pendingCounts.change + o.pendingCounts.payment;

@@ -42,7 +42,7 @@ export default function NewsAdmin() {
         ))}
       </div>
 
-      <DataTable
+      <DataTable dropActionCol
         head={["标题", "分类", "作者", "发布时间", "阅读", "状态", "操作"]}
         rows={NEWS_ITEMS.map((n) => [
           <span key="t" className="font-medium max-w-md truncate inline-block">{n.title}</span>,

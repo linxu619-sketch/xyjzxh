@@ -76,7 +76,7 @@ export default async function ProjectsPage() {
         </button>
       </FilterBar>
 
-      <DataTable
+      <DataTable dropActionCol
         head={["报备号", "项目名称", "类型", "面积 / 预算", "工期", "状态", "进度", "操作"]}
         rows={PROJECTS.map((p) => [
           <code key="i" className="text-[12px] font-mono">{p.id}</code>,

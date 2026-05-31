@@ -44,7 +44,7 @@ export default function JobsPage() {
         })}
       </div>
 
-      <DataTable
+      <DataTable dropActionCol
         head={["职位", "类型", "薪资", "区域", "浏览", "简历", "发布时间", "状态", "操作"]}
         rows={mine.map((j) => {
           const s = fakeStats(j.id);

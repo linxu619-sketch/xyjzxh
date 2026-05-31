@@ -12,22 +12,25 @@ export function FilterBar({ children, className }: { children: React.ReactNode; 
 }
 
 export function DataTable({
-  head, rows, empty,
+  head, rows, empty, dropActionCol,
 }: {
   head: string[];
   rows: React.ReactNode[][];
   empty?: string;
+  dropActionCol?: boolean; // 砍掉最后一列（通常是"操作"），列表不再显示行内操作按钮
 }) {
+  const h = dropActionCol ? head.slice(0, -1) : head;
+  const r = dropActionCol ? rows.map((cells) => cells.slice(0, -1)) : rows;
   return (
     <div className="rounded-2xl border border-border bg-background overflow-x-auto">
       <table className="w-full text-[13px]">
         <thead className="bg-surface text-[12px] text-muted-foreground">
-          <tr>{head.map((h) => <th key={h} className="text-left px-5 py-3 font-medium">{h}</th>)}</tr>
+          <tr>{h.map((c) => <th key={c} className="text-left px-5 py-3 font-medium">{c}</th>)}</tr>
         </thead>
         <tbody className="divide-y divide-border">
-          {rows.length === 0 ? (
-            <tr><td colSpan={head.length} className="px-5 py-16 text-center text-muted-foreground">{empty ?? "暂无数据"}</td></tr>
-          ) : rows.map((cells, i) => (
+          {r.length === 0 ? (
+            <tr><td colSpan={h.length} className="px-5 py-16 text-center text-muted-foreground">{empty ?? "暂无数据"}</td></tr>
+          ) : r.map((cells, i) => (
             <tr key={i} className="hover:bg-surface/60">
               {cells.map((c, j) => <td key={j} className="px-5 py-3 align-middle">{c}</td>)}
             </tr>

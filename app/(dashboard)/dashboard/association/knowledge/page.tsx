@@ -61,7 +61,7 @@ export default function KnowledgeAdmin() {
         </div>
       </div>
 
-      <DataTable
+      <DataTable dropActionCol
         head={["标题", "分类", "标签", "发布日期", "大小", "热度", "操作"]}
         rows={KNOWLEDGE.map((k) => [
           <span key="t" className="font-medium">{k.title}</span>,

@@ -115,7 +115,7 @@ export default function EnterpriseSupplies() {
         <button className="text-[12px] text-brand">导出</button>
       </div>
 
-      <DataTable
+      <DataTable dropActionCol
         head={["单号", "下单时间", "商品", "数量", "金额", "省下", "状态", "操作"]}
         rows={ENTERPRISE_SUPPLY_ORDERS.map((o) => [
           <code key="i" className="text-[12px] font-mono">{o.id}</code>,
