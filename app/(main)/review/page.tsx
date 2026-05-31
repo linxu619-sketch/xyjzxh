@@ -20,13 +20,6 @@ function fmtDate(ts: number) {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 }
 
-const SAMPLE = [
-  { id: "R001", user: "刘**", enterprise: "名家装饰",         project: "金茂悦府 1602",      rating: 5, content: "项目经理特别负责，水电改造的时候多次主动来工地，质量超预期。", date: "2026-05-26", cat: "decor" as const },
-  { id: "R002", user: "陈**", enterprise: "壹品装饰",         project: "茶都商务 22F",       rating: 5, content: "设计师很懂年轻人审美，方案改了两版就定稿，后期施工严格按图。", date: "2026-05-22", cat: "decor" as const },
-  { id: "R003", user: "孙**", enterprise: "华泰建工",         project: "茶博园景观二期",     rating: 4, content: "整体满意，进度严格，唯独沟通群有时回得慢。", date: "2026-05-18", cat: "build" as const },
-  { id: "R004", user: "周**", enterprise: "雅舍设计事务所",   project: "御景湾别墅软装",      rating: 5, content: "软装搭配出乎意料，节奏感和留白处理得很到位。", date: "2026-05-12", cat: "design" as const },
-  { id: "R005", user: "王**", enterprise: "万家美装饰",       project: "弦山街老房翻新",      rating: 4, content: "县域价格做出市区品质，性价比之选。", date: "2026-05-05", cat: "decor" as const },
-];
 
 export default async function ReviewsHubPage({ searchParams }: { searchParams: Promise<{ posted?: string }> }) {
   const { posted } = await searchParams;
@@ -43,7 +36,7 @@ export default async function ReviewsHubPage({ searchParams }: { searchParams: P
     date: fmtDate(r.createdAt),
     cat: (["build", "decor", "design"].includes(r.category) ? r.category : "decor") as "build" | "decor" | "design",
   }));
-  const feed = [...realItems, ...SAMPLE];
+  const feed = realItems;
   return (
     <>
       <PageHeader

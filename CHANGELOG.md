@@ -14,6 +14,14 @@
 
 ---
 
+## [0.24.0] - 2026-05-31
+
+### 变更（演示数据 → 数据库真实测试数据）
+- 给 SQLite 各表加种子：practitioners(8)、reviews(6)、applications(5,含待审/通过/驳回)、project_reports(5)、insurance_orders(4)、mediations(4)；连同已有 enterprises(12)、ai_knowledge(16)，平台各功能现有一致、持久的真实测试数据。
+- /practitioners、/review 改为**只读数据库**（移除硬编码 mock 合并）。
+- 数据可在协会后台增删改、用户端提交，全程持久化。
+- 说明：仍是硬编码展示的页面（新闻 NEWS、企业项目列表 PROJECTS、招聘/人才/建材/客户示例保单等）未建表，属纯展示，后续按需迁库。
+
 ## [0.23.1] - 2026-05-31
 
 ### 变更（去掉所有列表里的死「操作」按钮）

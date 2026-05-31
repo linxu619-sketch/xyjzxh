@@ -7,7 +7,7 @@ import { Container } from "@/components/container";
 import { PageHeader } from "@/components/page-header";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { PRACTITIONERS_LIST, PRACTITIONER_JOBS } from "@/lib/data/practitioners";
+import { PRACTITIONER_JOBS } from "@/lib/data/practitioners";
 import { listPractitioners } from "@/lib/data/practitioners-source";
 import { cn } from "@/lib/cn";
 
@@ -38,7 +38,7 @@ const TONE: Record<string, string> = {
 };
 
 export default function PractitionersLanding() {
-  const list = [...listPractitioners(), ...PRACTITIONERS_LIST];
+  const list = listPractitioners();
   return (
     <>
       <PageHeader
