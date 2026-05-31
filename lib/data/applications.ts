@@ -54,6 +54,11 @@ export function createApplication(input: {
   return Number(info.lastInsertRowid);
 }
 
+export function getApplication(id: number): Application | undefined {
+  const row = getDb().prepare("SELECT * FROM applications WHERE id = ?").get(id) as Row | undefined;
+  return row ? rowTo(row) : undefined;
+}
+
 export function listApplications(status?: AppStatus): Application[] {
   const db = getDb();
   const rows = (status

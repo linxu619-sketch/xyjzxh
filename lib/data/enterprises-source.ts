@@ -75,6 +75,41 @@ export async function getEnterprises(): Promise<Enterprise[]> {
   }
 }
 
+// 审核通过：把企业入会申请写入 enterprises 表（成为正式会员，出现在 /members）
+const ENT_TYPE_TO_CAT: Record<string, "build" | "decor" | "design"> = {
+  "建筑施工": "build",
+  "装饰装修": "decor",
+  "设计公司": "design",
+};
+
+export function createEnterpriseFromApplication(app: {
+  id: number;
+  applicant: string;
+  phone: string;
+  payload: Record<string, unknown>;
+}): void {
+  const db = getDb();
+  const id = `app-${app.id}`;
+  if (db.prepare("SELECT 1 FROM enterprises WHERE id = ?").get(id)) return; // 防重复
+
+  const p = app.payload as Record<string, string>;
+  const category = ENT_TYPE_TO_CAT[p.entType ?? ""] ?? "build";
+  const base = (p.subdomain || `member-${app.id}`).toLowerCase().replace(/[^a-z0-9-]/g, "") || `member-${app.id}`;
+  const slug = db.prepare("SELECT 1 FROM enterprises WHERE slug = ?").get(base) ? `${base}-${app.id}` : base;
+
+  db.prepare(
+    `INSERT INTO enterprises
+      (id,slug,name,category,district,founded,staff_size,qualification,tags,short,hero,contact,rating,reviews,cases,verified,featured,status)
+     VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?, 'active')`,
+  ).run(
+    id, slug, app.applicant, category, p.region ?? "", null, "—",
+    JSON.stringify([]), JSON.stringify([]), "协会新入会会员企业",
+    JSON.stringify({ brand: app.applicant, tagline: "" }),
+    JSON.stringify({ tel: app.phone ?? "", addr: p.region ?? "" }),
+    0, 0, 0, 1, 0,
+  );
+}
+
 export async function getEnterpriseBySlugOrId(key: string): Promise<Enterprise | undefined> {
   try {
     const row = getDb()

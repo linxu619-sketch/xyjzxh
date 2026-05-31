@@ -2,7 +2,8 @@
 
 import { revalidatePath } from "next/cache";
 import { getSession } from "@/lib/auth/session";
-import { setApplicationStatus } from "@/lib/data/applications";
+import { getApplication, setApplicationStatus } from "@/lib/data/applications";
+import { createEnterpriseFromApplication } from "@/lib/data/enterprises-source";
 
 export async function reviewApplicationAction(fd: FormData) {
   const s = await getSession();
@@ -11,6 +12,16 @@ export async function reviewApplicationAction(fd: FormData) {
   }
   const id = Number(fd.get("id") || 0);
   const act = String(fd.get("act") || "");
-  if (id) setApplicationStatus(id, act === "approve" ? "approved" : "rejected");
+  if (!id) return;
+
+  const app = getApplication(id);
+  setApplicationStatus(id, act === "approve" ? "approved" : "rejected");
+
+  // 企业申请通过 → 自动成为正式会员，出现在 /members
+  if (act === "approve" && app?.type === "enterprise") {
+    createEnterpriseFromApplication(app);
+    revalidatePath("/members");
+  }
+
   revalidatePath("/dashboard/association/members");
 }

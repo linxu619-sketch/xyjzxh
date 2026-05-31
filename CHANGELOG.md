@@ -14,6 +14,13 @@
 
 ---
 
+## [0.13.0] - 2026-05-31
+
+### 新增（入会闭环：审核通过 → 自动成为正式会员）
+- 协会在「会员审核」点**通过**企业申请时，自动把该申请写入 `enterprises` 表（`createEnterpriseFromApplication`：按企业类型映射品类、子域名生成 slug、协会认证标记），**立即出现在 `/members` 会员目录**。
+- `applications.ts` 加 `getApplication(id)`；`reviewApplicationAction` 通过时建会员并 revalidate `/members`。
+- 实测：模拟通过后 `/members` 企业 12→13、新会员可见；已重置留 1 条待审供 UI 实操。
+
 ## [0.12.0] - 2026-05-31
 
 ### 新增（入会/注册申请真实持久化）
