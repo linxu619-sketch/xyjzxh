@@ -5,6 +5,9 @@ import { TopBar } from "./widgets";
 import { Badge } from "@/components/ui/badge";
 import { getSession, type Session } from "@/lib/auth/session";
 import { ASSOC_NAV, ENT_NAV } from "@/lib/dashboard/nav";
+import { countByStatus } from "@/lib/data/applications";
+import { listReports, listReportsByUid } from "@/lib/data/reports";
+import { listMediations } from "@/lib/data/mediations";
 
 type ShellProps = {
   title: string;
@@ -13,6 +16,16 @@ type ShellProps = {
   children: React.ReactNode;
 };
 
+type NavItem = { href: string; label: string; icon: React.ReactNode; badge?: string };
+
+// 用真实待审数覆盖导航角标；为 0 则不显示（避免写死的假数字与列表对不上）
+function withBadges(nav: readonly NavItem[], counts: Record<string, number>): NavItem[] {
+  return nav.map((it) => {
+    const n = counts[it.href];
+    return n && n > 0 ? { ...it, badge: String(n) } : { ...it, badge: undefined };
+  });
+}
+
 export async function AssociationShell({ title, subtitle, actions, children }: ShellProps) {
   const session = await getSession();
   if (!session || (session.role !== "association" && session.role !== "system_admin")) {
@@ -20,12 +33,18 @@ export async function AssociationShell({ title, subtitle, actions, children }: S
   }
   const isSys = session.role === "system_admin";
 
+  const items = withBadges(ASSOC_NAV, {
+    "/dashboard/association/members": countByStatus().pending,
+    "/dashboard/association/reports": listReports("pending").length,
+    "/dashboard/association/mediations": listMediations("pending").length,
+  });
+
   return (
     <div className="flex">
       <Sidebar
         brand={isSys ? "平台超管控制台" : "协会工作台"}
         role={isSys ? "Platform Owner" : "Association Console"}
-        items={ASSOC_NAV}
+        items={items}
         user={{
           name: session.name,
           meta: isSys
@@ -50,12 +69,16 @@ export async function EnterpriseShell({ title, subtitle, actions, children }: Sh
   if (!session || session.role !== "enterprise") {
     redirect("/login?role=enterprise");
   }
+  const pendingReports = listReportsByUid(session.uid).filter((r) => r.status === "pending").length;
+  const items = withBadges(ENT_NAV, {
+    "/dashboard/enterprise/projects": pendingReports,
+  });
   return (
     <div className="flex">
       <Sidebar
         brand="名家装饰"
         role="Enterprise Console"
-        items={ENT_NAV}
+        items={items}
         user={{ name: session.name, meta: `owner · ${maskPhone(session.phone)}` }}
         tone="build"
       />
