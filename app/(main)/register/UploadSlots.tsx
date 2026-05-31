@@ -1,13 +1,13 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { Upload, FileText, X, CheckCircle2 } from "lucide-react";
+import { Upload, FileText, X, Check } from "lucide-react";
 
 type Doc = { name: string; label: string; required?: boolean };
 
 export function UploadSlots({ docs }: { docs: Doc[] }) {
   return (
-    <div className="space-y-2.5">
+    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
       {docs.map((d) => <Slot key={d.name} doc={d} />)}
     </div>
   );
@@ -17,64 +17,95 @@ function Slot({ doc }: { doc: Doc }) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [fileName, setFileName] = useState<string | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
+  const [dragOver, setDragOver] = useState(false);
 
-  function onChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const f = e.target.files?.[0];
+  function accept(file: File | undefined) {
     if (preview) URL.revokeObjectURL(preview);
-    if (!f) { setFileName(null); setPreview(null); return; }
-    setFileName(f.name);
-    setPreview(f.type.startsWith("image/") ? URL.createObjectURL(f) : null);
+    if (!file) { setFileName(null); setPreview(null); return; }
+    setFileName(file.name);
+    setPreview(file.type.startsWith("image/") ? URL.createObjectURL(file) : null);
   }
 
-  function clear() {
+  function onChange(e: React.ChangeEvent<HTMLInputElement>) {
+    accept(e.target.files?.[0]);
+  }
+
+  function onDrop(e: React.DragEvent) {
+    e.preventDefault();
+    setDragOver(false);
+    const file = e.dataTransfer.files?.[0];
+    if (file && inputRef.current) {
+      const dt = new DataTransfer();
+      dt.items.add(file);
+      inputRef.current.files = dt.files; // 同步给表单字段
+      accept(file);
+    }
+  }
+
+  function clear(e: React.MouseEvent) {
+    e.preventDefault();
+    e.stopPropagation();
     if (preview) URL.revokeObjectURL(preview);
     setFileName(null);
     setPreview(null);
     if (inputRef.current) inputRef.current.value = "";
   }
 
-  return (
-    <div className="rounded-xl border border-border p-3">
-      <div className="flex items-center gap-3">
-        <span className={`inline-flex h-8 w-8 items-center justify-center rounded-lg shrink-0 ${fileName ? "bg-[#e6f7f1] text-accent-tea" : "bg-surface text-muted-foreground"}`}>
-          {fileName ? <CheckCircle2 className="h-4 w-4" /> : <Upload className="h-4 w-4" />}
-        </span>
-        <span className="text-[13px] flex-1 min-w-0">
-          {doc.label}{doc.required && <span className="text-cat-decor ml-0.5">*</span>}
-        </span>
-        <label className="shrink-0 inline-flex items-center h-8 px-3 rounded-full bg-foreground text-background text-[12px] font-medium cursor-pointer active:scale-95 transition-transform">
-          {fileName ? "重新选择" : "选择文件"}
-          <input
-            ref={inputRef}
-            type="file"
-            name={doc.name}
-            accept="image/*,.pdf"
-            className="hidden"
-            onChange={onChange}
-          />
-        </label>
-      </div>
+  const input = (
+    <input ref={inputRef} type="file" name={doc.name} accept="image/*,.pdf" className="hidden" onChange={onChange} />
+  );
 
-      {fileName && (
-        <div className="mt-2.5 flex items-center gap-2.5">
-          {preview ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={preview} alt={fileName} className="h-16 w-16 rounded-lg object-cover border border-border" />
-          ) : (
-            <div className="h-16 w-16 rounded-lg bg-surface border border-border flex items-center justify-center text-muted-foreground">
-              <FileText className="h-6 w-6" />
-            </div>
-          )}
-          <span className="text-[12px] text-muted-foreground truncate flex-1">{fileName}</span>
-          <button
-            type="button"
-            onClick={clear}
-            className="shrink-0 inline-flex items-center gap-1 text-[12px] text-cat-decor hover:underline"
-          >
-            <X className="h-3.5 w-3.5" /> 移除
-          </button>
+  // 已上传：整卡可点重选，移除按钮阻止冒泡
+  if (fileName) {
+    return (
+      <label className="relative block rounded-2xl border border-border overflow-hidden bg-background h-[150px] cursor-pointer">
+        {input}
+        {preview ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={preview} alt={doc.label} className="absolute inset-0 h-full w-full object-cover" />
+        ) : (
+          <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 text-muted-foreground">
+            <FileText className="h-9 w-9" />
+            <span className="text-[12px]">PDF 文档</span>
+          </div>
+        )}
+        <span className="absolute top-2 left-2 inline-flex items-center gap-1 h-6 px-2 rounded-full bg-accent-tea text-white text-[10px] font-medium">
+          <Check className="h-3 w-3" /> 已上传
+        </span>
+        <button
+          type="button"
+          onClick={clear}
+          className="absolute top-2 right-2 h-7 w-7 rounded-full bg-foreground/60 text-white inline-flex items-center justify-center hover:bg-foreground transition-colors z-10"
+          aria-label="移除"
+        >
+          <X className="h-4 w-4" />
+        </button>
+        <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-foreground/80 to-transparent px-3 pt-6 pb-2.5">
+          <div className="text-[12px] font-medium text-white truncate">{doc.label}</div>
+          <div className="text-[10px] text-white/80 truncate">{fileName} · 点击可替换</div>
         </div>
-      )}
-    </div>
+      </label>
+    );
+  }
+
+  // 空槽：可点可拖
+  return (
+    <label
+      onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
+      onDragLeave={() => setDragOver(false)}
+      onDrop={onDrop}
+      className={`relative flex flex-col items-center justify-center gap-2 rounded-2xl border-2 border-dashed h-[150px] p-4 text-center cursor-pointer transition-colors ${
+        dragOver ? "border-brand bg-brand-50/50" : "border-border bg-surface/40 hover:border-foreground/30 hover:bg-surface"
+      }`}
+    >
+      {input}
+      <span className="inline-flex h-11 w-11 items-center justify-center rounded-full bg-background border border-border text-muted-foreground">
+        <Upload className="h-5 w-5" />
+      </span>
+      <div className="text-[13px] font-medium">
+        {doc.label}{doc.required && <span className="text-cat-decor ml-0.5">*</span>}
+      </div>
+      <div className="text-[11px] text-muted-foreground">点击或拖拽到此 · JPG / PNG / PDF</div>
+    </label>
   );
 }
