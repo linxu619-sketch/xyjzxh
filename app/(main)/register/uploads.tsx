@@ -33,8 +33,8 @@ export function SingleUpload({
     <div className={className}>
       <div className="text-[12px] font-medium mb-1.5">{label}{required && <span className="text-cat-decor ml-0.5">*</span>}</div>
       {name ? (
-        <label className="relative block rounded-xl border border-border overflow-hidden bg-background cursor-pointer" style={{ aspectRatio: aspect }}>
-          <input ref={ref} type="file" accept="image/*,.pdf" className="hidden" onChange={(e) => accept(e.target.files?.[0])} />
+        <label className="relative block border border-border overflow-hidden bg-background cursor-pointer" style={{ aspectRatio: aspect }}>
+          <input ref={ref} type="file" accept="image/*" className="hidden" onChange={(e) => accept(e.target.files?.[0])} />
           {preview ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img src={preview} alt={label} className="absolute inset-0 h-full w-full object-cover" />
@@ -45,8 +45,8 @@ export function SingleUpload({
           <span className="absolute bottom-1.5 left-1.5 inline-flex items-center gap-0.5 h-5 px-1.5 rounded-full bg-accent-tea text-white text-[9px] font-medium"><Check className="h-2.5 w-2.5" /> 已传</span>
         </label>
       ) : (
-        <label className="flex flex-col items-center justify-center gap-1 rounded-xl border-2 border-dashed border-border bg-surface/40 hover:border-foreground/30 hover:bg-surface cursor-pointer text-muted-foreground transition-colors" style={{ aspectRatio: aspect }}>
-          <input ref={ref} type="file" accept="image/*,.pdf" className="hidden" onChange={(e) => accept(e.target.files?.[0])} />
+        <label className="flex flex-col items-center justify-center gap-1 border-2 border-dashed border-border bg-surface/40 hover:border-foreground/30 hover:bg-surface cursor-pointer text-muted-foreground transition-colors" style={{ aspectRatio: aspect }}>
+          <input ref={ref} type="file" accept="image/*" className="hidden" onChange={(e) => accept(e.target.files?.[0])} />
           <Upload className="h-5 w-5" />
           <span className="text-[11px]">点击上传</span>
         </label>
@@ -92,7 +92,7 @@ export function MultiUpload({
       {hint && <div className="text-[11px] text-muted-foreground mb-2">{hint}</div>}
       <div className="flex flex-wrap gap-2">
         {items.map((it, idx) => (
-          <div key={idx} className="relative h-20 w-20 rounded-xl border border-border overflow-hidden bg-background">
+          <div key={idx} className="relative h-20 w-20 border border-border overflow-hidden bg-background">
             {it.preview ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img src={it.preview} alt={it.name} className="h-full w-full object-cover" />
@@ -103,8 +103,8 @@ export function MultiUpload({
           </div>
         ))}
         {items.length < max && (
-          <label className="h-20 w-20 rounded-xl border-2 border-dashed border-border bg-surface/40 hover:border-foreground/30 hover:bg-surface flex flex-col items-center justify-center gap-0.5 cursor-pointer text-muted-foreground transition-colors">
-            <input ref={ref} type="file" accept="image/*,.pdf" multiple className="hidden" onChange={(e) => add(e.target.files)} />
+          <label className="h-20 w-20 border-2 border-dashed border-border bg-surface/40 hover:border-foreground/30 hover:bg-surface flex flex-col items-center justify-center gap-0.5 cursor-pointer text-muted-foreground transition-colors">
+            <input ref={ref} type="file" accept="image/*" multiple className="hidden" onChange={(e) => add(e.target.files)} />
             <Plus className="h-5 w-5" />
             <span className="text-[10px]">添加</span>
           </label>
