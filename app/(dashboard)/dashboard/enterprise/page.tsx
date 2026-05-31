@@ -1,13 +1,22 @@
 import Link from "next/link";
 import {
-  ExternalLink, Sparkles, TrendingUp, AlertCircle, ChevronRight,
-  Phone, MessageSquare, Eye, Camera,
+  ExternalLink, Sparkles, AlertCircle, ChevronRight,
+  Phone, MessageSquare, Eye, Camera, FileCheck2,
 } from "lucide-react";
 import { EnterpriseShell } from "@/components/dashboard/shell";
 import { StatCard, Panel } from "@/components/dashboard/widgets";
 import { Badge } from "@/components/ui/badge";
+import { getSession } from "@/lib/auth/session";
+import { getEnterpriseBySlugOrId } from "@/lib/data/enterprises-source";
+import { listReportsByUid } from "@/lib/data/reports";
 
 export const metadata = { title: "企业工作台 · 信阳市建筑装饰装修协会" };
+
+const RPT_STATUS: Record<string, { label: string; tone: "tea" | "decor" | "yellow" }> = {
+  approved: { label: "已通过", tone: "tea" },
+  rejected: { label: "已驳回", tone: "decor" },
+  pending: { label: "待审核", tone: "yellow" },
+};
 
 const LEADS = [
   { name: "刘女士", area: "120㎡ · 浉河区",    from: "AI 装修顾问", budget: "30 万", hot: true,  phone: "138****8472" },
@@ -17,23 +26,21 @@ const LEADS = [
   { name: "周女士", area: "85㎡",                from: "口碑评价回流", budget: "16 万", hot: false, phone: "138****1188" },
 ];
 
-const PROJECTS = [
-  { id: "P-2026-0501", name: "金茂悦府 12 栋", progress: 42,  status: "施工中" as const, alert: "防水验收待业主签" },
-  { id: "P-2026-0498", name: "茶都商务大厦 22F", progress: 68, status: "施工中" as const },
-  { id: "P-2026-0524", name: "万象城海底捞餐饮空间", progress: 12, status: "施工中" as const },
-  { id: "P-2026-0476", name: "御景湾别墅软装",     progress: 100, status: "已竣工" as const },
-  { id: "P-2026-0508", name: "光山县中医院门诊楼", progress: 0,   status: "待审" as const },
-];
-
 export default async function EnterpriseDashboard() {
+  const session = await getSession();
+  const ent = session?.enterpriseId ? await getEnterpriseBySlugOrId(session.enterpriseId) : undefined;
+  const brand = ent?.hero.brand ?? ent?.name ?? "企业工作台";
+  const slug = ent?.slug ?? "mingjia";
+  const myReports = session ? listReportsByUid(session.uid) : [];
+
   return (
     <EnterpriseShell
-      title="名家装饰 · 工作台"
-      subtitle="子站 mingjia.xyjzxh.com · 本月数据"
+      title={`${brand} · 工作台`}
+      subtitle={`子站 ${slug}.xyjzxh.com · 本月数据`}
       actions={
         <>
           <a
-            href="/biz/mingjia"
+            href={`/biz/${slug}`}
             target="_blank"
             rel="noreferrer"
             className="h-9 px-4 rounded-full bg-foreground text-background text-[13px] font-medium inline-flex items-center gap-1.5 active:scale-95 transition-transform"
@@ -61,7 +68,10 @@ export default async function EnterpriseDashboard() {
         </Link>
       </div>
 
-      {/* KPI */}
+      {/* 示例数据提示 */}
+      <div className="mb-2 flex items-center gap-1.5 text-[11px] text-muted-foreground">
+        <Badge tone="yellow">示例</Badge> 本页除「我的工装报备」为真实数据外，经营指标 / 线索 / 工地等为演示数据，接入业务系统后替换为本企业真实数据
+      </div>
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
         <StatCard label="本月线索"     value="184"   sub="较上月" trend={{ dir: "up", value: "32" }} color="decor" />
         <StatCard label="子站访客"     value="9,284" sub="转化率 1.98%" trend={{ dir: "up", value: "18%" }} color="brand" />
@@ -133,47 +143,39 @@ export default async function EnterpriseDashboard() {
           </div>
         </Panel>
 
-        {/* 项目进度 */}
+        {/* 我的工装报备（真实，本企业账号提交） */}
         <Panel
-          title="项目进度"
+          title="我的工装报备"
           className="lg:col-span-2"
           action={
-            <Link href="/dashboard/enterprise/orders" className="text-[12px] text-brand inline-flex items-center gap-0.5">
-              工作台 <ChevronRight className="h-3 w-3" />
+            <Link href="/dashboard/enterprise/projects" className="text-[12px] text-brand inline-flex items-center gap-0.5">
+              全部 {myReports.length} 条 <ChevronRight className="h-3 w-3" />
             </Link>
           }
         >
-          <ul className="divide-y divide-border">
-            {PROJECTS.map((p) => (
-              <li key={p.id} className="py-3">
-                <div className="flex items-center gap-3">
-                  <div className="flex-1 min-w-0">
-                    <div className="text-[13px] font-medium truncate">{p.name}</div>
-                    {p.alert && (
-                      <div className="text-[10px] text-cat-decor mt-0.5 inline-flex items-center gap-0.5">
-                        <AlertCircle className="h-2.5 w-2.5" /> {p.alert}
+          {myReports.length === 0 ? (
+            <div className="py-8 text-center text-[13px] text-muted-foreground">
+              还没有在线报备。去 <Link href="/projects/new" className="text-brand">新建报备</Link>，提交后会实时出现在这里。
+            </div>
+          ) : (
+            <ul className="divide-y divide-border">
+              {myReports.slice(0, 6).map((r) => {
+                const st = RPT_STATUS[r.status] ?? RPT_STATUS.pending;
+                return (
+                  <li key={r.id} className="py-3 flex items-center gap-3">
+                    <FileCheck2 className="h-4 w-4 text-cat-build shrink-0" />
+                    <div className="flex-1 min-w-0">
+                      <div className="text-[13px] font-medium truncate">{r.project}</div>
+                      <div className="text-[11px] text-muted-foreground mt-0.5">
+                        <code className="font-mono">{r.code}</code> · {r.area || "—"}㎡ · {r.budget || "—"}万
                       </div>
-                    )}
-                  </div>
-                  <Badge tone={p.status === "已竣工" ? "tea" : p.status === "施工中" ? "decor" : "yellow"}>
-                    {p.status}
-                  </Badge>
-                  <code className="text-[10px] font-mono text-muted-foreground shrink-0">{p.id.slice(-3)}</code>
-                </div>
-                <div className="mt-2 flex items-center gap-2">
-                  <div className="flex-1 h-1.5 rounded-full bg-surface overflow-hidden">
-                    <div
-                      className={`h-full rounded-full transition-all duration-700 ${
-                        p.progress === 100 ? "bg-accent-tea" : "bg-cat-decor"
-                      }`}
-                      style={{ width: `${p.progress}%` }}
-                    />
-                  </div>
-                  <span className="text-[11px] font-semibold tabular-nums shrink-0 w-10 text-right">{p.progress}%</span>
-                </div>
-              </li>
-            ))}
-          </ul>
+                    </div>
+                    <Badge tone={st.tone}>{st.label}</Badge>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
         </Panel>
 
         {/* AI 员工本月 */}
