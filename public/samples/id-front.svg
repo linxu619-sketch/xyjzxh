@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 856 540" font-family="'Microsoft YaHei','PingFang SC',sans-serif">
+  <rect width="856" height="540" fill="#eef3f7"/>
+  <rect x="8" y="8" width="840" height="524" fill="#f7fafc" stroke="#c7d4de" stroke-width="2"/>
+  <text x="48" y="92" font-size="34" fill="#1f2d3d" letter-spacing="6">居民身份证（样例）</text>
+  <g font-size="22" fill="#33414f">
+    <text x="48" y="170">姓 名　林之远</text>
+    <text x="48" y="222">性 别　男　　民 族　汉</text>
+    <text x="48" y="274">出 生　1990 年 1 月 1 日</text>
+    <text x="48" y="326">住 址　河南省信阳市浉河区</text>
+    <text x="118" y="362">茶韵路 88 号</text>
+    <text x="48" y="452" font-size="24">公民身份号码</text>
+    <text x="48" y="492" font-size="28" letter-spacing="2" fill="#1f2d3d">4115 0119 9001 01 ****</text>
+  </g>
+  <rect x="610" y="150" width="196" height="248" fill="#dde6ee" stroke="#b9c7d2" stroke-width="2"/>
+  <circle cx="708" cy="232" r="46" fill="#aebcc8"/>
+  <path d="M636 392c0-46 32-78 72-78s72 32 72 78z" fill="#aebcc8"/>
+  <text x="428" y="300" font-size="120" fill="#2e6cb5" opacity="0.10" text-anchor="middle" transform="rotate(-20 428 300)" font-weight="bold">样例 SAMPLE</text>
+</svg>

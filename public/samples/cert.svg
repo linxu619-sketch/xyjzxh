@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1188 840" font-family="'Microsoft YaHei','PingFang SC',sans-serif">
+  <rect width="1188" height="840" fill="#eef6f1"/>
+  <rect x="16" y="16" width="1156" height="808" fill="#f8fcfa" stroke="#1f7a4d" stroke-width="4"/>
+  <rect x="40" y="40" width="1108" height="760" fill="none" stroke="#1f7a4d" stroke-width="1.5"/>
+  <text x="594" y="180" font-size="56" fill="#1f7a4d" text-anchor="middle" letter-spacing="12" font-weight="bold">资质证书</text>
+  <text x="594" y="232" font-size="26" fill="#1f7a4d" text-anchor="middle" letter-spacing="4">（样例 · 仅供测试）</text>
+  <g font-size="30" fill="#27403a">
+    <text x="140" y="360">证书编号　YX-2026-000888</text>
+    <text x="140" y="430">企业名称　信阳同信建工有限公司</text>
+    <text x="140" y="500">资质类别　建筑工程施工总承包</text>
+    <text x="140" y="570">资质等级　贰级</text>
+    <text x="140" y="640">有效期至　2029 年 12 月 31 日</text>
+  </g>
+  <circle cx="960" cy="640" r="78" fill="none" stroke="#c0392b" stroke-width="4" opacity="0.7"/>
+  <text x="960" y="652" font-size="22" fill="#c0392b" text-anchor="middle" opacity="0.7">发证机关章</text>
+  <text x="594" y="470" font-size="150" fill="#1f7a4d" opacity="0.07" text-anchor="middle" transform="rotate(-18 594 470)" font-weight="bold">样例 SAMPLE</text>
+</svg>

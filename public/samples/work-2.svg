@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600" font-family="'Microsoft YaHei','PingFang SC',sans-serif">
+  <rect width="800" height="600" fill="#ece8e4"/>
+  <rect x="0" y="0" width="800" height="600" fill="#e7e1da"/>
+  <rect x="60" y="120" width="300" height="400" fill="#d4cabf"/>
+  <rect x="100" y="170" width="220" height="120" fill="#c2b6a8"/>
+  <rect x="100" y="320" width="220" height="150" fill="#c2b6a8"/>
+  <rect x="400" y="200" width="340" height="320" fill="#d8cfc4"/>
+  <circle cx="570" cy="160" r="40" fill="#c9bdae"/>
+  <rect x="440" y="260" width="260" height="40" fill="#b8ab9b"/>
+  <rect x="440" y="330" width="180" height="40" fill="#b8ab9b"/>
+  <text x="400" y="560" font-size="30" fill="#6b5f52" text-anchor="middle">代表作品 · 茶都办公空间（样例）</text>
+  <text x="400" y="320" font-size="120" fill="#8a7d6e" opacity="0.12" text-anchor="middle" transform="rotate(-16 400 320)" font-weight="bold">样例</text>
+</svg>

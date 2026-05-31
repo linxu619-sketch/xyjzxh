@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1188 840" font-family="'Microsoft YaHei','PingFang SC',sans-serif">
+  <rect width="1188" height="840" fill="#fbeceb"/>
+  <rect x="16" y="16" width="1156" height="808" fill="#fff8f7" stroke="#c0392b" stroke-width="4"/>
+  <rect x="34" y="34" width="1120" height="772" fill="none" stroke="#c0392b" stroke-width="1.5"/>
+  <circle cx="594" cy="120" r="44" fill="none" stroke="#c0392b" stroke-width="4"/>
+  <circle cx="594" cy="120" r="16" fill="#c0392b"/>
+  <text x="594" y="226" font-size="56" fill="#c0392b" text-anchor="middle" letter-spacing="14" font-weight="bold">营业执照</text>
+  <text x="594" y="276" font-size="26" fill="#c0392b" text-anchor="middle" letter-spacing="6">（样例 · 副本）</text>
+  <g font-size="30" fill="#3a2b29">
+    <text x="120" y="372">统一社会信用代码　91411500AAAA0001</text>
+    <text x="120" y="438">名　　称　信阳同信建工有限公司</text>
+    <text x="120" y="504">类　　型　有限责任公司</text>
+    <text x="120" y="570">法定代表人　同先生</text>
+    <text x="120" y="636">注册资本　壹仟万元整</text>
+    <text x="120" y="702">经营范围　建筑工程施工；装饰装修工程；建材销售</text>
+  </g>
+  <text x="940" y="760" font-size="26" fill="#c0392b" opacity="0.85">登记机关（章）</text>
+  <text x="594" y="470" font-size="150" fill="#c0392b" opacity="0.08" text-anchor="middle" transform="rotate(-18 594 470)" font-weight="bold">样例 SAMPLE</text>
+</svg>

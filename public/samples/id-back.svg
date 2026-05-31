@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 856 540" font-family="'Microsoft YaHei','PingFang SC',sans-serif">
+  <rect width="856" height="540" fill="#eef3f7"/>
+  <rect x="8" y="8" width="840" height="524" fill="#f7fafc" stroke="#c7d4de" stroke-width="2"/>
+  <circle cx="180" cy="180" r="92" fill="none" stroke="#c49a2e" stroke-width="6"/>
+  <circle cx="180" cy="180" r="36" fill="#d8b551"/>
+  <g stroke="#c49a2e" stroke-width="4">
+    <line x1="180" y1="96" x2="180" y2="124"/><line x1="180" y1="236" x2="180" y2="264"/>
+    <line x1="96" y1="180" x2="124" y2="180"/><line x1="236" y1="180" x2="264" y2="180"/>
+  </g>
+  <text x="340" y="150" font-size="40" fill="#1f2d3d" letter-spacing="8">中华人民共和国</text>
+  <text x="340" y="208" font-size="40" fill="#1f2d3d" letter-spacing="8">居民身份证</text>
+  <g font-size="24" fill="#33414f">
+    <text x="120" y="380">签发机关　信阳市公安局浉河分局</text>
+    <text x="120" y="440">有效期限　2020.01.01 - 2040.01.01</text>
+  </g>
+  <text x="428" y="300" font-size="120" fill="#2e6cb5" opacity="0.10" text-anchor="middle" transform="rotate(-20 428 300)" font-weight="bold">样例 SAMPLE</text>
+</svg>

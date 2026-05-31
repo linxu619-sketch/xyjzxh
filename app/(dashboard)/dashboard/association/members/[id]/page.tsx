@@ -1,9 +1,10 @@
 import Link from "next/link";
-import { ArrowLeft, CheckCircle2, XCircle, ShieldCheck, FileImage } from "lucide-react";
+import { ArrowLeft, CheckCircle2, XCircle, ShieldCheck } from "lucide-react";
 import { AssociationShell } from "@/components/dashboard/shell";
 import { Badge } from "@/components/ui/badge";
 import { getApplication } from "@/lib/data/applications";
 import { reviewApplicationAction } from "../actions";
+import { Materials } from "./materials";
 
 export const metadata = { title: "入会申请详情 · 协会工作台" };
 
@@ -56,23 +57,7 @@ export default async function ApplicationDetail({ params }: { params: Promise<{ 
         </dl>
 
         {materials.length > 0 && (
-          <div className="border-t border-border px-5 py-4">
-            <div className="text-[13px] font-semibold text-muted-foreground mb-3">上传材料</div>
-            <div className="space-y-3">
-              {materials.map(([k, v]) => (
-                <div key={k}>
-                  <div className="text-[12px] text-muted-foreground mb-1.5">{k}</div>
-                  <div className="flex flex-wrap gap-2">
-                    {String(v).split(/[；;]/).map((f) => f.trim()).filter(Boolean).map((f, i) => (
-                      <span key={i} className="inline-flex items-center gap-1.5 px-2.5 py-1.5 bg-surface border border-border text-[12px]">
-                        <FileImage className="h-3.5 w-3.5 text-cat-design shrink-0" />{f}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
+          <Materials groups={materials.map(([k, v]) => ({ label: k, files: String(v).split(/[；;]/).map((f) => f.trim()).filter(Boolean) }))} />
         )}
       </div>
 
