@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 import { getSession } from "@/lib/auth/session";
 import { setReportStatus } from "@/lib/data/reports";
 
@@ -13,4 +14,5 @@ export async function reviewReportAction(fd: FormData) {
   const act = String(fd.get("act") || "");
   if (id) setReportStatus(id, act === "approve" ? "approved" : "rejected");
   revalidatePath("/dashboard/association/reports");
+  redirect("/dashboard/association/reports");
 }

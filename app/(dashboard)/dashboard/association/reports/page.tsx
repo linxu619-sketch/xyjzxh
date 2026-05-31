@@ -1,23 +1,22 @@
 import Link from "next/link";
-import { CheckCircle2, XCircle, Eye, ShieldCheck, Sparkles, Search } from "lucide-react";
+import { ChevronRight, Sparkles } from "lucide-react";
 import { AssociationShell } from "@/components/dashboard/shell";
-import { FilterBar, DataTable } from "@/components/dashboard/section";
 import { Badge } from "@/components/ui/badge";
-import { PROJECTS, STATUS_META } from "@/lib/data/projects";
 import { listReports } from "@/lib/data/reports";
-import { reviewReportAction } from "./actions";
 
 export const metadata = { title: "工装报备审批 · 协会工作台" };
 
-const TYPE_TONE = { 家装: "decor", 工装: "build", 公装: "design", 市政: "tea" } as const;
+const TYPE_TONE: Record<string, "decor" | "build" | "design" | "tea"> = { 家装: "decor", 工装: "build", 公装: "design", 市政: "tea" };
+const STATUS_LABEL: Record<string, string> = { pending: "待审核", approved: "已通过", rejected: "已驳回" };
 
 export default function ReportsAdmin() {
-  const pending = PROJECTS.filter((p) => p.status === "submitted" || p.status === "reviewing");
-  const realPending = listReports("pending");
+  const all = listReports();
+  const pending = all.filter((r) => r.status === "pending");
+
   return (
     <AssociationShell
       title="工装报备审批"
-      subtitle={`待审 ${pending.length} 项 · 本月已受理 187 项 · 一次通过率 82%`}
+      subtitle={`${pending.length} 项待审 · 累计 ${all.length} 项`}
       actions={
         <Link href="#" className="h-9 px-4 rounded-full bg-foreground text-background text-[13px] font-medium inline-flex items-center gap-1.5">
           <Sparkles className="h-3.5 w-3.5 text-accent-yellow" /> AI 批量预审
@@ -26,10 +25,10 @@ export default function ReportsAdmin() {
     >
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 mb-6">
         {[
-          { l: "在线待审", v: realPending.length, c: "text-cat-decor" },
-          { l: "本月已受理", v: 187, c: "text-cat-build" },
-          { l: "已购履约险", v: "63%", c: "text-accent-tea" },
-          { l: "省厅同步", v: "100%", c: "text-cat-design" },
+          { l: "待审", v: pending.length, c: "text-cat-decor" },
+          { l: "已通过", v: all.filter((r) => r.status === "approved").length, c: "text-accent-tea" },
+          { l: "已驳回", v: all.filter((r) => r.status === "rejected").length, c: "text-cat-design" },
+          { l: "累计报备", v: all.length, c: "text-cat-build" },
         ].map((s) => (
           <div key={s.l} className="rounded-2xl border border-border bg-background p-5">
             <div className="text-[11px] text-muted-foreground tracking-wider uppercase">{s.l}</div>
@@ -38,89 +37,31 @@ export default function ReportsAdmin() {
         ))}
       </div>
 
-      {/* 在线提交的真实报备 */}
-      <div className="rounded-2xl border border-border bg-background overflow-hidden mb-6">
-        <div className="px-5 py-3 border-b border-border flex items-center justify-between">
-          <div className="text-[14px] font-semibold">在线提交的工装报备（实时）</div>
-          <Badge tone={realPending.length ? "decor" : "tea"}>{realPending.length} 待处理</Badge>
-        </div>
-        {realPending.length === 0 ? (
-          <div className="px-5 py-8 text-center text-[13px] text-muted-foreground">
-            暂无在线报备。企业在 /projects/new 提交报备后会实时出现在这里。
-          </div>
+      <div className="rounded-2xl border border-border bg-background overflow-hidden">
+        <div className="px-5 py-3 border-b border-border text-[14px] font-semibold">工装报备 · 点击查看并审批</div>
+        {all.length === 0 ? (
+          <div className="px-5 py-16 text-center text-[13px] text-muted-foreground">暂无报备。企业在 /projects/new 提交后会出现在这里。</div>
         ) : (
-          <div className="divide-y divide-border">
-            {realPending.map((r) => (
-              <div key={r.id} className="px-5 py-4 flex flex-col md:flex-row md:items-center gap-3">
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <code className="text-[12px] font-mono text-muted-foreground">{r.code}</code>
-                    <span className="font-medium">{r.project}</span>
-                    {r.type && <Badge tone={TYPE_TONE[r.type as keyof typeof TYPE_TONE] ?? "build"}>{r.type}</Badge>}
+          <ul className="divide-y divide-border">
+            {all.map((r) => (
+              <li key={r.id}>
+                <Link href={`/dashboard/association/reports/${r.id}`} className="flex items-center gap-3 px-5 py-4 hover:bg-surface transition-colors">
+                  <code className="text-[12px] font-mono text-muted-foreground shrink-0 hidden sm:inline">{r.code}</code>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2">
+                      <span className="font-medium truncate">{r.project}</span>
+                      {r.type && <Badge tone={TYPE_TONE[r.type] ?? "build"}>{r.type}</Badge>}
+                    </div>
+                    <div className="text-[12px] text-muted-foreground mt-0.5 truncate">{r.enterprise} · {r.area || "—"}㎡ · {r.budget || "—"}万</div>
                   </div>
-                  <div className="text-[12px] text-muted-foreground mt-1 truncate">
-                    {r.enterprise} · {r.area || "—"}㎡ · {r.budget || "—"}万 · 负责人 {r.manager || "—"} {r.phone}
-                  </div>
-                </div>
-                <div className="flex items-center gap-2 shrink-0">
-                  <form action={reviewReportAction}>
-                    <input type="hidden" name="id" value={r.id} />
-                    <input type="hidden" name="act" value="approve" />
-                    <button className="h-9 px-3.5 rounded-full bg-[#e6f7f1] text-accent-tea text-[12px] font-medium inline-flex items-center gap-1.5">
-                      <CheckCircle2 className="h-3.5 w-3.5" /> 通过
-                    </button>
-                  </form>
-                  <form action={reviewReportAction}>
-                    <input type="hidden" name="id" value={r.id} />
-                    <input type="hidden" name="act" value="reject" />
-                    <button className="h-9 px-3.5 rounded-full bg-cat-decor-soft text-cat-decor text-[12px] font-medium inline-flex items-center gap-1.5">
-                      <XCircle className="h-3.5 w-3.5" /> 驳回
-                    </button>
-                  </form>
-                </div>
-              </div>
+                  <Badge tone={r.status === "approved" ? "tea" : r.status === "rejected" ? "decor" : "yellow"} className="shrink-0">{STATUS_LABEL[r.status]}</Badge>
+                  <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0" />
+                </Link>
+              </li>
             ))}
-          </div>
+          </ul>
         )}
       </div>
-
-      {/* 以下为示例数据（演示用） */}
-      <div className="flex items-center gap-1.5 mb-3">
-        {["待审 (2)", "审核中", "已通过", "施工中", "已竣工", "全部"].map((t, i) => (
-          <button key={t} className={`h-9 px-4 rounded-full text-[13px] font-medium ${i === 0 ? "bg-foreground text-background" : "bg-background border border-border text-muted-foreground hover:text-foreground"}`}>
-            {t}
-          </button>
-        ))}
-      </div>
-
-      <FilterBar className="mb-3">
-        <div className="flex items-center gap-2 flex-1 min-w-[200px]">
-          <Search className="h-4 w-4 text-muted-foreground ml-2" />
-          <input placeholder="搜索报备号 / 项目名 / 企业" className="flex-1 bg-transparent outline-none text-[13px] py-1" />
-        </div>
-        <select className="h-9 rounded-full bg-surface text-[12px] px-3 border border-transparent">
-          <option>类型：全部</option><option>家装</option><option>工装</option><option>公装</option><option>市政</option>
-        </select>
-      </FilterBar>
-
-      <DataTable
-        head={["报备号", "项目名称", "类型", "施工企业", "面积 / 预算", "状态", "投保", "AI 预审", "操作"]}
-        rows={PROJECTS.map((p) => [
-          <code key="i" className="text-[12px] font-mono">{p.id}</code>,
-          <span key="n" className="font-medium">{p.name}</span>,
-          <Badge key="t" tone={TYPE_TONE[p.type]}>{p.type}</Badge>,
-          <Link key="e" href={`/members/${p.enterpriseId}`} className="text-brand hover:underline">{p.enterprise}</Link>,
-          <span key="a" className="text-muted-foreground">{p.area}㎡ · {p.budget}万</span>,
-          <Badge key="s" tone={STATUS_META[p.status].tone as "brand"}>{STATUS_META[p.status].label}</Badge>,
-          p.insured ? <ShieldCheck key="ins" className="h-4 w-4 text-accent-tea" /> : <span key="ni" className="text-muted-foreground text-[11px]">未投</span>,
-          <span key="ai" className="inline-flex items-center gap-1 text-[12px] text-accent-tea"><Sparkles className="h-3 w-3" /> 通过</span>,
-          <div key="o" className="flex items-center gap-1">
-            <button className="h-8 w-8 rounded-lg hover:bg-surface text-muted-foreground hover:text-foreground" title="详情"><Eye className="h-3.5 w-3.5" /></button>
-            <button className="h-8 w-8 rounded-lg hover:bg-[#e6f7f1] text-accent-tea" title="通过"><CheckCircle2 className="h-4 w-4" /></button>
-            <button className="h-8 w-8 rounded-lg hover:bg-cat-decor-soft text-cat-decor" title="驳回"><XCircle className="h-4 w-4" /></button>
-          </div>,
-        ])}
-      />
     </AssociationShell>
   );
 }

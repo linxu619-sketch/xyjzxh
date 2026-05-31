@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 import { getSession } from "@/lib/auth/session";
 import { getApplication, setApplicationStatus } from "@/lib/data/applications";
 import { createEnterpriseFromApplication } from "@/lib/data/enterprises-source";
@@ -30,4 +31,5 @@ export async function reviewApplicationAction(fd: FormData) {
   }
 
   revalidatePath("/dashboard/association/members");
+  redirect("/dashboard/association/members");
 }

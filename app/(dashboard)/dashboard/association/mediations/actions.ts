@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 import { getSession } from "@/lib/auth/session";
 import { setMediationStatus, type MediationStatus } from "@/lib/data/mediations";
 
@@ -19,4 +20,5 @@ export async function reviewMediationAction(fd: FormData) {
   const next = MAP[String(fd.get("act") || "")];
   if (id && next) setMediationStatus(id, next);
   revalidatePath("/dashboard/association/mediations");
+  redirect("/dashboard/association/mediations");
 }

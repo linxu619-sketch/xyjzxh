@@ -22,6 +22,11 @@ export function createMediation(input: { applicant: string; phone: string; respo
   return Number(info.lastInsertRowid);
 }
 
+export function getMediation(id: number): Mediation | undefined {
+  const row = getDb().prepare("SELECT * FROM mediations WHERE id = ?").get(id) as Row | undefined;
+  return row ? rowTo(row) : undefined;
+}
+
 export function listMediationsByUid(uid: string): Mediation[] {
   if (!uid) return [];
   const rows = getDb().prepare("SELECT * FROM mediations WHERE uid = ? ORDER BY created_at DESC").all(uid) as Row[];

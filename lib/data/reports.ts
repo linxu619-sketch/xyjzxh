@@ -74,6 +74,11 @@ export function createReport(input: ReportInput, uid?: string): { id: number; co
   return { id, code };
 }
 
+export function getReport(id: number): ProjectReport | undefined {
+  const row = getDb().prepare("SELECT * FROM project_reports WHERE id = ?").get(id) as Row | undefined;
+  return row ? rowTo(row) : undefined;
+}
+
 export function listReportsByUid(uid: string): ProjectReport[] {
   if (!uid) return [];
   const rows = getDb().prepare("SELECT * FROM project_reports WHERE uid = ? ORDER BY created_at DESC").all(uid) as Row[];
