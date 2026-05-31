@@ -1,7 +1,8 @@
 import { NextRequest } from "next/server";
 import { getAi } from "@/lib/ai/prompts";
 import { streamChat, type Msg } from "@/lib/ai/chat";
-import { retrieveKnowledge, buildKnowledgeBlock } from "@/lib/ai/knowledge";
+import { buildKnowledgeBlock } from "@/lib/ai/knowledge";
+import { retrieveKnowledge } from "@/lib/ai/knowledge-source";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";

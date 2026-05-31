@@ -177,14 +177,13 @@ function bigrams(s: string): string[] {
   return out;
 }
 
-export function retrieveKnowledge(
-  key: string,
+// 对一组词条按与 query 的相关度打分排序，取前 k 条（纯函数，DB / 种子通用）
+export function rankEntries(
+  entries: KnowledgeEntry[],
   query: string,
   k = 3,
 ): KnowledgeEntry[] {
-  const entries = KNOWLEDGE[key as AiEmployeeKey];
-  if (!entries || !query.trim()) return [];
-
+  if (!entries.length || !query.trim()) return [];
   const grams = bigrams(query);
   const scored = entries.map((e) => {
     let score = 0;
@@ -193,12 +192,16 @@ export function retrieveKnowledge(
     for (const g of grams) if (text.includes(g)) score += 1;
     return { e, score };
   });
-
   return scored
     .filter((x) => x.score > 0)
     .sort((a, b) => b.score - a.score)
     .slice(0, k)
     .map((x) => x.e);
+}
+
+// 基于内置种子的检索（DB 不可用时的回退；线上用 knowledge-source 的 DB 版）
+export function retrieveKnowledge(key: string, query: string, k = 3): KnowledgeEntry[] {
+  return rankEntries(KNOWLEDGE[key as AiEmployeeKey] ?? [], query, k);
 }
 
 // 拼成注入 system 提示词的「参考资料」块；无命中返回空串

@@ -3,6 +3,7 @@ import { DatabaseSync } from "node:sqlite";
 import { mkdirSync } from "node:fs";
 import { join } from "node:path";
 import { ENTERPRISES } from "@/lib/data/enterprises";
+import { KNOWLEDGE } from "@/lib/ai/knowledge";
 
 /* ============================================================
    本地 SQLite 数据库（Node 24 内置 node:sqlite，零依赖、零云端）
@@ -37,6 +38,18 @@ CREATE TABLE IF NOT EXISTS enterprises (
   featured      INTEGER, -- 0/1
   status        TEXT DEFAULT 'active'
 );
+
+CREATE TABLE IF NOT EXISTS ai_knowledge (
+  id           TEXT PRIMARY KEY,
+  employee_key TEXT NOT NULL,
+  title        TEXT,
+  keywords     TEXT,    -- JSON 数组
+  content      TEXT,
+  source       TEXT,
+  enabled      INTEGER DEFAULT 1, -- 0/1
+  created_at   INTEGER
+);
+CREATE INDEX IF NOT EXISTS idx_ai_knowledge_emp ON ai_knowledge(employee_key);
 `;
 
 function seedEnterprises(db: DB) {
@@ -61,6 +74,21 @@ function seedEnterprises(db: DB) {
   }
 }
 
+function seedAiKnowledge(db: DB) {
+  const row = db.prepare("SELECT COUNT(*) AS c FROM ai_knowledge").get() as { c: number };
+  if (row.c > 0) return;
+  const stmt = db.prepare(
+    `INSERT INTO ai_knowledge (id,employee_key,title,keywords,content,source,enabled,created_at)
+     VALUES (?,?,?,?,?,?,1,?)`,
+  );
+  const now = Date.now();
+  for (const [key, entries] of Object.entries(KNOWLEDGE)) {
+    for (const e of entries ?? []) {
+      stmt.run(`${key}:${e.id}`, key, e.title, JSON.stringify(e.keywords ?? []), e.content, e.source ?? null, now);
+    }
+  }
+}
+
 function init(): DB {
   const dir = join(process.cwd(), "data");
   mkdirSync(dir, { recursive: true });
@@ -68,6 +96,7 @@ function init(): DB {
   db.exec("PRAGMA journal_mode = WAL;");
   db.exec(SCHEMA);
   seedEnterprises(db);
+  seedAiKnowledge(db);
   return db;
 }
 

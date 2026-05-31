@@ -14,6 +14,14 @@
 
 ---
 
+## [0.9.1] - 2026-05-31
+
+### 变更（AI 知识库进数据库 · 第二期基础）
+- `ai_knowledge` 表入 SQLite（`lib/db/sqlite.ts`），首次自动用内置种子灌库（16 条 / 10 员工）。
+- 新增 `lib/ai/knowledge-source.ts`：DB 版检索 `retrieveKnowledge`（失败回退种子）+ 后台 CRUD（list/add/update/delete/setEnabled）。
+- `knowledge.ts` 抽出纯函数 `rankEntries` 供 DB/种子复用。
+- `api/chat` 改用 DB 版检索；实测聊天命中 DB 知识。
+
 ## [0.9.0] - 2026-05-31
 
 ### 变更（数据库换成本地 SQLite · 零配置）
