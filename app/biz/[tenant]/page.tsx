@@ -4,7 +4,8 @@ import {
   ArrowRight, Sparkles, ShieldCheck, Star, Phone, MessageSquareHeart,
   Hammer, MessageSquareText,
 } from "lucide-react";
-import { getEnterprise, ENTERPRISES } from "@/lib/data/enterprises";
+import { ENTERPRISES } from "@/lib/data/enterprises";
+import { getEnterpriseBySlugOrId } from "@/lib/data/enterprises-source";
 import { Container } from "@/components/container";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -36,7 +37,7 @@ export async function generateStaticParams() {
 
 export default async function TenantHome({ params }: { params: Promise<{ tenant: string }> }) {
   const { tenant } = await params;
-  const e = getEnterprise(tenant);
+  const e = await getEnterpriseBySlugOrId(tenant);
   if (!e) notFound();
 
   return (

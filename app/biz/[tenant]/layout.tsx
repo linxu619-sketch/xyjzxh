@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Phone, ArrowUpRight, ShieldCheck } from "lucide-react";
-import { getEnterprise } from "@/lib/data/enterprises";
+import { getEnterpriseBySlugOrId } from "@/lib/data/enterprises-source";
 import { Container } from "@/components/container";
 import { SITE } from "@/lib/site";
 import { cn } from "@/lib/cn";
@@ -18,7 +18,7 @@ export default async function TenantLayout({
   params: Promise<{ tenant: string }>;
 }) {
   const { tenant } = await params;
-  const e = getEnterprise(tenant);
+  const e = await getEnterpriseBySlugOrId(tenant);
   if (!e) notFound();
 
   const NAV = [

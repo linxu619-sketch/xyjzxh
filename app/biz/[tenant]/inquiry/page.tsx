@@ -6,7 +6,7 @@ import {
 } from "lucide-react";
 import { Container } from "@/components/container";
 import { Badge } from "@/components/ui/badge";
-import { getEnterprise } from "@/lib/data/enterprises";
+import { getEnterpriseBySlugOrId } from "@/lib/data/enterprises-source";
 import { cn } from "@/lib/cn";
 
 const BG: Record<string, string> = {
@@ -28,7 +28,7 @@ const QUICK_QUESTIONS = [
 
 export default async function InquiryPage({ params }: { params: Promise<{ tenant: string }> }) {
   const { tenant } = await params;
-  const e = getEnterprise(tenant);
+  const e = await getEnterpriseBySlugOrId(tenant);
   if (!e) notFound();
 
   return (

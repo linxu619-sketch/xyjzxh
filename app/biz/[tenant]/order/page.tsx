@@ -5,7 +5,7 @@ import {
   Clock, Mail, MapPin, Send, MessageSquareText, AlertCircle,
 } from "lucide-react";
 import { Container } from "@/components/container";
-import { getEnterprise } from "@/lib/data/enterprises";
+import { getEnterpriseBySlugOrId } from "@/lib/data/enterprises-source";
 import { submitLeadAction } from "./actions";
 import { cn } from "@/lib/cn";
 
@@ -32,7 +32,7 @@ export default async function OrderPage({
 }) {
   const { tenant } = await params;
   const { ok, err } = await searchParams;
-  const e = getEnterprise(tenant);
+  const e = await getEnterpriseBySlugOrId(tenant);
   if (!e) notFound();
 
   return (
