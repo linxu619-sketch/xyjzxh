@@ -35,7 +35,7 @@ export async function AssociationShell({ title, subtitle, actions, children }: S
         tone="brand"
       />
       <div className="flex-1 bg-surface min-h-screen">
-        <div className="p-6 md:p-10 max-w-7xl">
+        <div className="px-5 pb-8 pt-[72px] md:p-10 max-w-7xl">
           {isSys && <SuperAdminBanner session={session} />}
           <TopBar title={title} subtitle={subtitle} actions={actions} />
           {children}
@@ -60,7 +60,7 @@ export async function EnterpriseShell({ title, subtitle, actions, children }: Sh
         tone="build"
       />
       <div className="flex-1 bg-surface min-h-screen">
-        <div className="p-5 md:p-10 max-w-7xl">
+        <div className="px-5 pb-8 pt-[72px] md:p-10 max-w-7xl">
           <TopBar title={title} subtitle={subtitle} actions={actions} />
           {children}
         </div>
