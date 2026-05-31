@@ -151,7 +151,7 @@ export default async function TenantHome({ params }: { params: Promise<{ tenant:
               <div className="md:hidden mt-6 -mx-5 px-5 overflow-x-auto snap-x snap-mandatory [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
                 <div className="flex gap-3 pb-2">
                   {cases.map((c) => (
-                    <div key={c.id} className="snap-start shrink-0 w-[58vw] max-w-[240px] group relative aspect-[4/3] rounded-2xl overflow-hidden bg-foreground/5">
+                    <div key={c.id} className="snap-start shrink-0 w-[64vw] max-w-[240px] group relative aspect-[4/3] rounded-2xl overflow-hidden bg-foreground/5">
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img src={c.cover} alt={c.title} className="absolute inset-0 h-full w-full object-cover" />
                       <div className="absolute inset-0 bg-gradient-to-t from-foreground/70 via-transparent to-transparent" />

@@ -167,7 +167,7 @@ export function MultiUpload({
       {hint && <div className="text-[11px] text-muted-foreground mb-2">{hint}</div>}
       <div className="flex flex-wrap gap-2.5">
         {items.map((it) => (
-          <div key={it.id} className="relative w-[180px] max-w-full border border-border overflow-hidden bg-background" style={{ aspectRatio: "85.6 / 54" }}>
+          <div key={it.id} className="relative w-[44vw] max-w-[180px] border border-border overflow-hidden bg-background" style={{ aspectRatio: "85.6 / 54" }}>
             {it.preview ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img src={it.preview} alt={it.name} onClick={() => !it.busy && it.preview && setZoom(it.preview)} className="absolute inset-0 h-full w-full object-cover cursor-zoom-in" />
@@ -191,7 +191,7 @@ export function MultiUpload({
           </div>
         ))}
         {items.length < max && (
-          <label className="w-[180px] max-w-full border-2 border-dashed border-border bg-surface/40 hover:border-foreground/30 hover:bg-surface flex flex-col items-center justify-center gap-1 cursor-pointer text-muted-foreground transition-colors" style={{ aspectRatio: "85.6 / 54" }}>
+          <label className="w-[44vw] max-w-[180px] border-2 border-dashed border-border bg-surface/40 hover:border-foreground/30 hover:bg-surface flex flex-col items-center justify-center gap-1 cursor-pointer text-muted-foreground transition-colors" style={{ aspectRatio: "85.6 / 54" }}>
             <input ref={ref} type="file" accept="image/*" multiple className="hidden" onChange={(e) => add(e.target.files)} />
             <Plus className="h-5 w-5" />
             <span className="text-[11px]">添加</span>

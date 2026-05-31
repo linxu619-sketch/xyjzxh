@@ -199,9 +199,9 @@ function EnterpriseFields({ f, set, setFile }: FU) {
       <div className="pt-2 space-y-4">
         <div className="text-[13px] font-semibold">资质材料</div>
         <div className="flex flex-wrap gap-4">
-          <SingleUpload label="营业执照副本（横版）" required aspect="297 / 210" className="w-[230px] max-w-full" onChange={(n) => setFile("营业执照", n ? [n] : [])} />
-          <SingleUpload label="法人身份证 · 人像面" required aspect="85.6 / 54" className="w-[180px] max-w-full" onChange={(n) => setFile("身份证人像面", n ? [n] : [])} />
-          <SingleUpload label="法人身份证 · 国徽面" required aspect="85.6 / 54" className="w-[180px] max-w-full" onChange={(n) => setFile("身份证国徽面", n ? [n] : [])} />
+          <SingleUpload label="营业执照副本（横版）" required aspect="297 / 210" className="w-[70vw] max-w-[230px]" onChange={(n) => setFile("营业执照", n ? [n] : [])} />
+          <SingleUpload label="法人身份证 · 人像面" required aspect="85.6 / 54" className="w-[44vw] max-w-[180px]" onChange={(n) => setFile("身份证人像面", n ? [n] : [])} />
+          <SingleUpload label="法人身份证 · 国徽面" required aspect="85.6 / 54" className="w-[44vw] max-w-[180px]" onChange={(n) => setFile("身份证国徽面", n ? [n] : [])} />
         </div>
         <MultiUpload label="资质证书" hint="建筑业 / 装饰装修 / 设计等资质，可多张，最多 10 张" max={10} onChange={(ns) => setFile("资质证书", ns)} />
         <MultiUpload label="近 2 年代表项目业绩（可选）" hint="项目照片 / 合同 / 验收单等，可多张，最多 10 张" max={10} onChange={(ns) => setFile("项目业绩", ns)} />
@@ -226,8 +226,8 @@ function PractitionerFields({ f, set, setFile }: FU) {
       <div className="pt-2 space-y-4">
         <div className="text-[13px] font-semibold">实名与资质材料</div>
         <div className="flex flex-wrap gap-4">
-          <SingleUpload label="身份证 · 人像面" required aspect="85.6 / 54" className="w-[180px] max-w-full" onChange={(n) => setFile("身份证人像面", n ? [n] : [])} />
-          <SingleUpload label="身份证 · 国徽面" required aspect="85.6 / 54" className="w-[180px] max-w-full" onChange={(n) => setFile("身份证国徽面", n ? [n] : [])} />
+          <SingleUpload label="身份证 · 人像面" required aspect="85.6 / 54" className="w-[44vw] max-w-[180px]" onChange={(n) => setFile("身份证人像面", n ? [n] : [])} />
+          <SingleUpload label="身份证 · 国徽面" required aspect="85.6 / 54" className="w-[44vw] max-w-[180px]" onChange={(n) => setFile("身份证国徽面", n ? [n] : [])} />
         </div>
         <MultiUpload label="资格证书" hint="二建 / 设计师证 / 监理 / 安全员等，可多张，最多 10 张" max={10} onChange={(ns) => setFile("资格证书", ns)} />
         <MultiUpload label="代表作品 / 项目证明（设计师建议）" hint="可多张，最多 10 张" max={10} onChange={(ns) => setFile("代表作品", ns)} />
