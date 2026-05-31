@@ -137,6 +137,23 @@ CREATE TABLE IF NOT EXISTS practitioners (
   phone       TEXT,
   created_at  INTEGER
 );
+
+CREATE TABLE IF NOT EXISTS leads (
+  id            INTEGER PRIMARY KEY AUTOINCREMENT,
+  enterprise_id TEXT,    -- 归属企业（子站留资即该企业 id）
+  name          TEXT,
+  phone         TEXT,
+  type          TEXT,    -- 项目类型
+  style         TEXT,
+  area          TEXT,
+  budget        TEXT,
+  address       TEXT,
+  note          TEXT,
+  source        TEXT,    -- 子站表单 | 在线咨询 | AI 估价 ...
+  status        TEXT DEFAULT 'new', -- new | contacting | surveying | signed | lost
+  created_at    INTEGER
+);
+CREATE INDEX IF NOT EXISTS idx_leads_ent ON leads(enterprise_id, created_at);
 `;
 
 function seedEnterprises(db: DB) {
@@ -273,6 +290,25 @@ function seedMediations(db: DB) {
   rows.forEach((r, i) => stmt.run(r[0], r[1], r[2], r[3], r[4], now - i * DAY));
 }
 
+function seedLeads(db: DB) {
+  if (!isEmpty(db, "leads")) return;
+  // 演示线索归属 e002（名家装饰，演示登录默认绑定的企业）
+  type LR = { name: string; phone: string; type: string; style: string; area: string; budget: string; address: string; note: string; source: string; status: string };
+  const rows: LR[] = [
+    { name: "刘女士", phone: "13811110001", type: "家装 · 整装", style: "现代极简", area: "120", budget: "30", address: "浉河区金茂悦府", note: "三居室，想要开放式厨房，预算偏紧。", source: "子站表单", status: "surveying" },
+    { name: "陈先生", phone: "13811110002", type: "工装 · 办公", style: "不限", area: "320", budget: "60", address: "羊山新区茶都商务", note: "整层办公室翻新，含弱电。", source: "在线咨询", status: "contacting" },
+    { name: "王女士", phone: "13811110003", type: "家装 · 半包", style: "新中式", area: "98", budget: "20", address: "平桥区南湖一号", note: "老房翻新，主要改水电与厨卫。", source: "子站表单", status: "new" },
+    { name: "孙总", phone: "13811110004", type: "工装 · 商业", style: "不限", area: "1200", budget: "180", address: "羊山新区万象城", note: "餐饮空间，含厨房工程。", source: "AI 估价", status: "surveying" },
+    { name: "周女士", phone: "13811110005", type: "家装 · 整装", style: "原木", area: "85", budget: "16", address: "浉河区弦山街", note: "小户型，性价比优先。", source: "口碑评价", status: "signed" },
+    { name: "赵先生", phone: "13811110006", type: "家装 · 整装", style: "北欧", area: "140", budget: "28", address: "平桥区御景湾", note: "已选定其他公司。", source: "子站表单", status: "lost" },
+  ];
+  const stmt = db.prepare(
+    "INSERT INTO leads (enterprise_id,name,phone,type,style,area,budget,address,note,source,status,created_at) VALUES ('e002',?,?,?,?,?,?,?,?,?,?,?)",
+  );
+  const now = Date.now();
+  rows.forEach((r, i) => stmt.run(r.name, r.phone, r.type, r.style, r.area, r.budget, r.address, r.note, r.source, r.status, now - i * 7200000));
+}
+
 function init(): DB {
   const dir = join(process.cwd(), "data");
   mkdirSync(dir, { recursive: true });
@@ -288,6 +324,7 @@ function init(): DB {
   seedReports(db);
   seedInsurance(db);
   seedMediations(db);
+  seedLeads(db);
   return db;
 }
 

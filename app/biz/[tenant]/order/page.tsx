@@ -2,10 +2,11 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import {
   ShieldCheck, ArrowLeft, Phone, Sparkles, CheckCircle2,
-  Clock, Mail, MapPin, Send, MessageSquareText,
+  Clock, Mail, MapPin, Send, MessageSquareText, AlertCircle,
 } from "lucide-react";
 import { Container } from "@/components/container";
 import { getEnterprise } from "@/lib/data/enterprises";
+import { submitLeadAction } from "./actions";
 import { cn } from "@/lib/cn";
 
 const BG: Record<string, string> = {
@@ -23,8 +24,14 @@ const TRUST_BULLETS = [
   { icon: CheckCircle2,t: "纳入消费保险", d: "签约即可加购家装质保险" },
 ];
 
-export default async function OrderPage({ params }: { params: Promise<{ tenant: string }> }) {
+export default async function OrderPage({
+  params, searchParams,
+}: {
+  params: Promise<{ tenant: string }>;
+  searchParams: Promise<{ ok?: string; err?: string }>;
+}) {
   const { tenant } = await params;
+  const { ok, err } = await searchParams;
   const e = getEnterprise(tenant);
   if (!e) notFound();
 
@@ -92,9 +99,27 @@ export default async function OrderPage({ params }: { params: Promise<{ tenant: 
         <span className="text-[11px] font-medium shrink-0">立即试 →</span>
       </Link>
 
+      {/* 提交结果提示 */}
+      {ok && (
+        <div className="mb-6 rounded-2xl border border-accent-tea/30 bg-[#e6f7f1] text-accent-tea p-4 flex items-center gap-3">
+          <CheckCircle2 className="h-5 w-5 shrink-0" />
+          <div className="text-[13px]">
+            <b>需求已提交！</b>{e.hero.brand} 将在 30 分钟内回电。信息已在协会平台留痕，可在「业主端 → 我的项目」追踪。
+          </div>
+        </div>
+      )}
+      {err && (
+        <div className="mb-6 rounded-2xl border border-cat-decor/30 bg-cat-decor-soft text-cat-decor p-4 flex items-center gap-3">
+          <AlertCircle className="h-5 w-5 shrink-0" />
+          <div className="text-[13px]"><b>提交失败：</b>请填写称呼并确认手机号为 11 位。</div>
+        </div>
+      )}
+
       {/* 表单 */}
       <div className="grid grid-cols-1 lg:grid-cols-[1fr_280px] gap-6">
-        <form action="#" className="rounded-3xl border border-border bg-background p-5 md:p-8 space-y-5">
+        <form action={submitLeadAction} className="rounded-3xl border border-border bg-background p-5 md:p-8 space-y-5">
+          <input type="hidden" name="tenant" value={tenant} />
+          <input type="hidden" name="enterpriseId" value={e.id} />
           {/* 基础信息 */}
           <Section title="基础信息">
             <Row>

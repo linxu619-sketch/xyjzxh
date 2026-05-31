@@ -1,7 +1,7 @@
 import Link from "next/link";
 import {
   ExternalLink, Sparkles, AlertCircle, ChevronRight,
-  Phone, MessageSquare, Eye, Camera, FileCheck2,
+  Phone, Eye, Camera, FileCheck2,
 } from "lucide-react";
 import { EnterpriseShell } from "@/components/dashboard/shell";
 import { StatCard, Panel } from "@/components/dashboard/widgets";
@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { getSession } from "@/lib/auth/session";
 import { getEnterpriseBySlugOrId } from "@/lib/data/enterprises-source";
 import { listReportsByUid } from "@/lib/data/reports";
+import { listLeadsByEnterprise } from "@/lib/data/leads";
 
 export const metadata = { title: "企业工作台 · 信阳市建筑装饰装修协会" };
 
@@ -18,13 +19,9 @@ const RPT_STATUS: Record<string, { label: string; tone: "tea" | "decor" | "yello
   pending: { label: "待审核", tone: "yellow" },
 };
 
-const LEADS = [
-  { name: "刘女士", area: "120㎡ · 浉河区",    from: "AI 装修顾问", budget: "30 万", hot: true,  phone: "138****8472" },
-  { name: "陈先生", area: "168㎡ · 羊山新区",  from: "协会主站推荐", budget: "45 万", hot: true,  phone: "138****6611" },
-  { name: "王女士", area: "98㎡ · 平桥区",     from: "子站表单",     budget: "20 万", hot: false, phone: "138****7720" },
-  { name: "孙总",   area: "1200㎡ 工装",        from: "AI 估价",      budget: "180 万",hot: true,  phone: "138****2008" },
-  { name: "周女士", area: "85㎡",                from: "口碑评价回流", budget: "16 万", hot: false, phone: "138****1188" },
-];
+function maskPhone(p: string) {
+  return p.length === 11 ? `${p.slice(0, 3)}****${p.slice(-4)}` : p;
+}
 
 export default async function EnterpriseDashboard() {
   const session = await getSession();
@@ -32,6 +29,9 @@ export default async function EnterpriseDashboard() {
   const brand = ent?.hero.brand ?? ent?.name ?? "企业工作台";
   const slug = ent?.slug ?? "mingjia";
   const myReports = session ? listReportsByUid(session.uid) : [];
+  const myLeads = session?.enterpriseId ? listLeadsByEnterprise(session.enterpriseId) : [];
+  const newLeads = myLeads.filter((l) => l.status === "new").length;
+  const pendingReports = myReports.filter((r) => r.status === "pending").length;
 
   return (
     <EnterpriseShell
@@ -57,20 +57,20 @@ export default async function EnterpriseDashboard() {
           <span className="absolute inset-0 rounded-xl bg-white/20 animate-ping opacity-40" />
         </span>
         <div className="flex-1 min-w-0">
-          <div className="text-[13px] font-semibold">3 项待处理 · 5 条新线索 · 2 项报备等审核</div>
-          <div className="text-[11px] text-white/85 mt-0.5">业主 1 笔变更待审批 · 2 笔保单本月续费</div>
+          <div className="text-[13px] font-semibold">{newLeads} 条新线索待跟进 · {pendingReports} 项报备等审核</div>
+          <div className="text-[11px] text-white/85 mt-0.5">线索与报备为本企业真实数据 · 点右侧前往处理</div>
         </div>
         <Link
-          href="/dashboard/enterprise/orders"
+          href="/dashboard/enterprise/leads"
           className="hidden md:inline-flex items-center gap-1 text-[12px] font-medium bg-accent-yellow text-foreground h-9 px-4 rounded-full"
         >
-          立即处理 <ChevronRight className="h-3 w-3" />
+          跟进线索 <ChevronRight className="h-3 w-3" />
         </Link>
       </div>
 
       {/* 示例数据提示 */}
       <div className="mb-2 flex items-center gap-1.5 text-[11px] text-muted-foreground">
-        <Badge tone="yellow">示例</Badge> 本页除「我的工装报备」为真实数据外，经营指标 / 线索 / 工地等为演示数据，接入业务系统后替换为本企业真实数据
+        <Badge tone="yellow">示例</Badge> 本页「最新线索」「我的工装报备」为真实数据；经营指标 / 子站健康度 / 工地速览等仍为演示数据，接入业务系统后替换
       </div>
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
         <StatCard label="本月线索"     value="184"   sub="较上月" trend={{ dir: "up", value: "32" }} color="decor" />
@@ -80,50 +80,45 @@ export default async function EnterpriseDashboard() {
       </div>
 
       <div className="mt-6 grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-5">
-        {/* 最新线索 */}
+        {/* 最新线索（真实，子站留资） */}
         <Panel
           title="最新线索"
           className="lg:col-span-2"
           action={
             <Link href="/dashboard/enterprise/leads" className="text-[12px] text-brand inline-flex items-center gap-0.5">
-              全部 5 条 <ChevronRight className="h-3 w-3" />
+              全部 {myLeads.length} 条 <ChevronRight className="h-3 w-3" />
             </Link>
           }
         >
-          <ul className="divide-y divide-border">
-            {LEADS.map((l, i) => (
-              <li key={i} className="py-3 flex items-center gap-3 text-[13px] active:bg-surface/60 transition-colors -mx-2 px-2 rounded-lg">
-                <div className="relative">
+          {myLeads.length === 0 ? (
+            <div className="py-8 text-center text-[13px] text-muted-foreground">
+              还没有客户线索。访客在子站「提交需求」表单留资后会实时出现在这里。
+            </div>
+          ) : (
+            <ul className="divide-y divide-border">
+              {myLeads.slice(0, 5).map((l) => (
+                <li key={l.id} className="py-3 flex items-center gap-3 text-[13px] -mx-2 px-2 rounded-lg">
                   <div className="h-10 w-10 rounded-full bg-gradient-to-br from-cat-decor to-[#e6531f] text-white inline-flex items-center justify-center text-[13px] font-semibold shrink-0">
                     {l.name.slice(0, 1)}
                   </div>
-                  {l.hot && (
-                    <span className="absolute -top-0.5 -right-0.5 text-[10px]">🔥</span>
-                  )}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="font-medium flex items-center gap-1.5">
-                    {l.name}
-                    <span className="text-muted-foreground font-normal text-[12px]">· {l.area}</span>
+                  <div className="flex-1 min-w-0">
+                    <div className="font-medium flex items-center gap-1.5">
+                      {l.name}
+                      <span className="text-muted-foreground font-normal text-[12px] truncate">· {l.type || "—"}{l.area ? ` · ${l.area}㎡` : ""}</span>
+                    </div>
+                    <div className="text-[11px] text-muted-foreground mt-0.5 flex items-center gap-2">
+                      <span>{l.source}</span>
+                      {l.budget && <><span>·</span><span className="text-cat-decor font-medium tabular-nums">¥{l.budget} 万</span></>}
+                      <span className="hidden md:inline">· {maskPhone(l.phone)}</span>
+                    </div>
                   </div>
-                  <div className="text-[11px] text-muted-foreground mt-0.5 flex items-center gap-2">
-                    <span>{l.from}</span>
-                    <span>·</span>
-                    <span className="text-cat-decor font-medium tabular-nums">¥{l.budget}</span>
-                    <span className="hidden md:inline">· {l.phone}</span>
-                  </div>
-                </div>
-                <div className="flex items-center gap-1">
-                  <a href={`tel:${l.phone.replace(/\D/g, "")}`} className="h-8 w-8 rounded-full hover:bg-cat-build-soft text-cat-build inline-flex items-center justify-center" title="拨打">
+                  <a href={`tel:${l.phone}`} className="h-8 w-8 rounded-full hover:bg-cat-build-soft text-cat-build inline-flex items-center justify-center shrink-0" title="拨打">
                     <Phone className="h-3.5 w-3.5" />
                   </a>
-                  <button className="h-8 w-8 rounded-full hover:bg-surface text-muted-foreground inline-flex items-center justify-center" title="微信消息">
-                    <MessageSquare className="h-3.5 w-3.5" />
-                  </button>
-                </div>
-              </li>
-            ))}
-          </ul>
+                </li>
+              ))}
+            </ul>
+          )}
         </Panel>
 
         {/* 子站健康度 */}
