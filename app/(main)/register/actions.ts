@@ -4,21 +4,12 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { createApplication, type AppType } from "@/lib/data/applications";
 
-export async function submitApplicationAction(fd: FormData) {
-  const role = String(fd.get("role") || "customer");
+export async function submitApplicationAction(input: { role: string; payload: Record<string, string> }) {
+  const role = input.role || "customer";
   const type: AppType = role === "enterprise" ? "enterprise" : role === "practitioner" ? "individual" : "customer";
+  const payload = input.payload || {};
 
-  // 收集全部字段进 payload；并挑出展示用的 名称 / 电话
-  const payload: Record<string, string> = {};
-  for (const [k, v] of fd.entries()) {
-    if (k === "role") continue;
-    if (typeof v !== "string") continue; // 跳过文件（附件暂不存储，仅人工审核时另行收取）
-    const val = v.trim();
-    if (val) payload[k] = val;
-  }
-
-  const applicant =
-    payload.entName || payload.realName || payload.nickname || "未填写";
+  const applicant = payload.entName || payload.realName || payload.nickname || "未填写";
   const phone = payload.contactPhone || payload.phone || "";
 
   createApplication({ type, applicant, phone, payload });
