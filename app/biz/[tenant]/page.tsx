@@ -46,7 +46,7 @@ export default async function TenantHome({ params }: { params: Promise<{ tenant:
   return (
     <>
       {/* Hero · 移动收紧 + 渐变 */}
-      <section className={cn("relative overflow-hidden text-white py-14 md:py-28", BG[e.color])}>
+      <section className={cn("relative overflow-hidden text-white py-10 md:py-16", BG[e.color])}>
         <div className="absolute inset-0 opacity-30" style={{
           backgroundImage: "radial-gradient(at 10% 10%, rgba(255,255,255,0.35) 0px, transparent 50%), radial-gradient(at 90% 80%, rgba(0,0,0,0.3) 0px, transparent 50%)",
         }} />
@@ -105,7 +105,7 @@ export default async function TenantHome({ params }: { params: Promise<{ tenant:
       </section>
 
       {/* 服务 */}
-      <section id="service" className="py-14 md:py-24">
+      <section id="service" className="py-8 md:py-12">
         <Container>
           <SectionTitle eyebrow="SERVICES" title="我们提供" />
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4 mt-6 md:mt-10">
@@ -141,7 +141,7 @@ export default async function TenantHome({ params }: { params: Promise<{ tenant:
       </section>
 
       {/* 案例 · 移动横滑 / 桌面网格 */}
-      <section id="cases" className="py-14 md:py-24 bg-surface">
+      <section id="cases" className="py-8 md:py-12 bg-surface">
         <Container>
           <SectionTitle eyebrow="CASES" title={cases.length ? `精选案例 · ${cases.length}` : "案例展示"} />
 
@@ -190,7 +190,7 @@ export default async function TenantHome({ params }: { params: Promise<{ tenant:
 
       {/* 团队 · 真实成员（企业维护，无则不显示） */}
       {team.length > 0 && (
-      <section id="team" className="py-14 md:py-24">
+      <section id="team" className="py-8 md:py-12">
         <Container>
           <SectionTitle eyebrow="TEAM" title="核心团队" />
 
@@ -226,7 +226,7 @@ export default async function TenantHome({ params }: { params: Promise<{ tenant:
       )}
 
       {/* 评价 · 真实数据（无则留空） */}
-      <section className="py-14 md:py-24 bg-surface">
+      <section className="py-8 md:py-12 bg-surface">
         <Container>
           <SectionTitle eyebrow="REVIEWS" title={realReviews.length ? "业主真实评价" : "业主评价"} action={realReviews.length ? "查看全部 →" : undefined} />
 
@@ -261,7 +261,7 @@ export default async function TenantHome({ params }: { params: Promise<{ tenant:
       </section>
 
       {/* AI + 协会保障 */}
-      <section className="py-14 md:py-24">
+      <section className="py-8 md:py-12">
         <Container>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
             <div className={cn("rounded-3xl text-white p-6 md:p-10 relative overflow-hidden bg-gradient-to-br", BG[e.color], GRAD_TO[e.color])}>
@@ -304,7 +304,7 @@ export default async function TenantHome({ params }: { params: Promise<{ tenant:
       </section>
 
       {/* Final CTA */}
-      <section id="contact" className="py-14 md:py-28 pb-28 md:pb-28">
+      <section id="contact" className="pt-8 md:pt-12 pb-28 md:pb-16">
         <Container>
           <div className={cn(
             "relative overflow-hidden rounded-[28px] md:rounded-[40px] p-7 md:p-14 text-white",

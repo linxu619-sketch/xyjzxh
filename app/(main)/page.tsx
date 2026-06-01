@@ -37,7 +37,7 @@ export default function ConsumerHome() {
         <div className="absolute -top-32 -left-20 h-72 w-72 rounded-full bg-cat-decor/20 blur-3xl" aria-hidden />
         <div className="absolute -top-20 right-0 h-80 w-80 rounded-full bg-cat-build/15 blur-3xl" aria-hidden />
 
-        <Container className="relative pt-12 md:pt-20 pb-16 md:pb-24">
+        <Container className="relative pt-8 md:pt-14 pb-8 md:pb-12">
           <div className="max-w-3xl">
             <div className="inline-flex items-center gap-1.5 rounded-full bg-background border border-border px-3 py-1 text-[11px] mb-6 shadow-sm">
               <Badge tone="decor" className="!px-2 !py-0">协会担保</Badge>
@@ -105,7 +105,7 @@ export default function ConsumerHome() {
       </section>
 
       {/* 三大品类 */}
-      <section className="py-16 md:py-20">
+      <section className="py-8 md:py-12">
         <Container>
           <div className="flex items-end justify-between mb-10 gap-4 flex-col md:flex-row">
             <div>
@@ -137,7 +137,7 @@ export default function ConsumerHome() {
       </section>
 
       {/* 推荐企业 · 移动横滑 / 桌面网格 */}
-      <section className="py-14 md:py-20 bg-surface">
+      <section className="py-8 md:py-12 bg-surface">
         <Container>
           <div className="flex items-end justify-between mb-6 md:mb-10 gap-4 flex-col md:flex-row">
             <div>
@@ -201,7 +201,7 @@ export default function ConsumerHome() {
       </section>
 
       {/* 业主 4 大服务 */}
-      <section className="py-16 md:py-20">
+      <section className="py-8 md:py-12">
         <Container>
           <div className="text-center mb-12 max-w-2xl mx-auto">
             <div className="text-[12px] tracking-[0.2em] text-brand uppercase font-medium">SERVICES · 业主服务</div>
@@ -218,7 +218,7 @@ export default function ConsumerHome() {
       </section>
 
       {/* 真实评价 · 移动横滑 */}
-      <section className="py-14 md:py-20 bg-surface">
+      <section className="py-8 md:py-12 bg-surface">
         <Container>
           <div className="flex items-end justify-between mb-6 md:mb-10 gap-4 flex-col md:flex-row">
             <div>
@@ -275,7 +275,7 @@ export default function ConsumerHome() {
       </section>
 
       {/* CTA */}
-      <section className="py-20 md:py-28">
+      <section className="py-8 md:py-12">
         <Container>
           <div className="relative overflow-hidden rounded-[28px] md:rounded-[40px] bg-foreground text-background p-7 md:p-12">
             <div className="absolute -top-20 -right-20 h-72 w-72 rounded-full bg-cat-decor/30 blur-3xl" />
@@ -317,7 +317,7 @@ export default function ConsumerHome() {
       </section>
 
       {/* footer 强调"另一个面" */}
-      <section className="pb-20">
+      <section className="pb-12 md:pb-16">
         <Container>
           <div className="rounded-3xl border border-border bg-background p-7 md:p-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
             <div className="flex items-start gap-3">
