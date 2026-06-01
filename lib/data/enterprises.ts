@@ -20,6 +20,7 @@ export type Enterprise = {
   verified: boolean;
   featured?: boolean;
   color: "build" | "decor" | "design" | "tea" | "brand";
+  template?: string; // 子站模板，默认 standard
 };
 
 export const ENTERPRISES: Enterprise[] = [

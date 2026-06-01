@@ -25,6 +25,7 @@ type Row = {
   verified: number | null;      // 0/1
   featured: number | null;      // 0/1
   theme: string | null;         // 子站主题色
+  template: string | null;      // 子站模板
 };
 
 const THEME_KEYS = ["build", "decor", "design", "tea", "brand"] as const;
@@ -61,6 +62,7 @@ function rowToEnterprise(r: Row): Enterprise {
     verified: !!r.verified,
     featured: !!r.featured,
     color: resolveColor(r.theme, r.category),
+    template: r.template || "standard",
   };
 }
 

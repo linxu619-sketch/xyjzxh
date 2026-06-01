@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { Phone, ArrowUpRight, ShieldCheck, MapPin, BadgeCheck, MessageSquareText, ArrowRight, ChevronLeft } from "lucide-react";
+import { Phone, ArrowUpRight, ShieldCheck, MapPin, BadgeCheck, ChevronLeft } from "lucide-react";
+import { GlobalBottomNav } from "@/components/global-bottom-nav";
 import { getEnterpriseBySlugOrId } from "@/lib/data/enterprises-source";
 import { Container } from "@/components/container";
 import { SITE } from "@/lib/site";
@@ -160,7 +161,7 @@ export default async function TenantLayout({
                 {e.qualification.slice(0, 3).map((q) => (
                   <li key={q} className="flex items-start gap-1.5"><BadgeCheck className="h-3.5 w-3.5 mt-0.5 shrink-0 text-accent-tea" />{q}</li>
                 ))}
-                <li><Link href={`/members/${tenant}`} className="hover:text-background underline-offset-2 hover:underline">协会档案 →</Link></li>
+                <li><Link href="/members" className="hover:text-background underline-offset-2 hover:underline">找其他装企 →</Link></li>
                 <li><Link href="/" className="hover:text-background underline-offset-2 hover:underline">返回协会主站 →</Link></li>
               </ul>
             </div>
@@ -173,22 +174,8 @@ export default async function TenantLayout({
         </Container>
       </footer>
 
-      {/* 移动端常驻固定底栏（联系 / 咨询 / 下单）*/}
-      <div className="md:hidden fixed bottom-0 inset-x-0 z-40 bg-background/95 backdrop-blur-xl border-t border-border">
-        <div className="flex items-center gap-2 px-3 py-2 pb-[max(env(safe-area-inset-bottom),0.5rem)]">
-          <a href={`tel:${e.contact.tel.replace(/-/g, "")}`} aria-label="致电" className="h-11 w-11 rounded-full border border-border inline-flex items-center justify-center shrink-0 active:scale-95 transition-transform">
-            <Phone className="h-4 w-4" />
-          </a>
-          <Link href={`/biz/${tenant}/inquiry`} className="h-11 px-3.5 rounded-full border border-border text-[13px] inline-flex items-center gap-1.5 shrink-0 active:scale-95 transition-transform">
-            <MessageSquareText className="h-4 w-4" /> 咨询
-          </Link>
-          <Link href={`/biz/${tenant}/order`} className={cn("flex-1 h-11 rounded-full text-white text-[14px] font-medium inline-flex items-center justify-center gap-1.5 active:scale-[0.99] transition-transform", BG[e.color])}>
-            立即下单 / 预约 <ArrowRight className="h-4 w-4" />
-          </Link>
-        </div>
-      </div>
-      {/* 占位：避免固定底栏遮住页脚底部 */}
-      <div aria-hidden className="md:hidden h-[64px]" />
+      {/* 移动端底部导航：与主站一致（GlobalBottomNav，消费者门面）*/}
+      <GlobalBottomNav face="consumer" />
     </div>
   );
 }

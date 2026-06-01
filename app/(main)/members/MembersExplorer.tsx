@@ -194,7 +194,7 @@ export function MembersExplorer({
           {filtered.map((e) => (
             <Link
               key={e.id}
-              href={`/members/${e.slug}`}
+              href={`/biz/${e.slug}`}
               className="group relative overflow-hidden rounded-3xl border border-border bg-background p-5 active:scale-[0.99] hover:shadow-md md:hover:-translate-y-0.5 transition-all min-h-[180px] flex flex-col"
             >
               <span className={cn("absolute left-0 top-0 h-1 w-full", ACCENT_BAR[e.color])} />

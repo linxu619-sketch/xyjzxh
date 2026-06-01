@@ -130,7 +130,8 @@
       "Bash(awk '!seen[$2]++')",
       "Bash(echo \"exit=$?\")",
       "PowerShell(try { Get-NetConnectionProfile | Select-Object InterfaceAlias, NetworkCategory, IPv4Connectivity | Format-Table -AutoSize } catch { Write-Output \"查询失败\\(可能需管理员\\): $_\" })",
-      "Bash(ls -1 \"app/biz\" \"app/biz/[tenant]\")"
+      "Bash(ls -1 \"app/biz\" \"app/biz/[tenant]\")",
+      "Bash(grep -nE \"href=\\\\{?\\\\`?/members|href=\\\\{?\\\\`?/biz\" app/\\\\\\(main\\\\\\)/members/MembersExplorer.tsx app/\\\\\\(main\\\\\\)/members/page.tsx app/\\\\\\(main\\\\\\)/page.tsx)"
     ]
   }
 }

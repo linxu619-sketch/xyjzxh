@@ -51,6 +51,14 @@ export async function generateStaticParams() {
   return ENTERPRISES.map((e) => ({ tenant: e.slug }));
 }
 
+type TplProps = {
+  e: NonNullable<Awaited<ReturnType<typeof getEnterpriseBySlugOrId>>>;
+  tenant: string;
+  cases: ReturnType<typeof listCasesByEnterprise>;
+  team: ReturnType<typeof listTeamByEnterprise>;
+  reviews: ReturnType<typeof listReviews>;
+};
+
 export default async function TenantHome({ params }: { params: Promise<{ tenant: string }> }) {
   const { tenant } = await params;
   const e = await getEnterpriseBySlugOrId(tenant);
@@ -59,6 +67,13 @@ export default async function TenantHome({ params }: { params: Promise<{ tenant:
   const reviews = listReviews(200).filter((r) => r.enterprise === e.hero.brand || r.enterprise === e.name);
   const cases = listCasesByEnterprise(e.id);
   const team = listTeamByEnterprise(e.id);
+
+  // 子站模板注册表：将来新增模板放进 TEMPLATES，企业在「我的子站」按 e.template 选择
+  const Tpl = TEMPLATES[e.template ?? "standard"] ?? StandardTemplate;
+  return <Tpl e={e} tenant={tenant} cases={cases} team={team} reviews={reviews} />;
+}
+
+function StandardTemplate({ e, tenant, cases, team, reviews }: TplProps) {
   const services = SERVICES[e.category] ?? SERVICES.decor;
   const catLabel = e.category === "build" ? "建筑企业" : e.category === "decor" ? "装修企业" : "设计企业";
 
@@ -81,8 +96,7 @@ export default async function TenantHome({ params }: { params: Promise<{ tenant:
           </h1>
           <p className="mt-2.5 text-[13px] sm:text-[15px] text-white/85 max-w-xl leading-6">{e.short}</p>
 
-          {/* 桌面端 CTA；移动端由底部固定栏承担，避免重复 */}
-          <div className="mt-5 hidden md:flex flex-wrap gap-2.5">
+          <div className="mt-5 flex flex-wrap gap-2.5">
             <Link href={`/biz/${tenant}/order`} className="inline-flex items-center justify-center gap-1.5 h-11 px-5 rounded-full bg-white text-foreground text-[14px] font-medium hover:bg-accent-yellow transition-colors active:scale-[0.99]">
               立即下单 / 预约 <ArrowRight className="h-4 w-4" />
             </Link>
@@ -215,7 +229,7 @@ export default async function TenantHome({ params }: { params: Promise<{ tenant:
               <div>
                 <h2 className="text-[22px] md:text-[30px] font-semibold tracking-tight leading-tight">准备开工？联系 {e.hero.brand}</h2>
                 <p className="mt-2 text-[13px] text-white/85 max-w-md leading-6">协会三重保障：履约险先行赔付 · 14 天调解 · 资金监管，放心托付。</p>
-                <div className="mt-4 hidden md:flex flex-wrap gap-2">
+                <div className="mt-4 flex flex-wrap gap-2">
                   <Link href={`/biz/${tenant}/order`} className="inline-flex items-center gap-1.5 h-11 px-5 rounded-full bg-white text-foreground text-[14px] font-medium hover:bg-accent-yellow transition-colors">提交需求 <ArrowRight className="h-4 w-4" /></Link>
                   <a href={`tel:${e.contact.tel.replace(/-/g, "")}`} className="inline-flex items-center gap-1.5 h-11 px-4 rounded-full border border-white/40 text-white text-[14px] hover:bg-white/10"><Phone className="h-4 w-4" /> {e.contact.tel}</a>
                 </div>
@@ -232,6 +246,11 @@ export default async function TenantHome({ params }: { params: Promise<{ tenant:
     </div>
   );
 }
+
+// 模板注册表（当前仅 standard；新增模板在此登记即可）
+const TEMPLATES: Record<string, typeof StandardTemplate> = {
+  standard: StandardTemplate,
+};
 
 function Metric({ label, value }: { label: string; value: string }) {
   return (

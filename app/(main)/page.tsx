@@ -153,7 +153,7 @@ export default function ConsumerHome() {
               {FEATURED.map((e) => (
                 <Link
                   key={e.id}
-                  href={`/members/${e.slug}`}
+                  href={`/biz/${e.slug}`}
                   className="snap-start shrink-0 w-[78vw] max-w-[300px] rounded-3xl border border-border bg-background p-5 active:scale-[0.99] transition-transform"
                 >
                   <div className="flex items-center gap-3">
@@ -179,7 +179,7 @@ export default function ConsumerHome() {
           {/* 桌面：网格 */}
           <div className="hidden md:grid grid-cols-2 lg:grid-cols-3 gap-4">
             {FEATURED.map((e) => (
-              <Link key={e.id} href={`/members/${e.slug}`} className="group rounded-3xl border border-border bg-background p-5 hover:shadow-md transition-all hover:-translate-y-0.5">
+              <Link key={e.id} href={`/biz/${e.slug}`} className="group rounded-3xl border border-border bg-background p-5 hover:shadow-md transition-all hover:-translate-y-0.5">
                 <div className="flex items-center gap-3">
                   <span className={cn("h-12 w-12 rounded-2xl text-white inline-flex items-center justify-center font-semibold", BG[e.color])}>
                     {e.hero.brand.slice(0, 1)}
