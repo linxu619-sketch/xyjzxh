@@ -14,6 +14,16 @@
 
 ---
 
+## [0.38.0] - 2026-06-01
+
+### 新增（账号体系 · 合一模型第 1 步：建账号表 + 入会即建账号）
+- 确定「合一」模型：账号(登录)与会员资格(权益)分层；**入会申请=同时注册账号**，先 pending、审核通过后激活为正式会员。详见记忆 account-membership-model。
+- 新增 `accounts` 表（phone 唯一/role/status/password_hash/name/app_id/member_ref）+ `lib/data/accounts.ts`。
+- 入会提交（submitApplicationAction）：bp 建 **pending** 账号、业主建 **active** 账号。
+- 协会审核：**通过 → 激活账号并绑定会员记录（企业 app-id / 从业者 p-id）**；驳回 → 账号置 rejected。
+- 给 8 位种子从业者补 active 个人会员账号。
+- 本步为**纯新增**，不改现有登录；第 2 步将把登录改查账号表 + 待审落「审核进度页」+ 企业入会设密码。
+
 ## [0.37.0] - 2026-06-01
 
 ### 新增（招聘闭环 — B↔bp 阶段②：企业发岗 → 从业者报名 → 企业处理）

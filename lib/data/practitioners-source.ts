@@ -70,6 +70,16 @@ export function getPractitionerById(id: string): Practitioner | undefined {
   }
 }
 
+// 按入会申请 id 取从业者引用（p-<id>），用于审核通过后绑定账号
+export function getPractitionerRefByAppId(appId: number): string | undefined {
+  try {
+    const row = getDb().prepare("SELECT id FROM practitioners WHERE app_id = ?").get(appId) as { id: number } | undefined;
+    return row ? `p-${row.id}` : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
 // 个人会员入会申请通过 → 写入从业者名录
 export function createPractitionerFromApplication(app: {
   id: number;

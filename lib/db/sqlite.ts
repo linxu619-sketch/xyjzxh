@@ -207,6 +207,19 @@ CREATE TABLE IF NOT EXISTS job_applications (
 );
 CREATE INDEX IF NOT EXISTS idx_japp_job ON job_applications(job_id, created_at);
 CREATE INDEX IF NOT EXISTS idx_japp_phone ON job_applications(practitioner_phone, created_at);
+
+CREATE TABLE IF NOT EXISTS accounts (
+  id            INTEGER PRIMARY KEY AUTOINCREMENT,
+  phone         TEXT UNIQUE,
+  role          TEXT,    -- enterprise | individual | customer
+  status        TEXT DEFAULT 'pending', -- pending | active | rejected
+  password_hash TEXT,    -- 企业用;个人/业主短信登录可空
+  name          TEXT,
+  app_id        INTEGER, -- 关联入会申请
+  member_ref    TEXT,    -- 通过后绑定:企业 enterprise_id 或 从业者 p-id
+  created_at    INTEGER
+);
+CREATE INDEX IF NOT EXISTS idx_accounts_phone ON accounts(phone);
 `;
 
 function seedEnterprises(db: DB) {
@@ -425,7 +438,19 @@ function init(): DB {
   seedCases(db);
   seedTeam(db);
   seedJobs(db);
+  seedAccounts(db);
   return db;
+}
+
+function seedAccounts(db: DB) {
+  if (!isEmpty(db, "accounts")) return;
+  // 给已建档的从业者补 active 个人会员账号（手机号即登录名）
+  const rows = db.prepare("SELECT id,name,phone FROM practitioners WHERE phone IS NOT NULL AND phone != ''").all() as { id: number; name: string; phone: string }[];
+  const stmt = db.prepare("INSERT INTO accounts (phone,role,status,name,member_ref,created_at) VALUES (?, 'individual','active',?,?,?)");
+  const now = Date.now();
+  for (const r of rows) {
+    try { stmt.run(r.phone, r.name, `p-${r.id}`, now); } catch { /* 手机号重复忽略 */ }
+  }
 }
 
 // 对已存在的库做幂等列迁移（新增列时用）
