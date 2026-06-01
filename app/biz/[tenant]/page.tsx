@@ -56,7 +56,7 @@ export default async function TenantHome({ params }: { params: Promise<{ tenant:
   const e = await getEnterpriseBySlugOrId(tenant);
   if (!e) notFound();
 
-  const realReviews = listReviews(50).filter((r) => r.enterprise === e.hero.brand || r.enterprise === e.name).slice(0, 6);
+  const reviews = listReviews(200).filter((r) => r.enterprise === e.hero.brand || r.enterprise === e.name);
   const cases = listCasesByEnterprise(e.id);
   const team = listTeamByEnterprise(e.id);
   const services = SERVICES[e.category] ?? SERVICES.decor;
@@ -182,12 +182,12 @@ export default async function TenantHome({ params }: { params: Promise<{ tenant:
       )}
 
       {/* 业主评价 */}
-      {realReviews.length > 0 && (
+      {reviews.length > 0 && (
         <section className="py-7 md:py-10">
           <Container>
-            <SectionTitle eyebrow="REVIEWS · 口碑" title="业主真实评价" />
+            <SectionTitle eyebrow="REVIEWS · 口碑" title="业主真实评价" moreHref={`/biz/${tenant}/reviews`} moreClassName={TEXT[e.color]} />
             <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-3">
-              {realReviews.slice(0, 6).map((r) => (
+              {reviews.slice(0, 3).map((r) => (
                 <div key={r.id} className="rounded-2xl border border-border bg-background p-4 md:p-5">
                   <div className="flex items-center gap-2 mb-2">
                     <span className="h-9 w-9 rounded-full bg-surface inline-flex items-center justify-center text-[13px] font-semibold shrink-0">{r.user.slice(0, 1)}</span>
