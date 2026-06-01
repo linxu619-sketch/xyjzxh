@@ -27,6 +27,7 @@ export type Session = {
   phone: string;
   staffRole?: string;
   enterpriseId?: string;
+  pending?: boolean; // 入会审核中的账号：可登录但只看审核进度页，不解锁工作台
   exp: number;
 };
 

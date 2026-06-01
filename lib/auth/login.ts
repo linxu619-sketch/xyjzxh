@@ -3,11 +3,12 @@ import { SYSTEM_ADMIN } from "./system-admin";
 import { findStaffByPhone } from "@/lib/data/users-seed";
 import { findEnterpriseByContactPhone } from "@/lib/data/enterprises-source";
 import { getPractitionerByPhone } from "@/lib/data/practitioners-source";
+import { getAccountByPhone } from "@/lib/data/accounts";
 import { verifyPassword } from "./password";
 import type { Session } from "./session";
 
 export type LoginResult =
-  | { ok: true; session: Omit<Session, "exp">; isSystemAdmin: boolean }
+  | { ok: true; session: Omit<Session, "exp">; isSystemAdmin: boolean; pending?: boolean }
   | { ok: false; error: string };
 
 /**
@@ -103,29 +104,34 @@ export async function loginPractitionerWithSms(
   }
   const cleanPhone = phone.trim();
 
-  // —— 真实绑定：手机号匹配到协会从业者名录（入会通过后建档）——
-  const p = getPractitionerByPhone(cleanPhone);
-  if (p) {
+  // —— 账号体系：个人会员账号 ——
+  const acct = getAccountByPhone(cleanPhone);
+  if (acct && acct.role === "individual") {
+    if (acct.status === "active") {
+      return {
+        ok: true,
+        isSystemAdmin: false,
+        session: { uid: `prac-${acct.memberRef ?? cleanPhone}`, role: "practitioner", name: acct.name || `师傅 ${cleanPhone.slice(-4)}`, phone: cleanPhone },
+      };
+    }
+    // pending / rejected → 登录后落审核进度页
     return {
       ok: true,
       isSystemAdmin: false,
-      session: {
-        uid: `prac-${p.id}`,
-        role: "practitioner",
-        name: p.name,
-        phone: cleanPhone,
-      },
+      pending: true,
+      session: { uid: `prac-pending-${cleanPhone.slice(-4)}`, role: "practitioner", name: acct.name || `申请人 ${cleanPhone.slice(-4)}`, phone: cleanPhone, pending: true },
     };
   }
 
-  // —— 演示回退：未匹配到名录 → 临时从业者身份 ——
+  // —— 演示回退：未注册账号 → 临时从业者身份（兼容旧演示登录）——
+  const p = getPractitionerByPhone(cleanPhone);
   return {
     ok: true,
     isSystemAdmin: false,
     session: {
-      uid: `prac-${cleanPhone.slice(-4)}`,
+      uid: p ? `prac-${p.id}` : `prac-${cleanPhone.slice(-4)}`,
       role: "practitioner",
-      name: `师傅 ${cleanPhone.slice(-4)}`,
+      name: p?.name ?? `师傅 ${cleanPhone.slice(-4)}`,
       phone: cleanPhone,
     },
   };
@@ -147,23 +153,40 @@ export async function loginEnterpriseWithPassword(
   }
   const cleanPhone = phone.trim();
 
-  // —— 真实绑定：手机号匹配到正式会员企业（入会通过后建档，联系电话即登录账号）——
+  // —— 账号体系：企业会员账号 ——
+  const acct = getAccountByPhone(cleanPhone);
+  if (acct && acct.role === "enterprise") {
+    // 设过密码则校验；未设密码（历史账号）放行
+    if (acct.passwordHash && !verifyPassword(password, acct.passwordHash)) {
+      return { ok: false, error: "密码错误" };
+    }
+    if (acct.status === "active") {
+      return {
+        ok: true,
+        isSystemAdmin: false,
+        session: { uid: `ent-${acct.memberRef ?? cleanPhone}`, role: "enterprise", name: acct.name || "企业会员", phone: cleanPhone, enterpriseId: acct.memberRef ?? undefined },
+      };
+    }
+    // pending / rejected → 审核进度页
+    return {
+      ok: true,
+      isSystemAdmin: false,
+      pending: true,
+      session: { uid: `ent-pending-${cleanPhone.slice(-4)}`, role: "enterprise", name: acct.name || "申请企业", phone: cleanPhone, pending: true },
+    };
+  }
+
+  // —— 真实绑定回退：手机号匹配到正式会员企业（兼容入会建档但无账号的情况）——
   const ent = findEnterpriseByContactPhone(cleanPhone);
   if (ent) {
     return {
       ok: true,
       isSystemAdmin: false,
-      session: {
-        uid: `ent-${ent.id}`,
-        role: "enterprise",
-        name: ent.name,
-        phone: cleanPhone,
-        enterpriseId: ent.id,
-      },
+      session: { uid: `ent-${ent.id}`, role: "enterprise", name: ent.name, phone: cleanPhone, enterpriseId: ent.id },
     };
   }
 
-  // —— 演示回退：未匹配到正式会员企业 → 绑定到演示企业「名家装饰」(e002)，方便本地试用 ——
+  // —— 演示回退：未注册账号 → 绑定到演示企业「名家装饰」(e002)，方便本地试用 ——
   return {
     ok: true,
     isSystemAdmin: false,

@@ -32,7 +32,7 @@ export async function loginEnterpriseAction(
   const res = await loginEnterpriseWithPassword(phone, password);
   if (!res.ok) return { ok: false, error: res.error };
   await setSession(res.session);
-  redirect("/dashboard/enterprise");
+  redirect(res.pending ? "/dashboard/pending" : "/dashboard/enterprise");
 }
 
 export async function loginCustomerAction(
@@ -56,7 +56,7 @@ export async function loginPractitionerAction(
   const res = await loginPractitionerWithSms(phone, code);
   if (!res.ok) return { ok: false, error: res.error };
   await setSession(res.session);
-  redirect("/dashboard/practitioner");
+  redirect(res.pending ? "/dashboard/pending" : "/dashboard/practitioner");
 }
 
 export async function logoutAction() {

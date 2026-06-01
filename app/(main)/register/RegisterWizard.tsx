@@ -45,6 +45,7 @@ export function RegisterWizard({ role, agreements }: { role: Role; agreements: T
       if (!f.creditCode?.trim()) return "请填写统一社会信用代码";
       if (!f.contactName?.trim()) return "请填写联系人姓名";
       if (!f.contactPhone?.trim()) return "请填写联系人手机";
+      if (!f.password || f.password.length < 6) return "请设置登录密码（≥6 位）";
     } else if (role === "practitioner") {
       if (!f.realName?.trim()) return "请填写真实姓名";
       if (!f.phone?.trim()) return "请填写手机号";
@@ -192,7 +193,8 @@ function EnterpriseFields({ f, set, setFile }: FU) {
         </Field>
         <Field label="期望子域名"><div className="flex items-center gap-2"><input className={`${INPUT} flex-1`} placeholder="如 huatai" value={f.subdomain ?? ""} onChange={(e) => set("subdomain", e.target.value)} /><span className="text-[13px] text-muted-foreground">.xyjzxh.com</span></div></Field>
         <Field label="联系人姓名" required><input className={INPUT} value={f.contactName ?? ""} onChange={(e) => set("contactName", e.target.value)} /></Field>
-        <Field label="联系人手机" required><input type="tel" className={INPUT} placeholder="11 位手机号" value={f.contactPhone ?? ""} onChange={(e) => set("contactPhone", e.target.value)} /></Field>
+        <Field label="联系人手机" required><input type="tel" className={INPUT} placeholder="11 位手机号（即登录账号）" value={f.contactPhone ?? ""} onChange={(e) => set("contactPhone", e.target.value)} /></Field>
+        <Field label="设置登录密码" required><input type="password" autoComplete="new-password" className={INPUT} placeholder="≥6 位，用于企业账号登录" value={f.password ?? ""} onChange={(e) => set("password", e.target.value)} /></Field>
         <Field label="主营地区"><input className={INPUT} placeholder="如 浉河区" value={f.region ?? ""} onChange={(e) => set("region", e.target.value)} /></Field>
       </div>
 

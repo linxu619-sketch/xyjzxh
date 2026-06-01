@@ -4,11 +4,16 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { createApplication, type AppType } from "@/lib/data/applications";
 import { upsertAccount, type AccountRole } from "@/lib/data/accounts";
+import { hashPassword } from "@/lib/auth/password";
 
 export async function submitApplicationAction(input: { role: string; payload: Record<string, string> }) {
   const role = input.role || "customer";
   const type: AppType = role === "enterprise" ? "enterprise" : role === "practitioner" ? "individual" : "customer";
-  const payload = input.payload || {};
+  const payload = { ...(input.payload || {}) };
+
+  // 密码不入申请 payload（明文不落库）：取出后哈希存账号
+  const rawPassword = (payload.password || "").trim();
+  delete payload.password;
 
   const applicant = payload.entName || payload.realName || payload.nickname || "未填写";
   const phone = payload.contactPhone || payload.phone || "";
@@ -24,6 +29,7 @@ export async function submitApplicationAction(input: { role: string; payload: Re
       status: type === "customer" ? "active" : "pending",
       name: applicant,
       appId: type === "customer" ? null : appId,
+      passwordHash: rawPassword.length >= 6 ? hashPassword(rawPassword) : null,
     });
   }
 

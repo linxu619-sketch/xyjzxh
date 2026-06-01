@@ -59,6 +59,15 @@ export function getApplication(id: number): Application | undefined {
   return row ? rowTo(row) : undefined;
 }
 
+export function getLatestApplicationByPhone(phone: string): Application | undefined {
+  const clean = phone.trim();
+  if (!clean) return undefined;
+  const row = getDb()
+    .prepare("SELECT * FROM applications WHERE phone = ? ORDER BY created_at DESC LIMIT 1")
+    .get(clean) as Row | undefined;
+  return row ? rowTo(row) : undefined;
+}
+
 export function listApplications(status?: AppStatus): Application[] {
   const db = getDb();
   const rows = (status

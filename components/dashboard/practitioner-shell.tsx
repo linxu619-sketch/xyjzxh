@@ -18,6 +18,7 @@ export async function PractitionerShell({
   if (!session || session.role !== "practitioner") {
     redirect("/login?role=practitioner");
   }
+  if (session.pending) redirect("/dashboard/pending");
 
   return (
     <div className="min-h-screen bg-surface pb-24">

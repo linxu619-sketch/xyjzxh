@@ -19,6 +19,7 @@ export default async function PractitionerHome() {
   if (!session || session.role !== "practitioner") {
     redirect("/login?role=practitioner");
   }
+  if (session.pending) redirect("/dashboard/pending");
 
   // 真实从业者记录（按登录手机号匹配协会名录）
   const me = getPractitionerByPhone(session.phone);

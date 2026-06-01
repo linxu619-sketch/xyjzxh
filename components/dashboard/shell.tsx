@@ -70,6 +70,7 @@ export async function EnterpriseShell({ title, subtitle, actions, children }: Sh
   if (!session || session.role !== "enterprise") {
     redirect("/login?role=enterprise");
   }
+  if (session.pending) redirect("/dashboard/pending");
   const pendingReports = listReportsByUid(session.uid).filter((r) => r.status === "pending").length;
   const items = withBadges(ENT_NAV, {
     "/dashboard/enterprise/projects": pendingReports,
