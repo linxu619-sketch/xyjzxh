@@ -2,7 +2,7 @@ import {
   LayoutDashboard, Users2, FileCheck2, MessageSquareWarning, Library,
   Newspaper, Wallet, Sparkles, Settings, Globe2, MessagesSquare,
   Briefcase, MessageSquareHeart, Home, FileText, Umbrella,
-  Hammer, ShoppingBag, Truck, FileSignature,
+  Hammer, ShoppingBag, Truck, FileSignature, GraduationCap,
 } from "lucide-react";
 
 const I = "h-4 w-4";
@@ -12,6 +12,7 @@ export const ASSOC_NAV = [
   { href: "/dashboard/association/members",    label: "会员审核", icon: <Users2 className={I} /> },
   { href: "/dashboard/association/reports",    label: "工装报备", icon: <FileCheck2 className={I} /> },
   { href: "/dashboard/association/mediations", label: "调解纠纷", icon: <MessageSquareWarning className={I} /> },
+  { href: "/dashboard/association/training",   label: "培训管理", icon: <GraduationCap className={I} /> },
   { href: "/dashboard/association/supplies",   label: "建材超市", icon: <ShoppingBag className={I} /> },
   { href: "/dashboard/association/knowledge",  label: "知识库",   icon: <Library className={I} /> },
   { href: "/dashboard/association/news",       label: "新闻",     icon: <Newspaper className={I} /> },

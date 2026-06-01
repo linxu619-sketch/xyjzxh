@@ -235,6 +235,32 @@ CREATE TABLE IF NOT EXISTS news (
   created_at  INTEGER
 );
 CREATE INDEX IF NOT EXISTS idx_news_status ON news(status, created_at);
+
+CREATE TABLE IF NOT EXISTS trainings (
+  id          INTEGER PRIMARY KEY AUTOINCREMENT,
+  title       TEXT,
+  category    TEXT,
+  instructor  TEXT,
+  location    TEXT,
+  schedule    TEXT,
+  capacity    INTEGER,
+  fee         TEXT,
+  detail      TEXT,
+  status      TEXT DEFAULT 'open', -- open | closed
+  created_at  INTEGER
+);
+CREATE INDEX IF NOT EXISTS idx_trainings_status ON trainings(status, created_at);
+
+CREATE TABLE IF NOT EXISTS training_enrollments (
+  id                 INTEGER PRIMARY KEY AUTOINCREMENT,
+  training_id        INTEGER,
+  practitioner_phone TEXT,
+  name               TEXT,
+  phone              TEXT,
+  created_at         INTEGER
+);
+CREATE INDEX IF NOT EXISTS idx_tenroll_t ON training_enrollments(training_id, created_at);
+CREATE INDEX IF NOT EXISTS idx_tenroll_p ON training_enrollments(practitioner_phone, created_at);
 `;
 
 function seedEnterprises(db: DB) {
@@ -455,7 +481,24 @@ function init(): DB {
   seedJobs(db);
   seedAccounts(db);
   seedNews(db);
+  seedTrainings(db);
   return db;
+}
+
+function seedTrainings(db: DB) {
+  if (!isEmpty(db, "trainings")) return;
+  // [title, category, instructor, location, schedule, capacity, fee, detail]
+  const rows: [string, string, string, string, string, number, string, string][] = [
+    ["工装报备「一网通办」专题培训", "政策合规", "协会技术委员会", "协会四楼培训中心", "2026-06-08 09:00-12:00", 60, "免费", "讲解新版工装报备流程与省厅一网通办对接，含现场答疑。"],
+    ["二级建造师考前冲刺班", "职业认证", "李教授（特邀）", "线上直播", "2026-06-15 起 · 每周六", 100, "会员价 ¥800", "建筑/机电实务重点串讲 + 历年真题精讲，含模拟测试。"],
+    ["BIM 建模与施工应用实操", "技能提升", "王工 · BIM 专家", "协会实训室", "2026-06-20 全天", 30, "会员价 ¥1200", "Revit 基础到施工出图全流程实操，自带笔记本。"],
+    ["绿色建造与新材料应用交流会", "行业交流", "多位行业专家", "信阳建博会展区", "2026-06-22 14:00-17:00", 200, "免费", "低碳混凝土、再生骨料等新材料案例分享与交流。"],
+  ];
+  const stmt = db.prepare(
+    "INSERT INTO trainings (title,category,instructor,location,schedule,capacity,fee,detail,status,created_at) VALUES (?,?,?,?,?,?,?,?, 'open', ?)",
+  );
+  const now = Date.now();
+  rows.forEach((r, i) => stmt.run(r[0], r[1], r[2], r[3], r[4], r[5], r[6], r[7], now - i * 86400000));
 }
 
 function seedNews(db: DB) {

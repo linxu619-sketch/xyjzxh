@@ -1,146 +1,87 @@
 import Link from "next/link";
-import {
-  GraduationCap, BadgeCheck, Clock, Sparkles, ChevronRight, Upload,
-  AlertCircle, ArrowUpRight, Star,
-} from "lucide-react";
+import { redirect } from "next/navigation";
+import { GraduationCap, Clock, Sparkles, ChevronRight, MapPin, Users2, CheckCircle2 } from "lucide-react";
 import { PractitionerShell } from "@/components/dashboard/practitioner-shell";
 import { Badge } from "@/components/ui/badge";
-import { DEMO_PRACTITIONER, PRACTITIONER_TRAININGS } from "@/lib/data/practitioners";
+import { getSession } from "@/lib/auth/session";
+import { listOpenTrainings, listEnrollmentsByPractitioner, countEnrolled } from "@/lib/data/training";
+import { enrollTrainingAction } from "./actions";
 
 export const metadata = { title: "培训 · 从业者门户" };
 
-export default function PractitionerTraining() {
-  const certs = DEMO_PRACTITIONER.certs;
-  const expiringSoon = certs.filter((c) => c.expiresAt && new Date(c.expiresAt) < new Date("2026-09-01"));
+export default async function PractitionerTraining({ searchParams }: { searchParams: Promise<{ tok?: string; tdup?: string; terr?: string }> }) {
+  const session = await getSession();
+  if (!session || session.role !== "practitioner") redirect("/login?role=practitioner");
+  if (session.pending) redirect("/dashboard/pending");
+  const { tok, tdup, terr } = await searchParams;
+
+  const trainings = listOpenTrainings();
+  const myEnrolls = listEnrollmentsByPractitioner(session.phone);
+  const enrolledSet = new Set(myEnrolls.map((e) => e.trainingId));
+
   return (
-    <PractitionerShell
-      title="培训 / 证书"
-      subtitle={`${certs.length} 本证书${expiringSoon.length ? ` · ${expiringSoon.length} 本即将到期` : ""}`}
-    >
-      {/* 到期提醒 */}
-      {expiringSoon.length > 0 && (
-        <Link
-          href="#expiring"
-          className="block rounded-3xl bg-gradient-to-br from-cat-decor to-[#e6531f] text-white p-4 mb-4 shadow-md active:scale-[0.99] transition-transform"
-        >
-          <div className="flex items-center gap-3">
-            <span className="h-10 w-10 rounded-2xl bg-white/20 inline-flex items-center justify-center shrink-0">
-              <AlertCircle className="h-5 w-5" />
-            </span>
-            <div className="flex-1 min-w-0">
-              <div className="text-[14px] font-semibold">{expiringSoon[0].name} 即将到期</div>
-              <div className="text-[11px] text-white/85 mt-0.5">到期 {expiringSoon[0].expiresAt} · 协会有免费续期培训</div>
-            </div>
-            <ChevronRight className="h-5 w-5" />
-          </div>
-        </Link>
-      )}
+    <PractitionerShell title="培训 · 继续教育" subtitle={`${trainings.length} 门在招课程 · 已报名 ${myEnrolls.length}`}>
+      {tok && <Banner ok>报名成功！协会会通知开课时间与地点。</Banner>}
+      {tdup && <Banner>你已报名该课程，无需重复报名。</Banner>}
+      {terr && <Banner err>该课程已结束报名。</Banner>}
 
-      {/* 我的证书 */}
-      <section id="expiring" className="rounded-3xl bg-background border border-border p-5 mb-4">
-        <div className="flex items-center justify-between mb-3">
-          <h2 className="text-[14px] font-semibold tracking-tight">我的证书</h2>
-          <button className="inline-flex items-center gap-1 text-[11px] text-brand">
-            <Upload className="h-3 w-3" /> 上传
-          </button>
-        </div>
-        <ul className="space-y-2.5">
-          {certs.map((c, i) => {
-            const expiring = c.expiresAt && new Date(c.expiresAt) < new Date("2026-09-01");
-            return (
-              <li key={i} className={`rounded-2xl p-4 ${expiring ? "bg-cat-decor-soft border border-cat-decor/30" : "bg-surface"}`}>
-                <div className="flex items-start gap-3">
-                  <BadgeCheck className={`h-5 w-5 mt-0.5 shrink-0 ${expiring ? "text-cat-decor" : "text-accent-tea"}`} />
-                  <div className="flex-1 min-w-0">
-                    <div className="text-[13px] font-semibold leading-5">{c.name}</div>
-                    <div className="text-[10px] text-muted-foreground mt-1 leading-4">
-                      {c.issuer} · 颁发 {c.issuedAt}{c.expiresAt && ` · 到期 ${c.expiresAt}`}
-                    </div>
-                  </div>
-                  {expiring ? (
-                    <Badge tone="decor" className="!text-[9px] shrink-0">3 月内到期</Badge>
-                  ) : (
-                    <Badge tone="tea" className="!text-[9px] shrink-0">有效</Badge>
-                  )}
-                </div>
-                {expiring && (
-                  <button className="mt-3 w-full h-9 rounded-full bg-cat-decor text-white text-[12px] font-medium">
-                    报名续期培训（免费）
-                  </button>
-                )}
-              </li>
-            );
-          })}
-        </ul>
-      </section>
-
-      {/* 即将开课 */}
-      <section className="rounded-3xl bg-background border border-border p-5 mb-4">
-        <div className="flex items-center justify-between mb-3">
-          <h2 className="text-[14px] font-semibold tracking-tight">即将开课</h2>
-          <Link href="/talents#training" className="text-[12px] text-brand">全部 →</Link>
-        </div>
-        <ul className="space-y-3">
-          {PRACTITIONER_TRAININGS.map((t) => {
-            const pct = Math.round((t.enrolled / t.seats) * 100);
-            const hot = pct > 70;
-            return (
-              <li key={t.id} className="rounded-2xl border border-border p-4 active:scale-[0.99] transition-transform">
-                <div className="flex items-center gap-2 mb-2 flex-wrap">
-                  <Badge tone="design">{t.tag}</Badge>
-                  {t.urgent && <Badge tone="decor">🔥</Badge>}
-                  {hot && <Badge tone="yellow" className="!text-[9px]">报名火热</Badge>}
-                  <span className="ml-auto text-[10px] text-muted-foreground inline-flex items-center gap-0.5">
-                    <Clock className="h-2.5 w-2.5" /> {t.startAt}
-                  </span>
-                </div>
-                <div className="text-[14px] font-semibold leading-5">{t.title}</div>
-                <div className="mt-2 text-[11px] text-muted-foreground">
-                  {t.days} 天 · 已报 <b className="text-foreground">{t.enrolled}</b>/{t.seats}
-                </div>
-                <div className="mt-2 h-1.5 rounded-full bg-surface overflow-hidden">
-                  <div
-                    className={`h-full rounded-full transition-all duration-500 ${
-                      hot ? "bg-cat-decor" : "bg-cat-design"
-                    }`}
-                    style={{ width: `${pct}%` }}
-                  />
-                </div>
-                <div className="mt-3 pt-3 border-t border-border flex items-center justify-between">
-                  <div>
-                    <span className="text-[16px] font-semibold text-cat-decor tabular-nums">
-                      {t.fee === 0 ? "免费" : `¥${t.fee}`}
-                    </span>
-                    {t.fee > 0 && <span className="ml-2 text-[10px] text-muted-foreground line-through">¥{Math.round(t.fee * 1.3)}</span>}
-                  </div>
-                  <button className="h-10 px-5 rounded-full bg-foreground text-background text-[12px] font-medium inline-flex items-center gap-1 active:scale-95 transition-transform">
-                    立即报名 <ArrowUpRight className="h-3 w-3" />
-                  </button>
-                </div>
-              </li>
-            );
-          })}
-        </ul>
-      </section>
-
-      {/* AI 推荐 */}
-      <Link href="/ai/hr" className="block rounded-3xl bg-foreground text-background p-5 active:scale-[0.99] transition-transform relative overflow-hidden">
-        <div className="absolute -right-10 -top-10 h-32 w-32 rounded-full bg-cat-design/30 blur-2xl" />
+      <Link href="/ai/hr" className="block rounded-3xl bg-gradient-to-br from-foreground via-brand-600 to-brand text-white p-4 mb-4 active:scale-[0.99] transition-transform relative overflow-hidden">
+        <div className="absolute -right-10 -top-10 h-32 w-32 rounded-full bg-accent-yellow/20 blur-2xl" />
         <div className="relative flex items-center gap-3">
-          <Sparkles className="h-6 w-6 text-accent-yellow shrink-0" />
-          <div className="flex-1">
-            <div className="text-[14px] font-semibold">AI 小才 · 推荐学习路径</div>
-            <div className="text-[11px] text-background/70 mt-0.5">基于你的工种 / 持证 / 收入目标</div>
+          <span className="h-11 w-11 rounded-2xl bg-accent-yellow text-foreground inline-flex items-center justify-center shrink-0"><Sparkles className="h-5 w-5" /></span>
+          <div className="flex-1 min-w-0">
+            <div className="text-[14px] font-semibold">问 AI 小才 · 该考什么证 / 怎么报班</div>
+            <div className="text-[11px] text-white/80 mt-0.5">按你的工种与工龄给建议</div>
           </div>
-          <ChevronRight className="h-4 w-4" />
+          <ChevronRight className="h-5 w-5" />
         </div>
       </Link>
 
-      {/* 协会发证含金量 */}
-      <div className="mt-3 rounded-3xl bg-[#e6f7f1] p-4 flex items-start gap-2.5 text-[12px] text-accent-tea leading-5">
-        <Star className="h-4 w-4 mt-0.5 shrink-0 fill-accent-tea" />
-        协会颁发的培训认证证书可直接登记到信阳市住建系统，企业招聘时优先认可。
-      </div>
+      {trainings.length === 0 ? (
+        <div className="rounded-3xl border border-dashed border-border bg-background p-10 text-center text-[13px] text-muted-foreground">暂无在招课程。协会发布培训后会出现在这里。</div>
+      ) : (
+        <div className="space-y-3">
+          {trainings.map((t) => {
+            const enrolled = enrolledSet.has(t.id);
+            const count = countEnrolled(t.id);
+            const full = t.capacity > 0 && count >= t.capacity;
+            return (
+              <div key={t.id} className="rounded-3xl border border-border bg-background p-5 relative overflow-hidden">
+                <span className="absolute left-0 top-0 h-1 w-full bg-cat-design" />
+                <div className="flex items-center gap-1.5 mb-2 flex-wrap">
+                  <Badge tone="design">{t.category}</Badge>
+                  <Badge tone={t.fee === "免费" ? "tea" : "build"}>{t.fee}</Badge>
+                  <span className="text-[10px] text-muted-foreground ml-auto inline-flex items-center gap-0.5"><Users2 className="h-2.5 w-2.5" />{count}{t.capacity > 0 ? `/${t.capacity}` : ""} 人</span>
+                </div>
+                <div className="text-[14px] font-semibold leading-5">{t.title}</div>
+                <div className="text-[11px] text-muted-foreground mt-1">{t.instructor}</div>
+                {t.detail && <p className="text-[12px] text-muted-foreground mt-2 leading-5 line-clamp-2">{t.detail}</p>}
+                <div className="mt-3 flex items-center gap-2 text-[11px] text-muted-foreground flex-wrap">
+                  <span className="inline-flex items-center gap-0.5"><Clock className="h-2.5 w-2.5" />{t.schedule}</span>
+                  {t.location && <><span>·</span><span className="inline-flex items-center gap-0.5"><MapPin className="h-2.5 w-2.5" />{t.location}</span></>}
+                </div>
+                <div className="mt-3 pt-3 border-t border-border flex items-center justify-end">
+                  {enrolled ? (
+                    <span className="inline-flex items-center gap-1 h-10 px-4 rounded-full bg-[#e6f7f1] text-accent-tea text-[12px] font-medium"><CheckCircle2 className="h-3.5 w-3.5" /> 已报名</span>
+                  ) : full ? (
+                    <span className="inline-flex items-center h-10 px-4 rounded-full bg-surface text-muted-foreground text-[12px]">名额已满</span>
+                  ) : (
+                    <form action={enrollTrainingAction}>
+                      <input type="hidden" name="trainingId" value={t.id} />
+                      <button className="h-10 px-5 rounded-full bg-foreground text-background text-[12px] font-medium inline-flex items-center gap-1 active:scale-95 transition-transform"><GraduationCap className="h-3.5 w-3.5" /> 报名</button>
+                    </form>
+                  )}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
     </PractitionerShell>
   );
+}
+
+function Banner({ children, ok, err }: { children: React.ReactNode; ok?: boolean; err?: boolean }) {
+  const cls = ok ? "border-accent-tea/30 bg-[#e6f7f1] text-accent-tea" : err ? "border-cat-decor/30 bg-cat-decor-soft text-cat-decor" : "border-border bg-surface text-foreground";
+  return <div className={`mb-4 rounded-2xl border p-3.5 text-[13px] ${cls}`}>{children}</div>;
 }
