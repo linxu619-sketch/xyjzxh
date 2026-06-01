@@ -105,36 +105,19 @@ export default async function TenantHome({ params }: { params: Promise<{ tenant:
         <Container>
           <SectionTitle eyebrow="CASES · 作品" title="精选案例" sub={cases.length ? `${cases.length} 个项目` : undefined} />
           {cases.length > 0 ? (
-            <>
-              <div className="md:hidden mt-4 -mx-5 px-5 overflow-x-auto snap-x snap-mandatory [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-                <div className="flex gap-3 pb-1">
-                  {cases.map((c) => (
-                    <Link key={c.id} href={`/biz/${tenant}/cases/${c.id}`} className="snap-start shrink-0 w-[62vw] max-w-[230px] group relative aspect-[4/3] rounded-2xl overflow-hidden bg-foreground/5 active:scale-[0.99] transition-transform">
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img src={c.cover} alt={c.title} className="absolute inset-0 h-full w-full object-cover" />
-                      <div className="absolute inset-0 bg-gradient-to-t from-foreground/75 via-transparent to-transparent" />
-                      <div className="absolute bottom-2.5 left-3 right-3 text-white">
-                        <div className="text-[13px] font-medium line-clamp-1">{c.title}</div>
-                        <div className="text-[11px] opacity-80">{[c.area && `${c.area}㎡`, c.tag].filter(Boolean).join(" · ")}</div>
-                      </div>
-                    </Link>
-                  ))}
-                </div>
-              </div>
-              <div className="hidden md:grid mt-6 grid-cols-4 gap-3">
-                {cases.map((c) => (
-                  <Link key={c.id} href={`/biz/${tenant}/cases/${c.id}`} className="group relative aspect-[4/3] rounded-2xl overflow-hidden bg-foreground/5 hover:shadow-lg transition-all hover:-translate-y-1">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={c.cover} alt={c.title} className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" />
-                    <div className="absolute inset-0 bg-gradient-to-t from-foreground/75 via-transparent to-transparent" />
-                    <div className="absolute bottom-2.5 left-3 right-3 text-white">
-                      <div className="text-[14px] font-medium line-clamp-1">{c.title}</div>
-                      <div className="text-[12px] opacity-80">{[c.area && `${c.area}㎡`, c.tag].filter(Boolean).join(" · ")}</div>
-                    </div>
-                  </Link>
-                ))}
-              </div>
-            </>
+            <div className="mt-4 grid grid-cols-2 md:grid-cols-4 gap-2.5 md:gap-3">
+              {cases.map((c) => (
+                <Link key={c.id} href={`/biz/${tenant}/cases/${c.id}`} className="group relative aspect-[4/3] rounded-2xl overflow-hidden bg-foreground/5 active:scale-[0.99] hover:shadow-lg md:hover:-translate-y-1 transition-all">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={c.cover} alt={c.title} className="absolute inset-0 h-full w-full object-cover md:transition-transform md:duration-500 md:group-hover:scale-105" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-foreground/75 via-transparent to-transparent" />
+                  <div className="absolute bottom-2.5 left-3 right-3 text-white">
+                    <div className="text-[13px] md:text-[14px] font-medium line-clamp-1">{c.title}</div>
+                    <div className="text-[11px] opacity-80">{[c.area && `${c.area}㎡`, c.tag].filter(Boolean).join(" · ")}</div>
+                  </div>
+                </Link>
+              ))}
+            </div>
           ) : (
             <div className="mt-4 rounded-2xl border border-dashed border-border bg-background p-8 text-center text-[13px] text-muted-foreground">
               案例陆续完善中 · 可先 <Link href={`/biz/${tenant}/inquiry`} className={TEXT[e.color]}>在线咨询</Link> 或 <Link href={`/biz/${tenant}/order`} className={TEXT[e.color]}>提交需求</Link>。
@@ -176,24 +159,13 @@ export default async function TenantHome({ params }: { params: Promise<{ tenant:
         <section id="team" className="py-7 md:py-10 bg-surface">
           <Container>
             <SectionTitle eyebrow="TEAM · 团队" title="核心团队" sub={`${team.length} 位`} />
-            <div className="md:hidden mt-4 -mx-5 px-5 overflow-x-auto snap-x snap-mandatory [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-              <div className="flex gap-2.5 pb-1">
-                {team.map((m) => (
-                  <Link key={m.id} href={`/biz/${tenant}/team/${m.id}`} className="snap-start shrink-0 w-[38vw] max-w-[150px] rounded-2xl border border-border bg-background p-3.5 text-center active:scale-[0.99] transition-transform">
-                    <Avatar m={m} color={e.color} sm />
-                    <div className="mt-2 text-[13px] font-semibold truncate">{m.name}</div>
-                    <div className="text-[10px] text-muted-foreground truncate">{m.role}</div>
-                  </Link>
-                ))}
-              </div>
-            </div>
-            <div className="hidden md:grid mt-6 grid-cols-4 gap-3">
+            <div className="mt-4 grid grid-cols-3 md:grid-cols-4 gap-2.5 md:gap-3">
               {team.map((m) => (
-                <Link key={m.id} href={`/biz/${tenant}/team/${m.id}`} className="rounded-2xl border border-border bg-background p-4 text-center hover:shadow-md transition-all hover:-translate-y-0.5 flex flex-col items-center">
+                <Link key={m.id} href={`/biz/${tenant}/team/${m.id}`} className="rounded-2xl border border-border bg-background p-3 md:p-4 text-center active:scale-[0.99] hover:shadow-md md:hover:-translate-y-0.5 transition-all flex flex-col items-center">
                   <Avatar m={m} color={e.color} />
-                  <div className="mt-2.5 text-[15px] font-semibold">{m.name}</div>
-                  <div className="text-[12px] text-muted-foreground">{m.role}</div>
-                  <div className="mt-1 text-[11px] text-muted-foreground line-clamp-1">{m.exp}</div>
+                  <div className="mt-2 text-[13px] md:text-[15px] font-semibold truncate w-full">{m.name}</div>
+                  <div className="text-[10px] md:text-[12px] text-muted-foreground truncate w-full">{m.role}</div>
+                  <div className="hidden md:block mt-1 text-[11px] text-muted-foreground line-clamp-1">{m.exp}</div>
                 </Link>
               ))}
             </div>
@@ -206,22 +178,20 @@ export default async function TenantHome({ params }: { params: Promise<{ tenant:
         <section className="py-7 md:py-10">
           <Container>
             <SectionTitle eyebrow="REVIEWS · 口碑" title="业主真实评价" />
-            <div className="mt-4 -mx-5 md:mx-0 px-5 md:px-0 overflow-x-auto snap-x snap-mandatory md:overflow-visible [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-              <div className="flex md:grid md:grid-cols-3 gap-3 pb-1 md:pb-0">
-                {realReviews.map((r) => (
-                  <div key={r.id} className="snap-start shrink-0 w-[78vw] max-w-[320px] md:w-auto md:max-w-none rounded-2xl border border-border bg-background p-4 md:p-5">
-                    <div className="flex items-center gap-2 mb-2">
-                      <span className="h-9 w-9 rounded-full bg-surface inline-flex items-center justify-center text-[13px] font-semibold">{r.user.slice(0, 1)}</span>
-                      <div className="min-w-0">
-                        <div className="text-[13px] font-medium">{r.user}</div>
-                        <div className="text-[10px] text-muted-foreground truncate">{r.project}</div>
-                      </div>
-                      <span className="ml-auto inline-flex items-center gap-0.5 text-[12px] shrink-0"><Star className="h-3.5 w-3.5 fill-[#FFB400] text-[#FFB400]" />{r.rating}</span>
+            <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-3">
+              {realReviews.slice(0, 6).map((r) => (
+                <div key={r.id} className="rounded-2xl border border-border bg-background p-4 md:p-5">
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className="h-9 w-9 rounded-full bg-surface inline-flex items-center justify-center text-[13px] font-semibold shrink-0">{r.user.slice(0, 1)}</span>
+                    <div className="min-w-0">
+                      <div className="text-[13px] font-medium">{r.user}</div>
+                      <div className="text-[10px] text-muted-foreground truncate">{r.project}</div>
                     </div>
-                    <p className="text-[13px] leading-6 line-clamp-3 text-muted-foreground">&ldquo;{r.content}&rdquo;</p>
+                    <span className="ml-auto inline-flex items-center gap-0.5 text-[12px] shrink-0"><Star className="h-3.5 w-3.5 fill-[#FFB400] text-[#FFB400]" />{r.rating}</span>
                   </div>
-                ))}
-              </div>
+                  <p className="text-[13px] leading-6 line-clamp-3 text-muted-foreground">&ldquo;{r.content}&rdquo;</p>
+                </div>
+              ))}
             </div>
           </Container>
         </section>
