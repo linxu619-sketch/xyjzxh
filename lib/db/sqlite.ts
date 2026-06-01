@@ -261,6 +261,36 @@ CREATE TABLE IF NOT EXISTS training_enrollments (
 );
 CREATE INDEX IF NOT EXISTS idx_tenroll_t ON training_enrollments(training_id, created_at);
 CREATE INDEX IF NOT EXISTS idx_tenroll_p ON training_enrollments(practitioner_phone, created_at);
+
+CREATE TABLE IF NOT EXISTS supply_products (
+  id           INTEGER PRIMARY KEY AUTOINCREMENT,
+  name         TEXT,
+  category     TEXT,
+  unit         TEXT,
+  spec         TEXT,
+  supplier     TEXT,
+  market_price INTEGER,
+  member_price INTEGER,
+  status       TEXT DEFAULT 'active', -- active | off
+  created_at   INTEGER
+);
+CREATE INDEX IF NOT EXISTS idx_supply_status ON supply_products(status, created_at);
+
+CREATE TABLE IF NOT EXISTS supply_orders (
+  id              INTEGER PRIMARY KEY AUTOINCREMENT,
+  enterprise_id   TEXT,
+  enterprise_name TEXT,
+  product_id      INTEGER,
+  product_name    TEXT,
+  unit            TEXT,
+  qty             INTEGER,
+  unit_price      INTEGER,
+  total           INTEGER,
+  status          TEXT DEFAULT 'pending', -- pending | confirmed | shipped | done
+  created_at      INTEGER
+);
+CREATE INDEX IF NOT EXISTS idx_sorder_ent ON supply_orders(enterprise_id, created_at);
+CREATE INDEX IF NOT EXISTS idx_sorder_status ON supply_orders(status, created_at);
 `;
 
 function seedEnterprises(db: DB) {
@@ -482,7 +512,26 @@ function init(): DB {
   seedAccounts(db);
   seedNews(db);
   seedTrainings(db);
+  seedSupplyProducts(db);
   return db;
+}
+
+function seedSupplyProducts(db: DB) {
+  if (!isEmpty(db, "supply_products")) return;
+  // [name, category, unit, spec, supplier, market_price, member_price]
+  const rows: [string, string, string, string, string, number, number][] = [
+    ["立邦多乐士内墙乳胶漆", "墙面涂料", "桶(18L)", "净味五合一", "立邦中国", 580, 459],
+    ["东方雨虹防水涂料", "防水材料", "组(20kg)", "JS聚合物水泥基", "东方雨虹", 320, 245],
+    ["伟星PPR给水管", "水电材料", "支(4m)", "DN25 冷热通用", "伟星新材", 38, 27],
+    ["西门子开关插座", "电气", "个", "致典系列 五孔", "西门子", 45, 32],
+    ["圣象多层实木地板", "地板", "㎡", "E0级 锁扣", "圣象集团", 268, 199],
+    ["蒙娜丽莎瓷砖", "瓷砖", "㎡", "750×1500 通体大理石", "蒙娜丽莎", 188, 138],
+  ];
+  const stmt = db.prepare(
+    "INSERT INTO supply_products (name,category,unit,spec,supplier,market_price,member_price,status,created_at) VALUES (?,?,?,?,?,?,?, 'active', ?)",
+  );
+  const now = Date.now();
+  rows.forEach((r, i) => stmt.run(r[0], r[1], r[2], r[3], r[4], r[5], r[6], now - i * 3600000));
 }
 
 function seedTrainings(db: DB) {
