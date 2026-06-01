@@ -48,6 +48,10 @@ export function CasesManager({ cases }: { cases: CaseItem[] }) {
               </div>
             </div>
           </div>
+          <div>
+            <div className="text-[12px] font-medium mb-1.5">项目描述（选填，展示在案例详情页）</div>
+            <textarea name="detail" rows={3} placeholder="如：三居室整装，全屋定制到顶，18 道工序质检交付，工期 75 天…" className="w-full rounded-xl border border-border bg-background px-3.5 py-2.5 text-[14px] outline-none focus:border-foreground/30 resize-none" />
+          </div>
           <div className="flex items-center gap-3">
             <button type="submit" disabled={!cover} className="h-10 px-5 rounded-full bg-accent-tea text-white text-[13px] font-medium inline-flex items-center gap-1.5 disabled:opacity-50">
               <Plus className="h-3.5 w-3.5" /> 保存案例

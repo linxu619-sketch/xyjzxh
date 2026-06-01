@@ -44,7 +44,7 @@ export default async function TenantHome({ params }: { params: Promise<{ tenant:
   const team = listTeamByEnterprise(e.id);
 
   return (
-    <>
+    <div className="overflow-x-hidden">
       {/* Hero · 移动收紧 + 渐变 */}
       <section className={cn("relative overflow-hidden text-white py-10 md:py-16", BG[e.color])}>
         <div className="absolute inset-0 opacity-30" style={{
@@ -151,7 +151,7 @@ export default async function TenantHome({ params }: { params: Promise<{ tenant:
               <div className="md:hidden mt-6 -mx-5 px-5 overflow-x-auto snap-x snap-mandatory [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
                 <div className="flex gap-3 pb-2">
                   {cases.map((c) => (
-                    <div key={c.id} className="snap-start shrink-0 w-[64vw] max-w-[240px] group relative aspect-[4/3] rounded-2xl overflow-hidden bg-foreground/5">
+                    <Link key={c.id} href={`/biz/${tenant}/cases/${c.id}`} className="snap-start shrink-0 w-[64vw] max-w-[240px] group relative aspect-[4/3] rounded-2xl overflow-hidden bg-foreground/5 active:scale-[0.99] transition-transform">
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img src={c.cover} alt={c.title} className="absolute inset-0 h-full w-full object-cover" />
                       <div className="absolute inset-0 bg-gradient-to-t from-foreground/70 via-transparent to-transparent" />
@@ -159,24 +159,24 @@ export default async function TenantHome({ params }: { params: Promise<{ tenant:
                         <div className="text-[13px] font-medium line-clamp-1">{c.title}</div>
                         <div className="text-[11px] opacity-80 mt-0.5">{[c.area && `${c.area}㎡`, c.tag].filter(Boolean).join(" · ")}</div>
                       </div>
-                    </div>
+                    </Link>
                   ))}
                 </div>
-                <div className="mt-1 text-[10px] text-muted-foreground text-center">← 左右滑动 →</div>
+                <div className="mt-1 text-[10px] text-muted-foreground text-center">← 左右滑动 · 点开看详情 →</div>
               </div>
 
               {/* 桌面网格 */}
               <div className="hidden md:grid mt-10 grid-cols-4 gap-4">
                 {cases.map((c) => (
-                  <div key={c.id} className="group relative aspect-[4/3] rounded-2xl overflow-hidden bg-foreground/5 hover:shadow-lg transition-all hover:-translate-y-1">
+                  <Link key={c.id} href={`/biz/${tenant}/cases/${c.id}`} className="group relative aspect-[4/3] rounded-2xl overflow-hidden bg-foreground/5 hover:shadow-lg transition-all hover:-translate-y-1">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={c.cover} alt={c.title} className="absolute inset-0 h-full w-full object-cover" />
+                    <img src={c.cover} alt={c.title} className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" />
                     <div className="absolute inset-0 bg-gradient-to-t from-foreground/70 via-transparent to-transparent" />
                     <div className="absolute bottom-3 left-3 right-3 text-white">
                       <div className="text-[14px] font-medium line-clamp-1">{c.title}</div>
                       <div className="text-[12px] opacity-80 mt-0.5">{[c.area && `${c.area}㎡`, c.tag].filter(Boolean).join(" · ")}</div>
                     </div>
-                  </div>
+                  </Link>
                 ))}
               </div>
             </>
@@ -197,28 +197,28 @@ export default async function TenantHome({ params }: { params: Promise<{ tenant:
           <div className="md:hidden mt-6 -mx-5 px-5 overflow-x-auto snap-x snap-mandatory [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
             <div className="flex gap-3 pb-2">
               {team.map((m) => (
-                <div key={m.id} className="snap-start shrink-0 w-[40vw] max-w-[160px] rounded-3xl border border-border bg-background p-4 text-center">
+                <Link key={m.id} href={`/biz/${tenant}/team/${m.id}`} className="snap-start shrink-0 w-[40vw] max-w-[160px] rounded-3xl border border-border bg-background p-4 text-center active:scale-[0.99] transition-transform">
                   <div className={cn("mx-auto h-14 w-14 rounded-full text-white flex items-center justify-center text-[20px] font-semibold", BG[e.color])}>
                     {m.name.slice(0, 1)}
                   </div>
                   <div className="mt-2 text-[13px] font-semibold">{m.name}</div>
                   <div className="text-[10px] text-muted-foreground">{m.role}</div>
                   <div className="mt-1 text-[9px] text-muted-foreground line-clamp-2">{m.exp}</div>
-                </div>
+                </Link>
               ))}
             </div>
           </div>
 
           <div className="hidden md:grid mt-10 grid-cols-4 gap-4">
             {team.map((m) => (
-              <div key={m.id} className="rounded-3xl border border-border bg-background p-5 text-center hover:shadow-md transition-shadow">
+              <Link key={m.id} href={`/biz/${tenant}/team/${m.id}`} className="rounded-3xl border border-border bg-background p-5 text-center hover:shadow-md transition-shadow hover:-translate-y-0.5">
                 <div className={cn("mx-auto h-20 w-20 rounded-full text-white flex items-center justify-center text-[26px] font-semibold", BG[e.color])}>
                   {m.name.slice(0, 1)}
                 </div>
                 <div className="mt-3 text-[15px] font-semibold">{m.name}</div>
                 <div className="text-[12px] text-muted-foreground">{m.role}</div>
-                <div className="mt-2 text-[11px] text-muted-foreground">{m.exp}</div>
-              </div>
+                <div className="mt-2 text-[11px] text-muted-foreground line-clamp-2">{m.exp}</div>
+              </Link>
             ))}
           </div>
         </Container>
@@ -304,7 +304,7 @@ export default async function TenantHome({ params }: { params: Promise<{ tenant:
       </section>
 
       {/* Final CTA */}
-      <section id="contact" className="pt-8 md:pt-12 pb-28 md:pb-16">
+      <section id="contact" className="pt-8 md:pt-12 pb-10 md:pb-16">
         <Container>
           <div className={cn(
             "relative overflow-hidden rounded-[28px] md:rounded-[40px] p-7 md:p-14 text-white",
@@ -327,36 +327,7 @@ export default async function TenantHome({ params }: { params: Promise<{ tenant:
         </Container>
       </section>
 
-      {/* 移动端 sticky 底部 CTA · 桌面隐藏 */}
-      <div className="md:hidden fixed bottom-3 inset-x-0 z-30 px-3 pointer-events-none">
-        <div className="pointer-events-auto mx-auto max-w-md rounded-full bg-foreground text-background shadow-[0_20px_40px_-10px_rgba(0,0,0,0.4)] flex items-center gap-1.5 p-1.5">
-          <a
-            href={`tel:${e.contact.tel.replace(/-/g, "")}`}
-            className="h-11 w-11 inline-flex items-center justify-center rounded-full bg-accent-tea text-white shrink-0"
-            aria-label={`致电 ${e.contact.tel}`}
-          >
-            <Phone className="h-4 w-4" />
-          </a>
-          <Link
-            href={`/biz/${tenant}/inquiry`}
-            className="h-11 w-11 inline-flex items-center justify-center rounded-full bg-white/10 text-background shrink-0"
-            aria-label="在线咨询"
-          >
-            <MessageSquareText className="h-4 w-4" />
-          </Link>
-          <Link
-            href={`/biz/${tenant}/order`}
-            className={cn(
-              "flex-1 h-11 inline-flex items-center justify-center gap-1.5 rounded-full text-white text-[13px] font-medium",
-              BG[e.color],
-            )}
-          >
-            立即下单 / 预约
-            <ArrowRight className="h-3.5 w-3.5" />
-          </Link>
-        </div>
-      </div>
-    </>
+    </div>
   );
 }
 

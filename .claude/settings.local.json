@@ -129,7 +129,8 @@
       "Bash(awk -F: '{print $1\": \"$2}')",
       "Bash(awk '!seen[$2]++')",
       "Bash(echo \"exit=$?\")",
-      "PowerShell(try { Get-NetConnectionProfile | Select-Object InterfaceAlias, NetworkCategory, IPv4Connectivity | Format-Table -AutoSize } catch { Write-Output \"查询失败\\(可能需管理员\\): $_\" })"
+      "PowerShell(try { Get-NetConnectionProfile | Select-Object InterfaceAlias, NetworkCategory, IPv4Connectivity | Format-Table -AutoSize } catch { Write-Output \"查询失败\\(可能需管理员\\): $_\" })",
+      "Bash(ls -1 \"app/biz\" \"app/biz/[tenant]\")"
     ]
   }
 }

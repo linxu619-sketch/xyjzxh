@@ -12,6 +12,7 @@ export type EnterpriseCase = {
   cover: string;
   area: string;
   tag: string;
+  detail: string;
   createdAt: number;
 };
 
@@ -22,6 +23,7 @@ type Row = {
   cover: string | null;
   area: string | null;
   tag: string | null;
+  detail: string | null;
   created_at: number | null;
 };
 
@@ -33,6 +35,7 @@ function rowTo(r: Row): EnterpriseCase {
     cover: r.cover ?? "",
     area: r.area ?? "",
     tag: r.tag ?? "",
+    detail: r.detail ?? "",
     createdAt: r.created_at ?? 0,
   };
 }
@@ -50,10 +53,11 @@ export function createCase(input: {
   cover: string;
   area?: string;
   tag?: string;
+  detail?: string;
 }): number {
   const info = getDb()
-    .prepare("INSERT INTO enterprise_cases (enterprise_id,title,cover,area,tag,created_at) VALUES (?,?,?,?,?,?)")
-    .run(input.enterpriseId, input.title, input.cover, input.area ?? "", input.tag ?? "", Date.now());
+    .prepare("INSERT INTO enterprise_cases (enterprise_id,title,cover,area,tag,detail,created_at) VALUES (?,?,?,?,?,?,?)")
+    .run(input.enterpriseId, input.title, input.cover, input.area ?? "", input.tag ?? "", input.detail ?? "", Date.now());
   return Number(info.lastInsertRowid);
 }
 

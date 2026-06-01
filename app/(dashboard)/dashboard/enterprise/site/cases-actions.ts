@@ -25,6 +25,7 @@ export async function createCaseAction(fd: FormData) {
     cover,
     area: String(fd.get("area") || "").trim(),
     tag: String(fd.get("tag") || "").trim(),
+    detail: String(fd.get("detail") || "").trim(),
   });
 
   const ent = await getEnterpriseBySlugOrId(s.enterpriseId!);
