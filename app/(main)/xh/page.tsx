@@ -1,13 +1,12 @@
 import Link from "next/link";
 import {
-  ArrowRight, ArrowUpRight, Megaphone, Building2, UserRound,
+  ArrowRight, ArrowUpRight, Newspaper, Building2, UserRound,
   FileCheck2, ShoppingBag, Wallet, Umbrella, Library, GraduationCap,
   Globe2, CalendarDays, Star, ShieldCheck, Sparkles, ChevronRight,
 } from "lucide-react";
 import { Container } from "@/components/container";
 import { Badge } from "@/components/ui/badge";
 import { Numbers } from "@/components/sections/numbers";
-import { News } from "@/components/sections/news";
 import { AiTeam } from "@/components/sections/ai-team";
 import { SITE } from "@/lib/site";
 import { ENTERPRISES } from "@/lib/data/enterprises";
@@ -56,12 +55,13 @@ const BG: Record<string, string> = {
 const FEATURED = ENTERPRISES.filter((e) => e.featured).slice(0, 6);
 
 // 协会门户（xh.xyjzxh.com）首页 — 面向会员（企业会员 + 个人会员）的服务与交流平台
+// 内容优先排序：Hero → 办事大厅 → 资讯中心 → 活动培训 → 会员风采 → 数据墙 → 入会引导 → AI
 export default async function AssociationHome() {
-  const notices = listPublished().slice(0, 4);
+  const notices = listPublished().slice(0, 6);
   const trainings = listOpenTrainings().slice(0, 3);
   return (
     <>
-      {/* HERO — 会员之家 */}
+      {/* HERO — 会员之家（精简，仅身份与信任标识） */}
       <section className="relative overflow-hidden">
         <div className="absolute inset-0 bg-mesh" aria-hidden />
         <div className="absolute -top-32 -left-20 h-72 w-72 rounded-full bg-brand/15 blur-3xl" aria-hidden />
@@ -88,64 +88,7 @@ export default async function AssociationHome() {
         </Container>
       </section>
 
-      {/* 数据墙 */}
-      <Numbers />
-
-      {/* 协会公告 & 通知 */}
-      <section className="py-8 md:py-12">
-        <Container>
-          <div className="flex items-end justify-between gap-4 mb-6 md:mb-8">
-            <div>
-              <div className="text-[12px] tracking-[0.2em] text-brand uppercase font-medium inline-flex items-center gap-1.5">
-                <Megaphone className="h-3.5 w-3.5" /> NOTICES · 协会公告
-              </div>
-              <h2 className="mt-2 text-[26px] md:text-[40px] font-semibold tracking-tight">公告与通知</h2>
-            </div>
-            <Link href="/news" className="text-[13px] text-brand shrink-0">查看全部 →</Link>
-          </div>
-          <div className="rounded-3xl border border-border bg-background divide-y divide-border overflow-hidden">
-            {notices.length === 0 ? (
-              <div className="px-6 py-10 text-center text-[13px] text-muted-foreground">暂无公告。</div>
-            ) : notices.map((a) => (
-              <Link key={a.id} href={`/news/${a.id}`} className="flex items-center gap-3 md:gap-4 px-4 md:px-6 py-4 hover:bg-surface transition-colors group">
-                <Badge tone="brand" className="!px-2 !py-0.5 shrink-0">{a.category}</Badge>
-                <span className="flex-1 min-w-0 truncate text-[14px] md:text-[15px] group-hover:text-brand transition-colors">{a.title}</span>
-                <span className="text-[12px] text-muted-foreground shrink-0 tabular-nums">{fmtDate(a.createdAt)}</span>
-                <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0 hidden sm:block" />
-              </Link>
-            ))}
-          </div>
-        </Container>
-      </section>
-
-      {/* 两类会员专区 */}
-      <section id="join" className="py-8 md:py-12 bg-surface scroll-mt-16">
-        <Container>
-          <div className="text-center max-w-2xl mx-auto mb-8 md:mb-12">
-            <div className="text-[12px] tracking-[0.2em] text-brand uppercase font-medium">MEMBERSHIP · 会员通道</div>
-            <h2 className="mt-2 text-[26px] md:text-[40px] font-semibold tracking-tight">两类会员，各得其所</h2>
-            <p className="mt-3 text-[14px] text-muted-foreground">企业以单位入会，专业个人以个人身份入会 — 权益与服务各有侧重。</p>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-5">
-            <MemberCard
-              icon={Building2}
-              tone="build"
-              title="企业会员"
-              who="建筑施工 · 装饰装修 · 设计公司"
-              perks={["二级域名子站 · 在线接单", "工装报备直通省厅", "流量分发与协会认证", "建材集采 · 金融保险优惠", "企业经营后台 + AI 员工"]}
-            />
-            <MemberCard
-              icon={UserRound}
-              tone="design"
-              title="个人会员"
-              who="独立设计师 · 项目经理 · 监理 · 独立工长"
-              perks={["协会认证个人主页 / 名片", "专业认证徽章背书", "项目对接与接单", "工伤 / 意外保险保障", "培训、继续教育与证书"]}
-            />
-          </div>
-        </Container>
-      </section>
-
-      {/* 会员办事大厅 */}
+      {/* 会员办事大厅 —— 会员最高频，功能入口前置 */}
       <section id="services" className="py-8 md:py-12 scroll-mt-16">
         <Container>
           <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4 mb-8 md:mb-12">
@@ -173,33 +116,27 @@ export default async function AssociationHome() {
         </Container>
       </section>
 
-      {/* 会员风采 */}
+      {/* 资讯中心 —— 公告通知 + 行业新闻合并（同源 listPublished，去重展示） */}
       <section className="py-8 md:py-12 bg-surface">
         <Container>
-          <div className="flex items-end justify-between gap-4 mb-6 md:mb-10">
+          <div className="flex items-end justify-between gap-4 mb-6 md:mb-8">
             <div>
-              <div className="text-[12px] tracking-[0.2em] text-cat-build uppercase font-medium">MEMBERS · 会员风采</div>
-              <h2 className="mt-2 text-[26px] md:text-[40px] font-semibold tracking-tight">优秀会员单位</h2>
+              <div className="text-[12px] tracking-[0.2em] text-brand uppercase font-medium inline-flex items-center gap-1.5">
+                <Newspaper className="h-3.5 w-3.5" /> INFO · 资讯中心
+              </div>
+              <h2 className="mt-2 text-[26px] md:text-[40px] font-semibold tracking-tight">公告 · 政策 · 行业动态</h2>
             </div>
-            <Link href="/members" className="text-[13px] text-brand shrink-0">全部会员 →</Link>
+            <Link href="/news" className="text-[13px] text-brand shrink-0">查看全部 →</Link>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">
-            {FEATURED.map((e) => (
-              <Link key={e.id} href={`/members/${e.slug}`} className="group rounded-3xl border border-border bg-background p-5 hover:shadow-md transition-all md:hover:-translate-y-0.5">
-                <div className="flex items-center gap-3">
-                  <span className={cn("h-12 w-12 rounded-2xl text-white inline-flex items-center justify-center font-semibold", BG[e.color] ?? "bg-brand")}>
-                    {e.hero.brand.slice(0, 1)}
-                  </span>
-                  <div className="min-w-0">
-                    <div className="text-[15px] font-semibold truncate">{e.name}</div>
-                    <div className="text-[11px] text-muted-foreground">{e.district} · {e.staff}</div>
-                  </div>
-                </div>
-                <div className="mt-3 text-[13px] text-muted-foreground line-clamp-2">{e.short}</div>
-                <div className="mt-3 pt-3 border-t border-border flex items-center justify-between text-[12px]">
-                  <span className="inline-flex items-center gap-1"><Star className="h-3.5 w-3.5 fill-[#FFB400] text-[#FFB400]" /><span className="font-semibold">{e.rating.toFixed(1)}</span><span className="text-muted-foreground">({e.reviews})</span></span>
-                  <span className="text-muted-foreground">{e.cases} 案例</span>
-                </div>
+          <div className="rounded-3xl border border-border bg-background divide-y divide-border overflow-hidden">
+            {notices.length === 0 ? (
+              <div className="px-6 py-10 text-center text-[13px] text-muted-foreground">暂无资讯。</div>
+            ) : notices.map((a) => (
+              <Link key={a.id} href={`/news/${a.id}`} className="flex items-center gap-3 md:gap-4 px-4 md:px-6 py-4 hover:bg-surface transition-colors group">
+                <Badge tone="brand" className="!px-2 !py-0.5 shrink-0">{a.category}</Badge>
+                <span className="flex-1 min-w-0 truncate text-[14px] md:text-[15px] group-hover:text-brand transition-colors">{a.title}</span>
+                <span className="text-[12px] text-muted-foreground shrink-0 tabular-nums">{fmtDate(a.createdAt)}</span>
+                <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0 hidden sm:block" />
               </Link>
             ))}
           </div>
@@ -240,8 +177,68 @@ export default async function AssociationHome() {
         </Container>
       </section>
 
-      {/* 行业新闻 & 政策 */}
-      <News />
+      {/* 会员风采 */}
+      <section className="py-8 md:py-12 bg-surface">
+        <Container>
+          <div className="flex items-end justify-between gap-4 mb-6 md:mb-10">
+            <div>
+              <div className="text-[12px] tracking-[0.2em] text-cat-build uppercase font-medium">MEMBERS · 会员风采</div>
+              <h2 className="mt-2 text-[26px] md:text-[40px] font-semibold tracking-tight">优秀会员单位</h2>
+            </div>
+            <Link href="/members" className="text-[13px] text-brand shrink-0">全部会员 →</Link>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">
+            {FEATURED.map((e) => (
+              <Link key={e.id} href={`/members/${e.slug}`} className="group rounded-3xl border border-border bg-background p-5 hover:shadow-md transition-all md:hover:-translate-y-0.5">
+                <div className="flex items-center gap-3">
+                  <span className={cn("h-12 w-12 rounded-2xl text-white inline-flex items-center justify-center font-semibold", BG[e.color] ?? "bg-brand")}>
+                    {e.hero.brand.slice(0, 1)}
+                  </span>
+                  <div className="min-w-0">
+                    <div className="text-[15px] font-semibold truncate">{e.name}</div>
+                    <div className="text-[11px] text-muted-foreground">{e.district} · {e.staff}</div>
+                  </div>
+                </div>
+                <div className="mt-3 text-[13px] text-muted-foreground line-clamp-2">{e.short}</div>
+                <div className="mt-3 pt-3 border-t border-border flex items-center justify-between text-[12px]">
+                  <span className="inline-flex items-center gap-1"><Star className="h-3.5 w-3.5 fill-[#FFB400] text-[#FFB400]" /><span className="font-semibold">{e.rating.toFixed(1)}</span><span className="text-muted-foreground">({e.reviews})</span></span>
+                  <span className="text-muted-foreground">{e.cases} 案例</span>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </Container>
+      </section>
+
+      {/* 数据墙 —— 规模佐证，靠后展示 */}
+      <Numbers />
+
+      {/* 两类会员入会引导 —— 放最后，顶栏已有「申请入会」常驻入口 */}
+      <section id="join" className="py-8 md:py-12 bg-surface scroll-mt-16">
+        <Container>
+          <div className="text-center max-w-2xl mx-auto mb-8 md:mb-12">
+            <div className="text-[12px] tracking-[0.2em] text-brand uppercase font-medium">MEMBERSHIP · 会员通道</div>
+            <h2 className="mt-2 text-[26px] md:text-[40px] font-semibold tracking-tight">两类会员，各得其所</h2>
+            <p className="mt-3 text-[14px] text-muted-foreground">企业以单位入会，专业个人以个人身份入会 — 权益与服务各有侧重。</p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-5">
+            <MemberCard
+              icon={Building2}
+              tone="build"
+              title="企业会员"
+              who="建筑施工 · 装饰装修 · 设计公司"
+              perks={["二级域名子站 · 在线接单", "工装报备直通省厅", "流量分发与协会认证", "建材集采 · 金融保险优惠", "企业经营后台 + AI 员工"]}
+            />
+            <MemberCard
+              icon={UserRound}
+              tone="design"
+              title="个人会员"
+              who="独立设计师 · 项目经理 · 监理 · 独立工长"
+              perks={["协会认证个人主页 / 名片", "专业认证徽章背书", "项目对接与接单", "工伤 / 意外保险保障", "培训、继续教育与证书"]}
+            />
+          </div>
+        </Container>
+      </section>
 
       {/* 面向会员的 AI 助手 */}
       <AiTeam />
