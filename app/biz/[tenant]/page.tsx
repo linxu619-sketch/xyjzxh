@@ -103,10 +103,10 @@ export default async function TenantHome({ params }: { params: Promise<{ tenant:
       {/* 精选案例 — 内容优先 */}
       <section id="cases" className="py-7 md:py-10 bg-surface">
         <Container>
-          <SectionTitle eyebrow="CASES · 作品" title="精选案例" sub={cases.length ? `${cases.length} 个项目` : undefined} />
+          <SectionTitle eyebrow="CASES · 作品" title="精选案例" moreHref={cases.length > 0 ? `/biz/${tenant}/cases` : undefined} moreClassName={TEXT[e.color]} />
           {cases.length > 0 ? (
             <div className="mt-4 grid grid-cols-2 md:grid-cols-4 gap-2.5 md:gap-3">
-              {cases.map((c) => (
+              {cases.slice(0, 4).map((c) => (
                 <Link key={c.id} href={`/biz/${tenant}/cases/${c.id}`} className="group relative aspect-[4/3] rounded-2xl overflow-hidden bg-foreground/5 active:scale-[0.99] hover:shadow-lg md:hover:-translate-y-1 transition-all">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img src={c.cover} alt={c.title} className="absolute inset-0 h-full w-full object-cover md:transition-transform md:duration-500 md:group-hover:scale-105" />
@@ -241,12 +241,16 @@ function Metric({ label, value }: { label: string; value: string }) {
   );
 }
 
-function SectionTitle({ eyebrow, title, sub }: { eyebrow: string; title: string; sub?: string }) {
+function SectionTitle({ eyebrow, title, sub, moreHref, moreClassName }: { eyebrow: string; title: string; sub?: string; moreHref?: string; moreClassName?: string }) {
   return (
     <div className="flex items-baseline gap-2.5">
       <h2 className="text-[20px] md:text-[26px] font-semibold tracking-tight">{title}</h2>
       {sub && <span className="text-[12px] text-muted-foreground">{sub}</span>}
-      <span className="ml-auto text-[10px] tracking-[0.2em] text-muted-foreground uppercase hidden sm:block">{eyebrow}</span>
+      {moreHref ? (
+        <Link href={moreHref} className={cn("ml-auto text-[13px] font-medium shrink-0 inline-flex items-center gap-0.5", moreClassName)}>更多 →</Link>
+      ) : (
+        <span className="ml-auto text-[10px] tracking-[0.2em] text-muted-foreground uppercase hidden sm:block">{eyebrow}</span>
+      )}
     </div>
   );
 }
