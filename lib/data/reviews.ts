@@ -40,6 +40,17 @@ export function listReviews(limit = 20): Review[] {
   return rows.map(rowTo);
 }
 
+// 按企业名匹配评价（企业口碑页用；评价以企业简称/全称存储）
+export function listReviewsByEnterprise(names: string[]): Review[] {
+  const set = names.map((n) => n.trim()).filter(Boolean);
+  if (!set.length) return [];
+  const ph = set.map(() => "?").join(",");
+  const rows = getDb()
+    .prepare(`SELECT * FROM reviews WHERE enterprise IN (${ph}) ORDER BY created_at DESC`)
+    .all(...set) as Row[];
+  return rows.map(rowTo);
+}
+
 export function listReviewsByUid(uid: string): Review[] {
   if (!uid) return [];
   const rows = getDb().prepare("SELECT * FROM reviews WHERE uid = ? ORDER BY created_at DESC").all(uid) as Row[];
