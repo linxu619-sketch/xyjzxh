@@ -291,6 +291,34 @@ CREATE TABLE IF NOT EXISTS supply_orders (
 );
 CREATE INDEX IF NOT EXISTS idx_sorder_ent ON supply_orders(enterprise_id, created_at);
 CREATE INDEX IF NOT EXISTS idx_sorder_status ON supply_orders(status, created_at);
+
+CREATE TABLE IF NOT EXISTS finance_products (
+  id          INTEGER PRIMARY KEY AUTOINCREMENT,
+  name        TEXT,
+  provider    TEXT,
+  type        TEXT,
+  rate_label  TEXT,
+  amount_label TEXT,
+  term_label  TEXT,
+  for_whom    TEXT,
+  color       TEXT,
+  status      TEXT DEFAULT 'active',
+  created_at  INTEGER
+);
+
+CREATE TABLE IF NOT EXISTS finance_applications (
+  id              INTEGER PRIMARY KEY AUTOINCREMENT,
+  enterprise_id   TEXT,
+  enterprise_name TEXT,
+  product_id      INTEGER,
+  product_name    TEXT,
+  amount          TEXT,
+  note            TEXT,
+  status          TEXT DEFAULT 'pending', -- pending | approved | rejected | disbursed
+  created_at      INTEGER
+);
+CREATE INDEX IF NOT EXISTS idx_finapp_ent ON finance_applications(enterprise_id, created_at);
+CREATE INDEX IF NOT EXISTS idx_finapp_status ON finance_applications(status, created_at);
 `;
 
 function seedEnterprises(db: DB) {
@@ -513,7 +541,24 @@ function init(): DB {
   seedNews(db);
   seedTrainings(db);
   seedSupplyProducts(db);
+  seedFinanceProducts(db);
   return db;
+}
+
+function seedFinanceProducts(db: DB) {
+  if (!isEmpty(db, "finance_products")) return;
+  // [name, provider, type, rate_label, amount_label, term_label, for_whom, color]
+  const rows: [string, string, string, string, string, string, string, string][] = [
+    ["建装贷", "中原银行信阳分行", "经营贷", "年化 3.45% 起", "≤ 500 万", "12-36 个月", "在册装修/建筑企业", "brand"],
+    ["工程保函", "中国建设银行", "保函", "费率 0.8% 起", "≤ 2000 万", "按工期", "承接工程项目企业", "build"],
+    ["工程款保理", "信阳农商银行", "保理", "年化 5.8% 起", "≤ 工程款 80%", "按账期", "有应收工程款企业", "decor"],
+    ["设备分期", "平安租赁", "融资租赁", "月费率 0.5% 起", "≤ 300 万", "12-24 个月", "需采购设备企业", "design"],
+  ];
+  const stmt = db.prepare(
+    "INSERT INTO finance_products (name,provider,type,rate_label,amount_label,term_label,for_whom,color,status,created_at) VALUES (?,?,?,?,?,?,?,?, 'active', ?)",
+  );
+  const now = Date.now();
+  rows.forEach((r, i) => stmt.run(r[0], r[1], r[2], r[3], r[4], r[5], r[6], r[7], now - i * 3600000));
 }
 
 function seedSupplyProducts(db: DB) {

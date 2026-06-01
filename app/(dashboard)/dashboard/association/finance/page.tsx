@@ -1,103 +1,107 @@
-import { Wallet, TrendingUp, ShieldCheck, Sparkles } from "lucide-react";
+import { Wallet, Landmark, Umbrella, CheckCircle2, XCircle, Banknote } from "lucide-react";
 import { AssociationShell } from "@/components/dashboard/shell";
+import { StatFilters } from "@/components/dashboard/stat-filters";
 import { Badge } from "@/components/ui/badge";
-import { FINANCE_PRODUCTS, INSURANCE_PRODUCTS } from "@/lib/data/finance";
+import { listFinanceProducts, listAllFinanceApps, type FinAppStatus } from "@/lib/data/finance-source";
 import { listInsuranceOrders } from "@/lib/data/insurance-orders";
+import { reviewFinanceAppAction } from "./actions";
 
-export const metadata = { title: "金融保险合作 · 协会工作台" };
+export const metadata = { title: "金融保险 · 协会工作台" };
 
-function fmt(ts: number) {
-  if (!ts) return "";
-  const d = new Date(ts);
-  return `${d.getMonth() + 1}-${String(d.getDate()).padStart(2, "0")}`;
+const FIN_LABEL: Record<FinAppStatus, string> = { pending: "待审核", approved: "已批准", rejected: "已驳回", disbursed: "已放款/出函" };
+const FIN_TONE: Record<FinAppStatus, "yellow" | "brand" | "decor" | "tea"> = { pending: "yellow", approved: "brand", rejected: "decor", disbursed: "tea" };
+const INS_LABEL: Record<string, string> = { pending: "待处理", contacted: "处理中", done: "已承保" };
+
+function fmt(ms: number) {
+  if (!ms) return "—";
+  const d = new Date(ms);
+  const p = (n: number) => String(n).padStart(2, "0");
+  return `${p(d.getMonth() + 1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}`;
 }
 
-export default function FinanceAdmin() {
-  const orders = listInsuranceOrders(50);
+export default async function FinanceAdmin({ searchParams }: { searchParams: Promise<{ f?: string }> }) {
+  const { f } = await searchParams;
+  const products = listFinanceProducts();
+  const allApps = listAllFinanceApps();
+  const insurance = listInsuranceOrders();
+  const FILTERABLE: FinAppStatus[] = ["pending", "approved", "rejected", "disbursed"];
+  const active = f && FILTERABLE.includes(f as FinAppStatus) ? (f as FinAppStatus) : undefined;
+  const apps = active ? allApps.filter((a) => a.status === active) : allApps;
+  const base = "/dashboard/association/finance";
+  const href = (st: FinAppStatus) => (active === st ? base : `${base}?f=${st}`);
+  const pending = allApps.filter((a) => a.status === "pending").length;
+
   return (
-    <AssociationShell
-      title="金融 / 保险 合作"
-      subtitle={`金融机构 12 家 · 保险公司 5 家 · 本月撮合 184 单 · 出单率 73%`}
-    >
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 mb-6">
-        {[
-          { l: "本月金融意向", v: 184, c: "text-cat-design", icon: Wallet },
-          { l: "撮合放款", v: "2.8 亿", c: "text-cat-build", icon: TrendingUp },
-          { l: "保险出单", v: 1284, c: "text-cat-decor", icon: ShieldCheck },
-          { l: "保费收入(月)", v: "92 万", c: "text-accent-tea", icon: Wallet },
-        ].map((s) => {
-          const Ic = s.icon;
-          return (
-            <div key={s.l} className="rounded-2xl border border-border bg-background p-5">
-              <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground"><Ic className="h-3.5 w-3.5" /> {s.l}</div>
-              <div className={`mt-1 text-[28px] font-semibold tracking-tight ${s.c}`}>{s.v}</div>
-            </div>
-          );
-        })}
+    <AssociationShell title="金融保险合作" subtitle={`合作产品 ${products.length} · 金融申请 ${allApps.length} · 待审 ${pending}`}>
+      <StatFilters
+        items={[
+          { key: "pending", label: "待审金融", value: pending, color: "text-accent-yellow", href: href("pending"), active: active === "pending" },
+          { key: "disbursed", label: "已放款/出函", value: allApps.filter((a) => a.status === "disbursed").length, color: "text-accent-tea", href: href("disbursed"), active: active === "disbursed" },
+          { key: "ins", label: "保险投保单", value: insurance.length, color: "text-cat-decor" },
+          { key: "all", label: "全部金融申请", value: allApps.length, color: "text-cat-build", href: base, active: !active },
+        ]}
+      />
+
+      {/* 金融申请审批 */}
+      <div className="rounded-2xl border border-border bg-background overflow-hidden mb-6">
+        <div className="px-5 py-3 border-b border-border text-[14px] font-semibold inline-flex items-center gap-1.5"><Landmark className="h-4 w-4" /> 企业金融申请</div>
+        {apps.length === 0 ? (
+          <div className="px-5 py-12 text-center text-[13px] text-muted-foreground">{active ? "没有该状态的申请。" : "暂无金融申请。企业在「金融保险」申请后会出现在这里。"}</div>
+        ) : (
+          <ul className="divide-y divide-border">
+            {apps.map((a) => (
+              <li key={a.id} className="px-5 py-3.5 flex items-center gap-3 text-[13px] flex-wrap">
+                <div className="flex-1 min-w-0">
+                  <div className="font-medium truncate">{a.productName} · {a.amount}</div>
+                  <div className="text-[11px] text-muted-foreground">{a.enterpriseName} · {fmt(a.createdAt)}</div>
+                </div>
+                <Badge tone={FIN_TONE[a.status]} className="shrink-0">{FIN_LABEL[a.status]}</Badge>
+                <div className="flex items-center gap-1.5 shrink-0">
+                  {a.status === "pending" && (
+                    <>
+                      <form action={reviewFinanceAppAction}><input type="hidden" name="id" value={a.id} /><input type="hidden" name="status" value="approved" /><button className="h-8 px-3 rounded-full bg-accent-tea text-white text-[12px] inline-flex items-center gap-1"><CheckCircle2 className="h-3 w-3" /> 批准</button></form>
+                      <form action={reviewFinanceAppAction}><input type="hidden" name="id" value={a.id} /><input type="hidden" name="status" value="rejected" /><button className="h-8 px-3 rounded-full border border-cat-decor/40 text-cat-decor text-[12px] inline-flex items-center gap-1"><XCircle className="h-3 w-3" /> 驳回</button></form>
+                    </>
+                  )}
+                  {a.status === "approved" && (
+                    <form action={reviewFinanceAppAction}><input type="hidden" name="id" value={a.id} /><input type="hidden" name="status" value="disbursed" /><button className="h-8 px-3 rounded-full bg-foreground text-background text-[12px] inline-flex items-center gap-1"><Banknote className="h-3 w-3" /> 标记放款</button></form>
+                  )}
+                </div>
+              </li>
+            ))}
+          </ul>
+        )}
       </div>
 
-      <section className="mb-10">
-        <h2 className="text-[18px] font-semibold mb-3 flex items-center gap-2">
-          <Wallet className="h-4 w-4 text-cat-design" /> 合作金融机构 / 产品
-        </h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-          {FINANCE_PRODUCTS.map((p) => (
-            <div key={p.id} className="rounded-2xl border border-border bg-background p-5">
-              <div className="flex items-center justify-between mb-2">
-                <div className="font-semibold">{p.name}</div>
-                <Badge tone="brand">{p.type}</Badge>
-              </div>
-              <div className="text-[12px] text-muted-foreground">{p.bank} · {p.rateLabel} · {p.amountLabel}</div>
-              <div className="mt-3 grid grid-cols-3 gap-2 text-center text-[11px]">
-                <div className="rounded-lg bg-surface py-2">本月意向<div className="text-[14px] font-semibold text-foreground mt-0.5">{40 - p.id.charCodeAt(1) % 12}</div></div>
-                <div className="rounded-lg bg-surface py-2">已放款<div className="text-[14px] font-semibold text-foreground mt-0.5">{18 - p.id.charCodeAt(1) % 8}</div></div>
-                <div className="rounded-lg bg-surface py-2">出单率<div className="text-[14px] font-semibold text-accent-tea mt-0.5">{60 + p.id.charCodeAt(1) % 30}%</div></div>
-              </div>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      <section>
-        <h2 className="text-[18px] font-semibold mb-3 flex items-center gap-2">
-          <ShieldCheck className="h-4 w-4 text-cat-decor" /> 合作保险公司 / 险种
-        </h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-          {INSURANCE_PRODUCTS.map((p) => (
-            <div key={p.id} className="rounded-2xl border border-border bg-background p-5">
-              <div className="flex items-center justify-between mb-2">
-                <div className="font-semibold">{p.name}</div>
-                <Badge tone="decor">{p.type}</Badge>
-              </div>
-              <div className="text-[12px] text-muted-foreground">{p.insurer} · {p.priceLabel} · {p.coverLabel}</div>
-              <div className="mt-3 grid grid-cols-3 gap-2 text-center text-[11px]">
-                <div className="rounded-lg bg-surface py-2">本月出单<div className="text-[14px] font-semibold text-foreground mt-0.5">{180 - p.id.charCodeAt(1) % 60}</div></div>
-                <div className="rounded-lg bg-surface py-2">理赔中<div className="text-[14px] font-semibold text-cat-decor mt-0.5">{6 - p.id.charCodeAt(1) % 3}</div></div>
-                <div className="rounded-lg bg-surface py-2">满意度<div className="text-[14px] font-semibold text-accent-tea mt-0.5">4.{6 + p.id.charCodeAt(1) % 3}</div></div>
-              </div>
-            </div>
-          ))}
-        </div>
-      </section>
-      {/* 在线投保申请（实时） */}
-      <div className="mt-6 rounded-2xl border border-border bg-background overflow-hidden">
-        <div className="px-5 py-3 border-b border-border flex items-center justify-between">
-          <div className="text-[14px] font-semibold">在线投保申请（实时）</div>
-          <Badge tone={orders.length ? "decor" : "tea"}>{orders.length} 条</Badge>
-        </div>
-        {orders.length === 0 ? (
-          <div className="px-5 py-8 text-center text-[13px] text-muted-foreground">暂无在线投保申请。用户在 /insurance 提交后会出现在这里。</div>
+      {/* 保险投保单（真实） */}
+      <div className="rounded-2xl border border-border bg-background overflow-hidden mb-6">
+        <div className="px-5 py-3 border-b border-border text-[14px] font-semibold inline-flex items-center gap-1.5"><Umbrella className="h-4 w-4" /> 保险投保单</div>
+        {insurance.length === 0 ? (
+          <div className="px-5 py-12 text-center text-[13px] text-muted-foreground">暂无投保单。</div>
         ) : (
-          <div className="divide-y divide-border">
-            {orders.map((o) => (
-              <div key={o.id} className="px-5 py-3.5 flex items-center gap-3 text-[13px]">
-                <span className="text-muted-foreground tabular-nums shrink-0">{fmt(o.createdAt)}</span>
-                <span className="font-medium shrink-0">{o.product}</span>
-                <span className="text-muted-foreground truncate flex-1">{o.applicant} · {o.phone}{o.note ? ` · ${o.note}` : ""}</span>
-              </div>
+          <ul className="divide-y divide-border">
+            {insurance.slice(0, 12).map((o) => (
+              <li key={o.id} className="px-5 py-3 flex items-center gap-3 text-[13px]">
+                <div className="flex-1 min-w-0">
+                  <div className="font-medium truncate">{o.product}</div>
+                  <div className="text-[11px] text-muted-foreground">{o.applicant} · {o.phone} · {fmt(o.createdAt)}</div>
+                </div>
+                <Badge tone={o.status === "done" ? "tea" : "yellow"} className="shrink-0">{INS_LABEL[o.status] ?? o.status}</Badge>
+              </li>
             ))}
-          </div>
+          </ul>
         )}
+      </div>
+
+      {/* 合作金融产品 */}
+      <h2 className="text-[16px] font-semibold mb-3 inline-flex items-center gap-1.5"><Wallet className="h-4 w-4" /> 合作金融产品</h2>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+        {products.map((p) => (
+          <div key={p.id} className="rounded-2xl border border-border bg-background p-4">
+            <div className="flex items-center gap-2"><span className="text-[14px] font-semibold flex-1">{p.name}</span><Badge tone="brand">{p.type}</Badge></div>
+            <div className="text-[11px] text-muted-foreground mt-0.5">{p.provider} · {p.rateLabel} · {p.amountLabel}</div>
+          </div>
+        ))}
       </div>
     </AssociationShell>
   );
