@@ -1,173 +1,185 @@
 import Link from "next/link";
 import {
-  ShieldCheck, CheckCircle2, Sparkles, AlertCircle, ChevronRight,
-  Users2, FileCheck2, MessageSquareWarning, Wallet, TrendingUp, Activity,
+  ShieldCheck, CheckCircle2, AlertCircle, ChevronRight,
+  Users2, FileCheck2, MessageSquareWarning, Newspaper, Sparkles,
 } from "lucide-react";
 import { AssociationShell } from "@/components/dashboard/shell";
 import { StatCard, Panel } from "@/components/dashboard/widgets";
 import { Badge } from "@/components/ui/badge";
+import { countByStatus, listApplications } from "@/lib/data/applications";
+import { listReports } from "@/lib/data/reports";
+import { listMediations } from "@/lib/data/mediations";
+import { getEnterprises } from "@/lib/data/enterprises-source";
+import { listPractitioners } from "@/lib/data/practitioners-source";
+import { listPublished } from "@/lib/data/news-source";
+import { questionCounts } from "@/lib/ai/knowledge-source";
+import { AI_EMPLOYEES } from "@/lib/site";
 
 export const metadata = { title: "协会工作台 · 信阳市建筑装饰装修协会" };
 
-const TODOS = [
-  { tag: "会员审核", color: "brand" as const,  title: "信阳同信建工 入会申请待复审", time: "2 小时前", urgent: true },
-  { tag: "报备",     color: "build" as const,  title: "P-2026-0512 茶博园景观二期 待审", time: "3 小时前", urgent: true },
-  { tag: "调解",     color: "decor" as const,  title: "WX 投诉：金茂悦府工期延误 7 天", time: "5 小时前", urgent: true },
-  { tag: "内容",     color: "design" as const, title: "建博会新闻稿待发布", time: "今天" },
-  { tag: "金融",     color: "tea" as const,    title: "中原银行 · 建装贷 5 月对账", time: "今天" },
-];
+const TYPE_LABEL: Record<string, string> = { enterprise: "企业会员", individual: "个人会员", customer: "业主" };
 
-const AI_USAGE = [
-  { name: "小协", topic: "入会咨询",  n: 284,  pct: 14 },
-  { name: "小装", topic: "C 端估价", n: 1812, pct: 90 },
-  { name: "小报", topic: "报备预审", n: 196,  pct: 10 },
-  { name: "小和", topic: "调解初筛", n: 47,   pct: 2.5 },
-];
-
-const PENDING_MEMBERS = [
-  { name: "信阳同信建工", cat: "建筑", date: "2026-05-29", status: "材料齐全", catColor: "build" as const },
-  { name: "明禾装饰工程", cat: "装修", date: "2026-05-28", status: "等待资质核验", catColor: "decor" as const },
-  { name: "鹿鸣空间设计", cat: "设计", date: "2026-05-27", status: "现场核查中", catColor: "design" as const },
-];
+function fmtToday() {
+  const d = new Date();
+  const wk = ["周日", "周一", "周二", "周三", "周四", "周五", "周六"][d.getDay()];
+  const p = (n: number) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())} · ${wk}`;
+}
+function fmtDate(ms: number) {
+  if (!ms) return "—";
+  const d = new Date(ms);
+  const p = (n: number) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`;
+}
 
 export default async function AssociationDashboard() {
+  const appCounts = countByStatus();
+  const pendingApps = listApplications("pending");
+  const pendingReports = listReports("pending");
+  const pendingMeds = listMediations("pending");
+  const enterprises = await getEnterprises();
+  const pracs = listPractitioners();
+  const news = listPublished();
+  const memberCount = enterprises.length + pracs.length;
+  const totalTodo = pendingApps.length + pendingReports.length + pendingMeds.length;
+
+  // 待办（真实，按来源汇总，链接到各详情）
+  const todos = [
+    ...pendingApps.map((a) => ({ tag: "会员审核", color: "brand" as const, title: `${a.applicant} · ${TYPE_LABEL[a.type] ?? a.type}待审`, href: `/dashboard/association/members/${a.id}` })),
+    ...pendingReports.map((r) => ({ tag: "报备", color: "build" as const, title: `${r.code} ${r.project} 待审`, href: `/dashboard/association/reports/${r.id}` })),
+    ...pendingMeds.map((m) => ({ tag: "调解", color: "decor" as const, title: `${m.applicant}：${m.detail}`, href: `/dashboard/association/mediations/${m.id}` })),
+  ].slice(0, 6);
+
+  // 平台 AI 本月真实用量
+  const monthStart = new Date(); monthStart.setDate(1); monthStart.setHours(0, 0, 0, 0);
+  const aiUsage = questionCounts(monthStart.getTime());
+  const aiName: Record<string, string> = Object.fromEntries(AI_EMPLOYEES.map((e) => [e.key, e.name]));
+  const topAi = Object.entries(aiUsage.byKey).sort((a, b) => b[1] - a[1]).slice(0, 5);
+
   return (
     <AssociationShell
       title="协会工作台 · 总览"
-      subtitle="今天 · 2026-05-30 · 周六 · 全平台健康"
+      subtitle={`今天 · ${fmtToday()}`}
       actions={
-        <>
-          <Link
-            href="/dashboard/association/reports"
-            className="h-9 px-4 rounded-full bg-foreground text-background text-[13px] font-medium inline-flex items-center gap-1.5 active:scale-95 transition-transform"
-          >
-            <CheckCircle2 className="h-3.5 w-3.5" /> 待审报备 12
-          </Link>
-        </>
+        <Link href="/dashboard/association/reports?f=pending" className="h-9 px-4 rounded-full bg-foreground text-background text-[13px] font-medium inline-flex items-center gap-1.5 active:scale-95 transition-transform">
+          <CheckCircle2 className="h-3.5 w-3.5" /> 待审报备 {pendingReports.length}
+        </Link>
       }
     >
-      {/* 紧急提醒条 */}
+      {/* 紧急提醒条（真实） */}
       <div className="mb-5 rounded-2xl bg-gradient-to-r from-brand to-brand-600 text-white p-4 flex items-center gap-3 shadow-md">
         <span className="relative h-9 w-9 rounded-xl bg-white/20 inline-flex items-center justify-center shrink-0">
           <AlertCircle className="h-5 w-5" />
-          <span className="absolute inset-0 rounded-xl bg-white/20 animate-ping opacity-40" />
+          {totalTodo > 0 && <span className="absolute inset-0 rounded-xl bg-white/20 animate-ping opacity-40" />}
         </span>
         <div className="flex-1 min-w-0">
-          <div className="text-[13px] font-semibold">22 项待办 · 7 会员审核 · 12 报备 · 3 调解</div>
-          <div className="text-[11px] text-white/85 mt-0.5">3 项调解距 14 天结案限期 ≤ 5 天</div>
+          <div className="text-[13px] font-semibold">{totalTodo} 项待办 · {pendingApps.length} 会员审核 · {pendingReports.length} 报备 · {pendingMeds.length} 调解</div>
+          <div className="text-[11px] text-white/85 mt-0.5">{totalTodo > 0 ? "点右侧逐项处理" : "暂无待办，一切就绪 ✓"}</div>
         </div>
-        <Link
-          href="/dashboard/association/members"
-          className="hidden md:inline-flex items-center gap-1 text-[12px] font-medium bg-accent-yellow text-foreground h-9 px-4 rounded-full"
-        >
+        <Link href="/dashboard/association/members" className="hidden md:inline-flex items-center gap-1 text-[12px] font-medium bg-accent-yellow text-foreground h-9 px-4 rounded-full">
           立即处理 <ChevronRight className="h-3 w-3" />
         </Link>
       </div>
 
-      {/* KPI */}
+      {/* KPI（真实） */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
-        <StatCard label="在册会员"     value="1,052" sub="较上月" trend={{ dir: "up", value: "12" }} color="brand" />
-        <StatCard label="本月报备"     value="187"   sub="待审 12" trend={{ dir: "up", value: "8.4%" }} color="build" />
-        <StatCard label="保险出单"     value="1,284" sub="本月" trend={{ dir: "up", value: "23%" }} color="decor" />
-        <StatCard label="待处理调解"  value="3"     sub="14 天结案率 94%" color="design" />
+        <StatCard label="待审会员" value={appCounts.pending} sub={`已通过 ${appCounts.approved}`} color="brand" />
+        <StatCard label="待审报备" value={pendingReports.length} sub="工装报备" color="build" />
+        <StatCard label="待处理调解" value={pendingMeds.length} sub="纠纷调解" color="decor" />
+        <StatCard label="在册会员" value={memberCount} sub={`企业 ${enterprises.length} · 个人 ${pracs.length}`} color="design" />
       </div>
 
       <div className="mt-6 grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-5">
-        {/* 待办 */}
-        <Panel
-          title="待办事项"
-          className="lg:col-span-2"
-          action={<Link href="#" className="text-[12px] text-brand inline-flex items-center gap-0.5">全部 22 <ChevronRight className="h-3 w-3" /></Link>}
+        {/* 待办（真实） */}
+        <Panel title="待办事项" className="lg:col-span-2"
+          action={<Link href="/dashboard/association/members" className="text-[12px] text-brand inline-flex items-center gap-0.5">会员审核 <ChevronRight className="h-3 w-3" /></Link>}
         >
-          <ul className="divide-y divide-border">
-            {TODOS.map((t, i) => (
-              <li key={i} className="flex items-center gap-3 py-3 text-[13px] active:bg-surface/60 transition-colors -mx-2 px-2 rounded-lg">
-                <Badge tone={t.color}>{t.tag}</Badge>
-                {t.urgent && <span className="text-[10px] text-cat-decor inline-flex items-center gap-0.5 shrink-0"><AlertCircle className="h-2.5 w-2.5" /></span>}
-                <span className="flex-1 truncate">{t.title}</span>
-                <span className="text-muted-foreground text-[11px] hidden md:inline shrink-0">{t.time}</span>
-                <Link href="#" className="text-brand text-[12px] font-medium shrink-0">处理</Link>
-              </li>
-            ))}
-          </ul>
+          {todos.length === 0 ? (
+            <div className="py-8 text-center text-[13px] text-muted-foreground">暂无待办，所有审核已处理完 ✓</div>
+          ) : (
+            <ul className="divide-y divide-border">
+              {todos.map((t, i) => (
+                <li key={i}>
+                  <Link href={t.href} className="flex items-center gap-3 py-3 text-[13px] hover:bg-surface transition-colors -mx-2 px-2 rounded-lg">
+                    <Badge tone={t.color}>{t.tag}</Badge>
+                    <span className="flex-1 truncate">{t.title}</span>
+                    <span className="text-brand text-[12px] font-medium shrink-0">处理 →</span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          )}
         </Panel>
 
-        {/* AI 员工对话 */}
-        <Panel
-          title="AI 员工本周对话"
-          action={<Link href="/dashboard/association/ai" className="text-[12px] text-brand">详情</Link>}
-        >
-          <ul className="space-y-3">
-            {AI_USAGE.map((a) => (
-              <li key={a.name} className="flex items-center gap-3">
-                <span className="h-9 w-9 rounded-xl bg-foreground text-background text-[12px] font-semibold inline-flex items-center justify-center shrink-0">
-                  {a.name.slice(-1)}
-                </span>
-                <div className="flex-1 min-w-0">
-                  <div className="text-[13px] font-medium">{a.name} <span className="text-muted-foreground font-normal text-[11px] ml-1">· {a.topic}</span></div>
-                  <div className="h-1.5 bg-surface rounded-full mt-1 overflow-hidden">
-                    <div
-                      className="h-full bg-gradient-to-r from-brand to-brand-600 rounded-full transition-all duration-700"
-                      style={{ width: `${a.pct}%` }}
-                    />
-                  </div>
-                </div>
-                <span className="text-[13px] font-semibold tabular-nums shrink-0">{a.n.toLocaleString()}</span>
-              </li>
-            ))}
-          </ul>
+        {/* AI 助手本月（平台真实） */}
+        <Panel title="AI 助手 · 平台本月" action={<Link href="/dashboard/association/ai" className="text-[12px] text-brand">配置</Link>}>
+          {topAi.length === 0 ? (
+            <div className="py-6 text-center text-[12px] text-muted-foreground">本月暂无 AI 咨询记录。</div>
+          ) : (
+            <ul className="space-y-3">
+              {topAi.map(([k, n]) => (
+                <li key={k} className="flex items-center gap-3">
+                  <span className="h-9 w-9 rounded-xl bg-foreground text-background text-[12px] font-semibold inline-flex items-center justify-center shrink-0">{(aiName[k] ?? k).slice(-1)}</span>
+                  <div className="flex-1 min-w-0 text-[13px] font-medium">{aiName[k] ?? k}</div>
+                  <span className="text-[13px] font-semibold tabular-nums shrink-0">{n.toLocaleString()}</span>
+                </li>
+              ))}
+            </ul>
+          )}
           <div className="mt-3 pt-3 border-t border-border flex items-center justify-between text-[12px]">
-            <span className="text-muted-foreground">本周总对话</span>
-            <span className="font-semibold tabular-nums">{AI_USAGE.reduce((a, x) => a + x.n, 0).toLocaleString()}</span>
+            <span className="text-muted-foreground">本月总对话</span>
+            <span className="font-semibold tabular-nums">{aiUsage.total.toLocaleString()}</span>
           </div>
         </Panel>
 
-        {/* 最新会员 */}
-        <Panel
-          title="最新会员申请"
+        {/* 最新会员申请（真实待审） */}
+        <Panel title="最新会员申请" className="lg:col-span-2"
           action={<Link href="/dashboard/association/members" className="text-[12px] text-brand">审核</Link>}
-          className="lg:col-span-2"
         >
-          <ul className="divide-y divide-border">
-            {PENDING_MEMBERS.map((m, i) => (
-              <li key={i} className="py-3 flex items-center gap-3 active:bg-surface/60 transition-colors -mx-2 px-2 rounded-lg">
-                <div className="h-10 w-10 rounded-xl bg-surface inline-flex items-center justify-center text-[12px] font-semibold shrink-0">
-                  {m.name.slice(0, 2)}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="text-[13px] font-medium truncate">{m.name}</div>
-                  <div className="text-[11px] text-muted-foreground inline-flex items-center gap-1.5 mt-0.5">
-                    <Badge tone={m.catColor} className="!text-[9px]">{m.cat}</Badge>
-                    <span>提交 {m.date}</span>
-                  </div>
-                </div>
-                <Badge tone={m.status === "材料齐全" ? "tea" : "yellow"}>{m.status}</Badge>
-              </li>
-            ))}
-          </ul>
+          {pendingApps.length === 0 ? (
+            <div className="py-8 text-center text-[13px] text-muted-foreground">暂无待审会员申请。</div>
+          ) : (
+            <ul className="divide-y divide-border">
+              {pendingApps.slice(0, 4).map((m) => (
+                <li key={m.id}>
+                  <Link href={`/dashboard/association/members/${m.id}`} className="py-3 flex items-center gap-3 hover:bg-surface transition-colors -mx-2 px-2 rounded-lg">
+                    <div className="h-10 w-10 rounded-xl bg-surface inline-flex items-center justify-center text-[12px] font-semibold shrink-0">{m.applicant.slice(0, 2)}</div>
+                    <div className="flex-1 min-w-0">
+                      <div className="text-[13px] font-medium truncate">{m.applicant}</div>
+                      <div className="text-[11px] text-muted-foreground inline-flex items-center gap-1.5 mt-0.5">
+                        <Badge tone={m.type === "enterprise" ? "build" : m.type === "individual" ? "design" : "decor"} className="!text-[9px]">{TYPE_LABEL[m.type] ?? m.type}</Badge>
+                        <span>提交 {fmtDate(m.createdAt)}</span>
+                      </div>
+                    </div>
+                    <Badge tone="yellow">待审核</Badge>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          )}
         </Panel>
 
-        {/* 平台健康 */}
-        <Panel title="平台健康" action={<span className="text-[10px] text-accent-tea inline-flex items-center gap-0.5"><span className="h-1.5 w-1.5 rounded-full bg-accent-tea animate-pulse" /> 实时</span>}>
+        {/* 平台规模（真实） */}
+        <Panel title="平台规模" action={<span className="text-[10px] text-accent-tea inline-flex items-center gap-0.5"><span className="h-1.5 w-1.5 rounded-full bg-accent-tea animate-pulse" /> 实时</span>}>
           <ul className="space-y-3 text-[13px]">
-            <HealthRow label="API 响应"      value="99.98%" tone="tea" />
-            <HealthRow label="报备审批 SLA"  value="≤ 24h"  tone="tea" />
-            <HealthRow label="调解结案率"    value="94%"    tone="brand" />
-            <HealthRow label="客诉满意度"    value="4.7"    tone="design" sub="/ 5.0" />
+            <ScaleRow icon={Users2} label="在册企业会员" value={enterprises.length} />
+            <ScaleRow icon={ShieldCheck} label="在册个人会员" value={pracs.length} />
+            <ScaleRow icon={Newspaper} label="已发布新闻" value={news.length} />
+            <ScaleRow icon={FileCheck2} label="累计入会申请" value={appCounts.pending + appCounts.approved + appCounts.rejected} />
           </ul>
           <div className="mt-4 rounded-xl bg-[#e6f7f1] text-accent-tea p-3 text-[11px] inline-flex items-center gap-1.5 w-full">
-            <ShieldCheck className="h-3.5 w-3.5 shrink-0" /> 所有指标处于绿色阈值
+            <Sparkles className="h-3.5 w-3.5 shrink-0" /> 数据来自本地数据库，实时更新
           </div>
         </Panel>
 
-        {/* 数据 mini 趋势 */}
-        <Panel title="本月数据趋势" className="lg:col-span-3" action={<Link href="#" className="text-[12px] text-brand">更多 →</Link>}>
+        {/* 本月概览（真实计数） */}
+        <Panel title="本月概览" className="lg:col-span-3">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {[
-              { label: "新会员", icon: Users2, value: 23, change: "+8", color: "text-brand" },
-              { label: "新报备", icon: FileCheck2, value: 187, change: "+14%", color: "text-cat-build" },
-              { label: "保险出单", icon: Wallet, value: 1284, change: "+23%", color: "text-cat-decor" },
-              { label: "调解结案", icon: MessageSquareWarning, value: 12, change: "+2", color: "text-cat-design" },
+              { label: "已通过会员", icon: Users2, value: appCounts.approved, color: "text-brand" },
+              { label: "待审报备", icon: FileCheck2, value: pendingReports.length, color: "text-cat-build" },
+              { label: "待处理调解", icon: MessageSquareWarning, value: pendingMeds.length, color: "text-cat-design" },
+              { label: "已发布新闻", icon: Newspaper, value: news.length, color: "text-cat-decor" },
             ].map((s) => {
               const Ic = s.icon;
               return (
@@ -175,18 +187,7 @@ export default async function AssociationDashboard() {
                   <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground tracking-wider uppercase">
                     <Ic className="h-3 w-3" /> {s.label}
                   </div>
-                  <div className="mt-2 flex items-baseline gap-2">
-                    <span className={`text-[28px] font-semibold tracking-tight tabular-nums ${s.color}`}>{s.value.toLocaleString()}</span>
-                    <span className="text-[11px] text-accent-tea font-medium inline-flex items-center gap-0.5">
-                      <TrendingUp className="h-2.5 w-2.5" /> {s.change}
-                    </span>
-                  </div>
-                  {/* mini sparkline */}
-                  <div className="mt-3 flex items-end gap-0.5 h-6">
-                    {[3, 5, 4, 6, 4, 7, 5, 8, 6, 9, 7, 10].map((h, i) => (
-                      <div key={i} className="flex-1 rounded-t-sm bg-foreground/15" style={{ height: `${h * 8}%` }} />
-                    ))}
-                  </div>
+                  <div className={`mt-2 text-[28px] font-semibold tracking-tight tabular-nums ${s.color}`}>{s.value.toLocaleString()}</div>
                 </div>
               );
             })}
@@ -197,16 +198,11 @@ export default async function AssociationDashboard() {
   );
 }
 
-function HealthRow({ label, value, tone, sub }: { label: string; value: string; tone: "tea" | "brand" | "design"; sub?: string }) {
-  const T: Record<string, string> = {
-    tea: "text-accent-tea", brand: "text-brand", design: "text-cat-design",
-  };
+function ScaleRow({ icon: Ic, label, value }: { icon: React.ComponentType<{ className?: string }>; label: string; value: number }) {
   return (
     <li className="flex items-center justify-between">
-      <span>{label}</span>
-      <span className={`font-semibold ${T[tone]} tabular-nums`}>
-        {value}{sub && <span className="text-muted-foreground font-normal text-[11px] ml-0.5">{sub}</span>}
-      </span>
+      <span className="inline-flex items-center gap-1.5 text-muted-foreground"><Ic className="h-3.5 w-3.5" /> {label}</span>
+      <span className="font-semibold tabular-nums">{value.toLocaleString()}</span>
     </li>
   );
 }
