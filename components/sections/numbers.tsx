@@ -1,7 +1,7 @@
 import { Container } from "../container";
 import { cn } from "@/lib/cn";
-import { AI_EMPLOYEES } from "@/lib/site";
 import { getEnterprises } from "@/lib/data/enterprises-source";
+import { listPractitioners } from "@/lib/data/practitioners-source";
 import { listReports } from "@/lib/data/reports";
 import { listAllFinanceApps } from "@/lib/data/finance-source";
 import { listInsuranceOrders } from "@/lib/data/insurance-orders";
@@ -15,12 +15,13 @@ const COLOR: Record<string, string> = {
 
 export async function Numbers() {
   const enterprises = await getEnterprises();
+  const practitioners = listPractitioners();
   const reports = listReports();
   const finance = listAllFinanceApps().length + listInsuranceOrders().length;
 
   const stats = [
     { label: "企业会员", value: String(enterprises.length), suffix: "家", color: "build" },
-    { label: "AI 员工", value: String(AI_EMPLOYEES.length), suffix: "位", color: "design" },
+    { label: "个人会员", value: String(practitioners.length), suffix: "位", color: "design" },
     { label: "工装报备", value: String(reports.length), suffix: "项", color: "decor" },
     { label: "金融服务", value: String(finance), suffix: "单", color: "tea" },
   ];
