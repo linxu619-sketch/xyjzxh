@@ -6,7 +6,7 @@ import { getEnterpriseBySlugOrId } from "@/lib/data/enterprises-source";
 import { getMember, listTeamByEnterprise } from "@/lib/data/team";
 import { cn } from "@/lib/cn";
 
-const BG: Record<string, string> = { build: "bg-cat-build", decor: "bg-cat-decor", design: "bg-cat-design" };
+const BG: Record<string, string> = { build: "bg-cat-build", decor: "bg-cat-decor", design: "bg-cat-design", tea: "bg-accent-tea", brand: "bg-brand" };
 
 export default async function TeamMemberDetail({ params }: { params: Promise<{ tenant: string; id: string }> }) {
   const { tenant, id } = await params;

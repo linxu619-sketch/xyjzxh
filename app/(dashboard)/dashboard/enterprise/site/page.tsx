@@ -112,6 +112,23 @@ export default async function SitePage({ searchParams }: { searchParams: Promise
               <FormRow label="业务标签" hint="逗号分隔，最多 8 个，如：家装,整装,全包">
                 <Input name="tags" defaultValue={ent.tags.join("，")} />
               </FormRow>
+              <FormRow label="主题色" hint="子站模板统一，颜色自选；保存后立即生效">
+                <div className="flex items-center gap-4 flex-wrap">
+                  {[
+                    { k: "build", c: "bg-cat-build", n: "蓝" },
+                    { k: "decor", c: "bg-cat-decor", n: "红橙" },
+                    { k: "design", c: "bg-cat-design", n: "紫" },
+                    { k: "tea", c: "bg-accent-tea", n: "青绿" },
+                    { k: "brand", c: "bg-brand", n: "深蓝" },
+                  ].map((o) => (
+                    <label key={o.k} className="cursor-pointer text-center group">
+                      <input type="radio" name="theme" value={o.k} defaultChecked={ent.color === o.k} className="peer sr-only" />
+                      <span className={`block h-9 w-9 rounded-full ring-2 ring-transparent ring-offset-2 ring-offset-background peer-checked:ring-foreground transition ${o.c}`} />
+                      <span className="block mt-1 text-[10px] text-muted-foreground peer-checked:text-foreground peer-checked:font-medium">{o.n}</span>
+                    </label>
+                  ))}
+                </div>
+              </FormRow>
             </SettingsCard>
           </form>
 

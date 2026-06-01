@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { Phone, ArrowUpRight, ShieldCheck, MapPin, BadgeCheck } from "lucide-react";
+import { Phone, ArrowUpRight, ShieldCheck, MapPin, BadgeCheck, MessageSquareText, ArrowRight } from "lucide-react";
 import { getEnterpriseBySlugOrId } from "@/lib/data/enterprises-source";
 import { Container } from "@/components/container";
 import { SITE } from "@/lib/site";
@@ -8,6 +8,7 @@ import { cn } from "@/lib/cn";
 
 const BG: Record<string, string> = {
   build: "bg-cat-build", decor: "bg-cat-decor", design: "bg-cat-design",
+  tea: "bg-accent-tea", brand: "bg-brand",
 };
 
 export default async function TenantLayout({
@@ -165,6 +166,23 @@ export default async function TenantLayout({
           </div>
         </Container>
       </footer>
+
+      {/* 移动端常驻固定底栏（联系 / 咨询 / 下单）*/}
+      <div className="md:hidden fixed bottom-0 inset-x-0 z-40 bg-background/95 backdrop-blur-xl border-t border-border">
+        <div className="flex items-center gap-2 px-3 py-2 pb-[max(env(safe-area-inset-bottom),0.5rem)]">
+          <a href={`tel:${e.contact.tel.replace(/-/g, "")}`} aria-label="致电" className="h-11 w-11 rounded-full border border-border inline-flex items-center justify-center shrink-0 active:scale-95 transition-transform">
+            <Phone className="h-4 w-4" />
+          </a>
+          <Link href={`/biz/${tenant}/inquiry`} className="h-11 px-3.5 rounded-full border border-border text-[13px] inline-flex items-center gap-1.5 shrink-0 active:scale-95 transition-transform">
+            <MessageSquareText className="h-4 w-4" /> 咨询
+          </Link>
+          <Link href={`/biz/${tenant}/order`} className={cn("flex-1 h-11 rounded-full text-white text-[14px] font-medium inline-flex items-center justify-center gap-1.5 active:scale-[0.99] transition-transform", BG[e.color])}>
+            立即下单 / 预约 <ArrowRight className="h-4 w-4" />
+          </Link>
+        </div>
+      </div>
+      {/* 占位：避免固定底栏遮住页脚底部 */}
+      <div aria-hidden className="md:hidden h-[64px]" />
     </div>
   );
 }

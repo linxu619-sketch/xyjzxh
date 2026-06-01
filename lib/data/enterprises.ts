@@ -19,7 +19,7 @@ export type Enterprise = {
   contact: { tel: string; addr: string };
   verified: boolean;
   featured?: boolean;
-  color: "build" | "decor" | "design";
+  color: "build" | "decor" | "design" | "tea" | "brand";
 };
 
 export const ENTERPRISES: Enterprise[] = [

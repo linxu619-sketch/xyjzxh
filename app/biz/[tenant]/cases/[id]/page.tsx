@@ -7,7 +7,7 @@ import { getEnterpriseBySlugOrId } from "@/lib/data/enterprises-source";
 import { getCase, listCasesByEnterprise } from "@/lib/data/cases";
 import { cn } from "@/lib/cn";
 
-const BG: Record<string, string> = { build: "bg-cat-build", decor: "bg-cat-decor", design: "bg-cat-design" };
+const BG: Record<string, string> = { build: "bg-cat-build", decor: "bg-cat-decor", design: "bg-cat-design", tea: "bg-accent-tea", brand: "bg-brand" };
 
 export default async function CaseDetail({ params }: { params: Promise<{ tenant: string; id: string }> }) {
   const { tenant, id } = await params;

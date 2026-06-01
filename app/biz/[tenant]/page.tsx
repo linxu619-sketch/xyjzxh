@@ -16,11 +16,14 @@ import { cn } from "@/lib/cn";
 
 const BG: Record<string, string> = {
   build: "bg-cat-build", decor: "bg-cat-decor", design: "bg-cat-design",
+  tea: "bg-accent-tea", brand: "bg-brand",
 };
 const SOFT: Record<string, string> = {
   build: "bg-cat-build-soft text-cat-build",
   decor: "bg-cat-decor-soft text-cat-decor",
   design: "bg-cat-design-soft text-cat-design",
+  tea: "bg-[#e6f7f1] text-accent-tea",
+  brand: "bg-brand-50 text-brand",
 };
 export async function generateStaticParams() {
   return ENTERPRISES.map((e) => ({ tenant: e.slug }));

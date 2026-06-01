@@ -24,7 +24,15 @@ type Row = {
   cases: number | null;
   verified: number | null;      // 0/1
   featured: number | null;      // 0/1
+  theme: string | null;         // 子站主题色
 };
+
+const THEME_KEYS = ["build", "decor", "design", "tea", "brand"] as const;
+type ThemeKey = (typeof THEME_KEYS)[number];
+function resolveColor(theme: string | null, category: string): ThemeKey {
+  if (theme && (THEME_KEYS as readonly string[]).includes(theme)) return theme as ThemeKey;
+  return (["build", "decor", "design"].includes(category) ? category : "build") as ThemeKey;
+}
 
 function parseJson<T>(s: string | null, fallback: T): T {
   if (!s) return fallback;
@@ -52,7 +60,7 @@ function rowToEnterprise(r: Row): Enterprise {
     contact: { tel: contact.tel ?? "", addr: contact.addr ?? "" },
     verified: !!r.verified,
     featured: !!r.featured,
-    color: r.category as "build" | "decor" | "design",
+    color: resolveColor(r.theme, r.category),
   };
 }
 
@@ -112,18 +120,20 @@ export function createEnterpriseFromApplication(app: {
 
 // 企业自助编辑子站资料 → 写回 enterprises 表（子站随即生效）
 export function updateEnterpriseProfile(id: string, f: {
-  name: string; brand: string; tagline: string; short: string; tel: string; addr: string; tags: string[];
+  name: string; brand: string; tagline: string; short: string; tel: string; addr: string; tags: string[]; theme?: string;
 }): boolean {
   const db = getDb();
   if (!db.prepare("SELECT 1 FROM enterprises WHERE id = ?").get(id)) return false;
+  const theme = f.theme && (THEME_KEYS as readonly string[]).includes(f.theme) ? f.theme : null;
   db.prepare(
-    "UPDATE enterprises SET name = ?, short = ?, hero = ?, contact = ?, tags = ? WHERE id = ?",
+    "UPDATE enterprises SET name = ?, short = ?, hero = ?, contact = ?, tags = ?, theme = ? WHERE id = ?",
   ).run(
     f.name,
     f.short,
     JSON.stringify({ brand: f.brand, tagline: f.tagline }),
     JSON.stringify({ tel: f.tel, addr: f.addr }),
     JSON.stringify(f.tags),
+    theme,
     id,
   );
   return true;

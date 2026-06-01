@@ -36,6 +36,7 @@ CREATE TABLE IF NOT EXISTS enterprises (
   cases         INTEGER,
   verified      INTEGER, -- 0/1
   featured      INTEGER, -- 0/1
+  theme         TEXT,    -- 子站主题色(build/decor/design/tea/brand)；空则按类别默认
   status        TEXT DEFAULT 'active'
 );
 
@@ -729,6 +730,8 @@ function migrate(db: DB) {
     // 团队成员照片 + 详细介绍
     "ALTER TABLE enterprise_team ADD COLUMN photo TEXT",
     "ALTER TABLE enterprise_team ADD COLUMN bio TEXT",
+    // 企业子站主题色（企业自选）
+    "ALTER TABLE enterprises ADD COLUMN theme TEXT",
   ];
   for (const sql of alters) {
     try { db.exec(sql); } catch { /* 列已存在，忽略 */ }
