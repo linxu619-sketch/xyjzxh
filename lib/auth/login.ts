@@ -2,6 +2,7 @@ import "server-only";
 import { SYSTEM_ADMIN } from "./system-admin";
 import { findStaffByPhone } from "@/lib/data/users-seed";
 import { findEnterpriseByContactPhone } from "@/lib/data/enterprises-source";
+import { getPractitionerByPhone } from "@/lib/data/practitioners-source";
 import { verifyPassword } from "./password";
 import type { Session } from "./session";
 
@@ -100,14 +101,32 @@ export async function loginPractitionerWithSms(
   if (!/^\d{4,6}$/.test(code)) {
     return { ok: false, error: "请输入验证码" };
   }
+  const cleanPhone = phone.trim();
+
+  // —— 真实绑定：手机号匹配到协会从业者名录（入会通过后建档）——
+  const p = getPractitionerByPhone(cleanPhone);
+  if (p) {
+    return {
+      ok: true,
+      isSystemAdmin: false,
+      session: {
+        uid: `prac-${p.id}`,
+        role: "practitioner",
+        name: p.name,
+        phone: cleanPhone,
+      },
+    };
+  }
+
+  // —— 演示回退：未匹配到名录 → 临时从业者身份 ——
   return {
     ok: true,
     isSystemAdmin: false,
     session: {
-      uid: `prac-${phone.slice(-4)}`,
+      uid: `prac-${cleanPhone.slice(-4)}`,
       role: "practitioner",
-      name: `张师傅 ${phone.slice(-4)}`,
-      phone,
+      name: `师傅 ${cleanPhone.slice(-4)}`,
+      phone: cleanPhone,
     },
   };
 }

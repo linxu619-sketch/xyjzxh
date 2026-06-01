@@ -221,19 +221,19 @@ const DAY = 86400000;
 
 function seedPractitioners(db: DB) {
   if (!isEmpty(db, "practitioners")) return;
-  const rows: [string, string, number, number, number, string, number][] = [
-    ["张师傅", "工长", 18, 4.8, 142, "浉河区", 1],
-    ["李师傅", "木工", 22, 4.9, 218, "平桥区", 1],
-    ["王师傅", "水电工", 12, 4.7, 86, "羊山新区", 1],
-    ["赵师傅", "瓦工", 16, 4.6, 102, "光山县", 1],
-    ["孙女士", "设计师", 8, 4.9, 62, "浉河区", 0],
-    ["周师傅", "油漆工", 10, 4.5, 88, "息县", 1],
-    ["钱师傅", "项目经理", 14, 4.8, 56, "罗山县", 1],
-    ["陈监理", "监理", 20, 4.9, 184, "浉河区", 1],
+  const rows: [string, string, number, number, number, string, number, string][] = [
+    ["张师傅", "工长", 18, 4.8, 142, "浉河区", 1, "13900020001"],
+    ["李师傅", "木工", 22, 4.9, 218, "平桥区", 1, "13900020002"],
+    ["王师傅", "水电工", 12, 4.7, 86, "羊山新区", 1, "13900020003"],
+    ["赵师傅", "瓦工", 16, 4.6, 102, "光山县", 1, "13900020004"],
+    ["孙女士", "设计师", 8, 4.9, 62, "浉河区", 0, "13900020005"],
+    ["周师傅", "油漆工", 10, 4.5, 88, "息县", 1, "13900020006"],
+    ["钱师傅", "项目经理", 14, 4.8, 56, "罗山县", 1, "13900020007"],
+    ["陈监理", "监理", 20, 4.9, 184, "浉河区", 1, "13900020008"],
   ];
   const stmt = db.prepare("INSERT INTO practitioners (name,kind,years,rating,jobs,city,insured,phone,created_at) VALUES (?,?,?,?,?,?,?,?,?)");
   const now = Date.now();
-  rows.forEach((r, i) => stmt.run(r[0], r[1], r[2], r[3], r[4], r[5], r[6], "", now - i * DAY));
+  rows.forEach((r, i) => stmt.run(r[0], r[1], r[2], r[3], r[4], r[5], r[6], r[7], now - i * DAY));
 }
 
 function seedReviews(db: DB) {

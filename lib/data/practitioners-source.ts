@@ -13,28 +13,60 @@ export type PractitionerCard = {
   insured: boolean;
 };
 
+// 完整从业者记录（含手机号，用于登录绑定 / 工作台）
+export type Practitioner = PractitionerCard & { phone: string };
+
 type Row = {
   id: number; name: string | null; kind: string | null; years: number | null;
   rating: number | null; jobs: number | null; city: string | null; insured: number | null;
+  phone: string | null;
 };
+
+function rowTo(r: Row): Practitioner {
+  return {
+    id: `p-${r.id}`,
+    name: r.name ?? "",
+    kind: r.kind ?? "个人会员",
+    years: r.years ?? 0,
+    rating: Number(r.rating ?? 5),
+    jobs: r.jobs ?? 0,
+    city: r.city ?? "信阳",
+    insured: !!r.insured,
+    phone: r.phone ?? "",
+  };
+}
 
 export function listPractitioners(): PractitionerCard[] {
   try {
     const rows = getDb()
       .prepare("SELECT * FROM practitioners ORDER BY created_at DESC")
       .all() as Row[];
-    return rows.map((r) => ({
-      id: `p-${r.id}`,
-      name: r.name ?? "",
-      kind: r.kind ?? "个人会员",
-      years: r.years ?? 0,
-      rating: Number(r.rating ?? 5),
-      jobs: r.jobs ?? 0,
-      city: r.city ?? "信阳",
-      insured: !!r.insured,
-    }));
+    return rows.map(rowTo);
   } catch {
     return [];
+  }
+}
+
+// 按手机号匹配真实从业者（用于个人会员登录绑定到本人工作台）
+export function getPractitionerByPhone(phone: string): Practitioner | undefined {
+  const clean = phone.trim();
+  if (!clean) return undefined;
+  try {
+    const row = getDb().prepare("SELECT * FROM practitioners WHERE phone = ? LIMIT 1").get(clean) as Row | undefined;
+    return row ? rowTo(row) : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+export function getPractitionerById(id: string): Practitioner | undefined {
+  const num = Number(id.replace(/^p-/, ""));
+  if (!num) return undefined;
+  try {
+    const row = getDb().prepare("SELECT * FROM practitioners WHERE id = ?").get(num) as Row | undefined;
+    return row ? rowTo(row) : undefined;
+  } catch {
+    return undefined;
   }
 }
 
