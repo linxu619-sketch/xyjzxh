@@ -14,6 +14,12 @@
 
 ---
 
+## [0.52.1] - 2026-06-01
+
+### 清理（商城收尾：下线旧 mock 购物车）
+- `/supplies/cart` 旧 mock 购物车页改为 307 重定向到 `/supplies`（前台已统一为单品直接下单，无链接指向它）。
+- 删除已无任何引用的旧 mock 数据文件 `lib/data/supplies.ts`（PRODUCTS/SUPPLIERS/SUPPLY_CATEGORIES/CURRENT_TIER 等），商城数据完全以 SQLite 为准。
+
 ## [0.52.0] - 2026-06-01
 
 ### 新增（商城三期-B：MOQ 阶梯量价）
