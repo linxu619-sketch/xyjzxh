@@ -2,7 +2,7 @@ import Link from "next/link";
 import { Container } from "@/components/container";
 import { PageHeader } from "@/components/page-header";
 import { Button } from "@/components/ui/button";
-import { Building2, Users2, Award, Sparkles, Phone, Mail, MapPin } from "lucide-react";
+import { Building2, Users2, Award, Sparkles, Phone, Mail, MapPin, HelpCircle } from "lucide-react";
 import { SITE } from "@/lib/site";
 
 const TIMELINE = [
@@ -122,6 +122,30 @@ export default function AboutPage() {
               </div>
             );
           })}
+        </section>
+
+        {/* 常见问题 */}
+        <section className="mt-20">
+          <div className="text-[12px] tracking-[0.2em] text-accent-tea uppercase font-medium">FAQ</div>
+          <h2 className="mt-3 text-[26px] md:text-[34px] font-semibold tracking-tight">常见问题</h2>
+          <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-4">
+            {[
+              { q: "协会是政府机构吗？", a: "不是。协会是经信阳市民政局批准、住建局指导的非营利性行业组织，由本地建筑装修与设计企业自愿组成。" },
+              { q: "如何加入协会？", a: "企业以单位、专业个人以个人身份在线申请，秘书处 1-3 个工作日审核，通过后即开通会员工作台与子站。" },
+              { q: "业主能从协会得到什么？", a: "实名评价、消费保险、协会担保与 14 天纠纷调解先行赔付，找企业到验收全程留痕。" },
+              { q: "会员有哪些权益？", a: "认证背书、流量分发、工装报备直连、建材集采、金融保险优惠、培训认证与 AI 助手等一站式服务。" },
+            ].map((f) => (
+              <div key={f.q} className="rounded-3xl border border-border bg-background p-6">
+                <div className="flex items-start gap-2.5">
+                  <HelpCircle className="h-5 w-5 text-accent-tea mt-0.5 shrink-0" />
+                  <div>
+                    <div className="text-[15px] font-semibold">{f.q}</div>
+                    <p className="mt-2 text-[13px] text-muted-foreground leading-6">{f.a}</p>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
         </section>
 
         {/* 联系我们 */}

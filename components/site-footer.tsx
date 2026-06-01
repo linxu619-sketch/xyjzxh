@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { Container } from "./container";
 import { SITE, NAV } from "@/lib/site";
-import { Phone, MapPin, Mail } from "lucide-react";
+import { Phone, MapPin, Mail, ArrowRight } from "lucide-react";
 
 const FOOTER_GROUPS = [
   {
@@ -42,8 +42,11 @@ export function SiteFooter() {
               </div>
             </div>
             <p className="mt-4 text-[13px] leading-6 text-muted-foreground max-w-sm">
-              {SITE.slogan}。汇聚本地建筑、装修与设计企业，打造透明、可信、高效的行业生态。
+              {SITE.slogan} · 1998 年成立 · 1,052 家会员单位。
             </p>
+            <Link href="/about" className="mt-2 inline-flex items-center gap-1 text-[13px] text-brand hover:gap-1.5 transition-all">
+              了解协会 <ArrowRight className="h-3.5 w-3.5" />
+            </Link>
             <ul className="mt-6 space-y-2 text-[13px] text-muted-foreground">
               <li className="flex items-center gap-2"><Phone className="h-4 w-4" /> {SITE.tel}</li>
               <li className="flex items-center gap-2"><MapPin className="h-4 w-4" /> {SITE.address}</li>
