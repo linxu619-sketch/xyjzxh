@@ -48,7 +48,7 @@ export default async function SuppliesHome({ searchParams }: { searchParams: Pro
         {/* 一行标语 + 卖货入口（搜索栏上方只留一行） */}
         <div className="mb-3 md:mb-4 flex items-center justify-between gap-3">
           <h1 className="text-[16px] md:text-[22px] font-semibold tracking-tight min-w-0 truncate">
-            建材超市<span className="text-muted-foreground font-normal text-[12px] md:text-[14px] ml-1.5">会员互助批发 · 同品牌唯一最低价</span>
+            建材超市<span className="text-muted-foreground font-normal text-[12px] md:text-[14px] ml-1.5">会员互助 集采平价</span>
           </h1>
           <Link href="/dashboard/enterprise/store" className="shrink-0 inline-flex items-center gap-1 h-9 px-3.5 rounded-full bg-foreground text-background text-[12px] md:text-[13px] font-medium active:scale-95 transition-transform">
             <Store className="h-3.5 w-3.5" /> 我要卖货
