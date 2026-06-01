@@ -12,21 +12,21 @@ import { News } from "@/components/sections/news";
 import { AiTeam } from "@/components/sections/ai-team";
 import { SITE } from "@/lib/site";
 import { ENTERPRISES } from "@/lib/data/enterprises";
+import { listPublished } from "@/lib/data/news-source";
 import { cn } from "@/lib/cn";
+
+function fmtDate(ms: number) {
+  if (!ms) return "";
+  const d = new Date(ms);
+  const p = (n: number) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`;
+}
 
 export const metadata = {
   title: "会员之家 · 信阳市建筑装饰装修协会",
   description:
     "信阳市建筑装饰装修协会官方会员平台 — 面向企业会员与个人会员，提供入会、协会公告、工装报备、建材集采、金融保险、培训认证、知识库与 AI 助手等服务与交流。",
 };
-
-// —— 协会公告 / 通知（示例数据，后续接 Supabase）——
-const ANNOUNCEMENTS = [
-  { tag: "通知", date: "2026-05-28", title: "关于开展 2026 年度会员单位资质年检的通知" },
-  { tag: "政策", date: "2026-05-20", title: "《信阳市住宅装饰装修工程质量验收规范（2026版）》发布" },
-  { tag: "公告", date: "2026-05-12", title: "协会第三届理事会换届选举结果公示" },
-  { tag: "活动", date: "2026-05-06", title: "5 月会员沙龙：AI 在工装报备中的应用（报名中）" },
-];
 
 // —— 会员办事大厅 ——
 const MEMBER_SERVICES = [
@@ -63,7 +63,8 @@ const BG: Record<string, string> = {
 const FEATURED = ENTERPRISES.filter((e) => e.featured).slice(0, 6);
 
 // 协会门户（xh.xyjzxh.com）首页 — 面向会员（企业会员 + 个人会员）的服务与交流平台
-export default function AssociationHome() {
+export default async function AssociationHome() {
+  const notices = listPublished().slice(0, 4);
   return (
     <>
       {/* HERO — 会员之家 */}
@@ -117,11 +118,13 @@ export default function AssociationHome() {
             <Link href="/news" className="text-[13px] text-brand shrink-0">查看全部 →</Link>
           </div>
           <div className="rounded-3xl border border-border bg-background divide-y divide-border overflow-hidden">
-            {ANNOUNCEMENTS.map((a) => (
-              <Link key={a.title} href="/news" className="flex items-center gap-3 md:gap-4 px-4 md:px-6 py-4 hover:bg-surface transition-colors group">
-                <Badge tone="brand" className="!px-2 !py-0.5 shrink-0">{a.tag}</Badge>
+            {notices.length === 0 ? (
+              <div className="px-6 py-10 text-center text-[13px] text-muted-foreground">暂无公告。</div>
+            ) : notices.map((a) => (
+              <Link key={a.id} href={`/news/${a.id}`} className="flex items-center gap-3 md:gap-4 px-4 md:px-6 py-4 hover:bg-surface transition-colors group">
+                <Badge tone="brand" className="!px-2 !py-0.5 shrink-0">{a.category}</Badge>
                 <span className="flex-1 min-w-0 truncate text-[14px] md:text-[15px] group-hover:text-brand transition-colors">{a.title}</span>
-                <span className="text-[12px] text-muted-foreground shrink-0 tabular-nums">{a.date}</span>
+                <span className="text-[12px] text-muted-foreground shrink-0 tabular-nums">{fmtDate(a.createdAt)}</span>
                 <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0 hidden sm:block" />
               </Link>
             ))}

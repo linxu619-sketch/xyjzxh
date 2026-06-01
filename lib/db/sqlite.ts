@@ -220,6 +220,21 @@ CREATE TABLE IF NOT EXISTS accounts (
   created_at    INTEGER
 );
 CREATE INDEX IF NOT EXISTS idx_accounts_phone ON accounts(phone);
+
+CREATE TABLE IF NOT EXISTS news (
+  id          INTEGER PRIMARY KEY AUTOINCREMENT,
+  category    TEXT,
+  title       TEXT,
+  excerpt     TEXT,
+  content     TEXT,
+  author      TEXT,
+  color       TEXT,
+  hot         INTEGER DEFAULT 0,
+  views       INTEGER DEFAULT 0,
+  status      TEXT DEFAULT 'published', -- published | draft
+  created_at  INTEGER
+);
+CREATE INDEX IF NOT EXISTS idx_news_status ON news(status, created_at);
 `;
 
 function seedEnterprises(db: DB) {
@@ -439,7 +454,30 @@ function init(): DB {
   seedTeam(db);
   seedJobs(db);
   seedAccounts(db);
+  seedNews(db);
   return db;
+}
+
+function seedNews(db: DB) {
+  if (!isEmpty(db, "news")) return;
+  // [category, title, excerpt, author, color, hot, date]
+  const rows: [string, string, string, string, string, number, string][] = [
+    ["协会公告", "关于发布《信阳市住宅装饰装修工程质量验收规范（2026版）》的通知", "新版规范在防水、电气、消防三方面强化标准，6 月 1 日起正式实施。会员单位应在 5 日内组织学习并完成现场对照。", "协会秘书处", "build", 1, "2026-05-28"],
+    ["政策解读", "全省工装报备实现「一网通办」，信阳成为首批试点", "协会平台与省厅系统打通，企业一次填报即可同步省级监管，预计节约 70% 重复填报工时。", "技术委员会", "decor", 1, "2026-05-22"],
+    ["行业新闻", "2026 信阳建博会启动报名 — AI 与绿色建造成主题", "会展同期开放协会专属展区，会员企业享受 5 折展位，新增 AI 装修体验馆。", "协会秘书处", "design", 0, "2026-05-15"],
+    ["活动通知", "5 月 30 日 · 协会高级会员季度交流会", "本期主题：AI 在装修营销中的落地。地点：协会四楼大会议室。", "协会秘书处", "brand", 0, "2026-05-12"],
+    ["会员动态", "华泰建工承建的茶博园景观二期工程顺利封顶", "茶博园景观二期采用低碳混凝土与本地茶叶残渣再生骨料，绿色建造一体化样板。", "会员服务部", "tea", 0, "2026-05-09"],
+    ["政策解读", "财政部、住建部联合发文，家装质保险纳入消费券支持范围", "信阳率先试点 — 业主购买协会版安心家装险可叠加 100 元消费券。", "金融保险委员会", "decor", 0, "2026-05-04"],
+    ["协会公告", "2026 第二批会员入会公示（共 23 家）", "公示期 7 天，对名单有异议者可通过协会秘书处或 AI 小协反馈。", "协会秘书处", "build", 0, "2026-04-28"],
+  ];
+  const stmt = db.prepare(
+    "INSERT INTO news (category,title,excerpt,content,author,color,hot,views,status,created_at) VALUES (?,?,?,?,?,?,?,?, 'published', ?)",
+  );
+  for (const r of rows) {
+    const content = `${r[2]}\n\n本通知由${r[3]}发布。各会员单位请及时关注协会平台公告，如有疑问可联系协会秘书处或咨询 AI 小协。\n\n（示例正文，可在后台编辑为完整内容。）`;
+    const t = Date.parse(r[6]) || Date.now();
+    stmt.run(r[0], r[1], r[2], content, r[3], r[4], r[5], Math.floor(400 + Math.abs(Date.parse(r[6])) % 2600), t);
+  }
 }
 
 function seedAccounts(db: DB) {

@@ -1,9 +1,16 @@
 import Link from "next/link";
 import { ArrowRight, ArrowUpRight } from "lucide-react";
 import { Container } from "../container";
-import { NEWS } from "@/lib/site";
+import { listPublished } from "@/lib/data/news-source";
 import { Badge } from "../ui/badge";
 import { cn } from "@/lib/cn";
+
+function fmt(ms: number) {
+  if (!ms) return "";
+  const d = new Date(ms);
+  const p = (n: number) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`;
+}
 
 const TONE: Record<string, "build" | "decor" | "design" | "tea" | "brand"> = {
   build: "build",
@@ -21,7 +28,9 @@ const ACCENT: Record<string, string> = {
   brand: "before:bg-brand",
 };
 
-export function News() {
+export async function News() {
+  const items = listPublished().slice(0, 3);
+  if (items.length === 0) return null;
   return (
     <section className="py-14 md:py-28">
       <Container>
@@ -44,19 +53,19 @@ export function News() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-5">
-          {NEWS.map((n) => (
+          {items.map((n) => (
             <Link
-              key={n.title}
-              href="/news"
+              key={n.id}
+              href={`/news/${n.id}`}
               className={cn(
                 "group relative overflow-hidden rounded-3xl border border-border bg-background p-5 md:p-7 transition-all active:scale-[0.99] md:hover:-translate-y-1 md:hover:shadow-md",
                 "before:absolute before:left-0 before:top-0 before:h-1 before:w-full",
-                ACCENT[n.color],
+                ACCENT[n.color] ?? ACCENT.brand,
               )}
             >
               <div className="flex items-center gap-2.5">
-                <Badge tone={TONE[n.color] ?? "brand"}>{n.tag}</Badge>
-                <time className="text-[11px] md:text-[12px] text-muted-foreground">{n.date}</time>
+                <Badge tone={TONE[n.color] ?? "brand"}>{n.category}</Badge>
+                <time className="text-[11px] md:text-[12px] text-muted-foreground">{fmt(n.createdAt)}</time>
               </div>
               <h3 className="mt-4 md:mt-5 text-[15px] md:text-[19px] font-semibold leading-6 md:leading-7 line-clamp-2 group-hover:text-brand transition-colors">
                 {n.title}
