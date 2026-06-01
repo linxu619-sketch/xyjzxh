@@ -28,10 +28,11 @@ export default async function OrderPage({
   params, searchParams,
 }: {
   params: Promise<{ tenant: string }>;
-  searchParams: Promise<{ ok?: string; err?: string }>;
+  searchParams: Promise<{ ok?: string; err?: string; service?: string }>;
 }) {
   const { tenant } = await params;
-  const { ok, err } = await searchParams;
+  const { ok, err, service } = await searchParams;
+  const noteDefault = service ? `意向服务：${service}。` : "";
   const e = await getEnterpriseBySlugOrId(tenant);
   if (!e) notFound();
 
@@ -227,6 +228,7 @@ export default async function OrderPage({
               <textarea
                 name="note"
                 rows={4}
+                defaultValue={noteDefault}
                 placeholder="想做开放式厨房，主卧需要独立衣帽间，预算偏紧但希望先做基础工程…"
                 className="form-input"
               />
