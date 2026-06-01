@@ -86,7 +86,7 @@ export default async function AssociationHome() {
               {SITE.name}官方会员平台 — 为<b className="text-foreground">企业会员</b>与<b className="text-foreground">个人会员</b>提供入会、公告通知、工装报备、建材集采、金融保险、培训认证、知识库与 AI 助手等一站式服务与交流。
             </p>
             <div className="mt-7 md:mt-9 flex flex-col sm:flex-row gap-3">
-              <Button href="/join" size="lg" variant="primary">
+              <Button href="#join" size="lg" variant="primary">
                 申请入会 <ArrowRight className="h-4 w-4" />
               </Button>
               <Button href="/login?role=association" size="lg" variant="outline">
@@ -96,7 +96,7 @@ export default async function AssociationHome() {
             <div className="mt-6 flex flex-wrap items-center gap-x-4 gap-y-2 text-[12px] text-muted-foreground">
               <span className="inline-flex items-center gap-1.5"><ShieldCheck className="h-3.5 w-3.5 text-accent-tea" /> 协会认证</span>
               <span className="inline-flex items-center gap-1.5"><Building2 className="h-3.5 w-3.5 text-cat-build" /> 报备直连省厅</span>
-              <span className="inline-flex items-center gap-1.5"><Sparkles className="h-3.5 w-3.5 text-cat-decor" /> 10 位 AI 在线</span>
+              <span className="inline-flex items-center gap-1.5"><Sparkles className="h-3.5 w-3.5 text-cat-decor" /> 会员 AI 助手</span>
             </div>
           </div>
         </Container>
@@ -133,7 +133,7 @@ export default async function AssociationHome() {
       </section>
 
       {/* 两类会员专区 */}
-      <section className="py-12 md:py-16 bg-surface">
+      <section id="join" className="py-12 md:py-16 bg-surface scroll-mt-16">
         <Container>
           <div className="text-center max-w-2xl mx-auto mb-8 md:mb-12">
             <div className="text-[12px] tracking-[0.2em] text-brand uppercase font-medium">MEMBERSHIP · 会员通道</div>
@@ -162,7 +162,7 @@ export default async function AssociationHome() {
       </section>
 
       {/* 会员办事大厅 */}
-      <section className="py-12 md:py-16">
+      <section id="services" className="py-12 md:py-16 scroll-mt-16">
         <Container>
           <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4 mb-8 md:mb-12">
             <div className="max-w-2xl">

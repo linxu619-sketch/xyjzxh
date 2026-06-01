@@ -92,26 +92,19 @@ export const SERVICES = [
 ];
 
 // AI 员工矩阵（≤10 个）
+// face: member=面向企业/从业者(bp) · consumer=面向业主(C) · both=两端通用
 export const AI_EMPLOYEES = [
-  { key: "advisor", name: "小协", role: "协会咨询官", duty: "入会 · 政策 · 资质", color: "brand", emoji: "🤝" },
-  { key: "decor", name: "小装", role: "装修顾问", duty: "选企业 · 估价 · 看案例", color: "decor", emoji: "🛋" },
-  { key: "design", name: "小设", role: "设计助手", duty: "户型 · 风格 · 配色", color: "design", emoji: "✏️" },
-  { key: "fin", name: "小金", role: "金融顾问", duty: "贷款 · 保函 · 撮合", color: "tea", emoji: "💼" },
-  { key: "ins", name: "小保", role: "保险顾问", duty: "险种 · 投保 · 理赔", color: "yellow", emoji: "🛡" },
-  { key: "report", name: "小报", role: "工装报备助手", duty: "填报 · 合规 · 跟进", color: "build", emoji: "📑" },
-  { key: "know", name: "小知", role: "知识库导航员", duty: "规范 · 标准 · 案例检索", color: "design", emoji: "📚" },
-  { key: "hr", name: "小才", role: "招聘匹配官", duty: "人岗匹配 · 简历优化", color: "tea", emoji: "🧑‍🔧" },
-  { key: "mediate", name: "小和", role: "调解助手", duty: "投诉初筛 · 调解导流", color: "decor", emoji: "⚖️" },
-  { key: "biz", name: "小经", role: "企业经营助手", duty: "BI · 客户管理 · 后台答疑", color: "brand", emoji: "📊" },
+  { key: "advisor", name: "小协", role: "协会咨询官", duty: "入会 · 政策 · 资质", color: "brand", emoji: "🤝", face: "member" },
+  { key: "decor", name: "小装", role: "装修顾问", duty: "选企业 · 估价 · 看案例", color: "decor", emoji: "🛋", face: "consumer" },
+  { key: "design", name: "小设", role: "设计助手", duty: "户型 · 风格 · 配色", color: "design", emoji: "✏️", face: "consumer" },
+  { key: "fin", name: "小金", role: "金融顾问", duty: "贷款 · 保函 · 撮合", color: "tea", emoji: "💼", face: "member" },
+  { key: "ins", name: "小保", role: "保险顾问", duty: "险种 · 投保 · 理赔", color: "yellow", emoji: "🛡", face: "both" },
+  { key: "report", name: "小报", role: "工装报备助手", duty: "填报 · 合规 · 跟进", color: "build", emoji: "📑", face: "member" },
+  { key: "know", name: "小知", role: "知识库导航员", duty: "规范 · 标准 · 案例检索", color: "design", emoji: "📚", face: "member" },
+  { key: "hr", name: "小才", role: "招聘匹配官", duty: "人岗匹配 · 简历优化", color: "tea", emoji: "🧑‍🔧", face: "member" },
+  { key: "mediate", name: "小和", role: "调解助手", duty: "投诉初筛 · 调解导流", color: "decor", emoji: "⚖️", face: "both" },
+  { key: "biz", name: "小经", role: "企业经营助手", duty: "BI · 客户管理 · 后台答疑", color: "brand", emoji: "📊", face: "member" },
 ] as const;
-
-// 首页数据墙
-export const STATS = [
-  { label: "会员企业", value: "1,052", suffix: "家", color: "build" },
-  { label: "AI 员工", value: "10", suffix: "位", color: "design" },
-  { label: "工装报备", value: "3,847", suffix: "项", color: "decor" },
-  { label: "保险出单", value: "12.6万", suffix: "单", color: "tea" },
-];
 
 // 首页新闻（示例）
 export const NEWS = [

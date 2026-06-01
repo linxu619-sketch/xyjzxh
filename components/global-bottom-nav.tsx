@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   Home, Search, Sparkles, Star, UserRound,
-  Building2, FileCheck2,
+  Building2, LayoutGrid,
 } from "lucide-react";
 import { cn } from "@/lib/cn";
 
@@ -29,7 +29,7 @@ const XH_TABS: Tab[] = [
   { href: "/xh",        label: "协会",   icon: Home,        match: (p) => p === "/xh" || p === "/" },
   { href: "/members",   label: "会员",   icon: Building2,   match: (p) => p.startsWith("/members") },
   { href: "/ai",        label: "AI",     icon: Sparkles,    match: (p) => p.startsWith("/ai") },
-  { href: "/projects",  label: "报备",   icon: FileCheck2,  match: (p) => p.startsWith("/projects") },
+  { href: "/xh#services", label: "办事", icon: LayoutGrid, match: (p) => p.startsWith("/projects") },
   { href: "/dashboard", label: "我的",   icon: UserRound,   match: (p) => p.startsWith("/dashboard") || p.startsWith("/login") },
 ];
 
@@ -67,14 +67,14 @@ export function GlobalBottomNav({ face = "consumer" }: { face?: Face }) {
                 <Link
                   key={t.href}
                   href={t.href}
-                  className="flex flex-col items-center justify-end pb-1.5 -mt-6 relative"
+                  className="flex flex-col items-center justify-end pb-1.5 -mt-4 relative"
                   aria-label={t.label}
                 >
                   <span className={cn(
-                    "h-14 w-14 rounded-full inline-flex items-center justify-center text-foreground shadow-[0_10px_30px_-4px_rgba(255,170,0,0.55)] transition-transform active:scale-95",
+                    "h-10 w-10 rounded-full inline-flex items-center justify-center text-foreground shadow-[0_8px_22px_-5px_rgba(255,170,0,0.55)] transition-transform active:scale-95 relative",
                     "bg-gradient-to-br from-accent-yellow to-[#ffae00]",
                   )}>
-                    <Icon className="h-6 w-6" />
+                    <Icon className="h-5 w-5" />
                     <span className="absolute inset-0 rounded-full bg-accent-yellow opacity-40 animate-ping" />
                   </span>
                   <span className={cn(

@@ -32,7 +32,7 @@ export function AiDock() {
           <span className="absolute inset-0 rounded-full bg-accent-yellow animate-ping opacity-40" />
         </span>
         <span className="text-[13px] md:text-[14px] font-medium">
-          AI 助手 <span className="opacity-70 hidden md:inline">· 10 位在线</span>
+          AI 助手 <span className="opacity-70 hidden md:inline">· 随时问</span>
         </span>
       </button>
 

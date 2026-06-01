@@ -13,7 +13,8 @@ const GRAD: Record<string, string> = {
   yellow: "from-[#ffd34d] to-[#ffae00]",
 };
 
-export function AiTeam() {
+export function AiTeam({ face = "member" }: { face?: "member" | "consumer" }) {
+  const list = AI_EMPLOYEES.filter((a) => a.face === face || a.face === "both");
   return (
     <section className="relative py-24 md:py-32 overflow-hidden">
       {/* 深色块：制造对比、突出 AI */}
@@ -35,7 +36,7 @@ export function AiTeam() {
           <div className="max-w-2xl">
             <div className="inline-flex items-center gap-2 rounded-full bg-white/10 backdrop-blur px-2.5 md:px-3 py-1 text-[10px] md:text-[11px] tracking-[0.2em] font-medium uppercase">
               <Sparkles className="h-3 w-3 text-accent-yellow" />
-              AI · 10 位 AI 员工
+              AI · 会员 AI 助手
             </div>
             <h2 className="mt-3 md:mt-4 text-[28px] md:text-[52px] font-semibold tracking-tight leading-[1.05]">
               你的协会，<br className="md:hidden" />
@@ -43,13 +44,13 @@ export function AiTeam() {
             </h2>
           </div>
           <p className="text-[13px] md:text-[15px] text-white/70 max-w-md">
-            10 位经过场景调优的 AI 员工，覆盖咨询、估价、报备、合规、调解、招聘等高频场景，
+            面向会员的 AI 助手，覆盖入会咨询、报备合规、知识检索、招聘、金融与调解等高频场景，
             7×24 小时随问随答。
           </p>
         </div>
 
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2.5 md:gap-4">
-          {AI_EMPLOYEES.map((ai, i) => (
+          {list.map((ai, i) => (
             <Link
               key={ai.key}
               href={`/ai/${ai.key}`}
