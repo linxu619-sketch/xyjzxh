@@ -80,7 +80,7 @@ export const SERVICES = [
   { key: "service", title: "协会服务", desc: "入会 · 资质认证 · 培训 · 调解 · 年检", color: "brand" },
   { key: "tenant", title: "企业子站", desc: "二级域名 · 独立品牌页 · 在线接单", color: "brand" },
   { key: "construction", title: "施工全流程", desc: "咨询 · 签约 · 计划 · 验收 · 收款 · 变更", color: "build" },
-  { key: "supplies", title: "建材超市", desc: "协会集采 · 分层定价 · 肥水不流外人田", color: "tea" },
+  { key: "supplies", title: "建材超市", desc: "协会集采 · 分层定价 · 会员专属价", color: "tea" },
   { key: "projects", title: "工装报备", desc: "项目登记 · 施工备案 · 验收上传", color: "build" },
   { key: "finance", title: "金融服务", desc: "贷款 · 保函 · 保理 · 设备分期", color: "design" },
   { key: "insurance", title: "消费保险", desc: "家装质保险 · 工程履约险 · 工人意外险", color: "decor" },

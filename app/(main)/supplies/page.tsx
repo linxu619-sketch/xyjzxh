@@ -28,7 +28,7 @@ export default function SuppliesHome() {
       <PageHeader
         eyebrow="SUPPLIES · 协会建材超市"
         tone="tea"
-        title={<>肥水不流外人田<br className="md:hidden" /> <span className="text-muted-foreground">协会会员专属采购</span></>}
+        title={<>会员专属采购<br className="md:hidden" /> <span className="text-muted-foreground">好货集采 · 价更优</span></>}
         description={
           <>
             12 家协会认证供应商 · {SUPPLIES_STATS.products.toLocaleString()} 款建材 / 设备 · 会员均价 <b>低于市场 {SUPPLIES_STATS.avgSavingPct}%</b> · 集采议价 · 信用账期。

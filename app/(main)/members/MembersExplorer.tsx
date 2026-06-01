@@ -78,8 +78,8 @@ export function MembersExplorer({
 
   return (
     <div>
-      {/* 筛选条：移动 sticky 在 SiteHeader 下方 */}
-      <div className="sticky top-16 lg:top-20 z-30 -mx-5 sm:-mx-8 lg:-mx-12 px-5 sm:px-8 lg:px-12 py-3 bg-background/85 backdrop-blur-xl border-b border-border lg:border-0 lg:bg-transparent lg:backdrop-blur-none lg:relative lg:top-0">
+      {/* 筛选条：随页面滚动（不吸顶，避免移动端盖住下方卡片） */}
+      <div className="relative">
         <div className="rounded-3xl border border-border bg-background p-3 md:p-4 shadow-sm">
           <div className="flex items-center gap-2">
             <Search className="h-4 w-4 text-muted-foreground ml-2 shrink-0" />
