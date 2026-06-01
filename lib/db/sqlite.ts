@@ -517,10 +517,10 @@ function seedCases(db: DB) {
   if (!isEmpty(db, "enterprise_cases")) return;
   // 演示案例归属 e002（名家装饰），封面用样例图
   const rows: [string, string, string, string][] = [
-    ["金茂悦府 1602 · 现代极简整装", "/samples/work-1.svg", "168", "整装"],
-    ["御景湾别墅 · 新中式软装", "/samples/work-2.svg", "320", "软装"],
-    ["茶都商务 22F · 办公空间", "/samples/work-1.svg", "1200", "工装"],
-    ["南湖一号 · 原木风三居", "/samples/work-2.svg", "120", "家装"],
+    ["金茂悦府 1602 · 现代极简整装", "/samples/cases/case-e002-1.jpg", "168", "整装"],
+    ["御景湾别墅 · 新中式软装", "/samples/cases/case-e002-2.jpg", "320", "软装"],
+    ["茶都商务 22F · 办公空间", "/samples/cases/case-e002-3.jpg", "1200", "工装"],
+    ["南湖一号 · 原木风三居", "/samples/cases/case-e002-4.jpg", "120", "家装"],
   ];
   const stmt = db.prepare("INSERT INTO enterprise_cases (enterprise_id,title,cover,area,tag,created_at) VALUES ('e002',?,?,?,?,?)");
   const now = Date.now();
