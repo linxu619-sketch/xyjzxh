@@ -38,11 +38,11 @@ export function CaseGallery({ images, title }: { images: string[]; title: string
         </span>
       </button>
 
-      {/* 四张小图 */}
+      {/* 四张小图（尺寸/圆角与首页卡片一致）*/}
       {small.length > 0 && (
-        <div className="mt-2.5 grid grid-cols-4 gap-2 md:gap-2.5">
+        <div className="mt-2.5 md:mt-3 grid grid-cols-2 md:grid-cols-4 gap-2.5 md:gap-3">
           {small.map((u, i) => (
-            <button key={i} onClick={() => setIdx(i + 1)} className="relative aspect-square rounded-xl overflow-hidden bg-foreground/5 cursor-zoom-in group">
+            <button key={i} onClick={() => setIdx(i + 1)} className="relative aspect-[4/3] rounded-2xl overflow-hidden bg-foreground/5 cursor-zoom-in group">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={u} alt={`${title} ${i + 2}`} className="absolute inset-0 w-full h-full object-cover md:group-hover:scale-105 transition-transform duration-300" />
             </button>
