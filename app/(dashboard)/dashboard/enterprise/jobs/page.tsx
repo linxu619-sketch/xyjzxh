@@ -1,74 +1,77 @@
 import Link from "next/link";
-import { Plus, Eye, Pencil, Pause, MoreHorizontal, Briefcase } from "lucide-react";
+import { ChevronRight, Briefcase, CheckCircle2, AlertCircle, Users2 } from "lucide-react";
 import { EnterpriseShell } from "@/components/dashboard/shell";
-import { DataTable } from "@/components/dashboard/section";
+import { StatFilters } from "@/components/dashboard/stat-filters";
 import { Badge } from "@/components/ui/badge";
-import { JOBS } from "@/lib/data/talents";
+import { getSession } from "@/lib/auth/session";
+import { listJobsByEnterprise, countApplicants, type JobStatus } from "@/lib/data/jobs";
+import { PostJobForm } from "./PostJobForm";
 
 export const metadata = { title: "招聘管理 · 企业工作台" };
 
-const TONE = { build: "build", decor: "decor", design: "design" } as const;
+const FILTERABLE: JobStatus[] = ["open", "closed"];
 
-// 给每个岗位假投递数 / 浏览数
-function fakeStats(id: string) {
-  const n = id.charCodeAt(1);
-  return { views: 200 + n * 17, apps: 4 + (n % 12) };
-}
+export default async function JobsPage({ searchParams }: { searchParams: Promise<{ f?: string; jok?: string; jerr?: string }> }) {
+  const { f, jok, jerr } = await searchParams;
+  const session = await getSession();
+  const all = session?.enterpriseId ? listJobsByEnterprise(session.enterpriseId) : [];
 
-export default function JobsPage() {
-  const mine = JOBS.filter((j) => j.enterpriseId === "e002").concat(JOBS.slice(0, 2));
+  const active = f && FILTERABLE.includes(f as JobStatus) ? (f as JobStatus) : undefined;
+  const list = active ? all.filter((j) => j.status === active) : all;
+  const openCount = all.filter((j) => j.status === "open").length;
+  const closedCount = all.filter((j) => j.status === "closed").length;
+  const totalApps = all.reduce((a, j) => a + countApplicants(j.id), 0);
+  const base = "/dashboard/enterprise/jobs";
+  const href = (st: JobStatus) => (active === st ? base : `${base}?f=${st}`);
+
   return (
-    <EnterpriseShell
-      title="招聘管理"
-      subtitle={`在招 ${mine.length} 岗 · 本月新增简历 ${mine.reduce((a, j) => a + fakeStats(j.id).apps, 0)} 份 · 待面试 9 人`}
-      actions={
-        <button className="h-9 px-4 rounded-full bg-foreground text-background text-[13px] font-medium inline-flex items-center gap-1.5">
-          <Plus className="h-3.5 w-3.5" /> 发布岗位
-        </button>
-      }
-    >
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 mb-6">
-        {[
-          { l: "在招岗位", v: mine.length, c: "text-cat-build", icon: Briefcase },
-          { l: "本月浏览", v: "12.6K", c: "text-cat-decor", icon: Eye },
-          { l: "新简历", v: mine.reduce((a, j) => a + fakeStats(j.id).apps, 0), c: "text-accent-tea", icon: Briefcase },
-          { l: "面试中", v: 9, c: "text-cat-design", icon: Briefcase },
-        ].map((s) => {
-          const Ic = s.icon;
-          return (
-            <div key={s.l} className="rounded-2xl border border-border bg-background p-5">
-              <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground"><Ic className="h-3.5 w-3.5" /> {s.l}</div>
-              <div className={`mt-1 text-[28px] font-semibold tracking-tight ${s.c}`}>{s.v}</div>
-            </div>
-          );
-        })}
-      </div>
+    <EnterpriseShell title="招聘管理" subtitle={`在招 ${openCount} 岗 · 累计投递 ${totalApps} 份`} actions={<PostJobForm />}>
+      {jok && <div className="mb-5 rounded-2xl border border-accent-tea/30 bg-[#e6f7f1] text-accent-tea p-4 flex items-center gap-3"><CheckCircle2 className="h-5 w-5 shrink-0" /><div className="text-[13px]"><b>岗位已发布！</b>从业者可在「找活」看到并报名。</div></div>}
+      {jerr && <div className="mb-5 rounded-2xl border border-cat-decor/30 bg-cat-decor-soft text-cat-decor p-4 flex items-center gap-3"><AlertCircle className="h-5 w-5 shrink-0" /><div className="text-[13px]">发布失败：请填写岗位标题与工种。</div></div>}
 
-      <DataTable dropActionCol
-        head={["职位", "类型", "薪资", "区域", "浏览", "简历", "发布时间", "状态", "操作"]}
-        rows={mine.map((j) => {
-          const s = fakeStats(j.id);
-          return [
-            <div key="t">
-              <div className="font-medium">{j.title}</div>
-              <div className="text-[11px] text-muted-foreground mt-0.5">{j.experience} · {j.education}</div>
-            </div>,
-            <Badge key="c" tone={TONE[j.category]}>{j.type}</Badge>,
-            <span key="s" className="font-medium text-cat-decor">{j.salaryMin}-{j.salaryMax}K</span>,
-            <span key="d" className="text-muted-foreground">{j.district}</span>,
-            <span key="v" className="text-muted-foreground">{s.views.toLocaleString()}</span>,
-            <Link key="a" href="#" className="text-brand font-medium">{s.apps} 份 →</Link>,
-            <span key="p" className="text-[11px] text-muted-foreground">{j.postedAt}</span>,
-            j.hot ? <Badge key="st" tone="decor">急招</Badge> : <Badge key="st" tone="tea">在招</Badge>,
-            <div key="o" className="flex items-center gap-1">
-              <button className="h-8 w-8 rounded-lg hover:bg-surface text-muted-foreground hover:text-foreground"><Eye className="h-3.5 w-3.5" /></button>
-              <button className="h-8 w-8 rounded-lg hover:bg-surface text-muted-foreground hover:text-foreground"><Pencil className="h-3.5 w-3.5" /></button>
-              <button className="h-8 w-8 rounded-lg hover:bg-surface text-muted-foreground hover:text-foreground"><Pause className="h-3.5 w-3.5" /></button>
-              <button className="h-8 w-8 rounded-lg hover:bg-surface text-muted-foreground hover:text-foreground"><MoreHorizontal className="h-4 w-4" /></button>
-            </div>,
-          ];
-        })}
+      <StatFilters
+        items={[
+          { key: "open", label: "在招岗位", value: openCount, color: "text-cat-build", href: href("open"), active: active === "open" },
+          { key: "closed", label: "已结束", value: closedCount, color: "text-muted-foreground", href: href("closed"), active: active === "closed" },
+          { key: "apps", label: "累计投递", value: totalApps, color: "text-accent-tea" },
+          { key: "all", label: "全部岗位", value: all.length, color: "text-cat-design", href: base, active: !active },
+        ]}
       />
+
+      <div className="rounded-2xl border border-border bg-background overflow-hidden">
+        <div className="px-5 py-3 border-b border-border text-[14px] font-semibold flex items-center justify-between">
+          <span>招聘岗位 · 点击查看投递并处理</span>
+          {active && <Link href={base} className="text-[12px] text-brand font-normal">清除筛选 ✕</Link>}
+        </div>
+        {list.length === 0 ? (
+          <div className="px-5 py-16 text-center text-[13px] text-muted-foreground">
+            {active ? "没有该状态的岗位。" : "还没有招聘岗位。点右上「发布岗位」发布第一个，从业者即可在「找活」报名。"}
+          </div>
+        ) : (
+          <ul className="divide-y divide-border">
+            {list.map((j) => {
+              const apps = countApplicants(j.id);
+              return (
+                <li key={j.id}>
+                  <Link href={`/dashboard/enterprise/jobs/${j.id}`} className="flex items-center gap-3 px-5 py-4 hover:bg-surface transition-colors">
+                    <span className="h-9 w-9 rounded-xl bg-cat-build-soft text-cat-build inline-flex items-center justify-center shrink-0"><Briefcase className="h-4 w-4" /></span>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="font-medium truncate">{j.title}</span>
+                        {j.urgent && <Badge tone="decor">急招</Badge>}
+                      </div>
+                      <div className="text-[12px] text-muted-foreground mt-0.5">{j.kind} · {j.district || "信阳"} · ¥{j.daily}/天 · {j.openings} 名额</div>
+                    </div>
+                    <span className="inline-flex items-center gap-1 text-[12px] text-accent-tea shrink-0"><Users2 className="h-3.5 w-3.5" />{apps} 投递</span>
+                    <Badge tone={j.status === "open" ? "tea" : "neutral"} className="shrink-0">{j.status === "open" ? "在招" : "已结束"}</Badge>
+                    <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0" />
+                  </Link>
+                </li>
+              );
+            })}
+          </ul>
+        )}
+      </div>
     </EnterpriseShell>
   );
 }

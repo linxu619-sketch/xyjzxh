@@ -175,6 +175,38 @@ CREATE TABLE IF NOT EXISTS enterprise_team (
   created_at    INTEGER
 );
 CREATE INDEX IF NOT EXISTS idx_team_ent ON enterprise_team(enterprise_id, created_at);
+
+CREATE TABLE IF NOT EXISTS jobs (
+  id              INTEGER PRIMARY KEY AUTOINCREMENT,
+  enterprise_id   TEXT,
+  enterprise_name TEXT,
+  title           TEXT,
+  kind            TEXT,    -- 工种
+  district        TEXT,
+  daily           INTEGER, -- 日薪
+  openings        INTEGER, -- 名额
+  duration        TEXT,    -- 工期
+  urgent          INTEGER DEFAULT 0,
+  detail          TEXT,
+  status          TEXT DEFAULT 'open', -- open | closed
+  created_at      INTEGER
+);
+CREATE INDEX IF NOT EXISTS idx_jobs_status ON jobs(status, created_at);
+CREATE INDEX IF NOT EXISTS idx_jobs_ent ON jobs(enterprise_id, created_at);
+
+CREATE TABLE IF NOT EXISTS job_applications (
+  id                 INTEGER PRIMARY KEY AUTOINCREMENT,
+  job_id             INTEGER,
+  enterprise_id      TEXT,
+  practitioner_phone TEXT,
+  name               TEXT,
+  phone              TEXT,
+  note               TEXT,
+  status             TEXT DEFAULT 'pending', -- pending | accepted | rejected
+  created_at         INTEGER
+);
+CREATE INDEX IF NOT EXISTS idx_japp_job ON job_applications(job_id, created_at);
+CREATE INDEX IF NOT EXISTS idx_japp_phone ON job_applications(practitioner_phone, created_at);
 `;
 
 function seedEnterprises(db: DB) {
@@ -357,6 +389,23 @@ function seedTeam(db: DB) {
   rows.forEach((r, i) => stmt.run(r[0], r[1], r[2], now - i * 3600000));
 }
 
+function seedJobs(db: DB) {
+  if (!isEmpty(db, "jobs")) return;
+  // [enterprise_id, enterprise_name, title, kind, district, daily, openings, duration, urgent, detail]
+  const rows: [string, string, string, string, string, number, number, string, number, string][] = [
+    ["e002", "名家装饰", "急招水电工 5 名 · 金茂悦府工地", "水电工", "浉河区", 380, 5, "约 25 天", 1, "金茂悦府整装项目，水电改造阶段，需持证、能看图，包午餐。"],
+    ["e002", "名家装饰", "木工 3 名 · 全屋定制安装", "木工", "羊山新区", 420, 3, "约 40 天", 0, "全屋定制柜体现场安装，熟练工优先，长期合作。"],
+    ["e001", "信阳华泰建工", "土建项目经理 1 名", "项目经理", "浉河区", 800, 1, "长期", 0, "市政项目现场管理，一级建造师优先，五险一金。"],
+    ["e008", "壹品装饰", "油漆工 4 名 · 茶都商务办公装修", "油漆工", "平桥区", 360, 4, "约 20 天", 1, "办公空间乳胶漆与造型，需自带工具，结算及时。"],
+    ["e002", "名家装饰", "监理 1 名 · 多工地巡检", "监理", "浉河区", 500, 1, "长期", 0, "负责在施工地质量与安全巡检，需相关证书与经验。"],
+  ];
+  const stmt = db.prepare(
+    "INSERT INTO jobs (enterprise_id,enterprise_name,title,kind,district,daily,openings,duration,urgent,detail,status,created_at) VALUES (?,?,?,?,?,?,?,?,?,?, 'open', ?)",
+  );
+  const now = Date.now();
+  rows.forEach((r, i) => stmt.run(r[0], r[1], r[2], r[3], r[4], r[5], r[6], r[7], r[8], r[9], now - i * 43200000));
+}
+
 function init(): DB {
   const dir = join(process.cwd(), "data");
   mkdirSync(dir, { recursive: true });
@@ -375,6 +424,7 @@ function init(): DB {
   seedLeads(db);
   seedCases(db);
   seedTeam(db);
+  seedJobs(db);
   return db;
 }
 
