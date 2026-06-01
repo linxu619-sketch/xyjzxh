@@ -17,7 +17,10 @@ export type SupplyProduct = {
   marketPrice: number; memberPrice: number; status: ProductStatus; rejectReason: string; createdAt: number;
 };
 export type SupplyOrder = {
-  id: number; enterpriseId: string; enterpriseName: string; productId: number; productName: string;
+  id: number; enterpriseId: string; enterpriseName: string;
+  buyerType: string; buyerId: string; buyerName: string;
+  sellerType: string; sellerId: string; sellerName: string;
+  productId: number; productName: string;
   unit: string; qty: number; unitPrice: number; total: number; status: OrderStatus; createdAt: number;
 };
 
@@ -27,7 +30,12 @@ type PRow = {
   reason_type: string | null; reason_note: string | null; proof_url: string | null; moq: number | null;
   market_price: number | null; member_price: number | null; status: string; reject_reason: string | null; created_at: number | null;
 };
-type ORow = { id: number; enterprise_id: string | null; enterprise_name: string | null; product_id: number; product_name: string | null; unit: string | null; qty: number | null; unit_price: number | null; total: number | null; status: string; created_at: number | null };
+type ORow = {
+  id: number; enterprise_id: string | null; enterprise_name: string | null;
+  buyer_type: string | null; buyer_id: string | null; buyer_name: string | null;
+  seller_type: string | null; seller_id: string | null; seller_name: string | null;
+  product_id: number; product_name: string | null; unit: string | null; qty: number | null; unit_price: number | null; total: number | null; status: string; created_at: number | null;
+};
 
 function toP(r: PRow): SupplyProduct {
   return {
@@ -38,7 +46,12 @@ function toP(r: PRow): SupplyProduct {
   };
 }
 function toO(r: ORow): SupplyOrder {
-  return { id: r.id, enterpriseId: r.enterprise_id ?? "", enterpriseName: r.enterprise_name ?? "", productId: r.product_id, productName: r.product_name ?? "", unit: r.unit ?? "", qty: r.qty ?? 0, unitPrice: r.unit_price ?? 0, total: r.total ?? 0, status: (r.status as OrderStatus) ?? "pending", createdAt: r.created_at ?? 0 };
+  return {
+    id: r.id, enterpriseId: r.enterprise_id ?? "", enterpriseName: r.enterprise_name ?? "",
+    buyerType: r.buyer_type ?? "enterprise", buyerId: r.buyer_id ?? (r.enterprise_id ?? ""), buyerName: r.buyer_name ?? (r.enterprise_name ?? ""),
+    sellerType: r.seller_type ?? "association", sellerId: r.seller_id ?? "assoc", sellerName: r.seller_name ?? "协会集采",
+    productId: r.product_id, productName: r.product_name ?? "", unit: r.unit ?? "", qty: r.qty ?? 0, unitPrice: r.unit_price ?? 0, total: r.total ?? 0, status: (r.status as OrderStatus) ?? "pending", createdAt: r.created_at ?? 0,
+  };
 }
 
 /* ---- 商品 ---- */
@@ -119,16 +132,31 @@ export function setProductStatus(id: number, status: ProductStatus) {
   getDb().prepare("UPDATE supply_products SET status=? WHERE id=?").run(status, id);
 }
 
-/* ---- 采购单 ---- */
-export function createSupplyOrder(input: { enterpriseId: string; enterpriseName: string; product: SupplyProduct; qty: number }): number {
+/* ---- 采购单（B2B：买家=会员，订单路由到卖家履约）---- */
+export type Buyer = { type: string; id: string; name: string };
+export function createSupplyOrder(input: { buyer: Buyer; product: SupplyProduct; qty: number }): number {
   const total = input.product.memberPrice * input.qty;
+  const eid = input.buyer.type === "enterprise" ? input.buyer.id : ""; // 企业买家同时写 enterprise_id 兼容旧查询
+  const ename = input.buyer.type === "enterprise" ? input.buyer.name : "";
   const info = getDb().prepare(
-    "INSERT INTO supply_orders (enterprise_id,enterprise_name,product_id,product_name,unit,qty,unit_price,total,status,created_at) VALUES (?,?,?,?,?,?,?,?, 'pending', ?)",
-  ).run(input.enterpriseId, input.enterpriseName, input.product.id, input.product.name, input.product.unit, input.qty, input.product.memberPrice, total, Date.now());
+    `INSERT INTO supply_orders
+       (enterprise_id,enterprise_name,buyer_type,buyer_id,buyer_name,seller_type,seller_id,seller_name,product_id,product_name,unit,qty,unit_price,total,status,created_at)
+     VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?, 'pending', ?)`,
+  ).run(
+    eid, ename, input.buyer.type, input.buyer.id, input.buyer.name,
+    input.product.sellerType, input.product.sellerId, input.product.sellerName,
+    input.product.id, input.product.name, input.product.unit, input.qty, input.product.memberPrice, total, Date.now(),
+  );
   return Number(info.lastInsertRowid);
 }
 export function listOrdersByEnterprise(eid: string): SupplyOrder[] {
   return (getDb().prepare("SELECT * FROM supply_orders WHERE enterprise_id=? ORDER BY created_at DESC").all(eid) as ORow[]).map(toO);
+}
+export function listOrdersByBuyer(type: string, id: string): SupplyOrder[] {
+  return (getDb().prepare("SELECT * FROM supply_orders WHERE buyer_type=? AND buyer_id=? ORDER BY created_at DESC").all(type, id) as ORow[]).map(toO);
+}
+export function listOrdersBySeller(type: string, id: string): SupplyOrder[] {
+  return (getDb().prepare("SELECT * FROM supply_orders WHERE seller_type=? AND seller_id=? ORDER BY created_at DESC").all(type, id) as ORow[]).map(toO);
 }
 export function listAllSupplyOrders(): SupplyOrder[] {
   return (getDb().prepare("SELECT * FROM supply_orders ORDER BY created_at DESC").all() as ORow[]).map(toO);

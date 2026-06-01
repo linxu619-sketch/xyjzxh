@@ -15,13 +15,16 @@ export async function placeSupplyOrderAction(fd: FormData) {
   if (!product || product.status !== "active") redirect("/dashboard/enterprise/supplies?serr=1");
 
   const ent = await getEnterpriseBySlugOrId(s.enterpriseId);
+  if (product.sellerType === "enterprise" && product.sellerId === s.enterpriseId) {
+    redirect("/dashboard/enterprise/supplies?serr=self"); // 不能买自己上架的商品
+  }
   createSupplyOrder({
-    enterpriseId: s.enterpriseId,
-    enterpriseName: ent?.hero.brand ?? ent?.name ?? "本企业",
+    buyer: { type: "enterprise", id: s.enterpriseId, name: ent?.hero.brand ?? ent?.name ?? s.name ?? "本企业" },
     product,
     qty,
   });
   revalidatePath("/dashboard/enterprise/supplies");
   revalidatePath("/dashboard/association/supplies");
+  revalidatePath(product.sellerType === "enterprise" ? "/dashboard/enterprise/store" : "/dashboard/practitioner/store");
   redirect("/dashboard/enterprise/supplies?sok=1");
 }

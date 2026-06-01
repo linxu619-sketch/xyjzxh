@@ -7,6 +7,8 @@ import {
 import { Container } from "@/components/container";
 import { Badge } from "@/components/ui/badge";
 import { listProducts, getProduct, type ReasonType } from "@/lib/data/supplies-source";
+import { resolveSeller } from "@/lib/dashboard/seller";
+import { placeOrderAction } from "@/app/(dashboard)/dashboard/store-actions";
 import { cn } from "@/lib/cn";
 
 const REASON: Record<ReasonType, string> = { agent: "独家代理", self: "自产自销", direct: "厂家直供" };
@@ -22,11 +24,14 @@ function colorFor(s: string) {
   return PALETTE[h % PALETTE.length];
 }
 
-export default async function ProductDetail({ params }: { params: Promise<{ id: string }> }) {
+export default async function ProductDetail({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ err?: string }> }) {
   const { id } = await params;
+  const { err } = await searchParams;
   const p = getProduct(Number(id));
   if (!p || p.status !== "active") notFound();
 
+  const me = await resolveSeller();
+  const isOwn = !!me && me.type === p.sellerType && me.id === p.sellerId;
   const saved = p.marketPrice - p.memberPrice;
   const off = p.marketPrice > 0 ? Math.round((saved / p.marketPrice) * 100) : 0;
   const color = colorFor(p.brand || p.category || p.name);
@@ -83,13 +88,22 @@ export default async function ProductDetail({ params }: { params: Promise<{ id: 
           </div>
 
           {/* 采购 CTA */}
+          {err === "self" && <div className="mt-4 rounded-xl border border-cat-decor/30 bg-cat-decor-soft text-cat-decor p-3 text-[12px]">不能购买自己上架的商品。</div>}
+          {err === "off" && <div className="mt-4 rounded-xl border border-cat-decor/30 bg-cat-decor-soft text-cat-decor p-3 text-[12px]">该商品已下架，无法下单。</div>}
           <div className="hidden md:block mt-6 rounded-2xl border border-border bg-background p-4">
-            <div className="text-[12px] text-muted-foreground mb-3">批发采购按起批量 {p.moq}{p.unit} 起 · 协会会员可在工作台下单</div>
-            <div className="flex gap-2">
-              <Link href="/dashboard/enterprise/supplies" className="flex-1 h-12 rounded-full bg-foreground text-background text-[14px] font-medium inline-flex items-center justify-center gap-1.5 active:scale-95 transition-transform">
-                <ShoppingCart className="h-4 w-4" /> 去工作台下单
-              </Link>
-            </div>
+            <div className="text-[12px] text-muted-foreground mb-3">批发采购 · 起批量 {p.moq}{p.unit} 起 · 仅协会会员可下单</div>
+            {isOwn ? (
+              <div className="h-12 rounded-full bg-surface text-muted-foreground text-[13px] inline-flex items-center justify-center w-full">这是你上架的商品</div>
+            ) : (
+              <form action={placeOrderAction} className="flex items-center gap-2">
+                <input type="hidden" name="productId" value={p.id} />
+                <input name="qty" type="number" min={p.moq} defaultValue={p.moq} className="w-24 h-12 rounded-xl border border-border bg-background px-3 text-[14px] outline-none focus:border-foreground/30" />
+                <span className="text-[12px] text-muted-foreground">{p.unit}</span>
+                <button className="ml-auto h-12 px-6 rounded-full bg-cat-decor text-white text-[14px] font-medium inline-flex items-center justify-center gap-1.5 active:scale-95 transition-transform">
+                  <ShoppingCart className="h-4 w-4" /> {me ? "立即下单" : "登录后下单"}
+                </button>
+              </form>
+            )}
           </div>
 
           {/* 服务保障 */}
@@ -161,9 +175,17 @@ export default async function ProductDetail({ params }: { params: Promise<{ id: 
               ¥{p.memberPrice}<span className="text-[10px] font-normal text-background/60 ml-0.5">/{p.unit}</span>
             </div>
           </div>
-          <Link href="/dashboard/enterprise/supplies" className="h-11 px-5 rounded-full bg-cat-decor text-white text-[13px] font-medium inline-flex items-center gap-1.5 shrink-0 active:scale-95 transition-transform">
-            <ShoppingCart className="h-4 w-4" /> 去下单
-          </Link>
+          {isOwn ? (
+            <span className="h-11 px-5 rounded-full bg-white/10 text-background/60 text-[13px] inline-flex items-center shrink-0">我的商品</span>
+          ) : (
+            <form action={placeOrderAction} className="shrink-0">
+              <input type="hidden" name="productId" value={p.id} />
+              <input type="hidden" name="qty" value={p.moq} />
+              <button className="h-11 px-5 rounded-full bg-cat-decor text-white text-[13px] font-medium inline-flex items-center gap-1.5 active:scale-95 transition-transform">
+                <ShoppingCart className="h-4 w-4" /> {me ? "立即下单" : "登录下单"}
+              </button>
+            </form>
+          )}
         </div>
       </div>
     </Container>

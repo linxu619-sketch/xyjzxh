@@ -289,8 +289,14 @@ CREATE INDEX IF NOT EXISTS idx_supply_brand ON supply_products(brand);
 
 CREATE TABLE IF NOT EXISTS supply_orders (
   id              INTEGER PRIMARY KEY AUTOINCREMENT,
-  enterprise_id   TEXT,
+  enterprise_id   TEXT,                  -- 兼容旧数据/企业采购（买家为企业时同 buyer_id）
   enterprise_name TEXT,
+  buyer_type      TEXT,                  -- enterprise | practitioner
+  buyer_id        TEXT,
+  buyer_name      TEXT,
+  seller_type     TEXT,                  -- association | enterprise | practitioner（履约方）
+  seller_id       TEXT,
+  seller_name     TEXT,
   product_id      INTEGER,
   product_name    TEXT,
   unit            TEXT,
@@ -301,6 +307,8 @@ CREATE TABLE IF NOT EXISTS supply_orders (
   created_at      INTEGER
 );
 CREATE INDEX IF NOT EXISTS idx_sorder_ent ON supply_orders(enterprise_id, created_at);
+CREATE INDEX IF NOT EXISTS idx_sorder_buyer ON supply_orders(buyer_type, buyer_id, created_at);
+CREATE INDEX IF NOT EXISTS idx_sorder_seller ON supply_orders(seller_type, seller_id, created_at);
 CREATE INDEX IF NOT EXISTS idx_sorder_status ON supply_orders(status, created_at);
 
 CREATE TABLE IF NOT EXISTS finance_products (
@@ -695,6 +703,13 @@ function migrate(db: DB) {
     "ALTER TABLE supply_products ADD COLUMN reject_reason TEXT",
     // 会员等级（卖家可上架数量配额按等级区分）
     "ALTER TABLE accounts ADD COLUMN tier TEXT DEFAULT '普通会员'",
+    // 采购单买家/卖家路由（B2B：买卖双方都是会员，订单路由到卖家履约）
+    "ALTER TABLE supply_orders ADD COLUMN buyer_type TEXT",
+    "ALTER TABLE supply_orders ADD COLUMN buyer_id TEXT",
+    "ALTER TABLE supply_orders ADD COLUMN buyer_name TEXT",
+    "ALTER TABLE supply_orders ADD COLUMN seller_type TEXT",
+    "ALTER TABLE supply_orders ADD COLUMN seller_id TEXT",
+    "ALTER TABLE supply_orders ADD COLUMN seller_name TEXT",
   ];
   for (const sql of alters) {
     try { db.exec(sql); } catch { /* 列已存在，忽略 */ }
@@ -710,6 +725,15 @@ function normalizeSupplyProducts(db: DB) {
     UPDATE supply_products SET reason_type='direct'      WHERE reason_type IS NULL OR reason_type='';
     UPDATE supply_products SET moq=1                     WHERE moq IS NULL;
     UPDATE supply_products SET brand=supplier            WHERE (brand IS NULL OR brand='') AND supplier IS NOT NULL AND supplier!='';
+  `);
+  // 旧采购单：买家=企业、卖家=协会集采
+  db.exec(`
+    UPDATE supply_orders SET buyer_type='enterprise'  WHERE buyer_type IS NULL OR buyer_type='';
+    UPDATE supply_orders SET buyer_id=enterprise_id    WHERE (buyer_id IS NULL OR buyer_id='') AND enterprise_id IS NOT NULL;
+    UPDATE supply_orders SET buyer_name=enterprise_name WHERE (buyer_name IS NULL OR buyer_name='') AND enterprise_name IS NOT NULL;
+    UPDATE supply_orders SET seller_type='association' WHERE seller_type IS NULL OR seller_type='';
+    UPDATE supply_orders SET seller_id='assoc'         WHERE seller_id IS NULL OR seller_id='';
+    UPDATE supply_orders SET seller_name='协会集采'     WHERE seller_name IS NULL OR seller_name='';
   `);
 }
 
