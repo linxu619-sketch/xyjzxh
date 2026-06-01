@@ -1,7 +1,7 @@
 import Link from "next/link";
 import {
   ShieldCheck, Briefcase, GraduationCap, Wallet, Sparkles, Bell,
-  ChevronRight, Star, BadgeCheck, ArrowUpRight, AlertCircle, MapPin, Clock,
+  ChevronRight, Star, BadgeCheck, ArrowUpRight, AlertCircle, MapPin, Clock, Store,
 } from "lucide-react";
 import { Container } from "@/components/container";
 import { CustomerBottomNav } from "@/components/dashboard/customer-bottom-nav";
@@ -104,6 +104,7 @@ export default async function PractitionerHome() {
           <Tile icon={GraduationCap} title="培训 · 证书" sub="继续教育 / 上传" href="/dashboard/practitioner/training" tone="design" />
           <Tile icon={ShieldCheck} title="工伤险" sub={insured ? "在保中" : "立即投保"} href="/dashboard/practitioner/insurance" tone="tea" />
           <Tile icon={Wallet} title="钱包 · 收入证明" sub="收入流水" href="/dashboard/practitioner/income" tone="decor" />
+          <Tile icon={Store} title="我的店铺" sub="卖货 · 集采上架" href="/dashboard/practitioner/store" tone="yellow" />
         </div>
 
         {/* 为你推荐 · 移动横滑（协会会员企业岗位）*/}

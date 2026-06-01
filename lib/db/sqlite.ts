@@ -263,18 +263,29 @@ CREATE INDEX IF NOT EXISTS idx_tenroll_t ON training_enrollments(training_id, cr
 CREATE INDEX IF NOT EXISTS idx_tenroll_p ON training_enrollments(practitioner_phone, created_at);
 
 CREATE TABLE IF NOT EXISTS supply_products (
-  id           INTEGER PRIMARY KEY AUTOINCREMENT,
-  name         TEXT,
-  category     TEXT,
-  unit         TEXT,
-  spec         TEXT,
-  supplier     TEXT,
-  market_price INTEGER,
-  member_price INTEGER,
-  status       TEXT DEFAULT 'active', -- active | off
-  created_at   INTEGER
+  id            INTEGER PRIMARY KEY AUTOINCREMENT,
+  name          TEXT,
+  category      TEXT,
+  unit          TEXT,
+  spec          TEXT,
+  supplier      TEXT,
+  brand         TEXT,                      -- 品牌（平台内排他键：同品牌只允许一家在售）
+  seller_type   TEXT DEFAULT 'association',-- association | enterprise | practitioner
+  seller_id     TEXT,                      -- 企业 enterprise_id 或 从业者 p-id 或 assoc
+  seller_name   TEXT,
+  reason_type   TEXT,                      -- agent(独家代理) | self(自产自销) | direct(厂家直供)
+  reason_note   TEXT,                      -- 资格说明
+  proof_url     TEXT,                      -- 资格证明图
+  moq           INTEGER DEFAULT 1,         -- 起批量
+  market_price  INTEGER,
+  member_price  INTEGER,
+  status        TEXT DEFAULT 'active',     -- pending(待审) | active(在架) | rejected(驳回) | off(下架)
+  reject_reason TEXT,
+  created_at    INTEGER
 );
 CREATE INDEX IF NOT EXISTS idx_supply_status ON supply_products(status, created_at);
+CREATE INDEX IF NOT EXISTS idx_supply_seller ON supply_products(seller_type, seller_id);
+CREATE INDEX IF NOT EXISTS idx_supply_brand ON supply_products(brand);
 
 CREATE TABLE IF NOT EXISTS supply_orders (
   id              INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -559,6 +570,8 @@ function init(): DB {
   seedNews(db);
   seedTrainings(db);
   seedSupplyProducts(db);
+  normalizeSupplyProducts(db);
+  seedSupplyMemberListings(db);
   seedFinanceProducts(db);
   seedOrders(db);
   return db;
@@ -670,10 +683,55 @@ function migrate(db: DB) {
     "ALTER TABLE mediations ADD COLUMN uid TEXT",
     "ALTER TABLE reviews ADD COLUMN uid TEXT",
     "ALTER TABLE project_reports ADD COLUMN uid TEXT",
+    // 商城 B2B 会员互助改造：卖家 / 品牌排他 / 上架理由 / 审核
+    "ALTER TABLE supply_products ADD COLUMN brand TEXT",
+    "ALTER TABLE supply_products ADD COLUMN seller_type TEXT DEFAULT 'association'",
+    "ALTER TABLE supply_products ADD COLUMN seller_id TEXT",
+    "ALTER TABLE supply_products ADD COLUMN seller_name TEXT",
+    "ALTER TABLE supply_products ADD COLUMN reason_type TEXT",
+    "ALTER TABLE supply_products ADD COLUMN reason_note TEXT",
+    "ALTER TABLE supply_products ADD COLUMN proof_url TEXT",
+    "ALTER TABLE supply_products ADD COLUMN moq INTEGER DEFAULT 1",
+    "ALTER TABLE supply_products ADD COLUMN reject_reason TEXT",
+    // 会员等级（卖家可上架数量配额按等级区分）
+    "ALTER TABLE accounts ADD COLUMN tier TEXT DEFAULT '普通会员'",
   ];
   for (const sql of alters) {
     try { db.exec(sql); } catch { /* 列已存在，忽略 */ }
   }
+}
+
+// 把历史/种子的协会自营商品补齐卖家与品牌字段（幂等）
+function normalizeSupplyProducts(db: DB) {
+  db.exec(`
+    UPDATE supply_products SET seller_type='association' WHERE seller_type IS NULL OR seller_type='';
+    UPDATE supply_products SET seller_id='assoc'        WHERE seller_id IS NULL OR seller_id='';
+    UPDATE supply_products SET seller_name='协会集采'    WHERE seller_name IS NULL OR seller_name='';
+    UPDATE supply_products SET reason_type='direct'      WHERE reason_type IS NULL OR reason_type='';
+    UPDATE supply_products SET moq=1                     WHERE moq IS NULL;
+    UPDATE supply_products SET brand=supplier            WHERE (brand IS NULL OR brand='') AND supplier IS NOT NULL AND supplier!='';
+  `);
+}
+
+// 演示：灌入几条会员自助上架的商品（含待审/在架），用于跑通审核与卖家闭环（幂等）
+function seedSupplyMemberListings(db: DB) {
+  const has = (db.prepare("SELECT COUNT(*) AS c FROM supply_products WHERE seller_type IN ('enterprise','practitioner')").get() as { c: number }).c;
+  if (has > 0) return;
+  // [name, category, unit, spec, supplier(=brand来源), brand, seller_type, seller_id, seller_name, reason_type, reason_note, proof_url, moq, market, member, status]
+  const rows: [string, string, string, string, string, string, string, string, string, string, string, string, number, number, number, string][] = [
+    ["美巢墙锢界面剂", "辅材", "组(18kg)", "渗透型 抗碱", "美巢", "美巢", "enterprise", "e002", "名家装饰", "agent", "美巢集团信阳区域独家代理，凭授权书。", "/samples/cert.svg", 5, 96, 72, "pending"],
+    ["海螺 PO42.5 散装水泥", "辅材", "吨", "PO42.5R 散装", "海螺", "海螺", "enterprise", "e001", "信阳华泰建工", "agent", "海螺水泥信阳总代，量大直发。", "/samples/cert.svg", 10, 420, 360, "active"],
+    ["原创软装布艺套餐", "后期", "套", "客厅整套 可定制", "栖物原创", "栖物原创", "practitioner", "p-5", "孙女士(设计师)", "self", "本人原创设计、工厂直缝，自产自销。", "/samples/work-1.svg", 1, 3600, 2680, "pending"],
+  ];
+  const stmt = db.prepare(
+    `INSERT INTO supply_products
+      (name,category,unit,spec,supplier,brand,seller_type,seller_id,seller_name,reason_type,reason_note,proof_url,moq,market_price,member_price,status,created_at)
+     VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
+  );
+  const now = Date.now();
+  rows.forEach((r, i) => stmt.run(r[0], r[1], r[2], r[3], r[4], r[5], r[6], r[7], r[8], r[9], r[10], r[11], r[12], r[13], r[14], r[15], now - i * 3600000));
+  // 演示等级：给一个从业者账号升为高级会员（配额 20）
+  try { db.exec("UPDATE accounts SET tier='高级会员' WHERE member_ref='p-5'"); } catch { /* ignore */ }
 }
 
 export function getDb(): DB {

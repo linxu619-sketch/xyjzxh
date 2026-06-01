@@ -2,7 +2,7 @@ import {
   LayoutDashboard, Users2, FileCheck2, MessageSquareWarning, Library,
   Newspaper, Wallet, Sparkles, Settings, Globe2, MessagesSquare,
   Briefcase, MessageSquareHeart, Home, FileText, Umbrella,
-  Hammer, ShoppingBag, Truck, FileSignature, GraduationCap,
+  Hammer, ShoppingBag, Truck, FileSignature, GraduationCap, Store,
 } from "lucide-react";
 
 const I = "h-4 w-4";
@@ -29,6 +29,7 @@ export const ENT_NAV = [
   { href: "/dashboard/enterprise/orders",   label: "施工订单",   icon: <Hammer className={I} /> },
   { href: "/dashboard/enterprise/projects", label: "项目与报备", icon: <FileCheck2 className={I} /> },
   { href: "/dashboard/enterprise/supplies", label: "建材采购",   icon: <Truck className={I} /> },
+  { href: "/dashboard/enterprise/store",    label: "我的店铺",   icon: <Store className={I} /> },
   { href: "/dashboard/enterprise/team",     label: "团队管理",   icon: <Users2 className={I} /> },
   { href: "/dashboard/enterprise/jobs",     label: "招聘",       icon: <Briefcase className={I} /> },
   { href: "/dashboard/enterprise/reviews",  label: "口碑评价",   icon: <MessageSquareHeart className={I} /> },

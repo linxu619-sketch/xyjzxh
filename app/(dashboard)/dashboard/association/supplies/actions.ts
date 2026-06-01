@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { getSession } from "@/lib/auth/session";
-import { createProduct, getProduct, setProductStatus, getSupplyOrder, setSupplyOrderStatus, type ProductStatus, type OrderStatus } from "@/lib/data/supplies-source";
+import { createProduct, getProduct, setProductStatus, getSupplyOrder, setSupplyOrderStatus, approveListing, rejectListing, brandActiveHolder, type ProductStatus, type OrderStatus } from "@/lib/data/supplies-source";
 
 async function requireAssoc() {
   const s = await getSession();
@@ -34,6 +34,32 @@ export async function setProductStatusAction(fd: FormData) {
   if (getProduct(id) && (status === "active" || status === "off")) setProductStatus(id, status);
   refresh();
   redirect("/dashboard/association/supplies");
+}
+
+// 审核通过：先校验品牌排他（同品牌已有在架卖家则拒绝，需走价格擂台·二期）
+export async function approveListingAction(fd: FormData) {
+  await requireAssoc();
+  const id = Number(fd.get("id") || 0);
+  const p = getProduct(id);
+  if (!p || p.status !== "pending") { refresh(); redirect("/dashboard/association/supplies?tab=review"); }
+  const holder = brandActiveHolder(p!.brand, p!.id);
+  if (holder) {
+    refresh();
+    redirect(`/dashboard/association/supplies?tab=review&conflict=${id}`);
+  }
+  approveListing(id);
+  refresh();
+  redirect("/dashboard/association/supplies?tab=review&rok=1");
+}
+
+export async function rejectListingAction(fd: FormData) {
+  await requireAssoc();
+  const id = Number(fd.get("id") || 0);
+  const reason = String(fd.get("reason") || "资格或比价未通过").trim();
+  const p = getProduct(id);
+  if (p && p.status === "pending") rejectListing(id, reason);
+  refresh();
+  redirect("/dashboard/association/supplies?tab=review");
 }
 
 export async function advanceOrderAction(fd: FormData) {

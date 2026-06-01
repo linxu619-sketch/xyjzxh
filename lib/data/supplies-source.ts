@@ -5,23 +5,37 @@ import { getDb } from "@/lib/db/sqlite";
    建材集采：协会上架商品(supply_products) + 企业采购单(supply_orders)
    ============================================================ */
 
-export type ProductStatus = "active" | "off";
+export type ProductStatus = "pending" | "active" | "rejected" | "off";
+export type SellerType = "association" | "enterprise" | "practitioner";
+export type ReasonType = "agent" | "self" | "direct"; // 独家代理 | 自产自销 | 厂家直供
 export type OrderStatus = "pending" | "confirmed" | "shipped" | "done";
 
 export type SupplyProduct = {
   id: number; name: string; category: string; unit: string; spec: string; supplier: string;
-  marketPrice: number; memberPrice: number; status: ProductStatus; createdAt: number;
+  brand: string; sellerType: SellerType; sellerId: string; sellerName: string;
+  reasonType: ReasonType; reasonNote: string; proofUrl: string; moq: number;
+  marketPrice: number; memberPrice: number; status: ProductStatus; rejectReason: string; createdAt: number;
 };
 export type SupplyOrder = {
   id: number; enterpriseId: string; enterpriseName: string; productId: number; productName: string;
   unit: string; qty: number; unitPrice: number; total: number; status: OrderStatus; createdAt: number;
 };
 
-type PRow = { id: number; name: string | null; category: string | null; unit: string | null; spec: string | null; supplier: string | null; market_price: number | null; member_price: number | null; status: string; created_at: number | null };
+type PRow = {
+  id: number; name: string | null; category: string | null; unit: string | null; spec: string | null; supplier: string | null;
+  brand: string | null; seller_type: string | null; seller_id: string | null; seller_name: string | null;
+  reason_type: string | null; reason_note: string | null; proof_url: string | null; moq: number | null;
+  market_price: number | null; member_price: number | null; status: string; reject_reason: string | null; created_at: number | null;
+};
 type ORow = { id: number; enterprise_id: string | null; enterprise_name: string | null; product_id: number; product_name: string | null; unit: string | null; qty: number | null; unit_price: number | null; total: number | null; status: string; created_at: number | null };
 
 function toP(r: PRow): SupplyProduct {
-  return { id: r.id, name: r.name ?? "", category: r.category ?? "", unit: r.unit ?? "", spec: r.spec ?? "", supplier: r.supplier ?? "", marketPrice: r.market_price ?? 0, memberPrice: r.member_price ?? 0, status: (r.status as ProductStatus) ?? "active", createdAt: r.created_at ?? 0 };
+  return {
+    id: r.id, name: r.name ?? "", category: r.category ?? "", unit: r.unit ?? "", spec: r.spec ?? "", supplier: r.supplier ?? "",
+    brand: r.brand ?? "", sellerType: (r.seller_type as SellerType) ?? "association", sellerId: r.seller_id ?? "", sellerName: r.seller_name ?? "",
+    reasonType: (r.reason_type as ReasonType) ?? "direct", reasonNote: r.reason_note ?? "", proofUrl: r.proof_url ?? "", moq: r.moq ?? 1,
+    marketPrice: r.market_price ?? 0, memberPrice: r.member_price ?? 0, status: (r.status as ProductStatus) ?? "active", rejectReason: r.reject_reason ?? "", createdAt: r.created_at ?? 0,
+  };
 }
 function toO(r: ORow): SupplyOrder {
   return { id: r.id, enterpriseId: r.enterprise_id ?? "", enterpriseName: r.enterprise_name ?? "", productId: r.product_id, productName: r.product_name ?? "", unit: r.unit ?? "", qty: r.qty ?? 0, unitPrice: r.unit_price ?? 0, total: r.total ?? 0, status: (r.status as OrderStatus) ?? "pending", createdAt: r.created_at ?? 0 };
@@ -37,11 +51,63 @@ export function getProduct(id: number): SupplyProduct | undefined {
   const r = getDb().prepare("SELECT * FROM supply_products WHERE id=?").get(id) as PRow | undefined;
   return r ? toP(r) : undefined;
 }
-export function createProduct(input: { name: string; category: string; unit: string; spec?: string; supplier?: string; marketPrice: number; memberPrice: number }): number {
+// 协会自营上架（直接在架，无需审核）
+export function createProduct(input: { name: string; category: string; unit: string; spec?: string; supplier?: string; brand?: string; marketPrice: number; memberPrice: number }): number {
+  const brand = (input.brand ?? input.supplier ?? "").trim();
   const info = getDb().prepare(
-    "INSERT INTO supply_products (name,category,unit,spec,supplier,market_price,member_price,status,created_at) VALUES (?,?,?,?,?,?,?, 'active', ?)",
-  ).run(input.name, input.category, input.unit, input.spec ?? "", input.supplier ?? "", input.marketPrice, input.memberPrice, Date.now());
+    `INSERT INTO supply_products (name,category,unit,spec,supplier,brand,seller_type,seller_id,seller_name,reason_type,moq,market_price,member_price,status,created_at)
+     VALUES (?,?,?,?,?,?, 'association','assoc','协会集采','direct',1,?,?, 'active', ?)`,
+  ).run(input.name, input.category, input.unit, input.spec ?? "", input.supplier ?? "", brand, input.marketPrice, input.memberPrice, Date.now());
   return Number(info.lastInsertRowid);
+}
+
+/* ---- 会员自助上架（B2B 互助商城）---- */
+export type ListingInput = {
+  sellerType: SellerType; sellerId: string; sellerName: string;
+  name: string; brand: string; category: string; unit: string; spec?: string;
+  reasonType: ReasonType; reasonNote?: string; proofUrl?: string;
+  moq?: number; marketPrice: number; memberPrice: number;
+};
+// 会员提交上架 → 进入待审核（pending）
+export function createListing(input: ListingInput): number {
+  const info = getDb().prepare(
+    `INSERT INTO supply_products
+       (name,category,unit,spec,supplier,brand,seller_type,seller_id,seller_name,reason_type,reason_note,proof_url,moq,market_price,member_price,status,created_at)
+     VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?, 'pending', ?)`,
+  ).run(
+    input.name, input.category, input.unit, input.spec ?? "", input.brand, input.brand,
+    input.sellerType, input.sellerId, input.sellerName,
+    input.reasonType, input.reasonNote ?? "", input.proofUrl ?? "",
+    input.moq ?? 1, input.marketPrice, input.memberPrice, Date.now(),
+  );
+  return Number(info.lastInsertRowid);
+}
+// 某会员的全部上架（含各状态）
+export function listBySeller(sellerType: SellerType, sellerId: string): SupplyProduct[] {
+  return (getDb().prepare("SELECT * FROM supply_products WHERE seller_type=? AND seller_id=? ORDER BY created_at DESC").all(sellerType, sellerId) as PRow[]).map(toP);
+}
+// 按状态取（审核队列用 pending）
+export function listByStatus(status: ProductStatus): SupplyProduct[] {
+  return (getDb().prepare("SELECT * FROM supply_products WHERE status=? ORDER BY created_at DESC").all(status) as PRow[]).map(toP);
+}
+// 会员当前在架(active)+待审(pending) 计数（用于等级配额）
+export function countListingsBySeller(sellerType: SellerType, sellerId: string): number {
+  return (getDb().prepare("SELECT COUNT(*) AS c FROM supply_products WHERE seller_type=? AND seller_id=? AND status IN ('active','pending')").get(sellerType, sellerId) as { c: number }).c;
+}
+// 品牌排他：返回该品牌当前在架(active)的商品（若有则被占用）
+export function brandActiveHolder(brand: string, excludeId?: number): SupplyProduct | undefined {
+  const b = brand.trim();
+  if (!b) return undefined;
+  const r = getDb().prepare("SELECT * FROM supply_products WHERE brand=? AND status='active' AND id!=? ORDER BY created_at ASC").get(b, excludeId ?? -1) as PRow | undefined;
+  return r ? toP(r) : undefined;
+}
+// 协会审核：通过（置为在架）
+export function approveListing(id: number) {
+  getDb().prepare("UPDATE supply_products SET status='active', reject_reason='' WHERE id=?").run(id);
+}
+// 协会审核：驳回
+export function rejectListing(id: number, reason: string) {
+  getDb().prepare("UPDATE supply_products SET status='rejected', reject_reason=? WHERE id=?").run(reason, id);
 }
 export function setProductStatus(id: number, status: ProductStatus) {
   getDb().prepare("UPDATE supply_products SET status=? WHERE id=?").run(status, id);
