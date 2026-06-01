@@ -72,7 +72,7 @@ export default async function TenantLayout({
               <Link
                 href={`/biz/${tenant}/order`}
                 className={cn(
-                  "inline-flex items-center gap-1.5 h-9 px-4 rounded-full text-white text-[13px] font-medium hover:opacity-90",
+                  "hidden md:inline-flex items-center gap-1.5 h-9 px-4 rounded-full text-white text-[13px] font-medium hover:opacity-90",
                   BG[e.color],
                 )}
               >

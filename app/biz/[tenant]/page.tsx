@@ -81,7 +81,8 @@ export default async function TenantHome({ params }: { params: Promise<{ tenant:
           </h1>
           <p className="mt-2.5 text-[13px] sm:text-[15px] text-white/85 max-w-xl leading-6">{e.short}</p>
 
-          <div className="mt-5 flex flex-wrap gap-2.5">
+          {/* 桌面端 CTA；移动端由底部固定栏承担，避免重复 */}
+          <div className="mt-5 hidden md:flex flex-wrap gap-2.5">
             <Link href={`/biz/${tenant}/order`} className="inline-flex items-center justify-center gap-1.5 h-11 px-5 rounded-full bg-white text-foreground text-[14px] font-medium hover:bg-accent-yellow transition-colors active:scale-[0.99]">
               立即下单 / 预约 <ArrowRight className="h-4 w-4" />
             </Link>
@@ -214,7 +215,7 @@ export default async function TenantHome({ params }: { params: Promise<{ tenant:
               <div>
                 <h2 className="text-[22px] md:text-[30px] font-semibold tracking-tight leading-tight">准备开工？联系 {e.hero.brand}</h2>
                 <p className="mt-2 text-[13px] text-white/85 max-w-md leading-6">协会三重保障：履约险先行赔付 · 14 天调解 · 资金监管，放心托付。</p>
-                <div className="mt-4 flex flex-wrap gap-2">
+                <div className="mt-4 hidden md:flex flex-wrap gap-2">
                   <Link href={`/biz/${tenant}/order`} className="inline-flex items-center gap-1.5 h-11 px-5 rounded-full bg-white text-foreground text-[14px] font-medium hover:bg-accent-yellow transition-colors">提交需求 <ArrowRight className="h-4 w-4" /></Link>
                   <a href={`tel:${e.contact.tel.replace(/-/g, "")}`} className="inline-flex items-center gap-1.5 h-11 px-4 rounded-full border border-white/40 text-white text-[14px] hover:bg-white/10"><Phone className="h-4 w-4" /> {e.contact.tel}</a>
                 </div>
