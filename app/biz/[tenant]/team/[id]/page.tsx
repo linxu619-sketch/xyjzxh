@@ -63,17 +63,19 @@ export default async function TeamMemberDetail({ params }: { params: Promise<{ t
             <h2 className="text-[18px] md:text-[22px] font-semibold tracking-tight mb-4">团队其他成员</h2>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
               {others.map((o) => (
-                <Link key={o.id} href={`/biz/${tenant}/team/${o.id}`} className="rounded-3xl border border-border bg-background p-4 text-center hover:shadow-md transition-shadow">
-                  {o.photo ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img src={o.photo} alt={o.name} className="mx-auto h-14 w-14 rounded-full object-cover" />
-                  ) : (
-                    <div className={cn("mx-auto h-14 w-14 rounded-full text-white flex items-center justify-center text-[20px] font-semibold", BG[e.color])}>
-                      {o.name.slice(0, 1)}
-                    </div>
-                  )}
-                  <div className="mt-2 text-[13px] font-semibold truncate">{o.name}</div>
-                  <div className="text-[11px] text-muted-foreground truncate">{o.role}</div>
+                <Link key={o.id} href={`/biz/${tenant}/team/${o.id}`} className="rounded-2xl border border-border bg-background overflow-hidden hover:shadow-md transition-all hover:-translate-y-0.5">
+                  <div className="relative aspect-[3/4] bg-surface">
+                    {o.photo ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={o.photo} alt={o.name} className="absolute inset-0 w-full h-full object-cover" />
+                    ) : (
+                      <div className={cn("absolute inset-0 flex items-center justify-center text-white text-[28px] font-semibold", BG[e.color])}>{o.name.slice(0, 1)}</div>
+                    )}
+                  </div>
+                  <div className="p-2.5">
+                    <div className="text-[13px] font-semibold truncate">{o.name}</div>
+                    <div className="text-[11px] text-muted-foreground truncate">{o.role}</div>
+                  </div>
                 </Link>
               ))}
             </div>

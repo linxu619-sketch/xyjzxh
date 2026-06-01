@@ -161,11 +161,19 @@ export default async function TenantHome({ params }: { params: Promise<{ tenant:
             <SectionTitle eyebrow="TEAM · 团队" title="核心团队" sub={`${team.length} 位`} />
             <div className="mt-4 grid grid-cols-3 md:grid-cols-4 gap-2.5 md:gap-3">
               {team.map((m) => (
-                <Link key={m.id} href={`/biz/${tenant}/team/${m.id}`} className="rounded-2xl border border-border bg-background p-3 md:p-4 text-center active:scale-[0.99] hover:shadow-md md:hover:-translate-y-0.5 transition-all flex flex-col items-center">
-                  <Avatar m={m} color={e.color} />
-                  <div className="mt-2 text-[13px] md:text-[15px] font-semibold truncate w-full">{m.name}</div>
-                  <div className="text-[10px] md:text-[12px] text-muted-foreground truncate w-full">{m.role}</div>
-                  <div className="hidden md:block mt-1 text-[11px] text-muted-foreground line-clamp-1">{m.exp}</div>
+                <Link key={m.id} href={`/biz/${tenant}/team/${m.id}`} className="rounded-2xl border border-border bg-background overflow-hidden active:scale-[0.99] hover:shadow-md md:hover:-translate-y-0.5 transition-all">
+                  <div className="relative aspect-[3/4] bg-surface">
+                    {m.photo ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={m.photo} alt={m.name} className="absolute inset-0 w-full h-full object-cover" />
+                    ) : (
+                      <div className={cn("absolute inset-0 flex items-center justify-center text-white text-[32px] font-semibold", BG[e.color])}>{m.name.slice(0, 1)}</div>
+                    )}
+                  </div>
+                  <div className="p-2 md:p-3">
+                    <div className="text-[13px] md:text-[15px] font-semibold truncate">{m.name}</div>
+                    <div className="text-[10px] md:text-[12px] text-muted-foreground truncate">{m.role}</div>
+                  </div>
                 </Link>
               ))}
             </div>
@@ -222,15 +230,6 @@ export default async function TenantHome({ params }: { params: Promise<{ tenant:
       </section>
     </div>
   );
-}
-
-function Avatar({ m, color, sm }: { m: { name: string; photo: string }; color: string; sm?: boolean }) {
-  const size = sm ? "h-12 w-12 text-[18px]" : "h-16 w-16 text-[22px]";
-  if (m.photo) {
-    // eslint-disable-next-line @next/next/no-img-element
-    return <img src={m.photo} alt={m.name} className={cn("mx-auto rounded-full object-cover", size)} />;
-  }
-  return <div className={cn("mx-auto rounded-full text-white flex items-center justify-center font-semibold", size, BG[color])}>{m.name.slice(0, 1)}</div>;
 }
 
 function Metric({ label, value }: { label: string; value: string }) {

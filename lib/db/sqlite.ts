@@ -531,7 +531,7 @@ function seedCases(db: DB) {
   const now = Date.now();
   rows.forEach((r, i) => {
     const cid = i + 1; // 全新库自增 id 即 1..4
-    const imgs = [r[1], `/samples/cases/case-e002-${cid}-g1.jpg`, `/samples/cases/case-e002-${cid}-g2.jpg`, `/samples/cases/case-e002-${cid}-g3.jpg`];
+    const imgs = [r[1], `/samples/cases/case-e002-${cid}-g1.jpg`, `/samples/cases/case-e002-${cid}-g2.jpg`, `/samples/cases/case-e002-${cid}-g3.jpg`, `/samples/cases/case-e002-${cid}-g4.jpg`];
     stmt.run(r[0], r[1], r[2], r[3], r[4], JSON.stringify(imgs), now - i * DAY);
   });
 }
