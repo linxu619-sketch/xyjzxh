@@ -1,10 +1,9 @@
 import Link from "next/link";
 import {
-  Search, ShieldCheck, Truck, Store, Sparkles,
-  ArrowUpRight, ArrowRight, Package, TrendingDown, Award,
+  Search, ShieldCheck, Truck, Store,
+  ArrowRight, Package, TrendingDown, Award,
 } from "lucide-react";
 import { Container } from "@/components/container";
-import { PageHeader } from "@/components/page-header";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { listProducts, type SupplyProduct, type ReasonType } from "@/lib/data/supplies-source";
@@ -45,39 +44,14 @@ export default async function SuppliesHome({ searchParams }: { searchParams: Pro
 
   return (
     <>
-      <PageHeader
-        eyebrow="SUPPLIES · 协会会员互助商城"
-        tone="tea"
-        title={<>会员互助批发<br className="md:hidden" /> <span className="text-muted-foreground">集采 · 同品牌唯一最低价</span></>}
-        description={
-          <>
-            协会内 <b>{sellers.length}</b> 家会员在售 · <b>{all.length}</b> 款商品 · 覆盖 <b>{brands.size}</b> 个品牌。每个品牌仅由一家会员销售，以最低价为准，凭独家代理 / 自产自销 / 厂家直供资格上架。
-          </>
-        }
-        actions={
-          <>
-            <Button href="/dashboard/enterprise/store" variant="secondary">
-              <Store className="h-4 w-4" /> 我要卖货
-            </Button>
-            <Button href="/ai/biz" variant="outline">
-              <Sparkles className="h-4 w-4" /> AI 比价
-            </Button>
-          </>
-        }
-      />
-
-      <Container className="py-6 md:py-12">
-        {/* B2B 说明条 */}
-        <div className="mb-5 md:mb-8 rounded-3xl bg-foreground text-background p-5 md:p-7 flex items-center gap-3 md:gap-4 relative overflow-hidden">
-          <div className="absolute -right-10 -top-10 h-32 w-32 rounded-full bg-accent-tea/30 blur-2xl" />
-          <Award className="relative h-6 md:h-7 w-6 md:w-7 text-accent-yellow shrink-0" />
-          <div className="relative flex-1 min-w-0">
-            <div className="text-[10px] md:text-[12px] text-background/60 tracking-wider uppercase">协会会员互助 · 集采</div>
-            <div className="mt-0.5 md:mt-1 text-[15px] md:text-[20px] font-semibold leading-tight">谁家最便宜，谁进商城</div>
-            <div className="text-[11px] md:text-[12px] text-background/70 mt-0.5">同品牌平台唯一在售，避免内卷、做实议价。会员凭资格上架，协会审核。</div>
-          </div>
-          <Link href="/dashboard/enterprise/store" className="hidden sm:inline-flex text-[11px] md:text-[12px] text-accent-yellow items-center gap-1 shrink-0">
-            上架我的商品 <ArrowUpRight className="h-3 w-3" />
+      <Container className="py-5 md:py-10">
+        {/* 一行标语 + 卖货入口（搜索栏上方只留一行） */}
+        <div className="mb-3 md:mb-4 flex items-center justify-between gap-3">
+          <h1 className="text-[16px] md:text-[22px] font-semibold tracking-tight min-w-0 truncate">
+            建材超市<span className="text-muted-foreground font-normal text-[12px] md:text-[14px] ml-1.5">会员互助批发 · 同品牌唯一最低价</span>
+          </h1>
+          <Link href="/dashboard/enterprise/store" className="shrink-0 inline-flex items-center gap-1 h-9 px-3.5 rounded-full bg-foreground text-background text-[12px] md:text-[13px] font-medium active:scale-95 transition-transform">
+            <Store className="h-3.5 w-3.5" /> 我要卖货
           </Link>
         </div>
 
@@ -106,15 +80,6 @@ export default async function SuppliesHome({ searchParams }: { searchParams: Pro
           </div>
         )}
 
-        {/* 信任栏 */}
-        <div className="mb-8 md:mb-10 -mx-5 px-5 md:mx-0 md:px-0 overflow-x-auto md:overflow-visible [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-          <div className="flex md:grid md:grid-cols-3 gap-3 pb-1">
-            <Pillar icon={Award} title="同品牌唯一最低价" desc="一个品牌只由一家会员销售 · 价格擂台逼出最低价" tone="tea" />
-            <Pillar icon={ShieldCheck} title="资格审核 + 协会兜底" desc="独家代理 / 自产自销 / 厂家直供，凭证上架经协会审核" tone="brand" />
-            <Pillar icon={Truck} title="本地批发 · 起批量" desc="会员互助 · 批发为主 · 本地直送" tone="decor" />
-          </div>
-        </div>
-
         {/* 商品 */}
         <div className="flex items-end justify-between mb-3 md:mb-4">
           <div>
@@ -132,6 +97,15 @@ export default async function SuppliesHome({ searchParams }: { searchParams: Pro
             {products.map((p) => <ProductCard key={p.id} p={p} />)}
           </div>
         )}
+
+        {/* 信任栏（移到商品下方，保持搜索区清爽）*/}
+        <div className="mt-8 md:mt-10 -mx-5 px-5 md:mx-0 md:px-0 overflow-x-auto md:overflow-visible [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          <div className="flex md:grid md:grid-cols-3 gap-3 pb-1">
+            <Pillar icon={Award} title="同品牌唯一最低价" desc="一个品牌只由一家会员销售 · 价格擂台逼出最低价" tone="tea" />
+            <Pillar icon={ShieldCheck} title="资格审核 + 协会兜底" desc="独家代理 / 自产自销 / 厂家直供，凭证上架经协会审核" tone="brand" />
+            <Pillar icon={Truck} title="本地批发 · 起批量" desc="会员互助 · 批发为主 · 本地直送" tone="decor" />
+          </div>
+        </div>
 
         {/* 在售会员 */}
         {sellers.length > 0 && (
