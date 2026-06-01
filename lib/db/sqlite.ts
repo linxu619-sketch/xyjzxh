@@ -319,6 +319,24 @@ CREATE TABLE IF NOT EXISTS finance_applications (
 );
 CREATE INDEX IF NOT EXISTS idx_finapp_ent ON finance_applications(enterprise_id, created_at);
 CREATE INDEX IF NOT EXISTS idx_finapp_status ON finance_applications(status, created_at);
+
+CREATE TABLE IF NOT EXISTS orders (
+  id             INTEGER PRIMARY KEY AUTOINCREMENT,
+  enterprise_id  TEXT,
+  code           TEXT,
+  customer_name  TEXT,
+  customer_phone TEXT,
+  scope          TEXT,
+  type           TEXT,
+  area           TEXT,
+  district       TEXT,
+  amount         INTEGER,
+  stage          TEXT DEFAULT 'signed', -- signed | planning | in-progress | accepted
+  progress       INTEGER DEFAULT 0,
+  received_pct   INTEGER DEFAULT 0,
+  created_at     INTEGER
+);
+CREATE INDEX IF NOT EXISTS idx_orders_ent ON orders(enterprise_id, created_at);
 `;
 
 function seedEnterprises(db: DB) {
@@ -542,7 +560,24 @@ function init(): DB {
   seedTrainings(db);
   seedSupplyProducts(db);
   seedFinanceProducts(db);
+  seedOrders(db);
   return db;
+}
+
+function seedOrders(db: DB) {
+  if (!isEmpty(db, "orders")) return;
+  // 归属 e002（名家装饰）。[code,customer,phone,scope,type,area,district,amount,stage,progress,received]
+  const rows: [string, string, string, string, string, string, string, number, string, number, number][] = [
+    ["ORD-2026-0512", "刘女士", "13800030001", "金茂悦府 12 栋 1602 整装", "家装", "168", "浉河区", 318600, "in-progress", 42, 65],
+    ["ORD-2026-0498", "陈先生", "13800030002", "茶都商务大厦 22F 办公装修", "工装", "2400", "羊山新区", 2800000, "in-progress", 68, 50],
+    ["ORD-2026-0476", "周女士", "13800030003", "御景湾别墅软装", "家装", "320", "浉河区", 560000, "accepted", 100, 100],
+    ["ORD-2026-0531", "王总", "13800030004", "南湖一号 401 整装", "家装", "140", "平桥区", 268000, "planning", 0, 30],
+  ];
+  const stmt = db.prepare(
+    "INSERT INTO orders (enterprise_id,code,customer_name,customer_phone,scope,type,area,district,amount,stage,progress,received_pct,created_at) VALUES ('e002',?,?,?,?,?,?,?,?,?,?,?,?)",
+  );
+  const now = Date.now();
+  rows.forEach((r, i) => stmt.run(r[0], r[1], r[2], r[3], r[4], r[5], r[6], r[7], r[8], r[9], r[10], now - i * 5 * DAY));
 }
 
 function seedFinanceProducts(db: DB) {

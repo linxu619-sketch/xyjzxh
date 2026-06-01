@@ -1,112 +1,75 @@
 import Link from "next/link";
-import { Search, Plus, ArrowUpRight, ShieldCheck, AlertCircle } from "lucide-react";
+import { ChevronRight, ShieldCheck, CheckCircle2, AlertCircle, Hammer } from "lucide-react";
 import { EnterpriseShell } from "@/components/dashboard/shell";
-import { FilterBar, DataTable } from "@/components/dashboard/section";
+import { StatFilters } from "@/components/dashboard/stat-filters";
 import { Badge } from "@/components/ui/badge";
-import { ORDERS_LIST, STAGE_META } from "@/lib/data/orders";
+import { getSession } from "@/lib/auth/session";
+import { listOrdersByEnterprise, type OrderStage } from "@/lib/data/orders-source";
+import { NewOrder } from "./NewOrder";
 
 export const metadata = { title: "施工订单 · 企业工作台" };
 
-export default function OrdersPage() {
-  const inProgress = ORDERS_LIST.filter((o) => o.stage === "in-progress").length;
-  const pendingAction = ORDERS_LIST.reduce(
-    (a, o) => a + o.pendingCounts.acceptance + o.pendingCounts.change + o.pendingCounts.payment,
-    0,
-  );
-  const totalAmount = ORDERS_LIST.filter((o) => o.signedAt).reduce((a, o) => a + o.amount, 0);
-  const received = ORDERS_LIST.filter((o) => o.signedAt).reduce((a, o) => a + (o.amount * o.receivedPct) / 100, 0);
+const STAGE_LABEL: Record<OrderStage, string> = { signed: "已签约", planning: "排期中", "in-progress": "施工中", accepted: "已竣工" };
+const STAGE_TONE: Record<OrderStage, "brand" | "design" | "decor" | "tea"> = { signed: "brand", planning: "design", "in-progress": "decor", accepted: "tea" };
+const FILTERABLE: OrderStage[] = ["signed", "planning", "in-progress", "accepted"];
+
+export default async function OrdersPage({ searchParams }: { searchParams: Promise<{ f?: string; ook?: string; oerr?: string }> }) {
+  const { f, ook, oerr } = await searchParams;
+  const session = await getSession();
+  const all = session?.enterpriseId ? listOrdersByEnterprise(session.enterpriseId) : [];
+  const active = f && FILTERABLE.includes(f as OrderStage) ? (f as OrderStage) : undefined;
+  const list = active ? all.filter((o) => o.stage === active) : all;
+  const inProgress = all.filter((o) => o.stage === "in-progress").length;
+  const done = all.filter((o) => o.stage === "accepted").length;
+  const gmv = all.reduce((a, o) => a + o.amount, 0);
+  const base = "/dashboard/enterprise/orders";
+  const href = (st: OrderStage) => (active === st ? base : `${base}?f=${st}`);
 
   return (
-    <EnterpriseShell
-      title="施工订单 · 全流程"
-      subtitle={`覆盖 咨询 → 报价 → 签约 → 排期 → 施工 → 验收 → 收款 → 维保 · 在施 ${inProgress} 项`}
-      actions={
-        <Link href="/dashboard/enterprise/leads" className="h-9 px-4 rounded-full bg-foreground text-background text-[13px] font-medium inline-flex items-center gap-1.5">
-          <Plus className="h-3.5 w-3.5" /> 从线索创建
-        </Link>
-      }
-    >
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 mb-6">
-        {[
-          { l: "在施订单", v: inProgress, c: "text-cat-decor" },
-          { l: "已签合同", v: `¥${(totalAmount / 10000).toFixed(0)}万`, c: "text-cat-build" },
-          { l: "已收款", v: `¥${(received / 10000).toFixed(0)}万`, c: "text-accent-tea" },
-          { l: "待处理项", v: pendingAction, c: "text-cat-design" },
-        ].map((s) => (
-          <div key={s.l} className="rounded-2xl border border-border bg-background p-5">
-            <div className="text-[11px] text-muted-foreground tracking-wider uppercase">{s.l}</div>
-            <div className={`mt-1 text-[28px] font-semibold tracking-tight ${s.c}`}>{s.v}</div>
-          </div>
-        ))}
-      </div>
+    <EnterpriseShell title="施工订单" subtitle={`进行中 ${inProgress} · 累计合同额 ¥${(gmv / 10000).toFixed(1)} 万`} actions={<NewOrder />}>
+      {ook && <div className="mb-5 rounded-2xl border border-accent-tea/30 bg-[#e6f7f1] text-accent-tea p-4 flex items-center gap-3"><CheckCircle2 className="h-5 w-5 shrink-0" /><div className="text-[13px]"><b>订单已创建！</b>可点进详情更新阶段与进度。</div></div>}
+      {oerr && <div className="mb-5 rounded-2xl border border-cat-decor/30 bg-cat-decor-soft text-cat-decor p-4 flex items-center gap-3"><AlertCircle className="h-5 w-5 shrink-0" /><div className="text-[13px]">创建失败：请填写客户与项目范围。</div></div>}
 
-      {/* Tabs */}
-      <div className="flex items-center gap-1.5 mb-3 overflow-x-auto pb-1">
-        {[
-          { k: "all", l: `全部 (${ORDERS_LIST.length})`, active: true },
-          { k: "inquiry", l: `咨询 (${ORDERS_LIST.filter((o) => o.stage === "inquiry").length})` },
-          { k: "quoted", l: `已报价 (${ORDERS_LIST.filter((o) => o.stage === "quoted").length})` },
-          { k: "signed", l: `已签约 (${ORDERS_LIST.filter((o) => o.stage === "signed").length})` },
-          { k: "in-progress", l: `施工中 (${ORDERS_LIST.filter((o) => o.stage === "in-progress").length})` },
-          { k: "accepted", l: `已竣工 (${ORDERS_LIST.filter((o) => o.stage === "accepted").length})` },
-        ].map((t) => (
-          <button key={t.k} className={`shrink-0 h-9 px-4 rounded-full text-[13px] font-medium ${t.active ? "bg-foreground text-background" : "bg-background border border-border text-muted-foreground hover:text-foreground"}`}>
-            {t.l}
-          </button>
-        ))}
-      </div>
-
-      <FilterBar className="mb-3">
-        <div className="flex items-center gap-2 flex-1 min-w-[200px]">
-          <Search className="h-4 w-4 text-muted-foreground ml-2" />
-          <input placeholder="搜索订单号 / 客户 / 项目地址" className="flex-1 bg-transparent outline-none text-[13px] py-1" />
-        </div>
-        <select className="h-9 rounded-full bg-surface text-[12px] px-3 border border-transparent">
-          <option>区域：全部</option><option>浉河区</option><option>羊山新区</option><option>平桥区</option>
-        </select>
-      </FilterBar>
-
-      <DataTable dropActionCol
-        head={["订单号", "客户", "范围", "金额", "阶段", "进度", "回款", "待办", "操作"]}
-        rows={ORDERS_LIST.map((o) => {
-          const totalPending = o.pendingCounts.acceptance + o.pendingCounts.change + o.pendingCounts.payment;
-          return [
-            <code key="i" className="text-[12px] font-mono">{o.id}</code>,
-            <div key="c">
-              <div className="font-medium">{o.customerName}</div>
-              <div className="text-[11px] text-muted-foreground">{o.customerPhone}</div>
-            </div>,
-            <span key="s" className="text-[12px] text-muted-foreground max-w-[220px] truncate inline-block">{o.scope}</span>,
-            <span key="a" className="font-semibold">¥{(o.amount / 10000).toFixed(1)}万</span>,
-            <Badge key="st" tone={STAGE_META[o.stage].tone as "brand"}>{STAGE_META[o.stage].label}</Badge>,
-            <div key="p" className="min-w-[100px]">
-              <div className="h-1.5 rounded-full bg-surface w-24"><div className="h-full rounded-full bg-cat-decor" style={{ width: `${o.progress}%` }} /></div>
-              <div className="text-[11px] text-muted-foreground mt-1">{o.progress}%</div>
-            </div>,
-            <div key="r" className="text-[12px]">
-              <span className="font-medium text-accent-tea">{o.receivedPct}%</span>
-              <span className="text-muted-foreground"> · ¥{((o.amount * o.receivedPct) / 100 / 10000).toFixed(1)}万</span>
-            </div>,
-            totalPending > 0 ? (
-              <span key="td" className="inline-flex items-center gap-1 rounded-full bg-cat-decor-soft text-cat-decor px-2 py-0.5 text-[11px] font-medium">
-                <AlertCircle className="h-3 w-3" /> {totalPending}
-              </span>
-            ) : (
-              <span key="td" className="inline-flex items-center gap-1 text-[11px] text-accent-tea"><ShieldCheck className="h-3 w-3" /> 无</span>
-            ),
-            <Link key="op" href={`/dashboard/enterprise/orders/${o.id}`} className="inline-flex items-center gap-1 text-brand font-medium text-[12px]">
-              工作台 <ArrowUpRight className="h-3 w-3" />
-            </Link>,
-          ];
-        })}
+      <StatFilters
+        items={[
+          { key: "in-progress", label: "施工中", value: inProgress, color: "text-cat-decor", href: href("in-progress"), active: active === "in-progress" },
+          { key: "planning", label: "排期中", value: all.filter((o) => o.stage === "planning").length, color: "text-cat-design", href: href("planning"), active: active === "planning" },
+          { key: "accepted", label: "已竣工", value: done, color: "text-accent-tea", href: href("accepted"), active: active === "accepted" },
+          { key: "all", label: "全部订单", value: all.length, color: "text-cat-build", href: base, active: !active },
+        ]}
       />
 
-      <div className="mt-6 rounded-2xl border border-border bg-foreground text-background p-5 flex items-start gap-3">
-        <ShieldCheck className="h-5 w-5 text-accent-yellow mt-0.5 shrink-0" />
-        <div className="text-[12px] leading-5">
-          <b>项目工作台覆盖：</b> 客户与责任人 · 合同 · 进度计划 · 实时跟踪 · 分步验收 · 收款 · 变更记录 · 文档库；
-          <b>业主端</b> 同步可见，关键节点需要业主电子签确认。
+      <div className="rounded-2xl border border-border bg-background overflow-hidden">
+        <div className="px-5 py-3 border-b border-border text-[14px] font-semibold flex items-center justify-between">
+          <span>施工订单 · 点击查看与更新进度</span>
+          {active && <Link href={base} className="text-[12px] text-brand font-normal">清除筛选 ✕</Link>}
         </div>
+        {list.length === 0 ? (
+          <div className="px-5 py-16 text-center text-[13px] text-muted-foreground">{active ? "没有该阶段的订单。" : "还没有施工订单。点右上「新建订单」创建第一个。"}</div>
+        ) : (
+          <ul className="divide-y divide-border">
+            {list.map((o) => (
+              <li key={o.id}>
+                <Link href={`/dashboard/enterprise/orders/${o.id}`} className="flex items-center gap-3 px-5 py-4 hover:bg-surface transition-colors">
+                  <span className="h-9 w-9 rounded-xl bg-cat-decor-soft text-cat-decor inline-flex items-center justify-center shrink-0"><Hammer className="h-4 w-4" /></span>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <code className="text-[11px] font-mono text-muted-foreground">{o.code}</code>
+                      <span className="font-medium truncate">{o.scope}</span>
+                    </div>
+                    <div className="text-[12px] text-muted-foreground mt-0.5">{o.customerName} · {o.type} · ¥{(o.amount / 10000).toFixed(1)}万 · 进度 {o.progress}%</div>
+                  </div>
+                  <Badge tone={STAGE_TONE[o.stage]} className="shrink-0">{STAGE_LABEL[o.stage]}</Badge>
+                  <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0" />
+                </Link>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+
+      <div className="mt-4 text-[12px] text-muted-foreground inline-flex items-center gap-1.5">
+        <ShieldCheck className="h-3.5 w-3.5 text-accent-tea" /> 已签约订单可关联工装报备、协会监理与监管账户（明细功能逐步开放）。
       </div>
     </EnterpriseShell>
   );
