@@ -49,6 +49,13 @@ if errorlevel 9 (
     exit /b 0
 )
 
+REM ---------- 维护：开发缓存(.next)过大(>1.5GB)则自动清理，避免内存溢出 ----------
+powershell -NoProfile -Command "if(Test-Path '.next'){$s=(Get-ChildItem '.next' -Recurse -Force -EA SilentlyContinue | Measure-Object Length -Sum).Sum; if($s -gt 1610612736){exit 7}}; exit 0"
+if errorlevel 7 (
+    echo [维护] 检测到开发缓存过大，正在自动清理（下次启动重建，不影响网站数据）...
+    call npm run clean
+)
+
 REM ---------- 3. 后台启动服务器 ----------
 echo [3/3] 正在后台启动网站服务器...
 powershell -NoProfile -ExecutionPolicy Bypass -Command "Start-Process -FilePath 'cmd.exe' -ArgumentList '/c','npm run dev > server.log 2>&1' -WorkingDirectory '%~dp0' -WindowStyle Hidden"
