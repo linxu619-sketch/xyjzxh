@@ -163,6 +163,7 @@ CREATE TABLE IF NOT EXISTS enterprise_cases (
   area          TEXT,
   tag           TEXT,
   detail        TEXT,    -- 项目描述
+  images        TEXT,    -- 案例图集 JSON 数组(1-10张)；cover 为首图
   created_at    INTEGER
 );
 CREATE INDEX IF NOT EXISTS idx_cases_ent ON enterprise_cases(enterprise_id, created_at);
@@ -173,6 +174,8 @@ CREATE TABLE IF NOT EXISTS enterprise_team (
   name          TEXT,
   role          TEXT,
   exp           TEXT,
+  photo         TEXT,    -- 成员照片 URL
+  bio           TEXT,    -- 详细介绍
   created_at    INTEGER
 );
 CREATE INDEX IF NOT EXISTS idx_team_ent ON enterprise_team(enterprise_id, created_at);
@@ -523,22 +526,27 @@ function seedCases(db: DB) {
     ["茶都商务 22F · 办公空间", "/samples/cases/case-e002-3.jpg", "1200", "工装", "整层办公空间装修，含开放工位、会议室、洽谈区与茶水间。同步完成消防、弱电、中央空调改造，工装报备直连省厅，30 天交付投用。"],
     ["南湖一号 · 原木风三居", "/samples/cases/case-e002-4.jpg", "120", "家装", "小三居原木风整装，性价比之选。以浅色木饰面 + 白墙营造温馨通透感，主材环保 E0 级，含厨卫翻新与全屋定制，预算可控。"],
   ];
-  const stmt = db.prepare("INSERT INTO enterprise_cases (enterprise_id,title,cover,area,tag,detail,created_at) VALUES ('e002',?,?,?,?,?,?)");
+  const stmt = db.prepare("INSERT INTO enterprise_cases (enterprise_id,title,cover,area,tag,detail,images,created_at) VALUES ('e002',?,?,?,?,?,?,?)");
   const now = Date.now();
-  rows.forEach((r, i) => stmt.run(r[0], r[1], r[2], r[3], r[4], now - i * DAY));
+  rows.forEach((r, i) => {
+    const cid = i + 1; // 全新库自增 id 即 1..4
+    const imgs = [r[1], `/samples/cases/case-e002-${cid}-g1.jpg`, `/samples/cases/case-e002-${cid}-g2.jpg`, `/samples/cases/case-e002-${cid}-g3.jpg`];
+    stmt.run(r[0], r[1], r[2], r[3], r[4], JSON.stringify(imgs), now - i * DAY);
+  });
 }
 
 function seedTeam(db: DB) {
   if (!isEmpty(db, "enterprise_team")) return;
-  const rows: [string, string, string][] = [
-    ["李工", "首席设计师", "15 年经验 · 注册一级"],
-    ["张工", "项目总监", "20 年 · 一级建造师"],
-    ["王工", "技术总工", "12 年 · BIM 专家"],
-    ["赵工", "材料主管", "10 年 · 供应链"],
+  // [name, role, exp, bio]
+  const rows: [string, string, string, string][] = [
+    ["李工", "首席设计师", "15 年经验 · 注册一级", "从业 15 年，主持金茂悦府、御景湾等 200+ 高端整装与软装项目。擅长极简与收纳一体化设计，注重空间动线与光影，注册一级建造师，多次获省级装饰设计奖。"],
+    ["张工", "项目总监", "20 年 · 一级建造师", "20 年工程管理经验，一级建造师。主导大型工装与住宅交付，建立 18 道工序质检体系，确保工期与品质双达标。"],
+    ["王工", "技术总工", "12 年 · BIM 专家", "12 年施工技术与 BIM 应用经验，负责施工图深化与节点把控，推动绿色建造与新材料落地。"],
+    ["赵工", "材料主管", "10 年 · 供应链", "10 年供应链与材料把控经验，对接协会集采，严选环保 E0 级主材，为业主控本增质。"],
   ];
-  const stmt = db.prepare("INSERT INTO enterprise_team (enterprise_id,name,role,exp,created_at) VALUES ('e002',?,?,?,?)");
+  const stmt = db.prepare("INSERT INTO enterprise_team (enterprise_id,name,role,exp,photo,bio,created_at) VALUES ('e002',?,?,?,?,?,?)");
   const now = Date.now();
-  rows.forEach((r, i) => stmt.run(r[0], r[1], r[2], now - i * 3600000));
+  rows.forEach((r, i) => stmt.run(r[0], r[1], r[2], `/samples/team/team-e002-${i + 1}.jpg`, r[3], now - i * 3600000));
 }
 
 function seedJobs(db: DB) {
@@ -717,6 +725,10 @@ function migrate(db: DB) {
     "ALTER TABLE supply_orders ADD COLUMN seller_name TEXT",
     // 企业案例描述（子站案例详情页）
     "ALTER TABLE enterprise_cases ADD COLUMN detail TEXT",
+    "ALTER TABLE enterprise_cases ADD COLUMN images TEXT",  // 案例图集(1-10)
+    // 团队成员照片 + 详细介绍
+    "ALTER TABLE enterprise_team ADD COLUMN photo TEXT",
+    "ALTER TABLE enterprise_team ADD COLUMN bio TEXT",
   ];
   for (const sql of alters) {
     try { db.exec(sql); } catch { /* 列已存在，忽略 */ }

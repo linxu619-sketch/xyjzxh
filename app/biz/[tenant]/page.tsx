@@ -22,12 +22,6 @@ const SOFT: Record<string, string> = {
   decor: "bg-cat-decor-soft text-cat-decor",
   design: "bg-cat-design-soft text-cat-design",
 };
-const GRAD_TO: Record<string, string> = {
-  build: "to-[#0e44c9]",
-  decor: "to-[#e6531f]",
-  design: "to-[#6d3df0]",
-};
-
 export async function generateStaticParams() {
   return ENTERPRISES.map((e) => ({ tenant: e.slug }));
 }
@@ -61,10 +55,10 @@ export default async function TenantHome({ params }: { params: Promise<{ tenant:
               ★ {e.rating.toFixed(1)} · {e.reviews} 评价
             </span>
           </div>
-          <h1 className="text-[32px] sm:text-[44px] md:text-[72px] font-semibold tracking-tight leading-[1.05] sm:leading-[1.02] max-w-3xl">
+          <h1 className="text-[26px] sm:text-[36px] md:text-[52px] font-semibold tracking-tight leading-[1.1] sm:leading-[1.05] max-w-3xl break-words">
             {e.hero.tagline}
           </h1>
-          <p className="mt-4 sm:mt-6 text-[13px] sm:text-[15px] md:text-[18px] text-white/85 max-w-xl leading-6 sm:leading-7">
+          <p className="mt-3 sm:mt-5 text-[13px] sm:text-[15px] md:text-[17px] text-white/85 max-w-xl leading-6 sm:leading-7">
             {e.short}
           </p>
 
@@ -95,7 +89,7 @@ export default async function TenantHome({ params }: { params: Promise<{ tenant:
           </div>
 
           {/* 指标 */}
-          <div className="mt-10 md:mt-14 grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 pt-6 md:pt-8 border-t border-white/15">
+          <div className="mt-8 md:mt-10 grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 pt-6 md:pt-8 border-t border-white/15">
             <Metric label="评分" value={e.rating.toFixed(1)} sub={`${e.reviews} 评价`} />
             <Metric label="案例" value={`${e.cases}`} sub="近 3 年" />
             <Metric label="成立" value={`${e.founded}`} sub={`${new Date().getFullYear() - e.founded} 年`} />
@@ -198,9 +192,14 @@ export default async function TenantHome({ params }: { params: Promise<{ tenant:
             <div className="flex gap-3 pb-2">
               {team.map((m) => (
                 <Link key={m.id} href={`/biz/${tenant}/team/${m.id}`} className="snap-start shrink-0 w-[40vw] max-w-[160px] rounded-3xl border border-border bg-background p-4 text-center active:scale-[0.99] transition-transform">
-                  <div className={cn("mx-auto h-14 w-14 rounded-full text-white flex items-center justify-center text-[20px] font-semibold", BG[e.color])}>
-                    {m.name.slice(0, 1)}
-                  </div>
+                  {m.photo ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={m.photo} alt={m.name} className="mx-auto h-14 w-14 rounded-full object-cover" />
+                  ) : (
+                    <div className={cn("mx-auto h-14 w-14 rounded-full text-white flex items-center justify-center text-[20px] font-semibold", BG[e.color])}>
+                      {m.name.slice(0, 1)}
+                    </div>
+                  )}
                   <div className="mt-2 text-[13px] font-semibold">{m.name}</div>
                   <div className="text-[10px] text-muted-foreground">{m.role}</div>
                   <div className="mt-1 text-[9px] text-muted-foreground line-clamp-2">{m.exp}</div>
@@ -212,9 +211,14 @@ export default async function TenantHome({ params }: { params: Promise<{ tenant:
           <div className="hidden md:grid mt-10 grid-cols-4 gap-4">
             {team.map((m) => (
               <Link key={m.id} href={`/biz/${tenant}/team/${m.id}`} className="rounded-3xl border border-border bg-background p-5 text-center hover:shadow-md transition-shadow hover:-translate-y-0.5">
-                <div className={cn("mx-auto h-20 w-20 rounded-full text-white flex items-center justify-center text-[26px] font-semibold", BG[e.color])}>
-                  {m.name.slice(0, 1)}
-                </div>
+                {m.photo ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={m.photo} alt={m.name} className="mx-auto h-20 w-20 rounded-full object-cover" />
+                ) : (
+                  <div className={cn("mx-auto h-20 w-20 rounded-full text-white flex items-center justify-center text-[26px] font-semibold", BG[e.color])}>
+                    {m.name.slice(0, 1)}
+                  </div>
+                )}
                 <div className="mt-3 text-[15px] font-semibold">{m.name}</div>
                 <div className="text-[12px] text-muted-foreground">{m.role}</div>
                 <div className="mt-2 text-[11px] text-muted-foreground line-clamp-2">{m.exp}</div>
@@ -260,68 +264,34 @@ export default async function TenantHome({ params }: { params: Promise<{ tenant:
         </Container>
       </section>
 
-      {/* AI + 协会保障 */}
-      <section className="py-8 md:py-12">
+      {/* 联系 + 保障（精简收尾，一个块搞定）*/}
+      <section id="contact" className="py-8 md:py-12">
         <Container>
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
-            <div className={cn("rounded-3xl text-white p-6 md:p-10 relative overflow-hidden bg-gradient-to-br", BG[e.color], GRAD_TO[e.color])}>
-              <div className="absolute -right-10 -top-10 h-40 md:h-48 w-40 md:w-48 rounded-full bg-white/20 blur-3xl" />
-              <Sparkles className="relative h-6 md:h-7 w-6 md:w-7 text-accent-yellow" />
-              <h3 className="relative mt-3 md:mt-4 text-[22px] md:text-[32px] font-semibold tracking-tight leading-tight">
-                还在犹豫？<br /> 让 AI 帮你算个价
-              </h3>
-              <p className="relative mt-2 md:mt-3 text-[12px] md:text-[13px] text-white/85 max-w-sm leading-5 md:leading-6">
-                输入户型与诉求，AI 装修顾问 30 秒生成估价与方案建议，结果直达本企业。
-              </p>
-              <Link
-                href={`/ai/decor?style=${encodeURIComponent(e.tags[0] ?? "现代极简")}`}
-                className="relative mt-5 md:mt-7 inline-flex items-center gap-2 h-11 md:h-12 px-5 md:px-6 rounded-full bg-accent-yellow text-foreground font-medium text-[13px] md:text-[14px] active:scale-[0.99]"
-              >
-                免费 AI 估价 <ArrowRight className="h-4 w-4" />
-              </Link>
-            </div>
-
-            <div className="rounded-3xl bg-foreground text-background p-6 md:p-10 relative overflow-hidden">
-              <div className="absolute -right-10 -top-10 h-40 w-40 rounded-full bg-brand/30 blur-3xl" />
-              <ShieldCheck className="relative h-6 md:h-7 w-6 md:w-7 text-accent-yellow" />
-              <h3 className="relative mt-3 md:mt-4 text-[22px] md:text-[32px] font-semibold tracking-tight leading-tight">
-                协会三重保障<br />企业跑路也能赔
-              </h3>
-              <ul className="relative mt-3 md:mt-4 space-y-1.5 text-[12px] md:text-[13px] text-background/80 leading-5 md:leading-6">
-                <li>· 工程履约险：合同总价 10% 内先行赔付</li>
-                <li>· 14 天协会调解：纠纷免诉直达</li>
-                <li>· 资金监管账户：施工进度匹配付款</li>
+          <div className={cn("relative overflow-hidden rounded-3xl md:rounded-[32px] text-white p-6 md:p-10", BG[e.color])}>
+            <div className="absolute -right-16 -top-16 h-48 w-48 rounded-full bg-white/10 blur-2xl" />
+            <div className="relative grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8 md:items-center">
+              <div>
+                <h2 className="text-[24px] md:text-[34px] font-semibold tracking-tight leading-tight">准备开工？联系 {e.hero.brand}</h2>
+                <p className="mt-2 text-[13px] text-white/85 max-w-md leading-6">
+                  协会三重保障：工程履约险先行赔付 · 14 天调解兜底 · 资金监管账户，放心托付。
+                </p>
+                <div className="mt-5 flex flex-wrap gap-2">
+                  <Link href={`/biz/${tenant}/order`} className="inline-flex items-center gap-1.5 h-11 px-5 rounded-full bg-white text-foreground text-[14px] font-medium hover:bg-accent-yellow transition-colors">
+                    提交需求 <ArrowRight className="h-4 w-4" />
+                  </Link>
+                  <a href={`tel:${e.contact.tel.replace(/-/g, "")}`} className="inline-flex items-center gap-1.5 h-11 px-4 rounded-full border border-white/40 text-white text-[14px] hover:bg-white/10">
+                    <Phone className="h-4 w-4" /> {e.contact.tel}
+                  </a>
+                  <Link href={`/ai/decor?style=${encodeURIComponent(e.tags[0] ?? "现代极简")}`} className="inline-flex items-center gap-1.5 h-11 px-4 rounded-full border border-white/40 text-white text-[14px] hover:bg-white/10">
+                    <Sparkles className="h-4 w-4" /> AI 估价
+                  </Link>
+                </div>
+              </div>
+              <ul className="hidden md:block space-y-2 text-[13px] text-white/85 border-l border-white/20 pl-6">
+                <li className="inline-flex items-center gap-2"><ShieldCheck className="h-4 w-4 text-accent-yellow shrink-0" /> 工程履约险 · 合同 10% 内先行赔付</li>
+                <li className="inline-flex items-center gap-2"><MessageSquareHeart className="h-4 w-4 text-accent-yellow shrink-0" /> 14 天协会调解 · 纠纷免诉直达</li>
+                <li className="inline-flex items-center gap-2"><Hammer className="h-4 w-4 text-accent-yellow shrink-0" /> 资金监管账户 · 进度匹配付款</li>
               </ul>
-              <Link
-                href="/insurance"
-                className="relative mt-5 md:mt-7 inline-flex items-center gap-1.5 h-11 md:h-12 px-5 md:px-6 rounded-full bg-accent-yellow text-foreground font-medium text-[13px] md:text-[14px] active:scale-[0.99]"
-              >
-                了解协会保障 <ArrowRight className="h-4 w-4" />
-              </Link>
-            </div>
-          </div>
-        </Container>
-      </section>
-
-      {/* Final CTA */}
-      <section id="contact" className="pt-8 md:pt-12 pb-10 md:pb-16">
-        <Container>
-          <div className={cn(
-            "relative overflow-hidden rounded-[28px] md:rounded-[40px] p-7 md:p-14 text-white",
-            BG[e.color],
-          )}>
-            <div className="absolute -left-20 -bottom-20 h-56 md:h-72 w-56 md:w-72 rounded-full bg-white/10 blur-2xl" />
-            <h2 className="relative text-[26px] sm:text-[32px] md:text-[48px] font-semibold tracking-tight leading-[1.1] max-w-xl">
-              准备开工？<br /> 现在就联系 {e.hero.brand}
-            </h2>
-            <div className="relative mt-6 md:mt-8 flex flex-col sm:flex-row gap-3">
-              <Button href={`/biz/${tenant}/order`} size="lg" variant="primary" className="!bg-white !text-foreground hover:!bg-accent-yellow">
-                提交需求
-                <ArrowRight className="h-4 w-4" />
-              </Button>
-              <a href={`tel:${e.contact.tel.replace(/-/g, "")}`} className="inline-flex items-center justify-center gap-2 h-12 md:h-14 px-5 md:px-7 rounded-full border border-white/40 text-white font-medium hover:bg-white/10 text-[13px] md:text-[14px]">
-                <Phone className="h-4 w-4" /> {e.contact.tel}
-              </a>
             </div>
           </div>
         </Container>

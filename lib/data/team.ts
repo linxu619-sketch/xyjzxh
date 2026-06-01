@@ -11,6 +11,8 @@ export type TeamMember = {
   name: string;
   role: string;
   exp: string;
+  photo: string;
+  bio: string;
   createdAt: number;
 };
 
@@ -20,6 +22,8 @@ type Row = {
   name: string | null;
   role: string | null;
   exp: string | null;
+  photo: string | null;
+  bio: string | null;
   created_at: number | null;
 };
 
@@ -30,6 +34,8 @@ function rowTo(r: Row): TeamMember {
     name: r.name ?? "",
     role: r.role ?? "",
     exp: r.exp ?? "",
+    photo: r.photo ?? "",
+    bio: r.bio ?? "",
     createdAt: r.created_at ?? 0,
   };
 }
@@ -41,10 +47,10 @@ export function listTeamByEnterprise(enterpriseId: string): TeamMember[] {
   return rows.map(rowTo);
 }
 
-export function createMember(input: { enterpriseId: string; name: string; role: string; exp?: string }): number {
+export function createMember(input: { enterpriseId: string; name: string; role: string; exp?: string; photo?: string; bio?: string }): number {
   const info = getDb()
-    .prepare("INSERT INTO enterprise_team (enterprise_id,name,role,exp,created_at) VALUES (?,?,?,?,?)")
-    .run(input.enterpriseId, input.name, input.role, input.exp ?? "", Date.now());
+    .prepare("INSERT INTO enterprise_team (enterprise_id,name,role,exp,photo,bio,created_at) VALUES (?,?,?,?,?,?,?)")
+    .run(input.enterpriseId, input.name, input.role, input.exp ?? "", input.photo ?? "", input.bio ?? "", Date.now());
   return Number(info.lastInsertRowid);
 }
 

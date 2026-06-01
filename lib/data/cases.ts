@@ -13,6 +13,7 @@ export type EnterpriseCase = {
   area: string;
   tag: string;
   detail: string;
+  images: string[];   // 图集(1-10)，首图即 cover
   createdAt: number;
 };
 
@@ -24,18 +25,35 @@ type Row = {
   area: string | null;
   tag: string | null;
   detail: string | null;
+  images: string | null;
   created_at: number | null;
 };
 
+function parseImgs(s: string | null, cover: string): string[] {
+  if (s && s.trim().startsWith("[")) {
+    try {
+      const arr = JSON.parse(s) as unknown[];
+      if (Array.isArray(arr)) {
+        const list = arr.filter((x): x is string => typeof x === "string" && !!x).slice(0, 10);
+        if (list.length) return list;
+      }
+    } catch { /* ignore */ }
+  }
+  return cover ? [cover] : [];
+}
+
 function rowTo(r: Row): EnterpriseCase {
+  const cover = r.cover ?? "";
+  const images = parseImgs(r.images, cover);
   return {
     id: r.id,
     enterpriseId: r.enterprise_id ?? "",
     title: r.title ?? "",
-    cover: r.cover ?? "",
+    cover: cover || images[0] || "",
     area: r.area ?? "",
     tag: r.tag ?? "",
     detail: r.detail ?? "",
+    images,
     createdAt: r.created_at ?? 0,
   };
 }
@@ -54,10 +72,13 @@ export function createCase(input: {
   area?: string;
   tag?: string;
   detail?: string;
+  images?: string[];
 }): number {
+  const imgs = (input.images ?? []).filter(Boolean).slice(0, 10);
+  const cover = input.cover || imgs[0] || "";
   const info = getDb()
-    .prepare("INSERT INTO enterprise_cases (enterprise_id,title,cover,area,tag,detail,created_at) VALUES (?,?,?,?,?,?,?)")
-    .run(input.enterpriseId, input.title, input.cover, input.area ?? "", input.tag ?? "", input.detail ?? "", Date.now());
+    .prepare("INSERT INTO enterprise_cases (enterprise_id,title,cover,area,tag,detail,images,created_at) VALUES (?,?,?,?,?,?,?,?)")
+    .run(input.enterpriseId, input.title, cover, input.area ?? "", input.tag ?? "", input.detail ?? "", imgs.length ? JSON.stringify(imgs) : "", Date.now());
   return Number(info.lastInsertRowid);
 }
 

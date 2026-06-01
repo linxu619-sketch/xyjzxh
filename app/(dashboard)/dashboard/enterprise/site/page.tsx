@@ -143,7 +143,7 @@ export default async function SitePage({ searchParams }: { searchParams: Promise
         </div>
 
         <div className="mt-4">
-          <TeamManager team={team.map((m) => ({ id: m.id, name: m.name, role: m.role, exp: m.exp }))} />
+          <TeamManager team={team.map((m) => ({ id: m.id, name: m.name, role: m.role, exp: m.exp, photo: m.photo }))} />
         </div>
         </>
       )}

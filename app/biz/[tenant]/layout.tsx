@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { Phone, ArrowUpRight, ShieldCheck } from "lucide-react";
+import { Phone, ArrowUpRight, ShieldCheck, MapPin, BadgeCheck } from "lucide-react";
 import { getEnterpriseBySlugOrId } from "@/lib/data/enterprises-source";
 import { Container } from "@/components/container";
 import { SITE } from "@/lib/site";
@@ -100,28 +100,68 @@ export default async function TenantLayout({
 
       <main className="flex-1">{children}</main>
 
-      <footer className="mt-20 bg-surface border-t border-border">
-        <Container className="py-10">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+      {/* 企业子站专属底栏（不同于协会主站底栏）*/}
+      <footer className="mt-12 md:mt-16 bg-foreground text-background">
+        <Container className="py-10 md:py-12">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+            {/* 品牌 */}
+            <div className="col-span-2 md:col-span-1">
+              <div className="flex items-center gap-2.5">
+                <span className={cn("h-10 w-10 rounded-xl text-white font-semibold flex items-center justify-center", BG[e.color])}>
+                  {e.hero.brand.slice(0, 1)}
+                </span>
+                <div className="leading-tight">
+                  <div className="text-[15px] font-semibold">{e.hero.brand}</div>
+                  <div className="text-[10px] text-background/50">成立 {e.founded} · {e.district}</div>
+                </div>
+              </div>
+              <p className="mt-3 text-[12px] text-background/60 leading-6 max-w-xs">{e.short}</p>
+              <div className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-white/10 px-2.5 py-1 text-[11px]">
+                <ShieldCheck className="h-3 w-3 text-accent-tea" /> {SITE.name} 认证企业
+              </div>
+            </div>
+
+            {/* 快速导航 */}
             <div>
-              <div className="text-[15px] font-semibold">{e.name}</div>
-              <p className="mt-2 text-[12px] text-muted-foreground leading-6">{e.short}</p>
+              <div className="text-[12px] font-semibold text-background/90 mb-3">浏览</div>
+              <ul className="space-y-2 text-[12px] text-background/60">
+                <li><Link href={`/biz/${tenant}`} className="hover:text-background">首页</Link></li>
+                <li><Link href={`/biz/${tenant}#cases`} className="hover:text-background">精选案例</Link></li>
+                <li><Link href={`/biz/${tenant}#team`} className="hover:text-background">核心团队</Link></li>
+                <li><Link href={`/biz/${tenant}#service`} className="hover:text-background">服务范围</Link></li>
+                <li><Link href={`/biz/${tenant}/order`} className="hover:text-background">在线下单</Link></li>
+              </ul>
             </div>
-            <div className="text-[12px] text-muted-foreground space-y-1.5">
-              <div>电话：{e.contact.tel}</div>
-              <div>地址：{e.contact.addr}</div>
-              <div>资质：{e.qualification.join(" · ")}</div>
+
+            {/* 联系 */}
+            <div>
+              <div className="text-[12px] font-semibold text-background/90 mb-3">联系我们</div>
+              <ul className="space-y-2 text-[12px] text-background/60">
+                <li className="flex items-start gap-1.5"><Phone className="h-3.5 w-3.5 mt-0.5 shrink-0 text-accent-yellow" /><a href={`tel:${e.contact.tel.replace(/-/g, "")}`} className="hover:text-background">{e.contact.tel}</a></li>
+                <li className="flex items-start gap-1.5"><MapPin className="h-3.5 w-3.5 mt-0.5 shrink-0 text-accent-yellow" /><span>{e.contact.addr}</span></li>
+              </ul>
+              <div className="mt-3 flex items-center gap-2">
+                <Link href={`/biz/${tenant}/inquiry`} className="inline-flex items-center gap-1 h-8 px-3 rounded-full bg-white/10 text-[12px] hover:bg-white/20">在线咨询</Link>
+                <Link href={`/biz/${tenant}/order`} className={cn("inline-flex items-center gap-1 h-8 px-3 rounded-full text-white text-[12px]", BG[e.color])}>下单 <ArrowUpRight className="h-3 w-3" /></Link>
+              </div>
             </div>
-            <div className="text-[12px] text-muted-foreground">
-              <Link href="/" className="hover:text-foreground">协会主站</Link>
-              <span className="mx-2">·</span>
-              <Link href={`/members/${tenant}`} className="hover:text-foreground">协会档案</Link>
-              <span className="mx-2">·</span>
-              <Link href="/legal/privacy" className="hover:text-foreground">隐私</Link>
+
+            {/* 资质 / 协会 */}
+            <div>
+              <div className="text-[12px] font-semibold text-background/90 mb-3">资质 · 协会</div>
+              <ul className="space-y-2 text-[12px] text-background/60">
+                {e.qualification.slice(0, 3).map((q) => (
+                  <li key={q} className="flex items-start gap-1.5"><BadgeCheck className="h-3.5 w-3.5 mt-0.5 shrink-0 text-accent-tea" />{q}</li>
+                ))}
+                <li><Link href={`/members/${tenant}`} className="hover:text-background underline-offset-2 hover:underline">协会档案 →</Link></li>
+                <li><Link href="/" className="hover:text-background underline-offset-2 hover:underline">返回协会主站 →</Link></li>
+              </ul>
             </div>
           </div>
-          <div className="mt-8 pt-5 border-t border-border text-[11px] text-muted-foreground">
-            © {new Date().getFullYear()} {e.name} · 由 {SITE.name} 平台驱动
+
+          <div className="mt-9 pt-5 border-t border-white/10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 text-[11px] text-background/45">
+            <span>© {new Date().getFullYear()} {e.name} · 版权所有</span>
+            <span>由 {SITE.name} 平台驱动 · 资质实时同步</span>
           </div>
         </Container>
       </footer>

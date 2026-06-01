@@ -15,14 +15,19 @@ async function requireEnterprise() {
 export async function createCaseAction(fd: FormData) {
   const s = await requireEnterprise();
   const title = String(fd.get("title") || "").trim();
-  const cover = String(fd.get("cover") || "").trim();
-  if (!title || !cover) {
+  let images: string[] = [];
+  try {
+    const arr = JSON.parse(String(fd.get("images") || "[]"));
+    if (Array.isArray(arr)) images = arr.filter((x): x is string => typeof x === "string" && !!x).slice(0, 10);
+  } catch { /* ignore */ }
+  if (!title || images.length === 0) {
     redirect("/dashboard/enterprise/site?cerr=1");
   }
   createCase({
     enterpriseId: s.enterpriseId!,
     title,
-    cover,
+    cover: images[0],
+    images,
     area: String(fd.get("area") || "").trim(),
     tag: String(fd.get("tag") || "").trim(),
     detail: String(fd.get("detail") || "").trim(),

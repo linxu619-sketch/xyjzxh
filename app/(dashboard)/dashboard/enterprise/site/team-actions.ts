@@ -19,7 +19,12 @@ export async function createMemberAction(fd: FormData) {
   if (!name || !role) {
     redirect("/dashboard/enterprise/site?terr=1");
   }
-  createMember({ enterpriseId: s.enterpriseId!, name, role, exp: String(fd.get("exp") || "").trim() });
+  createMember({
+    enterpriseId: s.enterpriseId!, name, role,
+    exp: String(fd.get("exp") || "").trim(),
+    photo: String(fd.get("photo") || "").trim(),
+    bio: String(fd.get("bio") || "").trim(),
+  });
 
   const ent = await getEnterpriseBySlugOrId(s.enterpriseId!);
   if (ent) revalidatePath(`/biz/${ent.slug}`);

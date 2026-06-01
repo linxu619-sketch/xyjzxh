@@ -26,19 +26,25 @@ export default async function TeamMemberDetail({ params }: { params: Promise<{ t
         {/* 成员卡 */}
         <div className="rounded-3xl border border-border bg-background p-6 md:p-8">
           <div className="flex items-center gap-4 md:gap-5">
-            <div className={cn("h-20 w-20 md:h-24 md:w-24 rounded-3xl text-white flex items-center justify-center text-[32px] md:text-[40px] font-semibold shrink-0", BG[e.color])}>
-              {m.name.slice(0, 1)}
-            </div>
+            {m.photo ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={m.photo} alt={m.name} className="h-20 w-20 md:h-24 md:w-24 rounded-3xl object-cover shrink-0" />
+            ) : (
+              <div className={cn("h-20 w-20 md:h-24 md:w-24 rounded-3xl text-white flex items-center justify-center text-[32px] md:text-[40px] font-semibold shrink-0", BG[e.color])}>
+                {m.name.slice(0, 1)}
+              </div>
+            )}
             <div className="min-w-0">
               <h1 className="text-[22px] md:text-[28px] font-semibold tracking-tight">{m.name}</h1>
               <div className="mt-1 text-[14px] text-muted-foreground">{m.role}</div>
+              {m.exp && <div className="mt-1 text-[12px] text-muted-foreground">{m.exp}</div>}
               <div className="mt-2 inline-flex items-center gap-1 text-[12px] text-accent-tea"><ShieldCheck className="h-3.5 w-3.5" />{e.hero.brand} · 协会认证</div>
             </div>
           </div>
-          {m.exp && (
+          {(m.bio || m.exp) && (
             <div className="mt-5 pt-5 border-t border-border">
-              <div className="text-[12px] tracking-wider text-muted-foreground uppercase mb-2 inline-flex items-center gap-1.5"><BadgeCheck className="h-3.5 w-3.5" />资历 / 专长</div>
-              <p className="text-[14px] leading-7 text-foreground">{m.exp}</p>
+              <div className="text-[12px] tracking-wider text-muted-foreground uppercase mb-2 inline-flex items-center gap-1.5"><BadgeCheck className="h-3.5 w-3.5" />个人介绍</div>
+              <p className="text-[14px] leading-7 text-foreground whitespace-pre-line">{m.bio || m.exp}</p>
             </div>
           )}
           <div className="mt-6 flex gap-2 flex-wrap">
@@ -58,9 +64,14 @@ export default async function TeamMemberDetail({ params }: { params: Promise<{ t
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
               {others.map((o) => (
                 <Link key={o.id} href={`/biz/${tenant}/team/${o.id}`} className="rounded-3xl border border-border bg-background p-4 text-center hover:shadow-md transition-shadow">
-                  <div className={cn("mx-auto h-14 w-14 rounded-full text-white flex items-center justify-center text-[20px] font-semibold", BG[e.color])}>
-                    {o.name.slice(0, 1)}
-                  </div>
+                  {o.photo ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={o.photo} alt={o.name} className="mx-auto h-14 w-14 rounded-full object-cover" />
+                  ) : (
+                    <div className={cn("mx-auto h-14 w-14 rounded-full text-white flex items-center justify-center text-[20px] font-semibold", BG[e.color])}>
+                      {o.name.slice(0, 1)}
+                    </div>
+                  )}
                   <div className="mt-2 text-[13px] font-semibold truncate">{o.name}</div>
                   <div className="text-[11px] text-muted-foreground truncate">{o.role}</div>
                 </Link>

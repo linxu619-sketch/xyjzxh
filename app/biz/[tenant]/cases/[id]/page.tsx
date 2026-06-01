@@ -24,11 +24,21 @@ export default async function CaseDetail({ params }: { params: Promise<{ tenant:
           <ArrowLeft className="h-3.5 w-3.5" /> 返回 {e.hero.brand} · 案例
         </Link>
 
-        {/* 封面 */}
+        {/* 图集（1-10 张）：首图大图 + 其余网格 */}
         <div className="relative rounded-2xl md:rounded-3xl overflow-hidden bg-foreground/5 aspect-[16/10] md:aspect-[16/9]">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={c.cover} alt={c.title} className="absolute inset-0 w-full h-full object-cover" />
+          <img src={c.images[0] || c.cover} alt={c.title} className="absolute inset-0 w-full h-full object-cover" />
         </div>
+        {c.images.length > 1 && (
+          <div className="mt-3 grid grid-cols-2 md:grid-cols-3 gap-2 md:gap-3">
+            {c.images.slice(1).map((u, i) => (
+              <div key={i} className="relative aspect-[4/3] rounded-xl md:rounded-2xl overflow-hidden bg-foreground/5">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={u} alt={`${c.title} ${i + 2}`} className="absolute inset-0 w-full h-full object-cover" />
+              </div>
+            ))}
+          </div>
+        )}
 
         {/* 标题 + 元信息 */}
         <div className="mt-5 md:mt-7">
