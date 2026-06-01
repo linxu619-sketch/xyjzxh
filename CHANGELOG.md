@@ -14,6 +14,14 @@
 
 ---
 
+## [0.40.3] - 2026-06-01
+
+### 修复（dev 服务不稳定 / 启动慢 / 自动中断 = 内存溢出崩溃）
+- 根因：Turbopack 开发缓存 `.next/dev` 膨胀到 **7.4GB**，dev server `FATAL ERROR: JavaScript heap out of memory` 崩溃（即"服务自己中断"、启动变慢、偶发失败）。磁盘空间充足（剩 793GB），非磁盘问题。
+- 处置：①删除臃肿的 `.next` 缓存（新增 `npm run clean`）；②给 dev / build 设 **4GB Node 堆上限**（package.json `node --max-old-space-size=4096 next ...`），并在 `启动.bat` 设 `NODE_OPTIONS=--max-old-space-size=4096`（传递给 Next worker 子进程）。
+- 效果：清后首页冷启 **~4 秒**、无 OOM。`启动.bat` 保持 GBK 编码不变。
+- 提示：日后若再变慢/崩溃，先 `npm run clean` 清缓存；避免频繁重启 dev。
+
 ## [0.40.2] - 2026-06-01
 
 ### 修复（协会总览页接真实数据）

@@ -1,12 +1,13 @@
 {
   "name": "zsxh",
-  "version": "0.40.2",
+  "version": "0.40.3",
   "private": true,
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
+    "dev": "node --max-old-space-size=4096 ./node_modules/next/dist/bin/next dev",
+    "build": "node --max-old-space-size=4096 ./node_modules/next/dist/bin/next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "clean": "node -e \"require('fs').rmSync('.next',{recursive:true,force:true});console.log('.next cleared')\""
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.100.1",

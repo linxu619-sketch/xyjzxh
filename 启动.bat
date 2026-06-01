@@ -3,6 +3,7 @@ setlocal enabledelayedexpansion
 title 信阳建装 · 一键启动
 
 cd /d "%~dp0"
+set "NODE_OPTIONS=--max-old-space-size=4096"
 
 echo ============================================================
 echo   信阳市建筑装饰装修协会（信阳建装）· 一键启动
