@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { Phone, ArrowUpRight, ShieldCheck, MapPin, BadgeCheck, MessageSquareText, ArrowRight } from "lucide-react";
+import { Phone, ArrowUpRight, ShieldCheck, MapPin, BadgeCheck, MessageSquareText, ArrowRight, ChevronLeft } from "lucide-react";
 import { getEnterpriseBySlugOrId } from "@/lib/data/enterprises-source";
 import { Container } from "@/components/container";
 import { SITE } from "@/lib/site";
@@ -63,6 +63,12 @@ export default async function TenantLayout({
               ))}
             </nav>
             <div className="flex items-center gap-2">
+              <Link
+                href="/"
+                className="inline-flex items-center gap-0.5 h-9 pl-2 pr-3 rounded-full bg-surface text-[12px] md:text-[13px] text-muted-foreground hover:text-foreground hover:bg-surface-2 shrink-0"
+              >
+                <ChevronLeft className="h-3.5 w-3.5" /> 协会主站
+              </Link>
               <a
                 href={`tel:${e.contact.tel.replace(/-/g, "")}`}
                 className="hidden sm:inline-flex items-center gap-1.5 h-9 px-3.5 rounded-full bg-surface text-[13px] hover:bg-surface-2"
