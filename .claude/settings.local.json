@@ -128,7 +128,8 @@
       "Bash(perl -0pi -e 's/py-14 md:py-28/py-10 md:py-16/g' components/sections/news.tsx)",
       "Bash(awk -F: '{print $1\": \"$2}')",
       "Bash(awk '!seen[$2]++')",
-      "Bash(echo \"exit=$?\")"
+      "Bash(echo \"exit=$?\")",
+      "PowerShell(try { Get-NetConnectionProfile | Select-Object InterfaceAlias, NetworkCategory, IPv4Connectivity | Format-Table -AutoSize } catch { Write-Output \"查询失败\\(可能需管理员\\): $_\" })"
     ]
   }
 }

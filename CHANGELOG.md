@@ -14,6 +14,12 @@
 
 ---
 
+## [0.52.2] - 2026-06-01
+
+### 修复（局域网开发访问）
+- `next.config.ts` 增加 `allowedDevOrigins: ["192.168.31.74"]`，允许局域网设备访问 dev 资源与热更新(HMR)，消除手机访问时 `webpack-hmr` WebSocket 握手失败（`ERR_INVALID_HTTP_RESPONSE`）。局域网 IP 变更时需同步修改。
+- 注：改动 next.config 需重启一次 dev 服务才生效。
+
 ## [0.52.1] - 2026-06-01
 
 ### 清理（商城收尾：下线旧 mock 购物车）
