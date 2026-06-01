@@ -64,10 +64,10 @@ export default async function TenantLayout({
             </nav>
             <div className="flex items-center gap-2">
               <Link
-                href="/"
+                href="/members"
                 className="inline-flex items-center gap-0.5 h-9 pl-2 pr-3 rounded-full bg-surface text-[12px] md:text-[13px] text-muted-foreground hover:text-foreground hover:bg-surface-2 shrink-0"
               >
-                <ChevronLeft className="h-3.5 w-3.5" /> 协会主站
+                <ChevronLeft className="h-3.5 w-3.5" /> 找装企
               </Link>
               <a
                 href={`tel:${e.contact.tel.replace(/-/g, "")}`}
