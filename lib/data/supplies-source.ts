@@ -15,7 +15,7 @@ export type SupplyProduct = {
   id: number; name: string; category: string; unit: string; spec: string; supplier: string;
   brand: string; sellerType: SellerType; sellerId: string; sellerName: string;
   reasonType: ReasonType; reasonNote: string; proofUrl: string; moq: number;
-  priceTiers: PriceTier[];
+  imageUrl: string; priceTiers: PriceTier[];
   marketPrice: number; memberPrice: number; status: ProductStatus; rejectReason: string; createdAt: number;
 };
 export type SupplyOrder = {
@@ -29,7 +29,7 @@ export type SupplyOrder = {
 type PRow = {
   id: number; name: string | null; category: string | null; unit: string | null; spec: string | null; supplier: string | null;
   brand: string | null; seller_type: string | null; seller_id: string | null; seller_name: string | null;
-  reason_type: string | null; reason_note: string | null; proof_url: string | null; moq: number | null; price_tiers: string | null;
+  reason_type: string | null; reason_note: string | null; proof_url: string | null; moq: number | null; image_url: string | null; price_tiers: string | null;
   market_price: number | null; member_price: number | null; status: string; reject_reason: string | null; created_at: number | null;
 };
 
@@ -61,7 +61,7 @@ function toP(r: PRow): SupplyProduct {
     id: r.id, name: r.name ?? "", category: r.category ?? "", unit: r.unit ?? "", spec: r.spec ?? "", supplier: r.supplier ?? "",
     brand: r.brand ?? "", sellerType: (r.seller_type as SellerType) ?? "association", sellerId: r.seller_id ?? "", sellerName: r.seller_name ?? "",
     reasonType: (r.reason_type as ReasonType) ?? "direct", reasonNote: r.reason_note ?? "", proofUrl: r.proof_url ?? "", moq: r.moq ?? 1,
-    priceTiers: parseTiers(r.price_tiers),
+    imageUrl: r.image_url ?? "", priceTiers: parseTiers(r.price_tiers),
     marketPrice: r.market_price ?? 0, memberPrice: r.member_price ?? 0, status: (r.status as ProductStatus) ?? "active", rejectReason: r.reject_reason ?? "", createdAt: r.created_at ?? 0,
   };
 }
@@ -99,20 +99,20 @@ export type ListingInput = {
   sellerType: SellerType; sellerId: string; sellerName: string;
   name: string; brand: string; category: string; unit: string; spec?: string;
   reasonType: ReasonType; reasonNote?: string; proofUrl?: string;
-  moq?: number; priceTiers?: PriceTier[]; marketPrice: number; memberPrice: number;
+  moq?: number; imageUrl?: string; priceTiers?: PriceTier[]; marketPrice: number; memberPrice: number;
 };
 // 会员提交上架 → 进入待审核（pending）
 export function createListing(input: ListingInput): number {
   const tiers = (input.priceTiers ?? []).filter((t) => t.minQty > 0 && t.price > 0);
   const info = getDb().prepare(
     `INSERT INTO supply_products
-       (name,category,unit,spec,supplier,brand,seller_type,seller_id,seller_name,reason_type,reason_note,proof_url,moq,price_tiers,market_price,member_price,status,created_at)
-     VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?, 'pending', ?)`,
+       (name,category,unit,spec,supplier,brand,seller_type,seller_id,seller_name,reason_type,reason_note,proof_url,moq,image_url,price_tiers,market_price,member_price,status,created_at)
+     VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?, 'pending', ?)`,
   ).run(
     input.name, input.category, input.unit, input.spec ?? "", input.brand, input.brand,
     input.sellerType, input.sellerId, input.sellerName,
     input.reasonType, input.reasonNote ?? "", input.proofUrl ?? "",
-    input.moq ?? 1, tiers.length ? JSON.stringify(tiers) : null, input.marketPrice, input.memberPrice, Date.now(),
+    input.moq ?? 1, input.imageUrl ?? "", tiers.length ? JSON.stringify(tiers) : null, input.marketPrice, input.memberPrice, Date.now(),
   );
   return Number(info.lastInsertRowid);
 }

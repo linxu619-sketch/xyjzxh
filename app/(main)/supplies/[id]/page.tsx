@@ -47,6 +47,10 @@ export default async function ProductDetail({ params, searchParams }: { params: 
         {/* 图片占位 */}
         <div className="space-y-2 md:space-y-3 -mx-5 md:mx-0">
           <div className={cn("aspect-square md:rounded-3xl rounded-2xl overflow-hidden relative", THUMB[color])}>
+            {p.imageUrl && (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={p.imageUrl} alt={p.name} className="absolute inset-0 w-full h-full object-cover" />
+            )}
             <div className="absolute inset-0 bg-gradient-to-br from-white/0 to-foreground/30" />
             <div className="absolute top-3 md:top-4 left-3 md:left-4 flex flex-wrap gap-2">
               <Badge tone="brand">{REASON[p.reasonType]}</Badge>

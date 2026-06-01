@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Plus, X, Upload, Loader2, CheckCircle2 } from "lucide-react";
+import { Plus, X, Upload, Loader2, CheckCircle2, Image as ImageIcon } from "lucide-react";
 import { createListingAction } from "@/app/(dashboard)/dashboard/store-actions";
 
 const INPUT = "w-full h-11 rounded-xl border border-border bg-background px-3.5 text-[14px] outline-none focus:border-foreground/30";
@@ -16,21 +16,28 @@ export function ListingForm({ disabled, disabledHint }: { disabled?: boolean; di
   const [open, setOpen] = useState(false);
   const [proofUrl, setProofUrl] = useState("");
   const [uploading, setUploading] = useState(false);
+  const [imageUrl, setImageUrl] = useState("");
+  const [uploadingImg, setUploadingImg] = useState(false);
 
-  async function onPick(e: React.ChangeEvent<HTMLInputElement>) {
-    const f = e.target.files?.[0];
-    if (!f) return;
-    setUploading(true);
+  async function uploadTo(
+    file: File | undefined,
+    setUrl: (u: string) => void,
+    setBusy: (b: boolean) => void,
+  ) {
+    if (!file) return;
+    setBusy(true);
     try {
       const fd = new FormData();
-      fd.append("file", f);
+      fd.append("file", file);
       const res = await fetch("/api/upload", { method: "POST", body: fd });
       const data = await res.json();
-      if (data.url) setProofUrl(data.url);
+      if (data.url) setUrl(data.url);
     } finally {
-      setUploading(false);
+      setBusy(false);
     }
   }
+  const onPick = (e: React.ChangeEvent<HTMLInputElement>) => uploadTo(e.target.files?.[0], setProofUrl, setUploading);
+  const onPickImg = (e: React.ChangeEvent<HTMLInputElement>) => uploadTo(e.target.files?.[0], setImageUrl, setUploadingImg);
 
   if (!open) {
     return (
@@ -55,6 +62,24 @@ export function ListingForm({ disabled, disabledHint }: { disabled?: boolean; di
         <p className="text-[12px] text-muted-foreground mb-4">提交后进入协会审核。<b>同一品牌平台仅允许一家在售</b>，以最低价为准。</p>
         <div className="space-y-3">
           <Field label="商品名称" required><input name="name" required placeholder="如：美巢墙锢界面剂" className={INPUT} /></Field>
+          <Field label="商品效果图（建议正方形，展示在商城）">
+            <input type="hidden" name="imageUrl" value={imageUrl} />
+            {imageUrl ? (
+              <div className="relative w-24 h-24 rounded-xl overflow-hidden border border-border">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={imageUrl} alt="商品图" className="w-full h-full object-cover" />
+                <label className="absolute inset-0 bg-foreground/0 hover:bg-foreground/30 transition-colors cursor-pointer flex items-center justify-center text-white text-[11px] opacity-0 hover:opacity-100">
+                  重新上传<input type="file" accept="image/*" className="hidden" onChange={onPickImg} />
+                </label>
+              </div>
+            ) : (
+              <label className="flex items-center gap-2 h-24 w-full rounded-xl border border-dashed border-border px-3.5 text-[13px] text-muted-foreground cursor-pointer hover:border-foreground/30">
+                {uploadingImg ? <Loader2 className="h-5 w-5 animate-spin" /> : <ImageIcon className="h-5 w-5" />}
+                {uploadingImg ? "上传中…" : "点击上传商品图（≤8MB）"}
+                <input type="file" accept="image/*" className="hidden" onChange={onPickImg} />
+              </label>
+            )}
+          </Field>
           <div className="grid grid-cols-2 gap-3">
             <Field label="品牌" required><input name="brand" required placeholder="如：美巢 / 海螺 / 自有品牌" className={INPUT} /></Field>
             <Field label="类别"><select name="category" defaultValue="主材" className={INPUT}>{CATS.map((c) => <option key={c}>{c}</option>)}</select></Field>

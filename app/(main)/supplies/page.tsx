@@ -168,6 +168,10 @@ function ProductCard({ p }: { p: SupplyProduct }) {
   return (
     <Link href={`/supplies/${p.id}`} className="group rounded-2xl border border-border bg-background overflow-hidden active:scale-[0.98] hover:shadow-md md:hover:-translate-y-0.5 transition-all block">
       <div className={cn("relative aspect-square", THUMB[color])}>
+        {p.imageUrl && (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={p.imageUrl} alt={p.name} className="absolute inset-0 w-full h-full object-cover" />
+        )}
         <div className="absolute inset-0 bg-gradient-to-br from-white/0 to-foreground/30" />
         <div className="absolute top-2 left-2 flex flex-col gap-1">
           <Badge tone={reason.tone} className="!text-[9px]">{reason.label}</Badge>
