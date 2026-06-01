@@ -3,9 +3,10 @@ import { Package, CheckCircle2, TrendingDown, Truck, ShoppingCart, ShieldCheck, 
 import { AssociationShell } from "@/components/dashboard/shell";
 import { StatFilters } from "@/components/dashboard/stat-filters";
 import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/cn";
 import { listProducts, listAllSupplyOrders, listByStatus, brandActiveHolder, type OrderStatus, type ReasonType } from "@/lib/data/supplies-source";
 import { PublishProduct } from "./PublishProduct";
-import { setProductStatusAction, advanceOrderAction, approveListingAction, rejectListingAction } from "./actions";
+import { setProductStatusAction, advanceOrderAction, approveListingAction, rejectListingAction, replaceListingAction } from "./actions";
 
 export const metadata = { title: "建材集采 · 协会工作台" };
 
@@ -25,7 +26,7 @@ function fmt(ms: number) {
 }
 
 export default async function SuppliesAdmin({ searchParams }: { searchParams: Promise<{ tab?: string; pok?: string; perr?: string; rok?: string; conflict?: string }> }) {
-  const { tab, pok, perr, rok, conflict } = await searchParams;
+  const { tab, pok, perr, rok, conflict, notcheaper } = await searchParams;
   const showOrders = tab === "orders";
   const showReview = tab === "review";
   const products = listProducts(false);
@@ -39,8 +40,10 @@ export default async function SuppliesAdmin({ searchParams }: { searchParams: Pr
     <AssociationShell title="建材集采" subtitle={`在架 ${active} 款 · 待审核 ${pending.length} · 采购单 ${orders.length}`} actions={<PublishProduct />}>
       {pok && <div className="mb-5 rounded-2xl border border-accent-tea/30 bg-[#e6f7f1] text-accent-tea p-4 flex items-center gap-3"><CheckCircle2 className="h-5 w-5 shrink-0" /><div className="text-[13px]"><b>已上架！</b>企业可在「建材采购」按会员价下单。</div></div>}
       {perr && <div className="mb-5 rounded-2xl border border-cat-decor/30 bg-cat-decor-soft text-cat-decor p-4 text-[13px]">上架失败：请填写名称与会员价。</div>}
-      {rok && <div className="mb-5 rounded-2xl border border-accent-tea/30 bg-[#e6f7f1] text-accent-tea p-4 flex items-center gap-3"><CheckCircle2 className="h-5 w-5 shrink-0" /><div className="text-[13px]"><b>审核通过，已上架。</b></div></div>}
-      {conflict && <div className="mb-5 rounded-2xl border border-accent-yellow/40 bg-[#fff6d6] text-[#a37200] p-4 flex items-center gap-3"><AlertTriangle className="h-5 w-5 shrink-0" /><div className="text-[13px]"><b>该品牌已有在架卖家，无法直接通过。</b>同品牌仅允许一家在售，需走「价格擂台」由最低价者胜出（擂台功能二期上线）。当前可驳回本申请。</div></div>}
+      {rok === "1" && <div className="mb-5 rounded-2xl border border-accent-tea/30 bg-[#e6f7f1] text-accent-tea p-4 flex items-center gap-3"><CheckCircle2 className="h-5 w-5 shrink-0" /><div className="text-[13px]"><b>审核通过，已上架。</b></div></div>}
+      {rok === "replaced" && <div className="mb-5 rounded-2xl border border-accent-tea/30 bg-[#e6f7f1] text-accent-tea p-4 flex items-center gap-3"><CheckCircle2 className="h-5 w-5 shrink-0" /><div className="text-[13px]"><b>价格擂台裁定完成。</b>挑战者已上架，原在架卖家已下架并通知。</div></div>}
+      {conflict && <div className="mb-5 rounded-2xl border border-accent-yellow/40 bg-[#fff6d6] text-[#a37200] p-4 flex items-center gap-3"><AlertTriangle className="h-5 w-5 shrink-0" /><div className="text-[13px]"><b>该品牌已有在架卖家。</b>请用「价格擂台」裁定：仅当挑战价更低时方可替换在架卖家。</div></div>}
+      {notcheaper && <div className="mb-5 rounded-2xl border border-cat-decor/30 bg-cat-decor-soft text-cat-decor p-4 flex items-center gap-3"><AlertTriangle className="h-5 w-5 shrink-0" /><div className="text-[13px]"><b>挑战价未低于在架价，不能替换。</b>同品牌以最低价为准，请驳回或让其调低价格。</div></div>}
 
       <StatFilters
         items={[
@@ -74,18 +77,31 @@ export default async function SuppliesAdmin({ searchParams }: { searchParams: Pr
                         <div className="text-[12px] mt-0.5">会员批发价 <b className="text-cat-decor">¥{p.memberPrice}</b><span className="line-through ml-1 text-[11px] text-muted-foreground">¥{p.marketPrice}</span>/{p.unit}</div>
                         {p.reasonNote && <div className="text-[12px] text-muted-foreground mt-0.5">说明：{p.reasonNote}</div>}
                         {p.proofUrl && <a href={p.proofUrl} target="_blank" rel="noreferrer" className="text-[12px] text-brand mt-0.5 inline-block">查看资格证明 →</a>}
-                        {holder && (
-                          <div className="mt-1.5 text-[11px] text-[#a37200] bg-[#fff6d6] rounded-lg px-2 py-1 inline-flex items-center gap-1">
-                            <AlertTriangle className="h-3 w-3" /> 品牌冲突：「{p.brand}」已由 {holder.sellerName} 在售（¥{holder.memberPrice}/{holder.unit}）
-                          </div>
-                        )}
+                        {holder && (() => {
+                          const cheaper = p.memberPrice < holder.memberPrice;
+                          const delta = holder.memberPrice - p.memberPrice;
+                          return (
+                            <div className={cn("mt-1.5 text-[11px] rounded-lg px-2 py-1.5 inline-flex items-center gap-1.5 flex-wrap", cheaper ? "text-accent-tea bg-[#e6f7f1]" : "text-[#a37200] bg-[#fff6d6]")}>
+                              <AlertTriangle className="h-3 w-3 shrink-0" />
+                              价格擂台：「{p.brand}」在架方 {holder.sellerName} ¥{holder.memberPrice} · 挑战 ¥{p.memberPrice}
+                              {cheaper ? <b className="text-accent-tea">（低 ¥{delta}，可替换）</b> : <b className="text-cat-decor">（未更低，不可替换）</b>}
+                            </div>
+                          );
+                        })()}
                       </div>
                     </div>
-                    <div className="mt-3 flex items-center gap-2 pl-12">
-                      <form action={approveListingAction}>
-                        <input type="hidden" name="id" value={p.id} />
-                        <button className="h-8 px-4 rounded-full bg-accent-tea text-white text-[12px] font-medium inline-flex items-center gap-1"><CheckCircle2 className="h-3 w-3" /> 通过上架</button>
-                      </form>
+                    <div className="mt-3 flex items-center gap-2 pl-12 flex-wrap">
+                      {holder ? (
+                        <form action={replaceListingAction}>
+                          <input type="hidden" name="id" value={p.id} />
+                          <button disabled={p.memberPrice >= holder.memberPrice} className="h-8 px-4 rounded-full bg-accent-tea text-white text-[12px] font-medium inline-flex items-center gap-1 disabled:opacity-40 disabled:cursor-not-allowed"><CheckCircle2 className="h-3 w-3" /> 通过并替换（擂台胜出）</button>
+                        </form>
+                      ) : (
+                        <form action={approveListingAction}>
+                          <input type="hidden" name="id" value={p.id} />
+                          <button className="h-8 px-4 rounded-full bg-accent-tea text-white text-[12px] font-medium inline-flex items-center gap-1"><CheckCircle2 className="h-3 w-3" /> 通过上架</button>
+                        </form>
+                      )}
                       <form action={rejectListingAction} className="flex items-center gap-2">
                         <input type="hidden" name="id" value={p.id} />
                         <input name="reason" placeholder="驳回原因（选填）" className="h-8 px-3 rounded-full border border-border text-[12px] bg-background outline-none focus:border-foreground/30 w-40" />

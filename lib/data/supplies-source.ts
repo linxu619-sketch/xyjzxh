@@ -109,6 +109,12 @@ export function approveListing(id: number) {
 export function rejectListing(id: number, reason: string) {
   getDb().prepare("UPDATE supply_products SET status='rejected', reject_reason=? WHERE id=?").run(reason, id);
 }
+// 价格擂台：挑战者胜出 → 替换在架卖家（在架方下架并留痕，挑战者上架）
+export function replaceListing(challengerId: number, incumbentId: number, incumbentNote: string) {
+  const db = getDb();
+  db.prepare("UPDATE supply_products SET status='off', reject_reason=? WHERE id=?").run(incumbentNote, incumbentId);
+  db.prepare("UPDATE supply_products SET status='active', reject_reason='' WHERE id=?").run(challengerId);
+}
 export function setProductStatus(id: number, status: ProductStatus) {
   getDb().prepare("UPDATE supply_products SET status=? WHERE id=?").run(status, id);
 }

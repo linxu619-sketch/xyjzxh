@@ -722,6 +722,8 @@ function seedSupplyMemberListings(db: DB) {
     ["美巢墙锢界面剂", "辅材", "组(18kg)", "渗透型 抗碱", "美巢", "美巢", "enterprise", "e002", "名家装饰", "agent", "美巢集团信阳区域独家代理，凭授权书。", "/samples/cert.svg", 5, 96, 72, "pending"],
     ["海螺 PO42.5 散装水泥", "辅材", "吨", "PO42.5R 散装", "海螺", "海螺", "enterprise", "e001", "信阳华泰建工", "agent", "海螺水泥信阳总代，量大直发。", "/samples/cert.svg", 10, 420, 360, "active"],
     ["原创软装布艺套餐", "后期", "套", "客厅整套 可定制", "栖物原创", "栖物原创", "practitioner", "p-5", "孙女士(设计师)", "self", "本人原创设计、工厂直缝，自产自销。", "/samples/work-1.svg", 1, 3600, 2680, "pending"],
+    // 价格擂台演示：挑战华泰在架的「海螺」(¥360)，报更低价 ¥348
+    ["海螺 PO42.5 散装水泥", "辅材", "吨", "PO42.5R 散装", "海螺", "海螺", "enterprise", "e002", "名家装饰", "agent", "海螺水泥另一区域代理，量大价更优，发起价格擂台。", "/samples/cert.svg", 10, 420, 348, "pending"],
   ];
   const stmt = db.prepare(
     `INSERT INTO supply_products

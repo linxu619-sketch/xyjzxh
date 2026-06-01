@@ -63,7 +63,7 @@ export async function SellerPanel({ sp }: { sp?: { ok?: string; err?: string } }
                       <span className="inline-flex items-center gap-0.5 text-[11px] text-accent-tea"><ShieldCheck className="h-3 w-3" />{REASON_LABEL[p.reasonType]}</span>
                     </div>
                     <div className="text-[12px] text-muted-foreground mt-0.5">{p.spec ? p.spec + " · " : ""}起批 {p.moq}{p.unit} · ¥{p.memberPrice}<span className="line-through ml-1 text-[11px]">¥{p.marketPrice}</span>/{p.unit}{off > 0 && <span className="text-accent-tea ml-1.5">省{off}%</span>}</div>
-                    {p.status === "rejected" && p.rejectReason && <div className="text-[11px] text-cat-decor mt-0.5">驳回原因：{p.rejectReason}</div>}
+                    {(p.status === "rejected" || p.status === "off") && p.rejectReason && <div className="text-[11px] text-cat-decor mt-0.5">{p.status === "rejected" ? "驳回原因" : "下架原因"}：{p.rejectReason}</div>}
                   </div>
                   <Badge tone={st.tone} className="shrink-0 inline-flex items-center gap-1"><StIcon className="h-3 w-3" />{st.label}</Badge>
                   {(p.status === "active" || p.status === "off") && (

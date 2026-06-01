@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { getSession } from "@/lib/auth/session";
-import { createProduct, getProduct, setProductStatus, getSupplyOrder, setSupplyOrderStatus, approveListing, rejectListing, brandActiveHolder, type ProductStatus, type OrderStatus } from "@/lib/data/supplies-source";
+import { createProduct, getProduct, setProductStatus, getSupplyOrder, setSupplyOrderStatus, approveListing, rejectListing, replaceListing, brandActiveHolder, type ProductStatus, type OrderStatus } from "@/lib/data/supplies-source";
 
 async function requireAssoc() {
   const s = await getSession();
@@ -50,6 +50,32 @@ export async function approveListingAction(fd: FormData) {
   approveListing(id);
   refresh();
   redirect("/dashboard/association/supplies?tab=review&rok=1");
+}
+
+// 价格擂台裁定：挑战者更低价则替换在架卖家
+export async function replaceListingAction(fd: FormData) {
+  await requireAssoc();
+  const id = Number(fd.get("id") || 0);
+  const p = getProduct(id);
+  if (!p || p.status !== "pending") { refresh(); redirect("/dashboard/association/supplies?tab=review"); }
+  const holder = brandActiveHolder(p!.brand, p!.id);
+  if (!holder) {
+    // 品牌已空缺，直接通过
+    approveListing(id);
+    refresh();
+    redirect("/dashboard/association/supplies?tab=review&rok=1");
+  }
+  if (p!.memberPrice >= holder!.memberPrice) {
+    // 未低于在架价，不能进商城
+    refresh();
+    redirect(`/dashboard/association/supplies?tab=review&notcheaper=${id}`);
+  }
+  const d = new Date();
+  const date = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+  const note = `价格擂台：被「${p!.sellerName}」以更低价 ¥${p!.memberPrice}/${p!.unit} 替换（${date}）`;
+  replaceListing(id, holder!.id, note);
+  refresh();
+  redirect("/dashboard/association/supplies?tab=review&rok=replaced");
 }
 
 export async function rejectListingAction(fd: FormData) {
