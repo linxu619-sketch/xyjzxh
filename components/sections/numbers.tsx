@@ -27,9 +27,9 @@ export async function Numbers() {
   ];
 
   return (
-    <section className="py-10 md:py-20">
+    <section className="py-6 md:py-10">
       <Container>
-        <div className="rounded-3xl border border-border bg-background p-5 md:p-10">
+        <div className="rounded-3xl border border-brand/10 bg-gradient-to-br from-brand-50 via-[#f3eeff] to-[#e6f7f1] p-5 md:p-8 shadow-sm">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-y-6 md:gap-y-8 gap-x-4 md:gap-x-6">
             {stats.map((s, i) => (
               <div

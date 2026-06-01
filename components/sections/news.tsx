@@ -32,7 +32,7 @@ export async function News() {
   const items = listPublished().slice(0, 3);
   if (items.length === 0) return null;
   return (
-    <section className="py-14 md:py-28">
+    <section className="py-10 md:py-16">
       <Container>
         <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4 md:gap-6 mb-8 md:mb-12">
           <div className="max-w-2xl">

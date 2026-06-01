@@ -5,7 +5,6 @@ import {
   Globe2, CalendarDays, Star, ShieldCheck, Sparkles, ChevronRight,
 } from "lucide-react";
 import { Container } from "@/components/container";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Numbers } from "@/components/sections/numbers";
 import { News } from "@/components/sections/news";
@@ -13,6 +12,7 @@ import { AiTeam } from "@/components/sections/ai-team";
 import { SITE } from "@/lib/site";
 import { ENTERPRISES } from "@/lib/data/enterprises";
 import { listPublished } from "@/lib/data/news-source";
+import { listOpenTrainings } from "@/lib/data/training";
 import { cn } from "@/lib/cn";
 
 function fmtDate(ms: number) {
@@ -40,13 +40,6 @@ const MEMBER_SERVICES = [
   { icon: Globe2, t: "企业子站", d: "二级域名独立品牌页", href: "/tenant", tone: "brand" },
 ];
 
-// —— 协会活动 / 培训（示例数据）——
-const EVENTS = [
-  { date: "06-08", tag: "培训", title: "工装报备「一网通办」专题培训", place: "协会培训中心" },
-  { date: "06-15", tag: "交流", title: "绿色建造与新材料应用交流会", place: "信阳建博会展区" },
-  { date: "06-22", tag: "活动", title: "青年设计师作品评选沙龙", place: "线上 + 线下" },
-];
-
 const TONE_SOFT: Record<string, string> = {
   brand: "bg-brand-50 text-brand",
   build: "bg-cat-build-soft text-cat-build",
@@ -65,6 +58,7 @@ const FEATURED = ENTERPRISES.filter((e) => e.featured).slice(0, 6);
 // 协会门户（xh.xyjzxh.com）首页 — 面向会员（企业会员 + 个人会员）的服务与交流平台
 export default async function AssociationHome() {
   const notices = listPublished().slice(0, 4);
+  const trainings = listOpenTrainings().slice(0, 3);
   return (
     <>
       {/* HERO — 会员之家 */}
@@ -73,7 +67,7 @@ export default async function AssociationHome() {
         <div className="absolute -top-32 -left-20 h-72 w-72 rounded-full bg-brand/15 blur-3xl" aria-hidden />
         <div className="absolute -top-20 right-0 h-80 w-80 rounded-full bg-cat-build/15 blur-3xl" aria-hidden />
 
-        <Container className="relative pt-12 md:pt-20 pb-12 md:pb-16">
+        <Container className="relative pt-8 md:pt-14 pb-8 md:pb-12">
           <div className="max-w-3xl">
             <div className="inline-flex items-center gap-1.5 rounded-full bg-background border border-border px-3 py-1 text-[11px] mb-6 shadow-sm">
               <Badge tone="brand" className="!px-2 !py-0">会员之家</Badge>
@@ -85,15 +79,7 @@ export default async function AssociationHome() {
             <p className="mt-5 md:mt-6 text-[14px] md:text-[18px] leading-7 md:leading-8 text-muted-foreground max-w-2xl">
               {SITE.name}官方会员平台 — 为<b className="text-foreground">企业会员</b>与<b className="text-foreground">个人会员</b>提供入会、公告通知、工装报备、建材集采、金融保险、培训认证、知识库与 AI 助手等一站式服务与交流。
             </p>
-            <div className="mt-7 md:mt-9 flex flex-col sm:flex-row gap-3">
-              <Button href="#join" size="lg" variant="primary">
-                申请入会 <ArrowRight className="h-4 w-4" />
-              </Button>
-              <Button href="/login?role=association" size="lg" variant="outline">
-                会员登录工作台
-              </Button>
-            </div>
-            <div className="mt-6 flex flex-wrap items-center gap-x-4 gap-y-2 text-[12px] text-muted-foreground">
+            <div className="mt-5 md:mt-6 flex flex-wrap items-center gap-x-4 gap-y-2 text-[12px] text-muted-foreground">
               <span className="inline-flex items-center gap-1.5"><ShieldCheck className="h-3.5 w-3.5 text-accent-tea" /> 协会认证</span>
               <span className="inline-flex items-center gap-1.5"><Building2 className="h-3.5 w-3.5 text-cat-build" /> 报备直连省厅</span>
               <span className="inline-flex items-center gap-1.5"><Sparkles className="h-3.5 w-3.5 text-cat-decor" /> 会员 AI 助手</span>
@@ -106,7 +92,7 @@ export default async function AssociationHome() {
       <Numbers />
 
       {/* 协会公告 & 通知 */}
-      <section className="py-12 md:py-16">
+      <section className="py-8 md:py-12">
         <Container>
           <div className="flex items-end justify-between gap-4 mb-6 md:mb-8">
             <div>
@@ -133,7 +119,7 @@ export default async function AssociationHome() {
       </section>
 
       {/* 两类会员专区 */}
-      <section id="join" className="py-12 md:py-16 bg-surface scroll-mt-16">
+      <section id="join" className="py-8 md:py-12 bg-surface scroll-mt-16">
         <Container>
           <div className="text-center max-w-2xl mx-auto mb-8 md:mb-12">
             <div className="text-[12px] tracking-[0.2em] text-brand uppercase font-medium">MEMBERSHIP · 会员通道</div>
@@ -147,7 +133,6 @@ export default async function AssociationHome() {
               title="企业会员"
               who="建筑施工 · 装饰装修 · 设计公司"
               perks={["二级域名子站 · 在线接单", "工装报备直通省厅", "流量分发与协会认证", "建材集采 · 金融保险优惠", "企业经营后台 + AI 员工"]}
-              href="/join?type=enterprise"
             />
             <MemberCard
               icon={UserRound}
@@ -155,14 +140,13 @@ export default async function AssociationHome() {
               title="个人会员"
               who="独立设计师 · 项目经理 · 监理 · 独立工长"
               perks={["协会认证个人主页 / 名片", "专业认证徽章背书", "项目对接与接单", "工伤 / 意外保险保障", "培训、继续教育与证书"]}
-              href="/join?type=individual"
             />
           </div>
         </Container>
       </section>
 
       {/* 会员办事大厅 */}
-      <section id="services" className="py-12 md:py-16 scroll-mt-16">
+      <section id="services" className="py-8 md:py-12 scroll-mt-16">
         <Container>
           <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4 mb-8 md:mb-12">
             <div className="max-w-2xl">
@@ -190,7 +174,7 @@ export default async function AssociationHome() {
       </section>
 
       {/* 会员风采 */}
-      <section className="py-12 md:py-16 bg-surface">
+      <section className="py-8 md:py-12 bg-surface">
         <Container>
           <div className="flex items-end justify-between gap-4 mb-6 md:mb-10">
             <div>
@@ -223,7 +207,7 @@ export default async function AssociationHome() {
       </section>
 
       {/* 协会活动 & 培训 */}
-      <section className="py-12 md:py-16">
+      <section className="py-8 md:py-12">
         <Container>
           <div className="flex items-end justify-between gap-4 mb-6 md:mb-10">
             <div>
@@ -232,22 +216,27 @@ export default async function AssociationHome() {
               </div>
               <h2 className="mt-2 text-[26px] md:text-[40px] font-semibold tracking-tight">近期活动与培训</h2>
             </div>
-            <Link href="/talents" className="text-[13px] text-brand shrink-0">培训报名 →</Link>
+            <Link href="/dashboard/practitioner/training" className="text-[13px] text-brand shrink-0">培训报名 →</Link>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4">
-            {EVENTS.map((ev) => (
-              <div key={ev.title} className="rounded-3xl border border-border bg-background p-5 md:p-6 hover:shadow-md transition-shadow">
-                <div className="flex items-center gap-3">
-                  <div className="h-12 w-12 rounded-2xl bg-cat-design-soft text-cat-design inline-flex items-center justify-center leading-none">
-                    <span className="text-[15px] font-semibold tabular-nums">{ev.date}</span>
+          {trainings.length === 0 ? (
+            <div className="rounded-3xl border border-dashed border-border bg-background p-10 text-center text-[13px] text-muted-foreground">暂无在招课程。协会发布培训后会在此展示。</div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4">
+              {trainings.map((t) => (
+                <div key={t.id} className="rounded-3xl border border-border bg-background p-5 md:p-6 hover:shadow-md transition-shadow">
+                  <div className="flex items-center gap-3">
+                    <div className="h-11 w-11 rounded-2xl bg-cat-design-soft text-cat-design inline-flex items-center justify-center">
+                      <GraduationCap className="h-5 w-5" />
+                    </div>
+                    <Badge tone="design" className="!px-2 !py-0.5">{t.category}</Badge>
+                    <span className="ml-auto text-[11px] text-muted-foreground">{t.fee}</span>
                   </div>
-                  <Badge tone="design" className="!px-2 !py-0.5">{ev.tag}</Badge>
+                  <div className="mt-4 text-[15px] font-semibold tracking-tight leading-snug line-clamp-2">{t.title}</div>
+                  <div className="mt-2 text-[12px] text-muted-foreground">{t.schedule || "时间待定"}{t.location ? ` · ${t.location}` : ""}</div>
                 </div>
-                <div className="mt-4 text-[15px] font-semibold tracking-tight leading-snug">{ev.title}</div>
-                <div className="mt-2 text-[12px] text-muted-foreground">{ev.place}</div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </Container>
       </section>
 
@@ -261,11 +250,11 @@ export default async function AssociationHome() {
 }
 
 function MemberCard({
-  icon: Icon, tone, title, who, perks, href,
+  icon: Icon, tone, title, who, perks,
 }: {
   icon: React.ComponentType<{ className?: string }>;
   tone: "build" | "design";
-  title: string; who: string; perks: string[]; href: string;
+  title: string; who: string; perks: string[];
 }) {
   return (
     <div className="relative overflow-hidden rounded-3xl border border-border bg-background p-6 md:p-8 flex flex-col">
@@ -286,10 +275,8 @@ function MemberCard({
           </li>
         ))}
       </ul>
-      <div className="relative mt-6">
-        <Button href={href} variant="primary">
-          申请{title} <ArrowRight className="h-4 w-4" />
-        </Button>
+      <div className="relative mt-6 text-[12px] text-muted-foreground inline-flex items-center gap-1">
+        <ArrowRight className="h-3.5 w-3.5 text-brand" /> 点右上角「申请入会」选择「{title}」提交
       </div>
     </div>
   );

@@ -16,7 +16,7 @@ const GRAD: Record<string, string> = {
 export function AiTeam({ face = "member" }: { face?: "member" | "consumer" }) {
   const list = AI_EMPLOYEES.filter((a) => a.face === face || a.face === "both");
   return (
-    <section className="relative py-24 md:py-32 overflow-hidden">
+    <section className="relative py-14 md:py-20 overflow-hidden">
       {/* 深色块：制造对比、突出 AI */}
       <div className="absolute inset-0 bg-foreground" aria-hidden />
       <div
