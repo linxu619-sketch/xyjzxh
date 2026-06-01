@@ -80,6 +80,17 @@ export function ListingForm({ disabled, disabledHint }: { disabled?: boolean; di
             <Field label="市场参考价(元)"><input name="marketPrice" inputMode="numeric" placeholder="96" className={INPUT} /></Field>
             <Field label="会员批发价(元)" required><input name="memberPrice" inputMode="numeric" required placeholder="72" className={INPUT} /></Field>
           </div>
+          <div>
+            <span className="text-[12px] font-medium">阶梯量价（选填 · 买得越多越便宜）</span>
+            <div className="mt-1.5 space-y-2">
+              <div className="flex items-center gap-2 text-[12px] text-muted-foreground">
+                满 <input name="tier1Qty" inputMode="numeric" placeholder="50" className="w-20 h-10 rounded-xl border border-border bg-background px-2.5 text-[14px] outline-none focus:border-foreground/30" /> 单价 <input name="tier1Price" inputMode="numeric" placeholder="69" className="w-20 h-10 rounded-xl border border-border bg-background px-2.5 text-[14px] outline-none focus:border-foreground/30" /> 元
+              </div>
+              <div className="flex items-center gap-2 text-[12px] text-muted-foreground">
+                满 <input name="tier2Qty" inputMode="numeric" placeholder="100" className="w-20 h-10 rounded-xl border border-border bg-background px-2.5 text-[14px] outline-none focus:border-foreground/30" /> 单价 <input name="tier2Price" inputMode="numeric" placeholder="66" className="w-20 h-10 rounded-xl border border-border bg-background px-2.5 text-[14px] outline-none focus:border-foreground/30" /> 元
+              </div>
+            </div>
+          </div>
           <div className="flex items-center gap-3 pt-1">
             <button type="submit" disabled={uploading} className="h-11 px-6 rounded-full bg-accent-tea text-white text-[14px] font-medium inline-flex items-center gap-1.5 disabled:opacity-50"><Plus className="h-4 w-4" /> 提交审核</button>
             <button type="button" onClick={() => setOpen(false)} className="h-11 px-4 rounded-full text-[13px] text-muted-foreground hover:text-foreground">取消</button>

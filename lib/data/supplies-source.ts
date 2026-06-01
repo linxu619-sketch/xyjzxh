@@ -10,10 +10,12 @@ export type SellerType = "association" | "enterprise" | "practitioner";
 export type ReasonType = "agent" | "self" | "direct"; // 独家代理 | 自产自销 | 厂家直供
 export type OrderStatus = "pending" | "confirmed" | "shipped" | "done";
 
+export type PriceTier = { minQty: number; price: number };
 export type SupplyProduct = {
   id: number; name: string; category: string; unit: string; spec: string; supplier: string;
   brand: string; sellerType: SellerType; sellerId: string; sellerName: string;
   reasonType: ReasonType; reasonNote: string; proofUrl: string; moq: number;
+  priceTiers: PriceTier[];
   marketPrice: number; memberPrice: number; status: ProductStatus; rejectReason: string; createdAt: number;
 };
 export type SupplyOrder = {
@@ -27,9 +29,26 @@ export type SupplyOrder = {
 type PRow = {
   id: number; name: string | null; category: string | null; unit: string | null; spec: string | null; supplier: string | null;
   brand: string | null; seller_type: string | null; seller_id: string | null; seller_name: string | null;
-  reason_type: string | null; reason_note: string | null; proof_url: string | null; moq: number | null;
+  reason_type: string | null; reason_note: string | null; proof_url: string | null; moq: number | null; price_tiers: string | null;
   market_price: number | null; member_price: number | null; status: string; reject_reason: string | null; created_at: number | null;
 };
+
+function parseTiers(s: string | null): PriceTier[] {
+  if (!s) return [];
+  try {
+    const arr = JSON.parse(s) as PriceTier[];
+    if (!Array.isArray(arr)) return [];
+    return arr.filter((t) => Number(t.minQty) > 0 && Number(t.price) > 0)
+      .map((t) => ({ minQty: Number(t.minQty), price: Number(t.price) }))
+      .sort((a, b) => a.minQty - b.minQty);
+  } catch { return []; }
+}
+// 按采购数量取适用单价：取 minQty<=qty 中最大的一档，否则用基础会员价
+export function unitPriceFor(p: SupplyProduct, qty: number): number {
+  let price = p.memberPrice;
+  for (const t of p.priceTiers) if (qty >= t.minQty) price = t.price;
+  return price;
+}
 type ORow = {
   id: number; enterprise_id: string | null; enterprise_name: string | null;
   buyer_type: string | null; buyer_id: string | null; buyer_name: string | null;
@@ -42,6 +61,7 @@ function toP(r: PRow): SupplyProduct {
     id: r.id, name: r.name ?? "", category: r.category ?? "", unit: r.unit ?? "", spec: r.spec ?? "", supplier: r.supplier ?? "",
     brand: r.brand ?? "", sellerType: (r.seller_type as SellerType) ?? "association", sellerId: r.seller_id ?? "", sellerName: r.seller_name ?? "",
     reasonType: (r.reason_type as ReasonType) ?? "direct", reasonNote: r.reason_note ?? "", proofUrl: r.proof_url ?? "", moq: r.moq ?? 1,
+    priceTiers: parseTiers(r.price_tiers),
     marketPrice: r.market_price ?? 0, memberPrice: r.member_price ?? 0, status: (r.status as ProductStatus) ?? "active", rejectReason: r.reject_reason ?? "", createdAt: r.created_at ?? 0,
   };
 }
@@ -79,19 +99,20 @@ export type ListingInput = {
   sellerType: SellerType; sellerId: string; sellerName: string;
   name: string; brand: string; category: string; unit: string; spec?: string;
   reasonType: ReasonType; reasonNote?: string; proofUrl?: string;
-  moq?: number; marketPrice: number; memberPrice: number;
+  moq?: number; priceTiers?: PriceTier[]; marketPrice: number; memberPrice: number;
 };
 // 会员提交上架 → 进入待审核（pending）
 export function createListing(input: ListingInput): number {
+  const tiers = (input.priceTiers ?? []).filter((t) => t.minQty > 0 && t.price > 0);
   const info = getDb().prepare(
     `INSERT INTO supply_products
-       (name,category,unit,spec,supplier,brand,seller_type,seller_id,seller_name,reason_type,reason_note,proof_url,moq,market_price,member_price,status,created_at)
-     VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?, 'pending', ?)`,
+       (name,category,unit,spec,supplier,brand,seller_type,seller_id,seller_name,reason_type,reason_note,proof_url,moq,price_tiers,market_price,member_price,status,created_at)
+     VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?, 'pending', ?)`,
   ).run(
     input.name, input.category, input.unit, input.spec ?? "", input.brand, input.brand,
     input.sellerType, input.sellerId, input.sellerName,
     input.reasonType, input.reasonNote ?? "", input.proofUrl ?? "",
-    input.moq ?? 1, input.marketPrice, input.memberPrice, Date.now(),
+    input.moq ?? 1, tiers.length ? JSON.stringify(tiers) : null, input.marketPrice, input.memberPrice, Date.now(),
   );
   return Number(info.lastInsertRowid);
 }
@@ -135,7 +156,8 @@ export function setProductStatus(id: number, status: ProductStatus) {
 /* ---- 采购单（B2B：买家=会员，订单路由到卖家履约）---- */
 export type Buyer = { type: string; id: string; name: string };
 export function createSupplyOrder(input: { buyer: Buyer; product: SupplyProduct; qty: number }): number {
-  const total = input.product.memberPrice * input.qty;
+  const unit = unitPriceFor(input.product, input.qty); // 阶梯量价：按数量取适用单价
+  const total = unit * input.qty;
   const eid = input.buyer.type === "enterprise" ? input.buyer.id : ""; // 企业买家同时写 enterprise_id 兼容旧查询
   const ename = input.buyer.type === "enterprise" ? input.buyer.name : "";
   const info = getDb().prepare(
@@ -145,7 +167,7 @@ export function createSupplyOrder(input: { buyer: Buyer; product: SupplyProduct;
   ).run(
     eid, ename, input.buyer.type, input.buyer.id, input.buyer.name,
     input.product.sellerType, input.product.sellerId, input.product.sellerName,
-    input.product.id, input.product.name, input.product.unit, input.qty, input.product.memberPrice, total, Date.now(),
+    input.product.id, input.product.name, input.product.unit, input.qty, unit, total, Date.now(),
   );
   return Number(info.lastInsertRowid);
 }

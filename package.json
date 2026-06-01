@@ -1,6 +1,6 @@
 {
   "name": "zsxh",
-  "version": "0.51.0",
+  "version": "0.52.0",
   "private": true,
   "scripts": {
     "dev": "node --max-old-space-size=4096 ./node_modules/next/dist/bin/next dev",

@@ -277,6 +277,7 @@ CREATE TABLE IF NOT EXISTS supply_products (
   reason_note   TEXT,                      -- 资格说明
   proof_url     TEXT,                      -- 资格证明图
   moq           INTEGER DEFAULT 1,         -- 起批量
+  price_tiers   TEXT,                      -- 阶梯量价 JSON: [{minQty,price}] 买得越多单价越低
   market_price  INTEGER,
   member_price  INTEGER,
   status        TEXT DEFAULT 'active',     -- pending(待审) | active(在架) | rejected(驳回) | off(下架)
@@ -701,6 +702,7 @@ function migrate(db: DB) {
     "ALTER TABLE supply_products ADD COLUMN proof_url TEXT",
     "ALTER TABLE supply_products ADD COLUMN moq INTEGER DEFAULT 1",
     "ALTER TABLE supply_products ADD COLUMN reject_reason TEXT",
+    "ALTER TABLE supply_products ADD COLUMN price_tiers TEXT", // 阶梯量价 JSON
     // 会员等级（卖家可上架数量配额按等级区分）
     "ALTER TABLE accounts ADD COLUMN tier TEXT DEFAULT '普通会员'",
     // 采购单买家/卖家路由（B2B：买卖双方都是会员，订单路由到卖家履约）

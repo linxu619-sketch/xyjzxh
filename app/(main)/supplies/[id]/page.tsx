@@ -87,6 +87,26 @@ export default async function ProductDetail({ params, searchParams }: { params: 
             {p.reasonNote && <p className="relative mt-3 md:mt-4 text-[11px] md:text-[12px] text-background/70 leading-5">{p.reasonNote}</p>}
           </div>
 
+          {/* 阶梯量价 */}
+          {p.priceTiers.length > 0 && (
+            <div className="mt-3 md:mt-4 rounded-2xl border border-border bg-background p-3 md:p-4">
+              <div className="text-[10px] md:text-[12px] text-muted-foreground tracking-wider uppercase mb-2 md:mb-3">阶梯量价 · 买得越多越便宜</div>
+              <div className="grid gap-1.5" style={{ gridTemplateColumns: `repeat(${p.priceTiers.length + 1}, minmax(0,1fr))` }}>
+                <div className="rounded-xl p-2 md:p-3 text-center border border-border bg-surface">
+                  <div className="text-[9px] md:text-[10px] text-muted-foreground">{p.moq}{p.unit} 起</div>
+                  <div className="mt-0.5 md:mt-1 text-[14px] md:text-[16px] font-semibold tracking-tight tabular-nums">¥{p.memberPrice}</div>
+                </div>
+                {p.priceTiers.map((t) => (
+                  <div key={t.minQty} className="rounded-xl p-2 md:p-3 text-center border border-accent-tea/40 bg-[#e6f7f1]">
+                    <div className="text-[9px] md:text-[10px] text-muted-foreground">满 {t.minQty}{p.unit}</div>
+                    <div className="mt-0.5 md:mt-1 text-[14px] md:text-[16px] font-semibold tracking-tight tabular-nums text-accent-tea">¥{t.price}</div>
+                  </div>
+                ))}
+              </div>
+              <div className="mt-2 text-[10px] md:text-[11px] text-muted-foreground">下单时按实际数量自动取对应单价。</div>
+            </div>
+          )}
+
           {/* 采购 CTA */}
           {err === "self" && <div className="mt-4 rounded-xl border border-cat-decor/30 bg-cat-decor-soft text-cat-decor p-3 text-[12px]">不能购买自己上架的商品。</div>}
           {err === "off" && <div className="mt-4 rounded-xl border border-cat-decor/30 bg-cat-decor-soft text-cat-decor p-3 text-[12px]">该商品已下架，无法下单。</div>}

@@ -31,6 +31,12 @@ export async function createListingAction(fd: FormData) {
     redirect(`${seller.base}?err=form`);
   }
 
+  // 阶梯量价（选填，最多两档；仅保留数量与单价都有效、且单价低于基础价的档位）
+  const tiers = [
+    { minQty: Number(fd.get("tier1Qty") || 0) || 0, price: Number(fd.get("tier1Price") || 0) || 0 },
+    { minQty: Number(fd.get("tier2Qty") || 0) || 0, price: Number(fd.get("tier2Price") || 0) || 0 },
+  ].filter((t) => t.minQty > 0 && t.price > 0 && t.price < member);
+
   createListing({
     sellerType: seller.type, sellerId: seller.id, sellerName: seller.name,
     name, brand,
@@ -41,6 +47,7 @@ export async function createListingAction(fd: FormData) {
     reasonNote: String(fd.get("reasonNote") || "").trim(),
     proofUrl: String(fd.get("proofUrl") || "").trim(),
     moq: Number(fd.get("moq") || 1) || 1,
+    priceTiers: tiers,
     marketPrice: Number(fd.get("marketPrice") || 0) || 0,
     memberPrice: member,
   });
