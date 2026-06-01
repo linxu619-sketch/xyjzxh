@@ -47,7 +47,8 @@ export async function createListingAction(fd: FormData) {
     reasonNote: String(fd.get("reasonNote") || "").trim(),
     proofUrl: String(fd.get("proofUrl") || "").trim(),
     moq: Number(fd.get("moq") || 1) || 1,
-    imageUrl: String(fd.get("imageUrl") || "").trim(),
+    images: [fd.get("imageUrl"), fd.get("imageUrl2"), fd.get("imageUrl3")]
+      .map((v) => String(v || "").trim()).filter(Boolean).slice(0, 3),
     priceTiers: tiers,
     marketPrice: Number(fd.get("marketPrice") || 0) || 0,
     memberPrice: member,

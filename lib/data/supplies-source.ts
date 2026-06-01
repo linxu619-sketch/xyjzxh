@@ -15,7 +15,7 @@ export type SupplyProduct = {
   id: number; name: string; category: string; unit: string; spec: string; supplier: string;
   brand: string; sellerType: SellerType; sellerId: string; sellerName: string;
   reasonType: ReasonType; reasonNote: string; proofUrl: string; moq: number;
-  imageUrl: string; priceTiers: PriceTier[];
+  imageUrl: string; images: string[]; priceTiers: PriceTier[];
   marketPrice: number; memberPrice: number; status: ProductStatus; rejectReason: string; createdAt: number;
 };
 export type SupplyOrder = {
@@ -33,6 +33,18 @@ type PRow = {
   market_price: number | null; member_price: number | null; status: string; reject_reason: string | null; created_at: number | null;
 };
 
+// image_url 存 1-3 张图：优先按 JSON 数组解析，兼容旧的单条 URL
+function parseImages(s: string | null): string[] {
+  if (!s) return [];
+  const t = s.trim();
+  if (t.startsWith("[")) {
+    try {
+      const arr = JSON.parse(t) as unknown[];
+      if (Array.isArray(arr)) return arr.filter((x): x is string => typeof x === "string" && x.length > 0).slice(0, 3);
+    } catch { /* fallthrough */ }
+  }
+  return t ? [t] : [];
+}
 function parseTiers(s: string | null): PriceTier[] {
   if (!s) return [];
   try {
@@ -61,7 +73,7 @@ function toP(r: PRow): SupplyProduct {
     id: r.id, name: r.name ?? "", category: r.category ?? "", unit: r.unit ?? "", spec: r.spec ?? "", supplier: r.supplier ?? "",
     brand: r.brand ?? "", sellerType: (r.seller_type as SellerType) ?? "association", sellerId: r.seller_id ?? "", sellerName: r.seller_name ?? "",
     reasonType: (r.reason_type as ReasonType) ?? "direct", reasonNote: r.reason_note ?? "", proofUrl: r.proof_url ?? "", moq: r.moq ?? 1,
-    imageUrl: r.image_url ?? "", priceTiers: parseTiers(r.price_tiers),
+    imageUrl: parseImages(r.image_url)[0] ?? "", images: parseImages(r.image_url), priceTiers: parseTiers(r.price_tiers),
     marketPrice: r.market_price ?? 0, memberPrice: r.member_price ?? 0, status: (r.status as ProductStatus) ?? "active", rejectReason: r.reject_reason ?? "", createdAt: r.created_at ?? 0,
   };
 }
@@ -99,7 +111,7 @@ export type ListingInput = {
   sellerType: SellerType; sellerId: string; sellerName: string;
   name: string; brand: string; category: string; unit: string; spec?: string;
   reasonType: ReasonType; reasonNote?: string; proofUrl?: string;
-  moq?: number; imageUrl?: string; priceTiers?: PriceTier[]; marketPrice: number; memberPrice: number;
+  moq?: number; images?: string[]; priceTiers?: PriceTier[]; marketPrice: number; memberPrice: number;
 };
 // 会员提交上架 → 进入待审核（pending）
 export function createListing(input: ListingInput): number {
@@ -112,7 +124,7 @@ export function createListing(input: ListingInput): number {
     input.name, input.category, input.unit, input.spec ?? "", input.brand, input.brand,
     input.sellerType, input.sellerId, input.sellerName,
     input.reasonType, input.reasonNote ?? "", input.proofUrl ?? "",
-    input.moq ?? 1, input.imageUrl ?? "", tiers.length ? JSON.stringify(tiers) : null, input.marketPrice, input.memberPrice, Date.now(),
+    input.moq ?? 1, (input.images && input.images.length ? JSON.stringify(input.images.slice(0, 3)) : ""), tiers.length ? JSON.stringify(tiers) : null, input.marketPrice, input.memberPrice, Date.now(),
   );
   return Number(info.lastInsertRowid);
 }

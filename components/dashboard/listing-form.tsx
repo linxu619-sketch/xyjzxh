@@ -16,28 +16,30 @@ export function ListingForm({ disabled, disabledHint }: { disabled?: boolean; di
   const [open, setOpen] = useState(false);
   const [proofUrl, setProofUrl] = useState("");
   const [uploading, setUploading] = useState(false);
-  const [imageUrl, setImageUrl] = useState("");
+  const [imgs, setImgs] = useState<string[]>([]);   // 商品图，最多 3 张
   const [uploadingImg, setUploadingImg] = useState(false);
 
-  async function uploadTo(
-    file: File | undefined,
-    setUrl: (u: string) => void,
-    setBusy: (b: boolean) => void,
-  ) {
-    if (!file) return;
-    setBusy(true);
-    try {
-      const fd = new FormData();
-      fd.append("file", file);
-      const res = await fetch("/api/upload", { method: "POST", body: fd });
-      const data = await res.json();
-      if (data.url) setUrl(data.url);
-    } finally {
-      setBusy(false);
-    }
+  async function doUpload(file: File): Promise<string | null> {
+    const fd = new FormData();
+    fd.append("file", file);
+    const res = await fetch("/api/upload", { method: "POST", body: fd });
+    const data = await res.json();
+    return data.url ?? null;
   }
-  const onPick = (e: React.ChangeEvent<HTMLInputElement>) => uploadTo(e.target.files?.[0], setProofUrl, setUploading);
-  const onPickImg = (e: React.ChangeEvent<HTMLInputElement>) => uploadTo(e.target.files?.[0], setImageUrl, setUploadingImg);
+  async function onPick(e: React.ChangeEvent<HTMLInputElement>) {
+    const f = e.target.files?.[0];
+    if (!f) return;
+    setUploading(true);
+    try { const u = await doUpload(f); if (u) setProofUrl(u); } finally { setUploading(false); }
+  }
+  async function onAddImg(e: React.ChangeEvent<HTMLInputElement>) {
+    const f = e.target.files?.[0];
+    e.target.value = "";
+    if (!f || imgs.length >= 3) return;
+    setUploadingImg(true);
+    try { const u = await doUpload(f); if (u) setImgs((prev) => [...prev, u].slice(0, 3)); } finally { setUploadingImg(false); }
+  }
+  const removeImg = (i: number) => setImgs((prev) => prev.filter((_, j) => j !== i));
 
   if (!open) {
     return (
@@ -62,23 +64,27 @@ export function ListingForm({ disabled, disabledHint }: { disabled?: boolean; di
         <p className="text-[12px] text-muted-foreground mb-4">提交后进入协会审核。<b>同一品牌平台仅允许一家在售</b>，以最低价为准。</p>
         <div className="space-y-3">
           <Field label="商品名称" required><input name="name" required placeholder="如：美巢墙锢界面剂" className={INPUT} /></Field>
-          <Field label="商品效果图（建议正方形，展示在商城）">
-            <input type="hidden" name="imageUrl" value={imageUrl} />
-            {imageUrl ? (
-              <div className="relative w-24 h-24 rounded-xl overflow-hidden border border-border">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={imageUrl} alt="商品图" className="w-full h-full object-cover" />
-                <label className="absolute inset-0 bg-foreground/0 hover:bg-foreground/30 transition-colors cursor-pointer flex items-center justify-center text-white text-[11px] opacity-0 hover:opacity-100">
-                  重新上传<input type="file" accept="image/*" className="hidden" onChange={onPickImg} />
+          <Field label="商品效果图（1-3 张，第一张为封面，建议正方形）">
+            <input type="hidden" name="imageUrl" value={imgs[0] ?? ""} />
+            <input type="hidden" name="imageUrl2" value={imgs[1] ?? ""} />
+            <input type="hidden" name="imageUrl3" value={imgs[2] ?? ""} />
+            <div className="flex gap-2 flex-wrap">
+              {imgs.map((u, i) => (
+                <div key={i} className="relative w-20 h-20 rounded-xl overflow-hidden border border-border">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={u} alt={`商品图${i + 1}`} className="w-full h-full object-cover" />
+                  {i === 0 && <span className="absolute top-0.5 left-0.5 bg-foreground/70 text-background text-[9px] px-1 rounded">封面</span>}
+                  <button type="button" onClick={() => removeImg(i)} className="absolute top-0.5 right-0.5 h-5 w-5 rounded-full bg-foreground/70 text-background inline-flex items-center justify-center"><X className="h-3 w-3" /></button>
+                </div>
+              ))}
+              {imgs.length < 3 && (
+                <label className="w-20 h-20 rounded-xl border border-dashed border-border flex flex-col items-center justify-center gap-1 text-[10px] text-muted-foreground cursor-pointer hover:border-foreground/30">
+                  {uploadingImg ? <Loader2 className="h-5 w-5 animate-spin" /> : <ImageIcon className="h-5 w-5" />}
+                  {uploadingImg ? "上传中" : "加图片"}
+                  <input type="file" accept="image/*" className="hidden" onChange={onAddImg} />
                 </label>
-              </div>
-            ) : (
-              <label className="flex items-center gap-2 h-24 w-full rounded-xl border border-dashed border-border px-3.5 text-[13px] text-muted-foreground cursor-pointer hover:border-foreground/30">
-                {uploadingImg ? <Loader2 className="h-5 w-5 animate-spin" /> : <ImageIcon className="h-5 w-5" />}
-                {uploadingImg ? "上传中…" : "点击上传商品图（≤8MB）"}
-                <input type="file" accept="image/*" className="hidden" onChange={onPickImg} />
-              </label>
-            )}
+              )}
+            </div>
           </Field>
           <div className="grid grid-cols-2 gap-3">
             <Field label="品牌" required><input name="brand" required placeholder="如：美巢 / 海螺 / 自有品牌" className={INPUT} /></Field>

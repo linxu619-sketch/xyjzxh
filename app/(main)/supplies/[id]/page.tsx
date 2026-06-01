@@ -61,6 +61,14 @@ export default async function ProductDetail({ params, searchParams }: { params: 
               {p.spec && <div className="text-[14px] md:text-[16px] font-semibold mt-1">{p.spec}</div>}
             </div>
           </div>
+          {p.images.length > 1 && (
+            <div className="grid grid-cols-4 gap-2 px-5 md:px-0">
+              {p.images.slice(0, 4).map((u, i) => (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img key={i} src={u} alt={`${p.name} ${i + 1}`} className="aspect-square rounded-xl object-cover border border-border" />
+              ))}
+            </div>
+          )}
         </div>
 
         {/* 信息 */}
