@@ -2,7 +2,7 @@ import Link from "next/link";
 import { Trash2, Save, Power, BookOpen } from "lucide-react";
 import { AssociationShell } from "@/components/dashboard/shell";
 import { AI_EMPLOYEES } from "@/lib/site";
-import { listKnowledge, recentQuestions } from "@/lib/ai/knowledge-source";
+import { listKnowledge, topQuestions } from "@/lib/ai/knowledge-source";
 import {
   updateKnowledgeAction,
   deleteKnowledgeAction,
@@ -53,7 +53,7 @@ export default async function KnowledgeAdmin({
       </div>
 
       {/* 新增词条（AI 从真实问题提炼 + 人审入库）*/}
-      <KnowledgeComposer emp={emp} name={current.name} recent={recentQuestions(emp)} />
+      <KnowledgeComposer emp={emp} name={current.name} recent={topQuestions(emp)} />
 
       {/* 词条列表 */}
       <div className="flex items-center gap-2 mb-3 text-[13px] text-muted-foreground">

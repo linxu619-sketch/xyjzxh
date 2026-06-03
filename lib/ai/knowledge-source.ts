@@ -147,3 +147,19 @@ export function recentQuestions(employeeKey: string, limit = 15): string[] {
     return [];
   }
 }
+
+// 后台用：某员工高频提问（按出现次数降序）——帮协会优先沉淀高频问题
+export function topQuestions(employeeKey: string, limit = 15): { q: string; count: number }[] {
+  try {
+    const rows = getDb()
+      .prepare(
+        `SELECT question AS q, COUNT(*) AS count, MAX(created_at) AS t FROM ai_questions
+         WHERE employee_key = ?
+         GROUP BY question ORDER BY count DESC, t DESC LIMIT ?`,
+      )
+      .all(employeeKey, limit) as { q: string; count: number }[];
+    return rows.map((r) => ({ q: r.q, count: r.count }));
+  } catch {
+    return [];
+  }
+}

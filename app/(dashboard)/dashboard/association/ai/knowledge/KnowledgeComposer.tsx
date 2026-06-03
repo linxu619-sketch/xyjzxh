@@ -8,7 +8,7 @@ const INIT: DraftState = { ok: null };
 const INPUT = "w-full h-11 rounded-xl border border-border bg-background px-3.5 text-[14px] outline-none focus:border-foreground/30";
 const TA = "w-full rounded-xl border border-border bg-background p-3.5 text-[13px] leading-6 outline-none focus:border-foreground/30";
 
-export function KnowledgeComposer({ emp, name, recent }: { emp: string; name: string; recent: string[] }) {
+export function KnowledgeComposer({ emp, name, recent }: { emp: string; name: string; recent: { q: string; count: number }[] }) {
   const [topic, setTopic] = useState("");
   const [title, setTitle] = useState("");
   const [keywords, setKeywords] = useState("");
@@ -48,15 +48,16 @@ export function KnowledgeComposer({ emp, name, recent }: { emp: string; name: st
             <div className="flex items-start gap-2">
               <MessageSquareText className="h-3.5 w-3.5 text-muted-foreground mt-1.5 shrink-0" />
               <div className="flex flex-wrap gap-1.5">
-                {recent.map((q, i) => (
+                {recent.map((item, i) => (
                   <button
                     key={i}
                     type="button"
-                    onClick={() => setTopic(q)}
-                    className="text-[12px] rounded-full bg-surface px-2.5 py-1 text-muted-foreground hover:bg-surface-2 hover:text-foreground max-w-[260px] truncate"
-                    title={q}
+                    onClick={() => setTopic(item.q)}
+                    className="text-[12px] rounded-full bg-surface pl-2.5 pr-1.5 py-1 text-muted-foreground hover:bg-surface-2 hover:text-foreground inline-flex items-center gap-1.5"
+                    title={`${item.q}（被问 ${item.count} 次）`}
                   >
-                    {q}
+                    <span className="max-w-[220px] truncate">{item.q}</span>
+                    {item.count > 1 && <span className="shrink-0 rounded-full bg-cat-decor/15 text-cat-decor text-[10px] font-semibold px-1.5 tabular-nums">{item.count}</span>}
                   </button>
                 ))}
               </div>

@@ -151,7 +151,9 @@
       "Bash(grep -rnaE \"浉河区|平桥区|ID [A-Z][0-9]{3,}|C[0-9]{5}|尾号|认证编号|会员编号\" \"app/\\(dashboard\\)\" components/dashboard)",
       "Bash(grep -rnaE \"张师傅|李师傅|信用分|认证编号|身份证|[0-9]{2,3}\\\\*\\\\*\\\\*\\\\*[0-9]{4}|接单 [0-9]+|好评 [0-9]|从业 [0-9]+ 年|ID[: ]\" \"app/\\(dashboard\\)/dashboard/practitioner/page.tsx\" \"app/\\(dashboard\\)/dashboard/practitioner/profile/page.tsx\" \"app/\\(dashboard\\)/dashboard/practitioner/income/page.tsx\")",
       "Bash(grep -rnaE \"名家装饰|壹品|羊山新区|浉河区|信用分|资质编号|[0-9]{2,3}\\\\*\\\\*\\\\*\\\\*[0-9]{4}|ID[: ]\" \"app/\\(dashboard\\)/dashboard/enterprise/page.tsx\" \"app/\\(dashboard\\)/dashboard/enterprise/settings/page.tsx\")",
-      "Bash(grep -oiE \"error[^<]{0,80}|is not a function|cannot read[^<]{0,60}\")"
+      "Bash(grep -oiE \"error[^<]{0,80}|is not a function|cannot read[^<]{0,60}\")",
+      "Bash(grep -nA14 \"CREATE TABLE IF NOT EXISTS ai_questions\" lib/db/sqlite.ts)",
+      "Bash(grep -nA14 \"CREATE TABLE IF NOT EXISTS ai_knowledge\" lib/db/sqlite.ts)"
     ]
   }
 }
