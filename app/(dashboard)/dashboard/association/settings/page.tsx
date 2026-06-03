@@ -1,7 +1,7 @@
 import Link from "next/link";
 import {
   Building2, Lock, Bell, Plug, Database, ShieldCheck, KeyRound,
-  AlertTriangle, Crown, Sparkles, ExternalLink, BookOpen, Download,
+  AlertTriangle, Sparkles, ExternalLink, BookOpen, Download,
 } from "lucide-react";
 import { AssociationShell } from "@/components/dashboard/shell";
 import { SettingsCard, FormRow, Toggle, Input, Textarea } from "@/components/dashboard/section";
@@ -83,16 +83,6 @@ export default async function SystemSettings() {
               action={<Badge tone="brand">协会超管可改</Badge>}
             >
               <div id="security" />
-              <FormRow label="系统管理员" hint="编译进程序，永不入库；如需更换请联系平台运维">
-                <div className="rounded-xl bg-surface p-4 flex items-center gap-3">
-                  <Crown className="h-5 w-5 text-accent-yellow" />
-                  <div className="flex-1 min-w-0">
-                    <div className="text-[14px] font-semibold">林旭 · 182****0728</div>
-                    <div className="text-[11px] text-muted-foreground">权限：平台最高权限 · 仅可登录、不可在 UI 修改</div>
-                  </div>
-                  <span className="h-8 px-3 rounded-full bg-foreground text-background text-[11px] font-medium inline-flex items-center" title="详细信息见 lib/auth/system-admin.ts">仅源码可改</span>
-                </div>
-              </FormRow>
               <FormRow label="协会员工密码策略">
                 <div className="space-y-2.5">
                   <div className="flex items-center justify-between"><span className="text-[13px]">最小长度</span>
