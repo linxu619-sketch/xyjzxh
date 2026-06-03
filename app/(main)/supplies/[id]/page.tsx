@@ -171,6 +171,20 @@ export default async function ProductDetail({ params, searchParams }: { params: 
             <li>· 卖家资格经协会核验（独家代理 / 自产自销 / 厂家直供）；</li>
             <li>· 质量问题协会先行介入，支持协会监管账户托管。</li>
           </ul>
+
+          {/* 价格擂台入口：登录会员且非本商品卖家可见 */}
+          {me && !isOwn && (
+            <Link href={me.base} className="mt-6 flex items-center gap-3 rounded-2xl border border-accent-yellow/40 bg-[#fff6d6] p-4 group">
+              <span className="h-9 w-9 rounded-xl bg-accent-yellow/30 text-[#a37200] inline-flex items-center justify-center shrink-0">
+                <Award className="h-4.5 w-4.5" />
+              </span>
+              <div className="flex-1 min-w-0">
+                <div className="text-[13px] font-semibold text-[#a37200]">你也代理「{p.brand}」、且能更低价？</div>
+                <div className="text-[11px] text-[#a37200]/80 mt-0.5">到「我的店铺」用低于 ¥{p.memberPrice}/{p.unit} 的价上架，发起价格擂台，协会裁定胜出即替换在架。</div>
+              </div>
+              <ArrowLeft className="h-4 w-4 text-[#a37200] rotate-180 shrink-0 group-hover:translate-x-0.5 transition-transform" />
+            </Link>
+          )}
         </div>
 
         <aside className="space-y-4">

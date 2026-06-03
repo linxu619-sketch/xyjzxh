@@ -1,4 +1,4 @@
-import { Package, Crown, AlertCircle, CheckCircle2, Clock, XCircle, ShieldCheck, Truck, ShoppingCart, Wallet } from "lucide-react";
+import { Package, Crown, AlertCircle, CheckCircle2, Clock, XCircle, ShieldCheck, Truck, ShoppingCart, Wallet, Swords } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { resolveSeller } from "@/lib/dashboard/seller";
 import { listBySeller, listOrdersBySeller, listOrdersByBuyer, reconcileSeller, reconcileBuyer, isOverdue, SUPPLY_TERM_DAYS, type ProductStatus, type ReasonType, type OrderStatus, type SupplyOrder } from "@/lib/data/supplies-source";
@@ -27,7 +27,7 @@ const STATUS: Record<ProductStatus, { label: string; tone: "yellow" | "tea" | "d
 };
 export const REASON_LABEL: Record<ReasonType, string> = { agent: "独家代理", self: "自产自销", direct: "厂家直供" };
 
-export async function SellerPanel({ sp }: { sp?: { ok?: string; err?: string } }) {
+export async function SellerPanel({ sp }: { sp?: { ok?: string; err?: string; bp?: string; bn?: string; bu?: string } }) {
   const seller = await resolveSeller();
   if (!seller) {
     return <div className="rounded-2xl border border-border bg-background p-10 text-center text-[14px] text-muted-foreground">仅企业会员 / 个人会员可上架商品。请用会员账号登录。</div>;
@@ -47,6 +47,8 @@ export async function SellerPanel({ sp }: { sp?: { ok?: string; err?: string } }
   return (
     <>
       {sp?.ok === "submitted" && <div className="mb-5 rounded-2xl border border-accent-tea/30 bg-[#e6f7f1] text-accent-tea p-4 flex items-center gap-3"><CheckCircle2 className="h-5 w-5 shrink-0" /><div className="text-[13px]"><b>已提交审核！</b>协会核验资格与比价后通过即在架。</div></div>}
+      {sp?.ok === "challenge" && <div className="mb-5 rounded-2xl border border-accent-yellow/40 bg-[#fff6d6] text-[#a37200] p-4 flex items-center gap-3"><Swords className="h-5 w-5 shrink-0" /><div className="text-[13px]"><b>价格擂台已发起！</b>你的价低于在架的「{sp.bn}」（¥{sp.bp}）。协会裁定通过后，将由你替换该品牌的在架卖家。</div></div>}
+      {sp?.err === "brand" && <div className="mb-5 rounded-2xl border border-cat-decor/30 bg-cat-decor-soft text-cat-decor p-4 text-[13px] flex items-start gap-2"><AlertCircle className="h-4 w-4 shrink-0 mt-0.5" /><span>该品牌已由「{sp.bn}」以 <b>¥{sp.bp}/{sp.bu}</b> 在售。同品牌平台唯一最低价：你的会员批发价需<b>低于 ¥{sp.bp}</b> 才能发起价格擂台。</span></div>}
       {sp?.ok === "ordered" && <div className="mb-5 rounded-2xl border border-accent-tea/30 bg-[#e6f7f1] text-accent-tea p-4 flex items-center gap-3"><ShoppingCart className="h-5 w-5 shrink-0" /><div className="text-[13px]"><b>已下单！</b>卖家确认后履约，可在下方「我的采购单」跟踪。</div></div>}
       {sp?.err === "quota" && <div className="mb-5 rounded-2xl border border-cat-decor/30 bg-cat-decor-soft text-cat-decor p-4 text-[13px] flex items-center gap-2"><AlertCircle className="h-4 w-4 shrink-0" />已达 {tier} 上架配额（{quotaText} 款）。下架旧品或升级会员等级后再上新。</div>}
       {sp?.err === "form" && <div className="mb-5 rounded-2xl border border-cat-decor/30 bg-cat-decor-soft text-cat-decor p-4 text-[13px]">提交失败：请填写商品名称、品牌与会员批发价。</div>}

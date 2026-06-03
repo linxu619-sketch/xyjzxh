@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import {
   createListing, countListingsBySeller, setProductStatus, getProduct,
   createSupplyOrder, getSupplyOrder, setSupplyOrderStatus, markOrderPaid,
+  brandActiveHolder,
   type ReasonType, type OrderStatus,
 } from "@/lib/data/supplies-source";
 import { getMemberTier, quotaOf } from "@/lib/data/member-tier";
@@ -31,6 +32,14 @@ export async function createListingAction(fd: FormData) {
     redirect(`${seller.base}?err=form`);
   }
 
+  // 品牌排他 + 价格擂台：同品牌已有他人在架时，必须低于在架价才能发起擂台
+  const holder = brandActiveHolder(brand);
+  const sameSeller = holder && holder.sellerType === seller.type && holder.sellerId === seller.id;
+  const isChallenge = !!holder && !sameSeller;
+  if (isChallenge && member >= holder!.memberPrice) {
+    redirect(`${seller.base}?err=brand&bp=${holder!.memberPrice}&bu=${encodeURIComponent(holder!.unit)}&bn=${encodeURIComponent(holder!.sellerName)}`);
+  }
+
   // 阶梯量价（选填，最多两档；仅保留数量与单价都有效、且单价低于基础价的档位）
   const tiers = [
     { minQty: Number(fd.get("tier1Qty") || 0) || 0, price: Number(fd.get("tier1Price") || 0) || 0 },
@@ -55,7 +64,11 @@ export async function createListingAction(fd: FormData) {
   });
   revalidatePath(seller.base);
   revalidatePath("/dashboard/association/supplies");
-  redirect(`${seller.base}?ok=submitted`);
+  redirect(
+    isChallenge
+      ? `${seller.base}?ok=challenge&bn=${encodeURIComponent(holder!.sellerName)}&bp=${holder!.memberPrice}`
+      : `${seller.base}?ok=submitted`,
+  );
 }
 
 // 会员从前台商城下单（买家=任一会员；订单路由到卖家履约）

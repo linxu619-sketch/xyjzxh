@@ -140,7 +140,10 @@
       "Bash(sed -n '55,63p' \"app/\\(main\\)/finance/page.tsx\")",
       "Bash(sed -n '56,62p' \"app/\\(main\\)/projects/page.tsx\")",
       "Bash(grep -o -E \"is not defined|Cannot read [a-zA-Z]+|TypeError|Error: [^<]{0,60}\")",
-      "Bash(grep -rlaE 'export function __TRACKED_VAR__\\\\b' lib/data)"
+      "Bash(grep -rlaE 'export function __TRACKED_VAR__\\\\b' lib/data)",
+      "Bash(cat)",
+      "Bash(node --experimental-sqlite /tmp/prod.mjs)",
+      "Bash(rm -f /tmp/prod.mjs)"
     ]
   }
 }
