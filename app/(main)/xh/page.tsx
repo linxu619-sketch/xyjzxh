@@ -7,6 +7,13 @@ import {
   LayoutDashboard, Users2, MessageSquareWarning, MessagesSquare, Hammer, Briefcase, Clock,
 } from "lucide-react";
 import { getSession } from "@/lib/auth/session";
+import { listApplications } from "@/lib/data/applications";
+import { listReports } from "@/lib/data/reports";
+import { listMediations } from "@/lib/data/mediations";
+import { listLeadsByEnterprise } from "@/lib/data/leads";
+import { listOpenJobs } from "@/lib/data/jobs";
+import { listByStatus, reconcileBuyer } from "@/lib/data/supplies-source";
+import { listOrdersByEnterprise } from "@/lib/data/orders-source";
 import { Container } from "@/components/container";
 import { Badge } from "@/components/ui/badge";
 import { Numbers } from "@/components/sections/numbers";
@@ -47,33 +54,33 @@ const MEMBER_SERVICES = [
 // —— 会员登录态：各角色工作台快捷入口 ——
 const MEMBER_HOME: Record<string, {
   label: string; dashboard: string;
-  tiles: { icon: React.ComponentType<{ className?: string }>; t: string; d: string; href: string; tone: string }[];
+  tiles: { key: string; icon: React.ComponentType<{ className?: string }>; t: string; d: string; href: string; tone: string }[];
 }> = {
   association: {
     label: "协会工作台", dashboard: "/dashboard/association",
     tiles: [
-      { icon: Users2, t: "会员审核", d: "入会申请待处理", href: "/dashboard/association/members", tone: "brand" },
-      { icon: FileCheck2, t: "工装报备", d: "报备审批", href: "/dashboard/association/reports", tone: "build" },
-      { icon: MessageSquareWarning, t: "调解纠纷", d: "投诉与调解", href: "/dashboard/association/mediations", tone: "decor" },
-      { icon: ShoppingBag, t: "建材超市", d: "上架审核 · 对账", href: "/dashboard/association/supplies", tone: "tea" },
+      { key: "members", icon: Users2, t: "会员审核", d: "入会申请待处理", href: "/dashboard/association/members", tone: "brand" },
+      { key: "reports", icon: FileCheck2, t: "工装报备", d: "报备审批", href: "/dashboard/association/reports", tone: "build" },
+      { key: "mediations", icon: MessageSquareWarning, t: "调解纠纷", d: "投诉与调解", href: "/dashboard/association/mediations", tone: "decor" },
+      { key: "supplies", icon: ShoppingBag, t: "建材超市", d: "上架审核 · 对账", href: "/dashboard/association/supplies", tone: "tea" },
     ],
   },
   enterprise: {
     label: "企业工作台", dashboard: "/dashboard/enterprise",
     tiles: [
-      { icon: Globe2, t: "我的子站", d: "编辑品牌页", href: "/dashboard/enterprise/site", tone: "brand" },
-      { icon: MessagesSquare, t: "客户线索", d: "接收与跟进", href: "/dashboard/enterprise/leads", tone: "build" },
-      { icon: Hammer, t: "施工订单", d: "进度与验收", href: "/dashboard/enterprise/orders", tone: "decor" },
-      { icon: ShoppingBag, t: "建材采购", d: "集采 · 我的店铺", href: "/dashboard/enterprise/supplies", tone: "tea" },
+      { key: "site", icon: Globe2, t: "我的子站", d: "编辑品牌页", href: "/dashboard/enterprise/site", tone: "brand" },
+      { key: "leads", icon: MessagesSquare, t: "客户线索", d: "接收与跟进", href: "/dashboard/enterprise/leads", tone: "build" },
+      { key: "orders", icon: Hammer, t: "施工订单", d: "进度与验收", href: "/dashboard/enterprise/orders", tone: "decor" },
+      { key: "supplies", icon: ShoppingBag, t: "建材采购", d: "集采 · 我的店铺", href: "/dashboard/enterprise/supplies", tone: "tea" },
     ],
   },
   practitioner: {
     label: "从业者工作台", dashboard: "/dashboard/practitioner",
     tiles: [
-      { icon: Briefcase, t: "找活", d: "招聘与对接", href: "/dashboard/practitioner/jobs", tone: "build" },
-      { icon: GraduationCap, t: "培训", d: "继续教育 · 证书", href: "/dashboard/practitioner/training", tone: "design" },
-      { icon: Wallet, t: "钱包", d: "收入与提现", href: "/dashboard/practitioner/income", tone: "tea" },
-      { icon: UserRound, t: "我的资料", d: "认证主页 / 名片", href: "/dashboard/practitioner/profile", tone: "brand" },
+      { key: "jobs", icon: Briefcase, t: "找活", d: "招聘与对接", href: "/dashboard/practitioner/jobs", tone: "build" },
+      { key: "training", icon: GraduationCap, t: "培训", d: "继续教育 · 证书", href: "/dashboard/practitioner/training", tone: "design" },
+      { key: "income", icon: Wallet, t: "钱包", d: "收入与提现", href: "/dashboard/practitioner/income", tone: "tea" },
+      { key: "profile", icon: UserRound, t: "我的资料", d: "认证主页 / 名片", href: "/dashboard/practitioner/profile", tone: "brand" },
     ],
   },
 };
@@ -101,6 +108,33 @@ export default async function AssociationHome() {
   const session = await getSession();
   const roleKey = session?.role === "system_admin" ? "association" : (session?.role ?? "");
   const home = !session?.pending ? MEMBER_HOME[roleKey] : undefined;
+
+  // 真实数据：badges = 红点待办；infos = 中性数字文案
+  let badges: Record<string, number> = {};
+  let infos: Record<string, string> = {};
+  if (home && session) {
+    if (roleKey === "association") {
+      badges = {
+        members: listApplications("pending").length,
+        reports: listReports("pending").length,
+        mediations: listMediations("pending").length,
+        supplies: listByStatus("pending").length,
+      };
+    } else if (roleKey === "enterprise" && session.enterpriseId) {
+      const eid = session.enterpriseId;
+      badges = {
+        leads: listLeadsByEnterprise(eid).filter((l) => l.status === "new").length,
+        orders: listOrdersByEnterprise(eid).filter((o) => o.stage !== "accepted").length,
+        supplies: reconcileBuyer("enterprise", eid).overdueCount,
+      };
+    } else if (roleKey === "practitioner") {
+      infos = {
+        jobs: `${listOpenJobs().length} 个在招`,
+        training: `${listOpenTrainings().length} 门课程`,
+      };
+    }
+  }
+
   return (
     <>
       {/* HERO — 会员之家（精简，仅身份与信任标识） */}
@@ -158,14 +192,21 @@ export default async function AssociationHome() {
             <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5">
               {home.tiles.map((s) => {
                 const Icon = s.icon;
+                const n = badges[s.key] ?? 0;
+                const sub = n > 0 ? `${n} 项待处理` : (infos[s.key] ?? s.d);
                 return (
-                  <Link key={s.t} href={s.href} className="group rounded-2xl border border-border bg-background p-3.5 flex items-center gap-2.5 active:scale-[0.98] transition-transform">
-                    <span className={cn("h-8 w-8 rounded-lg inline-flex items-center justify-center shrink-0", TONE_SOFT[s.tone])}>
+                  <Link key={s.t} href={s.href} className="group relative rounded-2xl border border-border bg-background p-3.5 flex items-center gap-2.5 active:scale-[0.98] transition-transform">
+                    <span className={cn("relative h-8 w-8 rounded-lg inline-flex items-center justify-center shrink-0", TONE_SOFT[s.tone])}>
                       <Icon className="h-4 w-4" />
+                      {n > 0 && (
+                        <span className="absolute -top-1.5 -right-1.5 min-w-[16px] h-[16px] px-1 rounded-full bg-cat-decor text-white text-[10px] font-semibold inline-flex items-center justify-center ring-2 ring-background">
+                          {n > 99 ? "99+" : n}
+                        </span>
+                      )}
                     </span>
                     <div className="flex-1 min-w-0">
                       <div className="text-[13px] font-semibold truncate">{s.t}</div>
-                      <div className="text-[11px] text-muted-foreground truncate">{s.d}</div>
+                      <div className={cn("text-[11px] truncate", n > 0 ? "text-cat-decor font-medium" : "text-muted-foreground")}>{sub}</div>
                     </div>
                     <ArrowUpRight className="h-3.5 w-3.5 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity shrink-0" />
                   </Link>

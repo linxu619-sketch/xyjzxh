@@ -14,6 +14,16 @@
 
 ---
 
+## [0.66.3] - 2026-06-03
+
+### 新增（首页登录态快捷入口接真实待办数字）
+- **协会门户 `/xh`** 各角色快捷入口接入真实计数红点：
+  - 协会工作人员：待审会员（`listApplications("pending")`）、待批报备（`listReports`）、待处理调解（`listMediations`）、待审上架（`listByStatus`）。
+  - 企业会员：新客户线索（`listLeadsByEnterprise` status=new）、在建施工订单（`listOrdersByEnterprise` 非 accepted）、逾期采购（`reconcileBuyer().overdueCount`）。
+  - 个人会员：在招职位数（`listOpenJobs`）、在招课程数（`listOpenTrainings`），中性文案不计红点。
+  - 有待办的入口显示红色角标 + 「N 项待处理」高亮文案。
+- **消费者门户 `/`** 业主「当前项目」入口接入真实待办红点（待确认验收 + 待批变更 + 待付款，取自 `ORDER_DEMO`）。
+
 ## [0.66.2] - 2026-06-03
 
 ### 新增（协会门户首页登录态个性化）

@@ -40,6 +40,11 @@ export default async function ConsumerHome() {
   const myReviews = customer ? listReviewsByUid(customer.uid) : [];
   const proj = ORDER_DEMO;
   const projProgress = Math.round(proj.schedule.reduce((a, t) => a + t.progress, 0) / proj.schedule.length);
+  const projPending = customer
+    ? proj.acceptance.filter((a) => a.status === "ready").length
+      + proj.changeOrders.filter((c) => c.status === "pending" && c.approverChain.find((x) => x.role === "业主" && !x.result)).length
+      + proj.payments.filter((p) => !p.paidAt && new Date(p.due) <= new Date("2026-06-30")).length
+    : 0;
 
   return (
     <>
@@ -58,8 +63,16 @@ export default async function ConsumerHome() {
             <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5">
               <Link href={`/dashboard/customer/projects/${proj.id}`} className="group rounded-2xl border border-border bg-background p-3.5 active:scale-[0.98] transition-transform">
                 <div className="flex items-center gap-2">
-                  <span className="h-8 w-8 rounded-lg bg-cat-decor-soft text-cat-decor inline-flex items-center justify-center shrink-0"><HardHat className="h-4 w-4" /></span>
+                  <span className="relative h-8 w-8 rounded-lg bg-cat-decor-soft text-cat-decor inline-flex items-center justify-center shrink-0">
+                    <HardHat className="h-4 w-4" />
+                    {projPending > 0 && (
+                      <span className="absolute -top-1.5 -right-1.5 min-w-[16px] h-[16px] px-1 rounded-full bg-cat-decor text-white text-[10px] font-semibold inline-flex items-center justify-center ring-2 ring-background">
+                        {projPending}
+                      </span>
+                    )}
+                  </span>
                   <span className="text-[13px] font-semibold">当前项目</span>
+                  {projPending > 0 && <span className="text-[11px] text-cat-decor font-medium">· {projPending} 待办</span>}
                 </div>
                 <div className="mt-2 flex items-center gap-2">
                   <div className="h-1.5 flex-1 rounded-full bg-surface overflow-hidden">
