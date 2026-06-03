@@ -72,7 +72,7 @@ export default async function CustomerDashboard() {
               </span>
               <div className="leading-tight">
                 <div className="text-[15px] font-semibold">{session.name}</div>
-                <div className="text-[11px] text-background/70">浉河区 · 协会业主 · ID C00284</div>
+                <div className="text-[11px] text-background/70">协会业主{session.phone ? ` · ID C${session.phone.slice(-6)}` : ""}</div>
               </div>
             </div>
             <span className="relative h-9 w-9 rounded-full bg-white/10 backdrop-blur inline-flex items-center justify-center" aria-label="通知">
@@ -84,7 +84,7 @@ export default async function CustomerDashboard() {
           </div>
 
           <div className="mt-6 inline-flex items-center gap-1.5 rounded-full bg-white/10 backdrop-blur px-3 py-1.5 text-[11px]">
-            <ShieldCheck className="h-3 w-3 text-accent-yellow" /> 已加入消费保护 · 在保金额 30 万
+            <ShieldCheck className="h-3 w-3 text-accent-yellow" /> 协会消费保护 · 装修纠纷 14 天调解兜底
           </div>
         </Container>
       </div>

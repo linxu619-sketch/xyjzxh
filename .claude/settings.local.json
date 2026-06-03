@@ -143,7 +143,11 @@
       "Bash(grep -rlaE 'export function __TRACKED_VAR__\\\\b' lib/data)",
       "Bash(cat)",
       "Bash(node --experimental-sqlite /tmp/prod.mjs)",
-      "Bash(rm -f /tmp/prod.mjs)"
+      "Bash(rm -f /tmp/prod.mjs)",
+      "Bash(grep -vE '/projects/new$|^/projects$')",
+      "Bash(grep -v '^/talents$')",
+      "Bash(grep -v '^/knowledge$')",
+      "Bash(grep -rnaE 'href=\"#\"|href=\"\"|href={`#`}|href=\"javascript' app/ components/)"
     ]
   }
 }
