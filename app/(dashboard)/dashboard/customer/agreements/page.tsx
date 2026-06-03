@@ -74,9 +74,9 @@ export default function CustomerAgreements() {
           PIPL 赋予您"随时撤回同意"的权利。撤回后协会将在 7 日内删除非法定保留信息。
           有些撤回会影响账户继续使用（如撤回"实名授权"将无法继续投保），请谨慎操作。
         </p>
-        <Link href="#" className="mt-3 inline-flex items-center gap-1 h-9 px-4 rounded-full bg-accent-yellow text-foreground text-[12px] font-medium">
-          管理授权
-        </Link>
+        <span className="mt-3 inline-flex items-center gap-1 h-9 px-4 rounded-full border border-border text-muted-foreground text-[12px] opacity-70">
+          管理授权 · 即将开放
+        </span>
       </div>
     </CustomerShell>
   );

@@ -32,14 +32,13 @@ export default function CustomerSettings() {
             <span className="text-[11px] text-muted-foreground">/ 850 · 优秀</span>
           </div>
         </div>
-        <Link href="#" className="text-[11px] text-brand">详情 →</Link>
       </div>
 
       {/* 设置组 1 */}
       <Group title="账号与安全">
-        <Row icon={UserCircle2} label="个人资料" sub="头像 · 称呼 · 城市" href="#" />
-        <Row icon={Lock} label="修改密码 / 短信验证" sub="近 90 天未修改" href="#" />
-        <Row icon={MapPin} label="收货地址" sub="3 个地址" href="#" />
+        <Row icon={UserCircle2} label="个人资料" sub="头像 · 称呼 · 城市" />
+        <Row icon={Lock} label="修改密码 / 短信验证" sub="近 90 天未修改" />
+        <Row icon={MapPin} label="收货地址" sub="3 个地址" />
       </Group>
 
       <Group title="通知">
@@ -50,9 +49,9 @@ export default function CustomerSettings() {
       </Group>
 
       <Group title="我的">
-        <Row icon={FileText} label="我的评价" sub="2 条评价" href="#" />
-        <Row icon={FileText} label="我的调解记录" sub="1 起调解中" href="#" />
-        <Row icon={HelpCircle} label="帮助中心" sub="常见问题 · 联系客服" href="#" />
+        <Row icon={FileText} label="我的评价" sub="2 条评价" />
+        <Row icon={FileText} label="我的调解记录" sub="1 起调解中" />
+        <Row icon={HelpCircle} label="帮助中心" sub="常见问题 · 联系客服" />
         <Row icon={ShieldCheck} label="隐私政策" href="/legal/privacy" />
         <Row icon={FileText} label="服务条款" href="/legal/terms" />
       </Group>
@@ -83,16 +82,22 @@ function Group({ title, children }: { title: string; children: React.ReactNode }
 
 function Row({ icon: Icon, label, sub, href }: {
   icon: React.ComponentType<{ className?: string }>;
-  label: string; sub?: string; href: string;
+  label: string; sub?: string; href?: string;
 }) {
-  return (
-    <Link href={href} className="flex items-center gap-3 px-4 py-4 active:bg-surface">
+  const inner = (
+    <>
       <Icon className="h-4 w-4 text-muted-foreground shrink-0" />
       <div className="flex-1 min-w-0">
         <div className="text-[14px]">{label}</div>
         {sub && <div className="text-[11px] text-muted-foreground mt-0.5">{sub}</div>}
       </div>
-      <ChevronRight className="h-4 w-4 text-muted-foreground" />
+      {href && <ChevronRight className="h-4 w-4 text-muted-foreground" />}
+    </>
+  );
+  if (!href) return <div className="flex items-center gap-3 px-4 py-4">{inner}</div>;
+  return (
+    <Link href={href} className="flex items-center gap-3 px-4 py-4 active:bg-surface">
+      {inner}
     </Link>
   );
 }

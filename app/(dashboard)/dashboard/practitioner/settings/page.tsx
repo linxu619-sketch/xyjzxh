@@ -14,8 +14,8 @@ export default function PractitionerSettings() {
     <PractitionerShell title="设置">
       <Group title="账号与安全">
         <Row icon={UserCircle2} label="个人资料" sub="姓名 · 头像 · 工种 · 工龄" href="/dashboard/practitioner/profile" />
-        <Row icon={Lock} label="修改密码 / 短信验证" sub="距上次修改 60 天" href="#" />
-        <Row icon={MapPin} label="常用工地范围" sub="3 个地区" href="#" />
+        <Row icon={Lock} label="修改密码 / 短信验证" sub="距上次修改 60 天" />
+        <Row icon={MapPin} label="常用工地范围" sub="3 个地区" />
       </Group>
 
       <Group title="通知">
@@ -27,9 +27,9 @@ export default function PractitionerSettings() {
       </Group>
 
       <Group title="我的">
-        <Row icon={FileText} label="我的简历" sub="最近更新 5 月 25 日" href="#" />
-        <Row icon={FileText} label="我的调解记录" sub="0 起" href="#" />
-        <Row icon={ShieldCheck} label="实名认证" sub="已通过 · 张建国" href="#" />
+        <Row icon={FileText} label="我的简历" sub="最近更新 5 月 25 日" />
+        <Row icon={FileText} label="我的调解记录" sub="0 起" />
+        <Row icon={ShieldCheck} label="实名认证" sub="已通过 · 张建国" />
         <Row icon={HelpCircle} label="帮助中心" sub="常见问题 · 协会热线" href="/about/contact" />
         <Row icon={FileText} label="服务条款" href="/legal/terms" />
         <Row icon={ShieldCheck} label="隐私政策" href="/legal/privacy" />
@@ -59,16 +59,22 @@ function Group({ title, children }: { title: string; children: React.ReactNode }
 
 function Row({ icon: Icon, label, sub, href }: {
   icon: React.ComponentType<{ className?: string }>;
-  label: string; sub?: string; href: string;
+  label: string; sub?: string; href?: string;
 }) {
-  return (
-    <Link href={href} className="flex items-center gap-3 px-4 py-4 active:bg-surface">
+  const inner = (
+    <>
       <Icon className="h-4 w-4 text-muted-foreground shrink-0" />
       <div className="flex-1 min-w-0">
         <div className="text-[14px]">{label}</div>
         {sub && <div className="text-[11px] text-muted-foreground mt-0.5">{sub}</div>}
       </div>
-      <ChevronRight className="h-4 w-4 text-muted-foreground" />
+      {href && <ChevronRight className="h-4 w-4 text-muted-foreground" />}
+    </>
+  );
+  if (!href) return <div className="flex items-center gap-3 px-4 py-4">{inner}</div>;
+  return (
+    <Link href={href} className="flex items-center gap-3 px-4 py-4 active:bg-surface">
+      {inner}
     </Link>
   );
 }

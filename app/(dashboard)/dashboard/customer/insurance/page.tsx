@@ -91,7 +91,7 @@ export default async function CustomerInsurance() {
               </div>
               <div className="mt-2 flex items-center justify-between text-[11px] text-muted-foreground">
                 <span>提交：{c.submitted}</span>
-                <Link href="#" className="text-cat-decor font-medium">查看详情 →</Link>
+                <span className="text-muted-foreground">审核中</span>
               </div>
             </div>
           ))}
@@ -126,8 +126,7 @@ export default async function CustomerInsurance() {
             </div>
 
             <div className="mt-4 flex gap-2">
-              <button className="flex-1 h-10 rounded-full bg-foreground text-background text-[12px] font-medium">报案 / 理赔</button>
-              <Link href="#" className="h-10 px-4 rounded-full border border-border inline-flex items-center text-[12px]"><FileText className="h-3 w-3 mr-1" />保单</Link>
+              <span className="flex-1 h-10 rounded-full border border-border text-muted-foreground text-[12px] inline-flex items-center justify-center opacity-70">报案 / 理赔 · 即将开放</span>
             </div>
           </div>
         ))}

@@ -51,10 +51,10 @@ export default async function PractitionerHome() {
                 <div className="text-[11px] text-background/70">{kind}{years ? ` · ${years} 年` : ""} · ID {pid}</div>
               </div>
             </div>
-            <Link href="#" className="relative h-9 w-9 rounded-full bg-white/10 backdrop-blur inline-flex items-center justify-center active:scale-95 transition-transform">
+            <span className="relative h-9 w-9 rounded-full bg-white/10 backdrop-blur inline-flex items-center justify-center" aria-label="通知">
               <Bell className="h-4 w-4" />
               {urgentJobs > 0 && <span className="absolute top-1 right-1 h-2 w-2 rounded-full bg-cat-decor animate-pulse" />}
-            </Link>
+            </span>
           </div>
 
           <div className="mt-5 inline-flex items-center gap-1.5 rounded-full bg-white/10 backdrop-blur px-3 py-1.5 text-[11px]">

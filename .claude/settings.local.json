@@ -131,7 +131,11 @@
       "Bash(echo \"exit=$?\")",
       "PowerShell(try { Get-NetConnectionProfile | Select-Object InterfaceAlias, NetworkCategory, IPv4Connectivity | Format-Table -AutoSize } catch { Write-Output \"查询失败\\(可能需管理员\\): $_\" })",
       "Bash(ls -1 \"app/biz\" \"app/biz/[tenant]\")",
-      "Bash(grep -nE \"href=\\\\{?\\\\`?/members|href=\\\\{?\\\\`?/biz\" app/\\\\\\(main\\\\\\)/members/MembersExplorer.tsx app/\\\\\\(main\\\\\\)/members/page.tsx app/\\\\\\(main\\\\\\)/page.tsx)"
+      "Bash(grep -nE \"href=\\\\{?\\\\`?/members|href=\\\\{?\\\\`?/biz\" app/\\\\\\(main\\\\\\)/members/MembersExplorer.tsx app/\\\\\\(main\\\\\\)/members/page.tsx app/\\\\\\(main\\\\\\)/page.tsx)",
+      "Bash(sed -n '92,96p;128,132p' \"app/\\(dashboard\\)/dashboard/customer/insurance/page.tsx\")",
+      "Bash(sed -n '74,79p' \"app/\\(dashboard\\)/dashboard/customer/agreements/page.tsx\")",
+      "Bash(sed -n '26,30p' \"app/\\(dashboard\\)/dashboard/association/reports/page.tsx\")",
+      "Bash(sed -n '178,183p' \"app/\\(dashboard\\)/dashboard/association/agreements/page.tsx\")"
     ]
   }
 }

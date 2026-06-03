@@ -178,9 +178,9 @@ export default function AssociationAgreements() {
           <p className="relative mt-1 text-[12px] text-background/70">
             把签署 hash 上链到信阳司法链 · 互联网法院直接可信 · 审判效率 +60%
           </p>
-          <Link href="#" className="relative mt-4 inline-flex items-center gap-1 h-10 px-5 rounded-full bg-accent-yellow text-foreground text-[12px] font-medium">
-            申请接入 <ExternalLink className="h-3 w-3" />
-          </Link>
+          <span className="relative mt-4 inline-flex items-center gap-1 h-10 px-5 rounded-full bg-white/15 text-white text-[12px] font-medium opacity-80">
+            申请接入 · 即将开放 <ExternalLink className="h-3 w-3" />
+          </span>
         </div>
       </div>
 

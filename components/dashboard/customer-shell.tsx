@@ -32,9 +32,9 @@ export async function CustomerShell({
               <Link href="/dashboard/customer" className="inline-flex items-center gap-1.5 text-[12px] text-background/70 hover:text-background">
                 <ChevronLeft className="h-3.5 w-3.5" /> 返回我的
               </Link>
-              <Link href="#" className="h-9 w-9 rounded-full bg-white/10 inline-flex items-center justify-center">
+              <span className="h-9 w-9 rounded-full bg-white/10 inline-flex items-center justify-center" aria-label="通知">
                 <Bell className="h-4 w-4" />
-              </Link>
+              </span>
             </div>
             <div className="mt-4">
               {title && <h1 className="text-[26px] md:text-[32px] font-semibold tracking-tight">{title}</h1>}

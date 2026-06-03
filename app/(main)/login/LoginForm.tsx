@@ -190,7 +190,7 @@ export function LoginForm({ initial }: { initial: Promise<{ role?: string }> }) 
             <label className="inline-flex items-center gap-1.5 text-muted-foreground">
               <input type="checkbox" className="accent-brand" defaultChecked /> 7 天免登录
             </label>
-            <Link href="#" className="text-muted-foreground hover:text-foreground">忘记密码？</Link>
+            <span className="text-muted-foreground/70">忘记密码？联系协会</span>
           </div>
         )}
 

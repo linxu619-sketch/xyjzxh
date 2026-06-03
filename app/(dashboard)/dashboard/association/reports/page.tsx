@@ -25,9 +25,9 @@ export default async function ReportsAdmin({ searchParams }: { searchParams: Pro
       title="工装报备审批"
       subtitle={`${count("pending")} 项待审 · 累计 ${all.length} 项`}
       actions={
-        <Link href="#" className="h-9 px-4 rounded-full bg-foreground text-background text-[13px] font-medium inline-flex items-center gap-1.5">
-          <Sparkles className="h-3.5 w-3.5 text-accent-yellow" /> AI 批量预审
-        </Link>
+        <span className="h-9 px-4 rounded-full border border-border text-muted-foreground text-[13px] font-medium inline-flex items-center gap-1.5 opacity-70">
+          <Sparkles className="h-3.5 w-3.5 text-accent-yellow" /> AI 批量预审 · 即将开放
+        </span>
       }
     >
       <StatFilters

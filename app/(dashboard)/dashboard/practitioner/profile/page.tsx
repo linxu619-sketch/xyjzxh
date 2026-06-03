@@ -31,7 +31,7 @@ export default async function PractitionerProfile() {
       <div className="-mx-5 sm:-mx-8 lg:-mx-12 bg-foreground text-background pt-8 pb-12 px-5 sm:px-8 lg:px-12 mb-4 relative overflow-hidden">
         <div className="absolute -top-10 -right-10 h-40 w-40 rounded-full bg-cat-design/30 blur-3xl" />
         <div className="flex items-center justify-between mb-4">
-          <Link href="#" className="h-9 w-9 rounded-full bg-white/10 inline-flex items-center justify-center"><Bell className="h-4 w-4" /></Link>
+          <span className="h-9 w-9 rounded-full bg-white/10 inline-flex items-center justify-center" aria-label="通知"><Bell className="h-4 w-4" /></span>
           <Link href="/dashboard/practitioner/settings" className="h-9 w-9 rounded-full bg-white/10 inline-flex items-center justify-center"><Settings className="h-4 w-4" /></Link>
         </div>
         <div className="flex items-start gap-4">

@@ -73,12 +73,12 @@ export default async function CustomerDashboard() {
                 <div className="text-[11px] text-background/70">浉河区 · 协会业主 · ID C00284</div>
               </div>
             </div>
-            <Link href="#" className="relative h-9 w-9 rounded-full bg-white/10 backdrop-blur inline-flex items-center justify-center active:scale-95 transition-transform">
+            <span className="relative h-9 w-9 rounded-full bg-white/10 backdrop-blur inline-flex items-center justify-center" aria-label="通知">
               <Bell className="h-4 w-4" />
               {pending > 0 && (
                 <span className="absolute top-1 right-1 h-2 w-2 rounded-full bg-cat-decor animate-pulse" />
               )}
-            </Link>
+            </span>
           </div>
 
           <div className="mt-6 inline-flex items-center gap-1.5 rounded-full bg-white/10 backdrop-blur px-3 py-1.5 text-[11px]">
@@ -173,7 +173,7 @@ export default async function CustomerDashboard() {
         {/* 4 tile 快捷 */}
         <div className="grid grid-cols-2 gap-3">
           <Tile icon={Umbrella}              title="我的保单" sub="1 份在保 · ¥162 万" href="/dashboard/customer/insurance" tone="decor" />
-          <Tile icon={MessageSquareHeart}    title="写评价"   sub={`待评 ${o.acceptance.filter((a) => a.status === "approved").length > 0 ? "1" : "0"}`} href="#" tone="design" badge={pendingAcc > 0 ? String(pendingAcc) : undefined} />
+          <Tile icon={MessageSquareHeart}    title="写评价"   sub={`待评 ${o.acceptance.filter((a) => a.status === "approved").length > 0 ? "1" : "0"}`} href="/review" tone="design" badge={pendingAcc > 0 ? String(pendingAcc) : undefined} />
           <Tile icon={MessageSquareWarning}  title="发起调解" sub="14 天内介入" href="/ai/mediate" tone="yellow" />
           <Tile icon={Sparkles}              title="AI 装修顾问" sub="小装 · 在线" href="/ai/decor" tone="brand" />
         </div>
@@ -225,7 +225,6 @@ export default async function CustomerDashboard() {
         <div className="rounded-3xl bg-background border border-border">
           <div className="px-5 pt-5 pb-3 flex items-center justify-between">
             <h3 className="text-[15px] font-semibold">最近活动</h3>
-            <Link href="#" className="text-[12px] text-brand">全部</Link>
           </div>
           <ul className="divide-y divide-border">
             {[
