@@ -138,7 +138,8 @@
       "Bash(sed -n '178,183p' \"app/\\(dashboard\\)/dashboard/association/agreements/page.tsx\")",
       "Bash(grep -oE '\"[A-Z]{2,}-[A-Z0-9-]{4,}\"' lib/data/agreements.ts)",
       "Bash(sed -n '55,63p' \"app/\\(main\\)/finance/page.tsx\")",
-      "Bash(sed -n '56,62p' \"app/\\(main\\)/projects/page.tsx\")"
+      "Bash(sed -n '56,62p' \"app/\\(main\\)/projects/page.tsx\")",
+      "Bash(grep -o -E \"is not defined|Cannot read [a-zA-Z]+|TypeError|Error: [^<]{0,60}\")"
     ]
   }
 }

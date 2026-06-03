@@ -315,6 +315,16 @@ CREATE TABLE IF NOT EXISTS supply_orders (
   status          TEXT DEFAULT 'pending', -- pending | confirmed | shipped | done
   created_at      INTEGER
 );
+CREATE TABLE IF NOT EXISTS supply_cart (
+  id          INTEGER PRIMARY KEY AUTOINCREMENT,
+  buyer_type  TEXT,   -- enterprise | practitioner
+  buyer_id    TEXT,
+  product_id  INTEGER,
+  qty         INTEGER,
+  created_at  INTEGER
+);
+CREATE INDEX IF NOT EXISTS idx_cart_buyer ON supply_cart(buyer_type, buyer_id);
+
 CREATE INDEX IF NOT EXISTS idx_sorder_ent ON supply_orders(enterprise_id, created_at);
 CREATE INDEX IF NOT EXISTS idx_sorder_buyer ON supply_orders(buyer_type, buyer_id, created_at);
 CREATE INDEX IF NOT EXISTS idx_sorder_seller ON supply_orders(seller_type, seller_id, created_at);

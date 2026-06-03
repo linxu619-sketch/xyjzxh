@@ -1,12 +1,13 @@
 import Link from "next/link";
 import {
-  Search, ShieldCheck, Truck, Store,
+  Search, ShieldCheck, Truck, Store, ShoppingCart,
   ArrowRight, Package, TrendingDown, Award,
 } from "lucide-react";
 import { Container } from "@/components/container";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { listProducts, type SupplyProduct, type ReasonType } from "@/lib/data/supplies-source";
+import { listProducts, cartCount, type SupplyProduct, type ReasonType } from "@/lib/data/supplies-source";
+import { resolveSeller } from "@/lib/dashboard/seller";
 import { cn } from "@/lib/cn";
 
 export const metadata = { title: "建材超市 · 信阳市建筑装饰装修协会" };
@@ -35,6 +36,9 @@ export default async function SuppliesHome({ searchParams }: { searchParams: Pro
   const sellers = Array.from(new Set(all.map((p) => `${p.sellerType}|${p.sellerId}|${p.sellerName}`)));
   const brands = new Set(all.map((p) => p.brand).filter(Boolean));
 
+  const buyer = await resolveSeller();
+  const cCount = buyer ? cartCount(buyer.type, buyer.id) : 0;
+
   let products = all;
   if (cat) products = products.filter((p) => p.category === cat);
   if (q?.trim()) {
@@ -50,9 +54,15 @@ export default async function SuppliesHome({ searchParams }: { searchParams: Pro
           <h1 className="text-[16px] md:text-[22px] font-semibold tracking-tight min-w-0 truncate">
             建材超市<span className="text-muted-foreground font-normal text-[12px] md:text-[14px] ml-1.5">会员互助 集采平价</span>
           </h1>
-          <Link href="/dashboard/enterprise/store" className="shrink-0 inline-flex items-center gap-1 h-9 px-3.5 rounded-full bg-foreground text-background text-[12px] md:text-[13px] font-medium active:scale-95 transition-transform">
-            <Store className="h-3.5 w-3.5" /> 我要卖货
-          </Link>
+          <div className="shrink-0 flex items-center gap-2">
+            <Link href="/supplies/cart" className="relative inline-flex items-center gap-1 h-9 px-3 rounded-full border border-border text-[12px] md:text-[13px] hover:bg-surface active:scale-95 transition-transform">
+              <ShoppingCart className="h-3.5 w-3.5" /> 采购车
+              {cCount > 0 && <span className="absolute -top-1.5 -right-1.5 h-4 min-w-4 px-1 rounded-full bg-cat-decor text-white text-[9px] font-semibold inline-flex items-center justify-center">{cCount}</span>}
+            </Link>
+            <Link href="/dashboard/enterprise/store" className="inline-flex items-center gap-1 h-9 px-3.5 rounded-full bg-foreground text-background text-[12px] md:text-[13px] font-medium active:scale-95 transition-transform">
+              <Store className="h-3.5 w-3.5" /> 我要卖货
+            </Link>
+          </div>
         </div>
 
         {/* 搜索 */}

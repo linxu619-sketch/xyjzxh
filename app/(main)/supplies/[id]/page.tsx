@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { listProducts, getProduct, type ReasonType } from "@/lib/data/supplies-source";
 import { resolveSeller } from "@/lib/dashboard/seller";
 import { placeOrderAction } from "@/app/(dashboard)/dashboard/store-actions";
+import { addToCartAction } from "../cart/actions";
 import { cn } from "@/lib/cn";
 
 const REASON: Record<ReasonType, string> = { agent: "独家代理", self: "自产自销", direct: "厂家直供" };
@@ -127,12 +128,15 @@ export default async function ProductDetail({ params, searchParams }: { params: 
             {isOwn ? (
               <div className="h-12 rounded-full bg-surface text-muted-foreground text-[13px] inline-flex items-center justify-center w-full">这是你上架的商品</div>
             ) : (
-              <form action={placeOrderAction} className="flex items-center gap-2">
+              <form className="flex items-center gap-2">
                 <input type="hidden" name="productId" value={p.id} />
-                <input name="qty" type="number" min={p.moq} defaultValue={p.moq} className="w-24 h-12 rounded-xl border border-border bg-background px-3 text-[14px] outline-none focus:border-foreground/30" />
+                <input name="qty" type="number" min={p.moq} defaultValue={p.moq} className="w-20 h-12 rounded-xl border border-border bg-background px-3 text-[14px] outline-none focus:border-foreground/30" />
                 <span className="text-[12px] text-muted-foreground">{p.unit}</span>
-                <button className="ml-auto h-12 px-6 rounded-full bg-cat-decor text-white text-[14px] font-medium inline-flex items-center justify-center gap-1.5 active:scale-95 transition-transform">
-                  <ShoppingCart className="h-4 w-4" /> {me ? "立即下单" : "登录后下单"}
+                <button formAction={addToCartAction} className="ml-auto h-12 px-4 rounded-full border border-border text-[14px] inline-flex items-center justify-center gap-1.5 hover:bg-surface active:scale-95 transition-transform">
+                  <ShoppingCart className="h-4 w-4" /> 加入采购车
+                </button>
+                <button formAction={placeOrderAction} className="h-12 px-5 rounded-full bg-cat-decor text-white text-[14px] font-medium inline-flex items-center justify-center gap-1.5 active:scale-95 transition-transform">
+                  {me ? "立即下单" : "登录下单"}
                 </button>
               </form>
             )}
@@ -210,11 +214,14 @@ export default async function ProductDetail({ params, searchParams }: { params: 
           {isOwn ? (
             <span className="h-11 px-5 rounded-full bg-white/10 text-background/60 text-[13px] inline-flex items-center shrink-0">我的商品</span>
           ) : (
-            <form action={placeOrderAction} className="shrink-0">
+            <form className="shrink-0 flex items-center gap-1.5">
               <input type="hidden" name="productId" value={p.id} />
               <input type="hidden" name="qty" value={p.moq} />
-              <button className="h-11 px-5 rounded-full bg-cat-decor text-white text-[13px] font-medium inline-flex items-center gap-1.5 active:scale-95 transition-transform">
-                <ShoppingCart className="h-4 w-4" /> {me ? "立即下单" : "登录下单"}
+              <button formAction={addToCartAction} aria-label="加入采购车" className="h-11 w-11 rounded-full bg-white/10 text-background inline-flex items-center justify-center active:scale-95 transition-transform">
+                <ShoppingCart className="h-4 w-4" />
+              </button>
+              <button formAction={placeOrderAction} className="h-11 px-5 rounded-full bg-cat-decor text-white text-[13px] font-medium inline-flex items-center gap-1.5 active:scale-95 transition-transform">
+                {me ? "立即下单" : "登录下单"}
               </button>
             </form>
           )}

@@ -202,3 +202,42 @@ export function getSupplyOrder(id: number): SupplyOrder | undefined {
 export function setSupplyOrderStatus(id: number, status: OrderStatus) {
   getDb().prepare("UPDATE supply_orders SET status=? WHERE id=?").run(status, id);
 }
+
+/* ---- 采购车（多商品）---- */
+export type CartLine = { cartId: number; qty: number; product: SupplyProduct; unitPrice: number; lineTotal: number };
+type CRow = { id: number; product_id: number; qty: number | null };
+
+// 加入采购车：同商品已在车内则累加
+export function addToCart(buyerType: string, buyerId: string, productId: number, qty: number) {
+  const db = getDb();
+  const n = Math.max(1, qty || 1);
+  const ex = db.prepare("SELECT id, qty FROM supply_cart WHERE buyer_type=? AND buyer_id=? AND product_id=?").get(buyerType, buyerId, productId) as { id: number; qty: number } | undefined;
+  if (ex) db.prepare("UPDATE supply_cart SET qty=? WHERE id=?").run((ex.qty || 0) + n, ex.id);
+  else db.prepare("INSERT INTO supply_cart (buyer_type,buyer_id,product_id,qty,created_at) VALUES (?,?,?,?,?)").run(buyerType, buyerId, productId, n, Date.now());
+}
+export function listCart(buyerType: string, buyerId: string): CartLine[] {
+  const rows = getDb().prepare("SELECT id, product_id, qty FROM supply_cart WHERE buyer_type=? AND buyer_id=? ORDER BY created_at ASC").all(buyerType, buyerId) as CRow[];
+  const out: CartLine[] = [];
+  for (const r of rows) {
+    const product = getProduct(r.product_id);
+    if (!product || product.status !== "active") continue; // 已下架则不计入
+    const qty = Math.max(1, r.qty || 1);
+    const unitPrice = unitPriceFor(product, qty);
+    out.push({ cartId: r.id, qty, product, unitPrice, lineTotal: unitPrice * qty });
+  }
+  return out;
+}
+export function setCartQty(buyerType: string, buyerId: string, cartId: number, qty: number) {
+  const db = getDb();
+  if (qty <= 0) { db.prepare("DELETE FROM supply_cart WHERE id=? AND buyer_type=? AND buyer_id=?").run(cartId, buyerType, buyerId); return; }
+  db.prepare("UPDATE supply_cart SET qty=? WHERE id=? AND buyer_type=? AND buyer_id=?").run(qty, cartId, buyerType, buyerId);
+}
+export function removeCartItem(buyerType: string, buyerId: string, cartId: number) {
+  getDb().prepare("DELETE FROM supply_cart WHERE id=? AND buyer_type=? AND buyer_id=?").run(cartId, buyerType, buyerId);
+}
+export function clearCart(buyerType: string, buyerId: string) {
+  getDb().prepare("DELETE FROM supply_cart WHERE buyer_type=? AND buyer_id=?").run(buyerType, buyerId);
+}
+export function cartCount(buyerType: string, buyerId: string): number {
+  return (getDb().prepare("SELECT COUNT(*) AS c FROM supply_cart WHERE buyer_type=? AND buyer_id=?").get(buyerType, buyerId) as { c: number }).c;
+}
