@@ -1,6 +1,6 @@
 "use client";
 
-import { use, useActionState, useState } from "react";
+import { useActionState, useState } from "react";
 import Link from "next/link";
 import { ROLE_META, type Role } from "@/lib/auth";
 import {
@@ -25,14 +25,21 @@ const ICONS = {
 
 const INITIAL: ActionResult = { ok: false };
 
-export function LoginForm({ initial }: { initial: Promise<{ role?: string }> }) {
-  const params = use(initial);
+export function LoginForm({ roles, initialRole }: { roles: Role[]; initialRole?: string }) {
   const [role, setRole] = useState<Role>(
-    (params.role as Role) && ROLE_META[params.role as Role] ? (params.role as Role) : "association",
+    initialRole && roles.includes(initialRole as Role) ? (initialRole as Role) : roles[0],
   );
 
   const meta = ROLE_META[role];
   const Icon = ICONS[role];
+
+  const hasCustomer = roles.includes("customer");
+  const intro =
+    roles.length === 1 && hasCustomer
+      ? "业主账号一键登录 · 下单、评价、买保险、申请调解都在这里。"
+      : hasCustomer
+        ? "四套账号独立运行 · 同一手机号可在不同身份下分别注册。"
+        : "协会 / 企业 / 从业者 账号独立运行 · 同一手机号可在不同身份下分别注册。";
 
   const action =
     role === "association" ? loginAssociationAction :
@@ -51,13 +58,13 @@ export function LoginForm({ initial }: { initial: Promise<{ role?: string }> }) 
           欢迎回来
         </h1>
         <p className="mt-2 md:mt-4 text-[12px] md:text-[15px] text-muted-foreground max-w-md leading-5 md:leading-7">
-          四套账号独立运行 · 同一手机号可在不同身份下分别注册。
+          {intro}
         </p>
 
         {/* 移动端：横向 chip 滑动 */}
         <div className="md:hidden mt-4 -mx-5 px-5 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           <div className="flex gap-2 pb-1">
-            {(Object.keys(ROLE_META) as Role[]).map((r) => {
+            {roles.map((r) => {
               const M = ROLE_META[r];
               const I = ICONS[r];
               const active = r === role;
@@ -83,7 +90,7 @@ export function LoginForm({ initial }: { initial: Promise<{ role?: string }> }) 
 
         {/* 桌面：卡片栈 */}
         <div className="hidden md:block mt-8 space-y-3 max-w-md">
-          {(Object.keys(ROLE_META) as Role[]).map((r) => {
+          {roles.map((r) => {
             const M = ROLE_META[r];
             const I = ICONS[r];
             const active = r === role;
