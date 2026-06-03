@@ -3,15 +3,17 @@ import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { AiDock } from "@/components/ai-dock";
 import { GlobalBottomNav } from "@/components/global-bottom-nav";
+import { getSession } from "@/lib/auth/session";
 
 export default async function MainLayout({ children }: { children: React.ReactNode }) {
   const cookie = await cookies();
   const faceRaw = cookie.get("xy_face")?.value;
   const face = faceRaw === "xh" ? "xh" : "consumer";
+  const session = await getSession();
 
   return (
     <>
-      <SiteHeader face={face} />
+      <SiteHeader face={face} authed={!!session} />
       <main className="flex-1">{children}</main>
       <SiteFooter />
       <AiDock />

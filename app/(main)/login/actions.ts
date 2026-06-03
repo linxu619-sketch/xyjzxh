@@ -44,7 +44,8 @@ export async function loginCustomerAction(
   const res = await loginCustomerWithSms(phone, code);
   if (!res.ok) return { ok: false, error: res.error };
   await setSession(res.session);
-  redirect("/dashboard/customer");
+  // 业主是 C 端消费者：登录后回到消费者门户首页继续浏览（个人中心在底栏「我的」/dashboard/customer）
+  redirect("/");
 }
 
 export async function loginPractitionerAction(

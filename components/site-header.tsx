@@ -10,7 +10,7 @@ import { cn } from "@/lib/cn";
 
 type Face = "consumer" | "xh";
 
-export function SiteHeader({ face = "consumer" }: { face?: Face }) {
+export function SiteHeader({ face = "consumer", authed = false }: { face?: Face; authed?: boolean }) {
   const [open, setOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
 
@@ -100,10 +100,10 @@ export function SiteHeader({ face = "consumer" }: { face?: Face }) {
                   AI 助手
                 </Link>
                 <Link
-                  href="/login?role=association"
+                  href={authed ? "/dashboard" : "/login?role=association"}
                   className="inline-flex h-9 items-center px-3 sm:px-3.5 rounded-full text-[13px] text-foreground hover:bg-surface transition-colors"
                 >
-                  登录
+                  {authed ? "我的" : "登录"}
                 </Link>
                 <Button href="/join" size="sm" variant="secondary">
                   申请入会
@@ -119,14 +119,21 @@ export function SiteHeader({ face = "consumer" }: { face?: Face }) {
                   <Sparkles className="h-3.5 w-3.5 text-accent-yellow group-hover:rotate-12 transition-transform" />
                   AI 估价
                 </Link>
-                <Link
-                  href="/dashboard/customer"
-                  className="hidden sm:inline-flex h-9 items-center px-3.5 rounded-full text-[13px] text-foreground hover:bg-surface transition-colors"
+                {authed && (
+                  <Link
+                    href="/dashboard/customer"
+                    className="hidden sm:inline-flex h-9 items-center px-3.5 rounded-full text-[13px] text-foreground hover:bg-surface transition-colors"
+                  >
+                    我的项目
+                  </Link>
+                )}
+                <Button
+                  href={authed ? "/dashboard" : "/login?role=customer"}
+                  size="sm"
+                  variant="secondary"
+                  className="hidden sm:inline-flex"
                 >
-                  我的项目
-                </Link>
-                <Button href="/login?role=customer" size="sm" variant="secondary" className="hidden sm:inline-flex">
-                  登录
+                  {authed ? "我的" : "登录"}
                   <ChevronRight className="h-3.5 w-3.5" />
                 </Button>
               </>
@@ -180,12 +187,18 @@ export function SiteHeader({ face = "consumer" }: { face?: Face }) {
             <ChevronRight className="h-4 w-4" />
           </Link>
 
-          <div className="mt-4 grid grid-cols-2 gap-2">
-            <Button href={isXh ? "/login?role=association" : "/login?role=customer"} variant="outline" size="md">登录</Button>
-            <Button href={isXh ? "/join" : "/register?role=customer"} variant="secondary" size="md">
-              {isXh ? "申请入会" : "注册"}
-            </Button>
-          </div>
+          {authed ? (
+            <div className="mt-4">
+              <Button href="/dashboard" variant="secondary" size="md" className="w-full">进入我的</Button>
+            </div>
+          ) : (
+            <div className="mt-4 grid grid-cols-2 gap-2">
+              <Button href={isXh ? "/login?role=association" : "/login?role=customer"} variant="outline" size="md">登录</Button>
+              <Button href={isXh ? "/join" : "/register?role=customer"} variant="secondary" size="md">
+                {isXh ? "申请入会" : "注册"}
+              </Button>
+            </div>
+          )}
         </Container>
       </div>
     </header>
