@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Library, Search, ArrowUpRight, FileText, Sparkles, Download } from "lucide-react";
+import { Library, Search, ArrowUpRight, FileText, Sparkles } from "lucide-react";
 import { Container } from "@/components/container";
 import { PageHeader } from "@/components/page-header";
 import { Badge } from "@/components/ui/badge";
@@ -63,8 +63,8 @@ export default function KnowledgePage() {
                     <div className="flex items-center gap-1 text-[11px] text-muted-foreground">
                       <FileText className="h-3 w-3" /> {k.size || "在线浏览"}
                     </div>
-                    <Link href="#" className="inline-flex items-center gap-1 text-[12px] font-medium text-brand">
-                      <Download className="h-3.5 w-3.5" /> 下载
+                    <Link href={`/knowledge/${k.id}`} className="inline-flex items-center gap-1 text-[12px] font-medium text-brand">
+                      查看 <ArrowUpRight className="h-3.5 w-3.5" />
                     </Link>
                   </div>
                 </article>
@@ -78,7 +78,7 @@ export default function KnowledgePage() {
           <h2 className="text-[22px] md:text-[26px] font-semibold tracking-tight">全部资料</h2>
           <div className="mt-4 rounded-3xl border border-border bg-background divide-y divide-border overflow-hidden">
             {KNOWLEDGE.map((k) => (
-              <Link key={k.id} href="#" className="block p-5 hover:bg-surface/60 transition-colors">
+              <Link key={k.id} href={`/knowledge/${k.id}`} className="block p-5 hover:bg-surface/60 transition-colors">
                 <div className="flex items-start gap-4">
                   <span className="h-10 w-10 rounded-xl bg-cat-design-soft text-cat-design shrink-0 inline-flex items-center justify-center">
                     <Library className="h-4 w-4" />

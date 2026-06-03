@@ -58,3 +58,7 @@ export const TRAININGS = [
   { id: "T3", title: "室内设计师 IFI 国际认证", date: "2026-07-01", days: 14, fee: 4800, seats: 24, enrolled: 12, tag: "设计师" },
   { id: "T4", title: "BIM 高级工程师实战工作坊", date: "2026-06-22", days: 7, fee: 2680, seats: 30, enrolled: 19, tag: "BIM" },
 ];
+
+export function getTalentJob(id: string): Job | undefined {
+  return JOBS.find((j) => j.id === id);
+}

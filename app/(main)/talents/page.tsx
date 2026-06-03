@@ -23,7 +23,7 @@ export default function TalentsPage() {
         actions={
           <>
             <Button href="/ai/hr" variant="secondary">AI 小才匹配</Button>
-            <Button href="#" variant="outline">发布岗位</Button>
+            <Button href="/dashboard/enterprise/jobs" variant="outline">发布岗位</Button>
           </>
         }
       />
@@ -33,11 +33,10 @@ export default function TalentsPage() {
         <section>
           <div className="flex items-end justify-between mb-4">
             <h2 className="text-[24px] md:text-[28px] font-semibold tracking-tight">最新职位</h2>
-            <Link href="#" className="text-[13px] text-brand">全部 →</Link>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {JOBS.map((j) => (
-              <Link key={j.id} href="#" className="group rounded-3xl border border-border bg-background p-5 hover:shadow-md transition-all hover:-translate-y-0.5">
+              <Link key={j.id} href={`/talents/${j.id}`} className="group rounded-3xl border border-border bg-background p-5 hover:shadow-md transition-all hover:-translate-y-0.5">
                 <div className="flex items-start gap-3">
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1.5 flex-wrap">

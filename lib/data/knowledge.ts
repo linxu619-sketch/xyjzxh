@@ -44,3 +44,7 @@ export const KNOWLEDGE_CATEGORIES = [
   { key: "典型案例", color: "decor", count: 58 },
   { key: "合同范本", color: "tea", count: 32 },
 ] as const;
+
+export function getKnowledge(id: string): KnowledgeItem | undefined {
+  return KNOWLEDGE.find((k) => k.id === id);
+}
