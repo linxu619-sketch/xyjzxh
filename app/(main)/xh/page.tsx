@@ -3,6 +3,7 @@ import {
   ArrowRight, ArrowUpRight, Newspaper, Building2, UserRound,
   FileCheck2, ShoppingBag, Wallet, Umbrella, Library, GraduationCap,
   Globe2, CalendarDays, Star, ShieldCheck, Sparkles, ChevronRight,
+  HardHat, HeartHandshake,
 } from "lucide-react";
 import { Container } from "@/components/container";
 import { Badge } from "@/components/ui/badge";
@@ -29,8 +30,10 @@ export const metadata = {
 
 // —— 会员办事大厅 ——
 const MEMBER_SERVICES = [
+  { icon: HeartHandshake, t: "协会服务", d: "认证 · 报备 · 纠纷调解", href: "/services", tone: "brand" },
   { icon: FileCheck2, t: "工装报备", d: "项目登记 · 省厅直连", href: "/projects", tone: "build" },
   { icon: Building2, t: "会员目录", d: "企业 / 个人会员名录", href: "/members", tone: "brand" },
+  { icon: HardHat, t: "从业者", d: "工长 · 设计师 · 监理", href: "/practitioners", tone: "design" },
   { icon: ShoppingBag, t: "建材集采", d: "协会集采 · 分层定价", href: "/supplies", tone: "tea" },
   { icon: Wallet, t: "金融服务", d: "建装贷 · 保函 · 分期", href: "/finance", tone: "design" },
   { icon: Umbrella, t: "保险保障", d: "工程险 · 工伤意外险", href: "/insurance", tone: "decor" },

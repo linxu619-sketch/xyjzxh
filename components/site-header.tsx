@@ -38,13 +38,13 @@ export function SiteHeader({ face = "consumer" }: { face?: Face }) {
       {isXh && (
         <div className="bg-foreground text-background text-[11px]">
           <Container>
-            <div className="flex items-center justify-between py-1.5">
-              <span className="inline-flex items-center gap-1.5">
-                <Building2 className="h-3 w-3 text-accent-yellow" />
-                您在 <b>协会门户</b> · 面向企业 / 从业者 / 合作机构
+            <div className="flex items-center justify-between gap-2 py-1.5">
+              <span className="inline-flex items-center gap-1.5 min-w-0">
+                <Building2 className="h-3 w-3 text-accent-yellow shrink-0" />
+                <span className="truncate">您在 <b>协会门户</b> · 面向企业 / 从业者 / 合作机构</span>
               </span>
-              <Link href="/" className="text-background/70 hover:text-background hidden sm:inline">
-                返回业主门户 (xyjzxh.com) →
+              <Link href="/" className="text-background/70 hover:text-background whitespace-nowrap shrink-0">
+                返回业主门户 →
               </Link>
             </div>
           </Container>
@@ -101,11 +101,11 @@ export function SiteHeader({ face = "consumer" }: { face?: Face }) {
                 </Link>
                 <Link
                   href="/login?role=association"
-                  className="hidden sm:inline-flex h-9 items-center px-3.5 rounded-full text-[13px] text-foreground hover:bg-surface transition-colors"
+                  className="inline-flex h-9 items-center px-3 sm:px-3.5 rounded-full text-[13px] text-foreground hover:bg-surface transition-colors"
                 >
                   登录
                 </Link>
-                <Button href="/join" size="sm" variant="secondary" className="hidden sm:inline-flex">
+                <Button href="/join" size="sm" variant="secondary">
                   申请入会
                   <ChevronRight className="h-3.5 w-3.5" />
                 </Button>
@@ -131,23 +131,26 @@ export function SiteHeader({ face = "consumer" }: { face?: Face }) {
                 </Button>
               </>
             )}
-            <button
-              type="button"
-              onClick={() => setOpen((v) => !v)}
-              className="lg:hidden inline-flex h-10 w-10 items-center justify-center rounded-full hover:bg-surface"
-              aria-label="菜单"
-            >
-              {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-            </button>
+            {/* 三横菜单：仅消费者面保留；协会面已移除（功能由首页办事大厅 + 底部栏 + 页脚承载） */}
+            {!isXh && (
+              <button
+                type="button"
+                onClick={() => setOpen((v) => !v)}
+                className="lg:hidden inline-flex h-10 w-10 items-center justify-center rounded-full hover:bg-surface"
+                aria-label="菜单"
+              >
+                {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+              </button>
+            )}
           </div>
         </div>
       </Container>
 
-      {/* Mobile menu */}
+      {/* Mobile menu — 仅消费者面 */}
       <div
         className={cn(
           "lg:hidden overflow-hidden border-t border-border transition-[max-height,opacity] duration-300",
-          open ? "max-h-[90vh] opacity-100" : "max-h-0 opacity-0",
+          !isXh && open ? "max-h-[90vh] opacity-100" : "max-h-0 opacity-0",
         )}
       >
         <Container className="py-4">
