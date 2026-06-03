@@ -1,5 +1,6 @@
 import { Package, Crown, AlertCircle, CheckCircle2, Clock, XCircle, ShieldCheck, Truck, ShoppingCart, Wallet, Swords } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/cn";
 import { resolveSeller } from "@/lib/dashboard/seller";
 import { listBySeller, listOrdersBySeller, listOrdersByBuyer, reconcileSeller, reconcileBuyer, isOverdue, SUPPLY_TERM_DAYS, type ProductStatus, type ReasonType, type OrderStatus, type SupplyOrder } from "@/lib/data/supplies-source";
 import { getMemberTier, quotaOf } from "@/lib/data/member-tier";
@@ -74,6 +75,7 @@ export async function SellerPanel({ sp }: { sp?: { ok?: string; err?: string; bp
               const st = STATUS[p.status];
               const StIcon = st.icon;
               const off = p.marketPrice > 0 ? Math.round((1 - p.memberPrice / p.marketPrice) * 100) : 0;
+              const replaced = p.status === "off" && (p.rejectReason ?? "").startsWith("价格擂台");
               return (
                 <li key={p.id} className="px-5 py-3.5 flex items-center gap-3">
                   <span className="h-9 w-9 rounded-xl bg-surface inline-flex items-center justify-center shrink-0"><Package className="h-4 w-4 text-cat-build" /></span>
@@ -84,10 +86,14 @@ export async function SellerPanel({ sp }: { sp?: { ok?: string; err?: string; bp
                       <span className="inline-flex items-center gap-0.5 text-[11px] text-accent-tea"><ShieldCheck className="h-3 w-3" />{REASON_LABEL[p.reasonType]}</span>
                     </div>
                     <div className="text-[12px] text-muted-foreground mt-0.5">{p.spec ? p.spec + " · " : ""}起批 {p.moq}{p.unit} · ¥{p.memberPrice}<span className="line-through ml-1 text-[11px]">¥{p.marketPrice}</span>/{p.unit}{off > 0 && <span className="text-accent-tea ml-1.5">省{off}%</span>}</div>
-                    {(p.status === "rejected" || p.status === "off") && p.rejectReason && <div className="text-[11px] text-cat-decor mt-0.5">{p.status === "rejected" ? "驳回原因" : "下架原因"}：{p.rejectReason}</div>}
+                    {(p.status === "rejected" || p.status === "off") && p.rejectReason && <div className={cn("text-[11px] mt-0.5", replaced ? "text-[#a37200]" : "text-cat-decor")}>{replaced ? "擂台" : p.status === "rejected" ? "驳回原因" : "下架原因"}：{p.rejectReason}</div>}
                   </div>
-                  <Badge tone={st.tone} className="shrink-0 inline-flex items-center gap-1"><StIcon className="h-3 w-3" />{st.label}</Badge>
-                  {(p.status === "active" || p.status === "off") && (
+                  {replaced
+                    ? <Badge tone="decor" className="shrink-0 inline-flex items-center gap-1"><Swords className="h-3 w-3" />擂台被替换</Badge>
+                    : <Badge tone={st.tone} className="shrink-0 inline-flex items-center gap-1"><StIcon className="h-3 w-3" />{st.label}</Badge>}
+                  {replaced ? (
+                    <span className="shrink-0 text-[11px] text-muted-foreground max-w-[120px] leading-4">以更低价重新上架可夺回</span>
+                  ) : (p.status === "active" || p.status === "off") && (
                     <form action={toggleMyListingAction} className="shrink-0">
                       <input type="hidden" name="id" value={p.id} />
                       <input type="hidden" name="status" value={p.status === "active" ? "off" : "active"} />

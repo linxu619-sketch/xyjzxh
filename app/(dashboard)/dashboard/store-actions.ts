@@ -121,8 +121,15 @@ export async function toggleMyListingAction(fd: FormData) {
   const next = String(fd.get("status") || "");
   const p = getProduct(id);
   const owned = p && p.sellerType === seller.type && p.sellerId === seller.id;
-  if (owned && (next === "off" || next === "active")) {
-    setProductStatus(id, next as "off" | "active");
+  if (owned && next === "off") {
+    setProductStatus(id, "off");
+  } else if (owned && next === "active") {
+    // 复活校验品牌排他：该品牌已被他人占据在架时，不能直接上架，需以更低价重新发起擂台
+    const holder = brandActiveHolder(p!.brand, p!.id);
+    if (holder && (holder.sellerType !== seller.type || holder.sellerId !== seller.id)) {
+      redirect(`${seller.base}?err=brand&bp=${holder.memberPrice}&bu=${encodeURIComponent(holder.unit)}&bn=${encodeURIComponent(holder.sellerName)}`);
+    }
+    setProductStatus(id, "active");
   }
   revalidatePath(seller.base);
   redirect(seller.base);
