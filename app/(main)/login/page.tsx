@@ -12,12 +12,15 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
   const { role } = await searchParams;
   const face = (await cookies()).get("xy_face")?.value;
 
-  // 协会/会员侧（xh 门户）只登录 协会/企业/从业者；消费者侧（xyjzxh.com）登录业主。
+  // 身份范围：
+  // - 显式 ?role=customer  → 只业主（消费者门户登录入口）
+  // - 显式 ?role=会员身份   → 协会/企业/从业者（协会门户登录入口，无业主）
+  // - 协会门户(face=xh)无参数 → 协会/企业/从业者
+  // - 其余（消费者/IP 直连/无上下文）→ 全部四种，绝不收窄成"只有业主"
   let roles: Role[];
   if (role === "customer") roles = ["customer"];
   else if (role && (MEMBER_ROLES as string[]).includes(role)) roles = MEMBER_ROLES;
   else if (face === "xh") roles = MEMBER_ROLES;
-  else if (face === "consumer" || face === "tenant") roles = ["customer"];
   else roles = ALL_ROLES;
 
   return (

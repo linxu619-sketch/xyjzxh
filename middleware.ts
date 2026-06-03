@@ -52,10 +52,18 @@ export function middleware(req: NextRequest) {
   const url = req.nextUrl;
   const { face, tenant } = parseHost(host);
 
-  // 已经在 /biz/* 或 /xh/* 路径上直接放行
-  if (url.pathname.startsWith("/biz/") || url.pathname.startsWith("/xh/") || url.pathname === "/xh") {
+  // 按路径强制识别门面（localhost / 局域网 IP 没有子域名，仅靠 host 识别不到 xh / tenant，
+  // 所以只要落在 /xh* 或 /biz/* 路径上，就以路径为准设置 face）
+  if (url.pathname === "/xh" || url.pathname.startsWith("/xh/")) {
     const res = NextResponse.next();
-    res.cookies.set(COOKIE_FACE, face, { path: "/", sameSite: "lax" });
+    res.cookies.set(COOKIE_FACE, "xh", { path: "/", sameSite: "lax" });
+    res.headers.set("x-face", "xh");
+    return res;
+  }
+  if (url.pathname.startsWith("/biz/")) {
+    const res = NextResponse.next();
+    res.cookies.set(COOKIE_FACE, "tenant", { path: "/", sameSite: "lax" });
+    res.headers.set("x-face", "tenant");
     return res;
   }
 
