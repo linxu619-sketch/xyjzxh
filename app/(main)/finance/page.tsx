@@ -4,7 +4,7 @@ import { Container } from "@/components/container";
 import { PageHeader } from "@/components/page-header";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { FINANCE_PRODUCTS } from "@/lib/data/finance";
+import { listFinanceProducts } from "@/lib/data/finance-source";
 
 const TYPE_TONE: Record<string, "build" | "decor" | "design" | "tea" | "brand" | "yellow"> = {
   信用贷: "decor", 经营贷: "brand", 保函: "build", 保理: "tea", 设备分期: "design",
@@ -20,7 +20,8 @@ const COLOR: Record<string, string> = {
 
 export const metadata = { title: "金融服务 · 信阳市建筑装饰装修协会" };
 
-export default function FinancePage() {
+export default async function FinancePage() {
+  const FINANCE_PRODUCTS = listFinanceProducts();
   return (
     <>
       <PageHeader
@@ -40,7 +41,7 @@ export default function FinancePage() {
               <div className="p-6">
                 <div className="flex items-center justify-between mb-3">
                   <Badge tone={TYPE_TONE[p.type] || "brand"}>{p.type}</Badge>
-                  <span className="text-[11px] text-muted-foreground">{p.bank}</span>
+                  <span className="text-[11px] text-muted-foreground">{p.provider}</span>
                 </div>
                 <h3 className="text-[20px] font-semibold tracking-tight">{p.name}</h3>
                 <div className="mt-4 grid grid-cols-3 gap-2 text-center">

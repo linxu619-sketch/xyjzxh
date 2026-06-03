@@ -157,7 +157,11 @@
       "Bash(grep -nA12 \"CREATE TABLE IF NOT EXISTS reviews\" lib/db/sqlite.ts)",
       "Bash(sed -n \"/export function activateAccountByAppId/,/^}/p\" lib/data/accounts.ts)",
       "Bash(grep -nA9 \"CREATE TABLE IF NOT EXISTS applications\" lib/db/sqlite.ts)",
-      "Bash(grep -nA11 \"CREATE TABLE IF NOT EXISTS accounts\" lib/db/sqlite.ts)"
+      "Bash(grep -nA11 \"CREATE TABLE IF NOT EXISTS accounts\" lib/db/sqlite.ts)",
+      "Bash(grep -nA12 \"CREATE TABLE IF NOT EXISTS finance_products\" lib/db/sqlite.ts)",
+      "Bash(sed -n '1,49p' lib/data/finance.ts)",
+      "Bash(grep -nA8 \"const COLOR\" \"app/\\(main\\)/finance/page.tsx\")",
+      "Bash(grep -nA6 \"const TYPE_TONE\" \"app/\\(main\\)/finance/page.tsx\")"
     ]
   }
 }

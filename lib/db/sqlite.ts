@@ -343,6 +343,7 @@ CREATE TABLE IF NOT EXISTS finance_products (
   term_label  TEXT,
   for_whom    TEXT,
   color       TEXT,
+  highlights  TEXT,    -- JSON 数组：特性亮点
   status      TEXT DEFAULT 'active',
   created_at  INTEGER
 );
@@ -630,18 +631,19 @@ function seedOrders(db: DB) {
 
 function seedFinanceProducts(db: DB) {
   if (!isEmpty(db, "finance_products")) return;
-  // [name, provider, type, rate_label, amount_label, term_label, for_whom, color]
-  const rows: [string, string, string, string, string, string, string, string][] = [
-    ["建装贷", "中原银行信阳分行", "经营贷", "年化 3.45% 起", "≤ 500 万", "12-36 个月", "在册装修/建筑企业", "brand"],
-    ["工程保函", "中国建设银行", "保函", "费率 0.8% 起", "≤ 2000 万", "按工期", "承接工程项目企业", "build"],
-    ["工程款保理", "信阳农商银行", "保理", "年化 5.8% 起", "≤ 工程款 80%", "按账期", "有应收工程款企业", "decor"],
-    ["设备分期", "平安租赁", "融资租赁", "月费率 0.5% 起", "≤ 300 万", "12-24 个月", "需采购设备企业", "design"],
+  // [name, provider, type, rate_label, amount_label, term_label, for_whom, color, highlights[]]
+  const rows: [string, string, string, string, string, string, string, string, string[]][] = [
+    ["建装贷", "中原银行信阳分行", "经营贷", "年化 3.45% 起", "≤ 500 万", "12-36 个月", "在册装修/建筑企业", "brand", ["协会会员专属", "线上申请", "T+1 放款"]],
+    ["工程保函", "中国建设银行", "保函", "费率 0.8% 起", "≤ 2000 万", "按工期", "总包/分包企业", "build", ["投标/履约/预付款", "电子保函", "工装报备直接出函"]],
+    ["装修分期", "招商银行", "信用贷", "年化 4.0% 起", "≤ 50 万", "6-36 期", "C 端业主", "decor", ["业主端", "0 抵押", "分次放款至企业账户"]],
+    ["工程款保理", "信阳农商银行", "保理", "年化 5.5% 起", "≤ 1000 万", "≤ 180 天", "上游承包企业", "tea", ["凭报备应收账款融资", "无追索可选"]],
+    ["施工设备分期", "工银租赁", "设备分期", "年化 4.8% 起", "≤ 800 万", "12-60 期", "建筑企业", "design", ["塔吊/泵车/装载", "厂家直贴"]],
   ];
   const stmt = db.prepare(
-    "INSERT INTO finance_products (name,provider,type,rate_label,amount_label,term_label,for_whom,color,status,created_at) VALUES (?,?,?,?,?,?,?,?, 'active', ?)",
+    "INSERT INTO finance_products (name,provider,type,rate_label,amount_label,term_label,for_whom,color,highlights,status,created_at) VALUES (?,?,?,?,?,?,?,?,?, 'active', ?)",
   );
   const now = Date.now();
-  rows.forEach((r, i) => stmt.run(r[0], r[1], r[2], r[3], r[4], r[5], r[6], r[7], now - i * 3600000));
+  rows.forEach((r, i) => stmt.run(r[0], r[1], r[2], r[3], r[4], r[5], r[6], r[7], JSON.stringify(r[8]), now - i * 3600000));
 }
 
 function seedSupplyProducts(db: DB) {
@@ -754,6 +756,8 @@ function migrate(db: DB) {
     "ALTER TABLE enterprises ADD COLUMN theme TEXT",
     // 企业子站模板（企业自选，预留多模板）
     "ALTER TABLE enterprises ADD COLUMN template TEXT",
+    // 金融产品特性条目（JSON 数组，前台展示）
+    "ALTER TABLE finance_products ADD COLUMN highlights TEXT",
   ];
   for (const sql of alters) {
     try { db.exec(sql); } catch { /* 列已存在，忽略 */ }

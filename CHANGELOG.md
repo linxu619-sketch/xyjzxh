@@ -14,6 +14,14 @@
 
 ---
 
+## [0.71.0] - 2026-06-03
+
+### 新增 + 修复（合作金融产品可管理 + 前台接真实数据）
+- **根因**：消费者金融页 `/finance` 用的是写死的静态 `FINANCE_PRODUCTS`（`lib/data/finance.ts`），与企业端/协会端用的 DB(`finance_products`)脱节,且协会无任何增删改入口——所以协会看到的产品"改不了、像假的"。
+- **协会金融产品管理(CRUD)**：协会工作台「金融保险」新增产品管理——新增 / 行内编辑 / 上下架 / 删除;字段含名称、合作机构、类型、利率、额度、期限、适用对象、主题色、**特性亮点**。新增 `createFinanceProduct`/`updateFinanceProduct`/`setFinanceProductStatus`/`deleteFinanceProduct`/`listAllFinanceProducts`。
+- **消费者金融页改为 DB 驱动**：`/finance` 改用 `listFinanceProducts()`（仅在架),协会增删改/上下架即时反映到前台与企业申请页,三端同源。
+- **数据模型**：`finance_products` 加 `highlights`（JSON 特性数组)列(CREATE 原生 + migrate ALTER 兼容老库);种子更新为 5 个标准产品(建装贷/工程保函/装修分期/工程款保理/施工设备分期)并带特性。
+
 ## [0.70.3] - 2026-06-03
 
 ### 调整（移除消费者面移动端三横菜单，全站统一）

@@ -1,10 +1,14 @@
-import { Wallet, Landmark, Umbrella, CheckCircle2, XCircle, Banknote } from "lucide-react";
+import { Wallet, Landmark, Umbrella, CheckCircle2, XCircle, Banknote, Plus, Save, Power, Trash2 } from "lucide-react";
 import { AssociationShell } from "@/components/dashboard/shell";
 import { StatFilters } from "@/components/dashboard/stat-filters";
 import { Badge } from "@/components/ui/badge";
-import { listFinanceProducts, listAllFinanceApps, type FinAppStatus } from "@/lib/data/finance-source";
+import { listAllFinanceProducts, listAllFinanceApps, type FinAppStatus } from "@/lib/data/finance-source";
 import { listInsuranceOrders } from "@/lib/data/insurance-orders";
-import { reviewFinanceAppAction } from "./actions";
+import { reviewFinanceAppAction, createFinanceProductAction, updateFinanceProductAction, toggleFinanceProductAction, deleteFinanceProductAction } from "./actions";
+
+const FIN_TYPES = ["信用贷", "抵押贷", "经营贷", "保函", "供应链金融", "分期", "票据贴现", "其他"];
+const FIN_COLORS = [["brand", "深蓝"], ["build", "蓝"], ["decor", "红橙"], ["design", "紫"], ["tea", "青绿"]];
+const FIN_INPUT = "h-10 rounded-xl border border-border bg-background px-3 text-[13px] outline-none focus:border-foreground/30 w-full";
 
 export const metadata = { title: "金融保险 · 协会工作台" };
 
@@ -21,7 +25,7 @@ function fmt(ms: number) {
 
 export default async function FinanceAdmin({ searchParams }: { searchParams: Promise<{ f?: string }> }) {
   const { f } = await searchParams;
-  const products = listFinanceProducts();
+  const products = listAllFinanceProducts();
   const allApps = listAllFinanceApps();
   const insurance = listInsuranceOrders();
   const FILTERABLE: FinAppStatus[] = ["pending", "approved", "rejected", "disbursed"];
@@ -93,16 +97,69 @@ export default async function FinanceAdmin({ searchParams }: { searchParams: Pro
         )}
       </div>
 
-      {/* 合作金融产品 */}
-      <h2 className="text-[16px] font-semibold mb-3 inline-flex items-center gap-1.5"><Wallet className="h-4 w-4" /> 合作金融产品</h2>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-        {products.map((p) => (
-          <div key={p.id} className="rounded-2xl border border-border bg-background p-4">
-            <div className="flex items-center gap-2"><span className="text-[14px] font-semibold flex-1">{p.name}</span><Badge tone="brand">{p.type}</Badge></div>
-            <div className="text-[11px] text-muted-foreground mt-0.5">{p.provider} · {p.rateLabel} · {p.amountLabel}</div>
-          </div>
-        ))}
-      </div>
+      {/* 合作金融产品 · 管理 */}
+      <div id="products" className="scroll-mt-20" />
+      <h2 className="text-[16px] font-semibold mb-1 inline-flex items-center gap-1.5"><Wallet className="h-4 w-4" /> 合作金融产品 · 管理</h2>
+      <p className="text-[12px] text-muted-foreground mb-3">在此维护真实合作金融产品；保存 / 上下架后,企业端「金融保险」与消费者金融页立即同步。</p>
+
+      {/* 新增产品 */}
+      <form action={createFinanceProductAction} className="rounded-2xl border border-border bg-background p-4 mb-4">
+        <div className="text-[13px] font-semibold mb-3 inline-flex items-center gap-1.5"><Plus className="h-3.5 w-3.5" /> 新增合作产品</div>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5">
+          <input name="name" placeholder="产品名称 *" required className={FIN_INPUT} />
+          <input name="provider" placeholder="合作机构 *(如 建设银行)" required className={FIN_INPUT} />
+          <select name="type" className={FIN_INPUT}>{FIN_TYPES.map((t) => <option key={t} value={t}>{t}</option>)}</select>
+          <select name="color" className={FIN_INPUT}>{FIN_COLORS.map(([k, n]) => <option key={k} value={k}>{n}</option>)}</select>
+          <input name="rateLabel" placeholder="利率(如 年化 3.45% 起)" className={FIN_INPUT} />
+          <input name="amountLabel" placeholder="额度(如 最高 500 万)" className={FIN_INPUT} />
+          <input name="termLabel" placeholder="期限(如 12-36 期)" className={FIN_INPUT} />
+          <input name="forWhom" placeholder="适用对象(如 在册企业会员)" className={FIN_INPUT} />
+        </div>
+        <input name="highlights" placeholder="特性亮点(逗号/换行分隔,最多6条,如 协会会员专属,线上申请,T+1放款)" className={`${FIN_INPUT} mt-2.5`} />
+        <button className="mt-3 h-9 px-4 rounded-full bg-foreground text-background text-[13px] font-medium inline-flex items-center gap-1.5"><Plus className="h-3.5 w-3.5" /> 添加产品</button>
+      </form>
+
+      {/* 产品列表(含已下架,可编辑/上下架/删除) */}
+      {products.length === 0 ? (
+        <div className="rounded-2xl border border-dashed border-border p-10 text-center text-[13px] text-muted-foreground">还没有合作金融产品,用上面的表单添加第一个。</div>
+      ) : (
+        <div className="space-y-3">
+          {products.map((p) => (
+            <div key={p.id} className={`rounded-2xl border bg-background p-4 ${p.status === "active" ? "border-border" : "border-border/60 opacity-70"}`}>
+              <form action={updateFinanceProductAction} className="space-y-2.5">
+                <input type="hidden" name="id" value={p.id} />
+                <div className="flex items-center gap-2">
+                  <Badge tone={p.status === "active" ? "tea" : "neutral"} className="shrink-0">{p.status === "active" ? "在架" : "已下架"}</Badge>
+                  <span className="text-[11px] text-muted-foreground">ID {p.id}</span>
+                </div>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5">
+                  <input name="name" defaultValue={p.name} placeholder="产品名称" className={FIN_INPUT} />
+                  <input name="provider" defaultValue={p.provider} placeholder="合作机构" className={FIN_INPUT} />
+                  <select name="type" defaultValue={FIN_TYPES.includes(p.type) ? p.type : "其他"} className={FIN_INPUT}>{FIN_TYPES.map((t) => <option key={t} value={t}>{t}</option>)}</select>
+                  <select name="color" defaultValue={p.color} className={FIN_INPUT}>{FIN_COLORS.map(([k, n]) => <option key={k} value={k}>{n}</option>)}</select>
+                  <input name="rateLabel" defaultValue={p.rateLabel} placeholder="利率" className={FIN_INPUT} />
+                  <input name="amountLabel" defaultValue={p.amountLabel} placeholder="额度" className={FIN_INPUT} />
+                  <input name="termLabel" defaultValue={p.termLabel} placeholder="期限" className={FIN_INPUT} />
+                  <input name="forWhom" defaultValue={p.forWhom} placeholder="适用对象" className={FIN_INPUT} />
+                </div>
+                <input name="highlights" defaultValue={p.highlights.join("，")} placeholder="特性亮点(逗号/换行分隔)" className={FIN_INPUT} />
+                <button className="h-8 px-3.5 rounded-full bg-foreground text-background text-[12px] font-medium inline-flex items-center gap-1.5"><Save className="h-3.5 w-3.5" /> 保存修改</button>
+              </form>
+              <div className="flex items-center gap-2 mt-2 pt-2 border-t border-border">
+                <form action={toggleFinanceProductAction}>
+                  <input type="hidden" name="id" value={p.id} />
+                  <input type="hidden" name="status" value={p.status === "active" ? "off" : "active"} />
+                  <button className="h-8 px-3 rounded-full bg-surface text-[12px] inline-flex items-center gap-1.5 hover:bg-surface-2"><Power className="h-3.5 w-3.5" /> {p.status === "active" ? "下架" : "上架"}</button>
+                </form>
+                <form action={deleteFinanceProductAction}>
+                  <input type="hidden" name="id" value={p.id} />
+                  <button className="h-8 px-3 rounded-full text-cat-decor text-[12px] inline-flex items-center gap-1.5 hover:bg-cat-decor-soft"><Trash2 className="h-3.5 w-3.5" /> 删除</button>
+                </form>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
     </AssociationShell>
   );
 }
