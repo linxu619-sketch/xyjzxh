@@ -2,10 +2,21 @@ import { Save, Building2, KeyRound, Bell, Trash2, CreditCard } from "lucide-reac
 import { EnterpriseShell } from "@/components/dashboard/shell";
 import { SettingsCard, FormRow, Toggle, Input, Textarea } from "@/components/dashboard/section";
 import { Badge } from "@/components/ui/badge";
+import { getSession } from "@/lib/auth/session";
+import { getEnterpriseBySlugOrId } from "@/lib/data/enterprises-source";
+import { getMemberTier } from "@/lib/data/member-tier";
 
 export const metadata = { title: "企业设置 · 企业工作台" };
 
-export default function EnterpriseSettings() {
+export default async function EnterpriseSettings() {
+  const session = await getSession();
+  const e = session?.enterpriseId ? await getEnterpriseBySlugOrId(session.enterpriseId) : undefined;
+  const tier = session?.enterpriseId ? getMemberTier("enterprise", session.enterpriseId) : "普通会员";
+  const fullName = e?.name ?? "";
+  const region = e?.district ?? "";
+  const intro = e?.short ?? "";
+  const tel = e?.contact?.tel || session?.phone || "";
+  const maskedTel = tel.length === 11 ? `${tel.slice(0, 3)}****${tel.slice(-4)}` : tel;
   return (
     <EnterpriseShell
       title="企业设置"
@@ -33,12 +44,12 @@ export default function EnterpriseSettings() {
         <div className="space-y-6">
           <SettingsCard title="企业资料" desc="协会档案与子站基础信息">
             <div id="company" />
-            <FormRow label="企业全称" required><Input defaultValue="信阳名家装饰工程有限公司" /></FormRow>
+            <FormRow label="企业全称" required><Input defaultValue={fullName} /></FormRow>
             <FormRow label="统一社会信用代码" required><Input defaultValue="91410100MA9XXXXXXX" /></FormRow>
             <FormRow label="主营类别"><select className="h-11 rounded-xl border border-border px-3 text-[14px]"><option>建筑施工</option><option selected>装饰装修</option><option>设计公司</option><option>设计师个人</option></select></FormRow>
             <FormRow label="成立年份"><Input defaultValue="2012" /></FormRow>
             <FormRow label="员工规模"><select className="h-11 rounded-xl border border-border px-3 text-[14px]"><option>10 人以内</option><option>10-30 人</option><option>30-50 人</option><option>50-100 人</option><option selected>100-200 人</option><option>200-500 人</option><option>500+ 人</option></select></FormRow>
-            <FormRow label="主营区域"><Input defaultValue="羊山新区 / 浉河区" /></FormRow>
+            <FormRow label="主营区域"><Input defaultValue={region} /></FormRow>
             <FormRow label="资质证书" hint="变更后请同步协会秘书处复审">
               <div className="space-y-2 text-[13px]">
                 {["建筑装修装饰壹级", "ISO9001"].map((q) => (
@@ -50,12 +61,12 @@ export default function EnterpriseSettings() {
                 <button className="h-9 px-4 rounded-full border border-dashed border-border text-[12px] text-muted-foreground">+ 上传新资质</button>
               </div>
             </FormRow>
-            <FormRow label="企业简介"><Textarea defaultValue="本地 TOP3 整装品牌，699 套餐覆盖 200+ 楼盘。" /></FormRow>
+            <FormRow label="企业简介"><Textarea defaultValue={intro} /></FormRow>
           </SettingsCard>
 
           <SettingsCard title="账号 / 密码">
             <div id="account" />
-            <FormRow label="登录手机号" required hint="变更需短信验证"><Input defaultValue="138****1001" /></FormRow>
+            <FormRow label="登录手机号" required hint="变更需短信验证"><Input defaultValue={maskedTel} /></FormRow>
             <FormRow label="登录密码"><div className="flex gap-2"><Input type="password" defaultValue="123456" /><button className="h-11 px-4 rounded-xl bg-foreground text-background text-[13px] font-medium shrink-0">更新</button></div></FormRow>
             <FormRow label="二次验证"><div className="flex items-center justify-between"><span className="text-[13px]">登录时发送短信</span><Toggle defaultChecked /></div></FormRow>
             <FormRow label="API Key" hint="供 ERP / 微信小程序对接调用">
@@ -76,13 +87,13 @@ export default function EnterpriseSettings() {
             <FormRow label="当前会籍">
               <div className="rounded-xl bg-foreground text-background p-4 flex items-center justify-between">
                 <div>
-                  <div className="text-[14px] font-semibold">高级会员</div>
+                  <div className="text-[14px] font-semibold">{tier}</div>
                   <div className="text-[11px] text-background/70 mt-0.5">到期：2027-04-30 · 自动续费</div>
                 </div>
                 <span className="text-[18px] font-semibold">¥4,800/年</span>
               </div>
             </FormRow>
-            <FormRow label="开票信息"><Textarea defaultValue="抬头：信阳名家装饰工程有限公司\n税号：91410100MA9XXXXXXX\n开户行：中国建设银行信阳分行 411xxxxxxxx" /></FormRow>
+            <FormRow label="开票信息"><Textarea defaultValue={fullName ? `抬头：${fullName}\n税号：（请补充）\n开户行：（请补充）` : ""} /></FormRow>
             <FormRow label="AI 计费">
               <div className="flex items-center justify-between text-[13px]">
                 <span className="text-muted-foreground">本月用量 1,320 / 1,000 次，超出 320 次</span>
