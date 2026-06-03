@@ -143,6 +143,7 @@ CREATE TABLE IF NOT EXISTS practitioners (
 CREATE TABLE IF NOT EXISTS leads (
   id            INTEGER PRIMARY KEY AUTOINCREMENT,
   enterprise_id TEXT,    -- 归属企业（子站留资即该企业 id）
+  uid           TEXT,    -- 提交业主的账号 uid（已登录时记录，便于业主端查看自己的需求）
   name          TEXT,
   phone         TEXT,
   type          TEXT,    -- 项目类型
@@ -704,6 +705,7 @@ function migrate(db: DB) {
     "ALTER TABLE mediations ADD COLUMN uid TEXT",
     "ALTER TABLE reviews ADD COLUMN uid TEXT",
     "ALTER TABLE project_reports ADD COLUMN uid TEXT",
+    "ALTER TABLE leads ADD COLUMN uid TEXT",
     // 商城 B2B 会员互助改造：卖家 / 品牌排他 / 上架理由 / 审核
     "ALTER TABLE supply_products ADD COLUMN brand TEXT",
     "ALTER TABLE supply_products ADD COLUMN seller_type TEXT DEFAULT 'association'",

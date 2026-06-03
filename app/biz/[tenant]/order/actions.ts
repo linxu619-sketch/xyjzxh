@@ -3,6 +3,7 @@
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { createLead } from "@/lib/data/leads";
+import { getSession } from "@/lib/auth/session";
 
 // 子站「提交正式需求」→ 写入 leads 表，归属该企业
 export async function submitLeadAction(fd: FormData) {
@@ -16,8 +17,12 @@ export async function submitLeadAction(fd: FormData) {
     redirect(`/biz/${tenant}/order?err=1`);
   }
 
+  const s = await getSession();
+  const uid = s?.role === "customer" ? s.uid : undefined;
+
   createLead({
     enterpriseId,
+    uid,
     name,
     phone,
     type: String(fd.get("type") || ""),
@@ -31,5 +36,6 @@ export async function submitLeadAction(fd: FormData) {
 
   revalidatePath("/dashboard/enterprise/leads");
   revalidatePath("/dashboard/enterprise");
+  revalidatePath("/dashboard/customer/requests");
   redirect(`/biz/${tenant}/order?ok=1`);
 }

@@ -3,13 +3,14 @@ import { redirect } from "next/navigation";
 import {
   Umbrella, MessageSquareHeart, MessageSquareWarning, Sparkles,
   Bell, ChevronRight, ShieldCheck, ArrowUpRight, Camera,
-  AlertCircle, CheckCircle2, Wallet, GitPullRequest,
+  AlertCircle, CheckCircle2, Wallet, GitPullRequest, MessagesSquare,
 } from "lucide-react";
 import { Container } from "@/components/container";
 import { Badge } from "@/components/ui/badge";
 import { getSession } from "@/lib/auth/session";
 import { ORDER_DEMO } from "@/lib/data/orders";
 import { listReviewsByUid } from "@/lib/data/reviews";
+import { listLeadsForCustomer } from "@/lib/data/leads";
 import { listMediationsByUid } from "@/lib/data/mediations";
 import { CUSTOMER_TABS } from "@/lib/dashboard/nav";
 import { CustomerBottomNav } from "@/components/dashboard/customer-bottom-nav";
@@ -37,6 +38,7 @@ export default async function CustomerDashboard() {
 
   const myReviews = listReviewsByUid(session.uid);
   const myMediations = listMediationsByUid(session.uid);
+  const myRequests = listLeadsForCustomer(session.uid, session.phone);
 
   const o = ORDER_DEMO;
   const progress = Math.round(o.schedule.reduce((a, t) => a + t.progress, 0) / o.schedule.length);
@@ -171,6 +173,18 @@ export default async function CustomerDashboard() {
         </Link>
 
         {/* 4 tile 快捷 */}
+        {/* 我的需求 */}
+        <Link href="/dashboard/customer/requests" className="block rounded-3xl border border-border bg-background p-4 active:scale-[0.99] transition-transform">
+          <div className="flex items-center gap-3">
+            <span className="h-10 w-10 rounded-xl bg-brand-50 text-brand inline-flex items-center justify-center shrink-0"><MessagesSquare className="h-5 w-5" /></span>
+            <div className="flex-1 min-w-0">
+              <div className="text-[14px] font-semibold">我的需求</div>
+              <div className="text-[11px] text-muted-foreground">已向企业提交 {myRequests.length} 条 · 跟踪处理进度</div>
+            </div>
+            <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0" />
+          </div>
+        </Link>
+
         <div className="grid grid-cols-2 gap-3">
           <Tile icon={Umbrella}              title="我的保单" sub="1 份在保 · ¥162 万" href="/dashboard/customer/insurance" tone="decor" />
           <Tile icon={MessageSquareHeart}    title="写评价"   sub={`待评 ${o.acceptance.filter((a) => a.status === "approved").length > 0 ? "1" : "0"}`} href="/dashboard/customer/review" tone="design" badge={pendingAcc > 0 ? String(pendingAcc) : undefined} />
