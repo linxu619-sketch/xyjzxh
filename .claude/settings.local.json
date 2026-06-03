@@ -135,7 +135,10 @@
       "Bash(sed -n '92,96p;128,132p' \"app/\\(dashboard\\)/dashboard/customer/insurance/page.tsx\")",
       "Bash(sed -n '74,79p' \"app/\\(dashboard\\)/dashboard/customer/agreements/page.tsx\")",
       "Bash(sed -n '26,30p' \"app/\\(dashboard\\)/dashboard/association/reports/page.tsx\")",
-      "Bash(sed -n '178,183p' \"app/\\(dashboard\\)/dashboard/association/agreements/page.tsx\")"
+      "Bash(sed -n '178,183p' \"app/\\(dashboard\\)/dashboard/association/agreements/page.tsx\")",
+      "Bash(grep -oE '\"[A-Z]{2,}-[A-Z0-9-]{4,}\"' lib/data/agreements.ts)",
+      "Bash(sed -n '55,63p' \"app/\\(main\\)/finance/page.tsx\")",
+      "Bash(sed -n '56,62p' \"app/\\(main\\)/projects/page.tsx\")"
     ]
   }
 }

@@ -57,7 +57,6 @@ export default function ProjectsPage() {
         <div className="mt-10">
           <div className="flex items-end justify-between mb-4">
             <h2 className="text-[22px] md:text-[26px] font-semibold tracking-tight">最近报备</h2>
-            <Link href="#" className="text-[13px] text-brand">全部 →</Link>
           </div>
 
           {/* 移动端卡片 */}

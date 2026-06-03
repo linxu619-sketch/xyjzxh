@@ -56,7 +56,7 @@ export default function FinancePage() {
                   ))}
                 </ul>
                 <div className="mt-5 text-[11px] text-muted-foreground">适用：{p.forWhom}</div>
-                <Link href="#" className="mt-5 inline-flex w-full h-10 items-center justify-center gap-1.5 rounded-full bg-foreground text-background text-[13px] font-medium hover:bg-brand">
+                <Link href="/dashboard/enterprise/finance" className="mt-5 inline-flex w-full h-10 items-center justify-center gap-1.5 rounded-full bg-foreground text-background text-[13px] font-medium hover:bg-brand">
                   提交意向 <ArrowUpRight className="h-3.5 w-3.5" />
                 </Link>
               </div>
