@@ -3,6 +3,8 @@ import { getAi } from "@/lib/ai/prompts";
 import { streamChat, type Msg } from "@/lib/ai/chat";
 import { buildKnowledgeBlock } from "@/lib/ai/knowledge";
 import { retrieveKnowledge, logQuestion } from "@/lib/ai/knowledge-source";
+import { getSession } from "@/lib/auth/session";
+import { buildUserContext } from "@/lib/ai/user-context";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -16,7 +18,9 @@ export async function POST(req: NextRequest) {
   const lastUser = [...messages].reverse().find((m) => m.role === "user")?.content ?? "";
   logQuestion(key, lastUser);
   const hits = retrieveKnowledge(key, lastUser, 3);
-  const system = ai.system + buildKnowledgeBlock(hits);
+  // AI 三期·用户级记忆：登录用户的账号级档案注入 system（跨会话持久，零额外 LLM 调用）
+  const userCtx = await buildUserContext(await getSession());
+  const system = ai.system + buildKnowledgeBlock(hits) + userCtx;
 
   const { provider, stream } = await streamChat({
     ai: { name: ai.name, role: ai.role, system },
