@@ -327,14 +327,24 @@ export default async function SystemSettings() {
             </SettingsCard>
 
             {/* 平台文档 */}
-            <SettingsCard title="平台文档" desc="平台现状总览与使用说明书，可在线预览或下载 Word 版">
+            <SettingsCard title="平台文档" desc="平台说明书,分内部完整版与对外会员版,均可在线预览或下载 Word">
               <div id="docs" />
-              <FormRow label="《平台现状总览 · 使用说明书》" hint="含模块完成度、四端使用说明、核心业务闭环与运维要点；随平台版本更新">
+              <FormRow label="完整版（内部）" hint="含模块完成度、四端使用说明、核心业务闭环、运维与上线要点、演示账号">
                 <div className="flex flex-wrap gap-2">
                   <Link href="/dashboard/association/docs" className="h-10 px-4 rounded-full bg-foreground text-background text-[13px] font-medium inline-flex items-center gap-1.5">
                     <BookOpen className="h-3.5 w-3.5" /> 在线预览
                   </Link>
                   <a href="/docs/xyjzxh-platform-guide.doc" download="信阳建装平台说明书.doc" className="h-10 px-4 rounded-full border border-border text-[13px] font-medium inline-flex items-center gap-1.5 hover:bg-surface">
+                    <Download className="h-3.5 w-3.5" /> 下载 Word
+                  </a>
+                </div>
+              </FormRow>
+              <FormRow label="会员版（对外）" hint="聚焦平台价值、各角色用法与协会保障；适合发给会员或公开,不含内部信息">
+                <div className="flex flex-wrap gap-2">
+                  <Link href="/dashboard/association/docs?v=member" className="h-10 px-4 rounded-full bg-foreground text-background text-[13px] font-medium inline-flex items-center gap-1.5">
+                    <BookOpen className="h-3.5 w-3.5" /> 在线预览
+                  </Link>
+                  <a href="/docs/xyjzxh-member-guide.doc" download="信阳建装会员使用指南.doc" className="h-10 px-4 rounded-full border border-border text-[13px] font-medium inline-flex items-center gap-1.5 hover:bg-surface">
                     <Download className="h-3.5 w-3.5" /> 下载 Word
                   </a>
                 </div>
