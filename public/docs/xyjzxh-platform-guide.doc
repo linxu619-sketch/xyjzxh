@@ -1,0 +1,136 @@
+<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>信阳市建筑装饰装修协会 · 平台现状总览与使用说明书</title>
+<!--[if gte mso 9]><xml><w:WordDocument><w:View>Print</w:View><w:Zoom>100</w:Zoom></w:WordDocument></xml><![endif]-->
+<style>
+ body{font-family:"Microsoft YaHei","微软雅黑",SimSun,serif;font-size:11pt;line-height:1.6;color:#1a1a1a;}
+ h1{font-size:22pt;color:#0b2a6b;border-bottom:3px solid #1456f0;padding-bottom:6px;}
+ h2{font-size:16pt;color:#0b2a6b;margin-top:22px;border-left:5px solid #1456f0;padding-left:8px;}
+ h3{font-size:13pt;color:#1456f0;margin-top:14px;}
+ table{border-collapse:collapse;width:100%;margin:10px 0;font-size:10.5pt;}
+ th,td{border:1px solid #b8c2d8;padding:6px 8px;text-align:left;vertical-align:top;}
+ th{background:#eaf0ff;color:#0b2a6b;}
+ .ok{color:#0a8a5f;font-weight:bold;}
+ .muted{color:#666;}
+ .tag{background:#eaf0ff;color:#1456f0;padding:1px 6px;border-radius:8px;font-size:9pt;}
+ .cover{text-align:center;margin:40px 0 30px;}
+ .cover .t{font-size:30pt;font-weight:bold;color:#0b2a6b;}
+ .cover .s{font-size:14pt;color:#1456f0;margin-top:10px;}
+ .cover .m{font-size:10.5pt;color:#666;margin-top:18px;}
+ ul{margin:6px 0;}
+ code{background:#f3f5fb;padding:1px 4px;border-radius:4px;font-family:Consolas,monospace;}
+</style>
+</head>
+<body>
+
+<div class="cover">
+  <div class="t">信阳市建筑装饰装修协会</div>
+  <div class="t" style="font-size:20pt;">数字化服务平台</div>
+  <div class="s">项目现状总览 · 使用说明书</div>
+  <div class="m">简称「信阳建装」 · 主域名 xyjzxh.com<br>文档版本随平台 v0.69.1 · 编制日期 2026-06-03</div>
+</div>
+
+<h1>一、平台概述</h1>
+<p>本平台是信阳市建筑装饰装修协会的官方数字化服务平台,围绕<b>「协会(B)— 企业/从业者(bp)— 业主(C)」</b>三方,提供会员服务、获客转化、口碑沉淀、建材集采、金融保险、培训认证与 AI 助手等一站式能力。所有数据本地落库(SQLite),即开即用。</p>
+<table>
+<tr><th>项目</th><th>说明</th></tr>
+<tr><td>主体名称</td><td>信阳市建筑装饰装修协会(简称「信阳建装」)</td></tr>
+<tr><td>主域名</td><td>xyjzxh.com</td></tr>
+<tr><td>三门面架构</td><td>消费者门户(xyjzxh.com)/ 协会门户(xh.xyjzxh.com,路径 /xh)/ 企业子站(二级域名,路径 /biz/&lt;企业&gt;);按域名/路径自动分流</td></tr>
+<tr><td>技术栈</td><td>Next.js 16(App Router)+ 本地 SQLite(node:sqlite,零配置)+ DeepSeek V4 大模型</td></tr>
+</table>
+
+<h1>二、项目现状总览(模块完成度)</h1>
+<table>
+<tr><th>模块</th><th>核心能力</th><th>状态</th></tr>
+<tr><td>双门面/三门面</td><td>按域名分流;消费者营销首页 + 协会会员之家 + 企业独立子站</td><td class="ok">已完成</td></tr>
+<tr><td>账号与会员体系</td><td>四类角色登录;入会申请→审核→激活为正式会员;账号(登录)与会员(权益)两层</td><td class="ok">已完成</td></tr>
+<tr><td>企业子站</td><td>统一 /biz 模板,三套版式可选(经典色块/简约杂志/作品画廊)+ 主题色自选;案例/团队/评价后台可编辑</td><td class="ok">已完成</td></tr>
+<tr><td>获客闭环</td><td>子站留资→企业线索→跟进→签单→转化漏斗,企业台实时反映</td><td class="ok">已完成</td></tr>
+<tr><td>口碑闭环</td><td>业主写评价→子站/企业台/消费者口碑页多端展示(公共页姓名脱敏)</td><td class="ok">已完成</td></tr>
+<tr><td>建材集采商城</td><td>会员互助 B2B 批发;品牌排他 + 价格擂台 + 等级配额 + 上架审核 + 采购车 + 账期对账</td><td class="ok">已完成</td></tr>
+<tr><td>工装报备</td><td>在线报备→协会审批(演示直连省厅口径)</td><td class="ok">已完成</td></tr>
+<tr><td>金融/保险</td><td>建装贷、保函、工程险、工伤意外险等入口与申请</td><td class="ok">已完成</td></tr>
+<tr><td>人才/培训/招聘</td><td>从业者名录、招聘岗位、继续教育与证书</td><td class="ok">已完成</td></tr>
+<tr><td>AI 助手</td><td>一期:每 AI 员工专属知识库 + RAG 检索;二期:对话审核入库(AI 提炼+人审);三期:账号级用户记忆注入</td><td class="ok">已完成</td></tr>
+<tr><td>协议/合规</td><td>电子签署留痕、PIPL 重签、授权管理</td><td class="ok">已完成</td></tr>
+</table>
+<p class="muted">说明:以上闭环已通过端到端实跑验证(获客、口碑、会员三大主链路真实落库、跨模块流转正确)。</p>
+
+<h1>三、角色与账号</h1>
+<table>
+<tr><th>角色</th><th>面向</th><th>登录方式</th><th>工作台</th></tr>
+<tr><td>业主(C 端)</td><td>装修消费者</td><td>手机号 + 短信验证码</td><td>/dashboard/customer(个人中心)</td></tr>
+<tr><td>企业会员</td><td>建筑/装饰/设计企业</td><td>手机号 + 密码</td><td>/dashboard/enterprise</td></tr>
+<tr><td>个人会员(从业者)</td><td>工长/设计师/监理等</td><td>手机号 + 短信验证码</td><td>/dashboard/practitioner</td></tr>
+<tr><td>协会工作人员</td><td>协会秘书处</td><td>手机号 + 密码(秘书处统一开通)</td><td>/dashboard/association</td></tr>
+</table>
+<h3>登录入口分流</h3>
+<ul>
+<li>消费者门户「登录」→ 仅业主;协会门户「登录」→ 协会/企业/从业者(无业主)。</li>
+<li>登录后:业主回到消费者首页(顶部出现个性化快捷区);会员进入对应工作台。</li>
+<li>顶栏/移动端底栏「我的」显示总待办数红点(待审/待跟进/待办项)。</li>
+</ul>
+
+<h1>四、使用说明书(分角色)</h1>
+
+<h2>4.1 业主(C 端消费者)</h2>
+<ul>
+<li><b>找装企:</b>首页或「找装企」浏览协会认证企业,进入企业子站查看案例、团队、口碑。</li>
+<li><b>提需求/下单:</b>在企业子站「提交需求 / 在线咨询」留资,企业会收到线索并跟进。</li>
+<li><b>AI 估价:</b>首页「AI 30 秒估价」填写户型预算,获得估价与企业匹配。</li>
+<li><b>项目管理:</b>「我的」→ 查看施工进度、验收确认、变更审批、付款节点。</li>
+<li><b>写评价:</b>完工后到「口碑评价」给装企打分,评价实名留痕、公共页脱敏展示。</li>
+<li><b>保险/调解:</b>可投保家装质保险;遇纠纷申请协会 14 天调解兜底。</li>
+</ul>
+
+<h2>4.2 企业会员</h2>
+<ul>
+<li><b>我的子站:</b>「企业工作台 → 我的子站」编辑品牌名/标语/简介/联系方式/标签;<b>选择子站模板</b>(经典色块/简约杂志/作品画廊)与<b>主题色</b>;管理案例与团队;保存即时生效。</li>
+<li><b>客户线索:</b>子站留资实时进入「客户线索」,可跟进、量房、签单;总览页看转化漏斗与签单率。</li>
+<li><b>施工订单:</b>管理订单进度、验收、变更、付款。</li>
+<li><b>建材采购/卖货:</b>「我的店铺」凭资格(独家代理/自产自销/厂家直供)上架商品,经协会审核后面向全协会会员批发;同品牌唯一最低价,可发起或应对<b>价格擂台</b>;受会员等级配额限制,可申请升级。</li>
+<li><b>招聘/团队/金融/AI:</b>发布招聘、管理团队、申请金融保险、配置专属 AI 员工。</li>
+</ul>
+
+<h2>4.3 个人会员(从业者)</h2>
+<ul>
+<li><b>找活:</b>「从业者工作台 → 找活」查看协会会员企业的真实在招岗位并报名。</li>
+<li><b>培训/证书:</b>报名继续教育、上传与管理证书。</li>
+<li><b>钱包/收入证明:</b>查看收入流水、开具收入证明。</li>
+<li><b>工伤险:</b>投保工伤意外险,欠薪由协会监管账户先行垫付。</li>
+<li><b>我的店铺:</b>个人会员同样可在商城上架销售(规则同企业)。</li>
+</ul>
+
+<h2>4.4 协会工作人员</h2>
+<ul>
+<li><b>会员审核:</b>「协会工作台 → 会员审核」处理入会申请;通过后企业自动进入 /members、从业者进入名录,账号激活为正式会员。</li>
+<li><b>工装报备审批 / 调解纠纷:</b>审批报备、受理与处理投诉调解。</li>
+<li><b>建材集采:</b>审核会员上架资格与比价;价格擂台并排对比裁定(挑战价更低则替换在架卖家);查看平台对账(累计/已结/未结/逾期)。</li>
+<li><b>AI 知识库:</b>为每位 AI 员工维护知识词条;从真实高频提问(按次数排序)一键 AI 起草、人审入库,知识越维护越专业。</li>
+<li><b>新闻/培训/金融/协议:</b>发布资讯、培训课程,管理金融保险产品与平台协议模板。</li>
+</ul>
+
+<h1>五、核心业务闭环</h1>
+<table>
+<tr><th>闭环</th><th>链路</th></tr>
+<tr><td>获客转化</td><td>游客 → 企业子站留资 → 企业「客户线索」→ 跟进/量房/签单 → 转化漏斗与签单率</td></tr>
+<tr><td>口碑沉淀</td><td>业主写评价 → 子站口碑 + 企业台口碑 + 消费者公共口碑页(脱敏)</td></tr>
+<tr><td>会员准入</td><td>入会申请 → 协会审核 → 建企业/从业者档案 + 账号激活 → 出现在 /members 或名录,可登录正式工作台</td></tr>
+<tr><td>建材集采</td><td>会员上架(资格+理由)→ 协会审核/擂台裁定 → 在架销售 → 会员下单(采购车/阶梯量价)→ 拆单履约 → 账期对账</td></tr>
+<tr><td>AI 成长</td><td>用户提问落库 → 协会审核高频问题入知识库 → RAG 检索注入 → 回答更专业;登录用户注入账号级记忆个性化</td></tr>
+</table>
+
+<h1>六、运维与上线要点</h1>
+<ul>
+<li><b>数据存储:</b>本地 SQLite(<code>data/app.db</code>),零配置、即开即用;上线多人访问时再迁移至服务器数据库。</li>
+<li><b>AI 配置:</b>使用 DeepSeek V4,密钥存于运行时配置(不入库、不进版本控制)。</li>
+<li><b>版本管理:</b>每次改动同步更新版本号(SemVer)与更新日志 CHANGELOG。</li>
+<li><b>演示账号:</b>企业=任意 11 位手机号 + 任意≥6 位密码;业主/从业者=任意 11 位手机号 + 任意验证码;协会账号由秘书处统一开通。</li>
+</ul>
+
+<p class="muted" style="margin-top:30px;border-top:1px solid #ddd;padding-top:10px;">© 信阳市建筑装饰装修协会 · 本说明书随平台版本更新,可在「协会工作台」随时下载最新版。</p>
+
+</body>
+</html>

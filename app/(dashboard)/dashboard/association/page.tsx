@@ -2,6 +2,7 @@ import Link from "next/link";
 import {
   ShieldCheck, CheckCircle2, AlertCircle, ChevronRight,
   Users2, FileCheck2, MessageSquareWarning, Newspaper, Sparkles,
+  Download, BookOpen,
 } from "lucide-react";
 import { AssociationShell } from "@/components/dashboard/shell";
 import { StatCard, Panel } from "@/components/dashboard/widgets";
@@ -169,6 +170,26 @@ export default async function AssociationDashboard() {
           </ul>
           <div className="mt-4 rounded-xl bg-[#e6f7f1] text-accent-tea p-3 text-[11px] inline-flex items-center gap-1.5 w-full">
             <Sparkles className="h-3.5 w-3.5 shrink-0" /> 数据来自本地数据库，实时更新
+          </div>
+        </Panel>
+
+        {/* 平台文档下载 */}
+        <Panel title="平台文档" className="lg:col-span-3">
+          <div className="flex flex-col md:flex-row md:items-center gap-3 md:justify-between">
+            <div className="flex items-start gap-3">
+              <span className="h-11 w-11 rounded-xl bg-brand-50 text-brand inline-flex items-center justify-center shrink-0"><BookOpen className="h-5 w-5" /></span>
+              <div>
+                <div className="text-[14px] font-semibold">平台现状总览 · 使用说明书</div>
+                <div className="text-[12px] text-muted-foreground mt-0.5 leading-5">含项目完成度、四端使用说明、核心业务闭环与运维要点（Word 文档，可用 Word / WPS 打开）</div>
+              </div>
+            </div>
+            <a
+              href="/docs/xyjzxh-platform-guide.doc"
+              download="信阳建装平台说明书.doc"
+              className="shrink-0 h-10 px-5 rounded-full bg-foreground text-background text-[13px] font-medium inline-flex items-center justify-center gap-1.5 hover:bg-brand transition-colors active:scale-95"
+            >
+              <Download className="h-4 w-4" /> 下载 Word 说明书
+            </a>
           </div>
         </Panel>
 

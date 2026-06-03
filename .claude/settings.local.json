@@ -153,7 +153,11 @@
       "Bash(grep -rnaE \"名家装饰|壹品|羊山新区|浉河区|信用分|资质编号|[0-9]{2,3}\\\\*\\\\*\\\\*\\\\*[0-9]{4}|ID[: ]\" \"app/\\(dashboard\\)/dashboard/enterprise/page.tsx\" \"app/\\(dashboard\\)/dashboard/enterprise/settings/page.tsx\")",
       "Bash(grep -oiE \"error[^<]{0,80}|is not a function|cannot read[^<]{0,60}\")",
       "Bash(grep -nA14 \"CREATE TABLE IF NOT EXISTS ai_questions\" lib/db/sqlite.ts)",
-      "Bash(grep -nA14 \"CREATE TABLE IF NOT EXISTS ai_knowledge\" lib/db/sqlite.ts)"
+      "Bash(grep -nA14 \"CREATE TABLE IF NOT EXISTS ai_knowledge\" lib/db/sqlite.ts)",
+      "Bash(grep -nA12 \"CREATE TABLE IF NOT EXISTS reviews\" lib/db/sqlite.ts)",
+      "Bash(sed -n \"/export function activateAccountByAppId/,/^}/p\" lib/data/accounts.ts)",
+      "Bash(grep -nA9 \"CREATE TABLE IF NOT EXISTS applications\" lib/db/sqlite.ts)",
+      "Bash(grep -nA11 \"CREATE TABLE IF NOT EXISTS accounts\" lib/db/sqlite.ts)"
     ]
   }
 }
