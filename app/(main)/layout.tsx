@@ -15,7 +15,7 @@ export default async function MainLayout({ children }: { children: React.ReactNo
 
   return (
     <>
-      <SiteHeader face={face} authed={!!session} />
+      <SiteHeader face={face} authed={!!session} todo={todo} />
       <main className="flex-1">{children}</main>
       <SiteFooter />
       <AiDock />

@@ -10,7 +10,7 @@ import { cn } from "@/lib/cn";
 
 type Face = "consumer" | "xh";
 
-export function SiteHeader({ face = "consumer", authed = false }: { face?: Face; authed?: boolean }) {
+export function SiteHeader({ face = "consumer", authed = false, todo = 0 }: { face?: Face; authed?: boolean; todo?: number }) {
   const [open, setOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
 
@@ -104,6 +104,11 @@ export function SiteHeader({ face = "consumer", authed = false }: { face?: Face;
                   className="inline-flex h-9 items-center px-3 sm:px-3.5 rounded-full text-[13px] text-foreground hover:bg-surface transition-colors"
                 >
                   {authed ? "我的" : "登录"}
+                  {authed && todo > 0 && (
+                    <span className="ml-1.5 min-w-[16px] h-[16px] px-1 rounded-full bg-cat-decor text-white text-[10px] font-semibold inline-flex items-center justify-center">
+                      {todo > 99 ? "99+" : todo}
+                    </span>
+                  )}
                 </Link>
                 <Button href="/join" size="sm" variant="secondary">
                   申请入会
@@ -134,7 +139,13 @@ export function SiteHeader({ face = "consumer", authed = false }: { face?: Face;
                   className="hidden sm:inline-flex"
                 >
                   {authed ? "我的" : "登录"}
-                  <ChevronRight className="h-3.5 w-3.5" />
+                  {authed && todo > 0 ? (
+                    <span className="min-w-[16px] h-[16px] px-1 rounded-full bg-cat-decor text-white text-[10px] font-semibold inline-flex items-center justify-center">
+                      {todo > 99 ? "99+" : todo}
+                    </span>
+                  ) : (
+                    <ChevronRight className="h-3.5 w-3.5" />
+                  )}
                 </Button>
               </>
             )}
