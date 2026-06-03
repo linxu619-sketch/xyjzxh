@@ -112,7 +112,23 @@ export default async function SitePage({ searchParams }: { searchParams: Promise
               <FormRow label="业务标签" hint="逗号分隔，最多 8 个，如：家装,整装,全包">
                 <Input name="tags" defaultValue={ent.tags.join("，")} />
               </FormRow>
-              <FormRow label="主题色" hint="子站模板统一，颜色自选；保存后立即生效">
+              <FormRow label="子站模板" hint="选择子站版式；保存后立即生效">
+                <div className="grid grid-cols-2 gap-3">
+                  {[
+                    { k: "standard", n: "经典色块", d: "色块大 Hero · 等分案例网格" },
+                    { k: "editorial", n: "简约杂志", d: "浅色 Hero · 一大三小 · 编号服务" },
+                  ].map((o) => (
+                    <label key={o.k} className="cursor-pointer">
+                      <input type="radio" name="template" value={o.k} defaultChecked={(ent.template ?? "standard") === o.k} className="peer sr-only" />
+                      <span className="block rounded-2xl border border-border p-3.5 peer-checked:border-foreground peer-checked:ring-1 peer-checked:ring-foreground transition">
+                        <span className="block text-[14px] font-semibold">{o.n}</span>
+                        <span className="block mt-1 text-[11px] text-muted-foreground leading-4">{o.d}</span>
+                      </span>
+                    </label>
+                  ))}
+                </div>
+              </FormRow>
+              <FormRow label="主题色" hint="颜色自选；保存后立即生效">
                 <div className="flex items-center gap-4 flex-wrap">
                   {[
                     { k: "build", c: "bg-cat-build", n: "蓝" },

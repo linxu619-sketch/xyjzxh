@@ -30,6 +30,7 @@ type Row = {
 
 const THEME_KEYS = ["build", "decor", "design", "tea", "brand"] as const;
 type ThemeKey = (typeof THEME_KEYS)[number];
+export const TEMPLATE_KEYS = ["standard", "editorial"] as const;
 function resolveColor(theme: string | null, category: string): ThemeKey {
   if (theme && (THEME_KEYS as readonly string[]).includes(theme)) return theme as ThemeKey;
   return (["build", "decor", "design"].includes(category) ? category : "build") as ThemeKey;
@@ -122,13 +123,14 @@ export function createEnterpriseFromApplication(app: {
 
 // 企业自助编辑子站资料 → 写回 enterprises 表（子站随即生效）
 export function updateEnterpriseProfile(id: string, f: {
-  name: string; brand: string; tagline: string; short: string; tel: string; addr: string; tags: string[]; theme?: string;
+  name: string; brand: string; tagline: string; short: string; tel: string; addr: string; tags: string[]; theme?: string; template?: string;
 }): boolean {
   const db = getDb();
   if (!db.prepare("SELECT 1 FROM enterprises WHERE id = ?").get(id)) return false;
   const theme = f.theme && (THEME_KEYS as readonly string[]).includes(f.theme) ? f.theme : null;
+  const template = f.template && (TEMPLATE_KEYS as readonly string[]).includes(f.template) ? f.template : "standard";
   db.prepare(
-    "UPDATE enterprises SET name = ?, short = ?, hero = ?, contact = ?, tags = ?, theme = ? WHERE id = ?",
+    "UPDATE enterprises SET name = ?, short = ?, hero = ?, contact = ?, tags = ?, theme = ?, template = ? WHERE id = ?",
   ).run(
     f.name,
     f.short,
@@ -136,6 +138,7 @@ export function updateEnterpriseProfile(id: string, f: {
     JSON.stringify({ tel: f.tel, addr: f.addr }),
     JSON.stringify(f.tags),
     theme,
+    template,
     id,
   );
   return true;

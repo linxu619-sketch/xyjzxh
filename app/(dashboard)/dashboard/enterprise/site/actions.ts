@@ -26,7 +26,8 @@ export async function saveSiteAction(fd: FormData) {
     .slice(0, 8);
 
   const theme = String(fd.get("theme") || "").trim();
-  updateEnterpriseProfile(s.enterpriseId, { name, brand, tagline, short, tel, addr, tags, theme });
+  const template = String(fd.get("template") || "").trim();
+  updateEnterpriseProfile(s.enterpriseId, { name, brand, tagline, short, tel, addr, tags, theme, template });
 
   revalidatePath(`/biz/${ent.slug}`);
   revalidatePath("/dashboard/enterprise/site");
