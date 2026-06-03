@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Package, CheckCircle2, TrendingDown, Truck, ShoppingCart, ShieldCheck, Clock, AlertTriangle } from "lucide-react";
+import { Package, CheckCircle2, TrendingDown, Truck, ShoppingCart, ShieldCheck, Clock, AlertTriangle, Swords } from "lucide-react";
 import { AssociationShell } from "@/components/dashboard/shell";
 import { StatFilters } from "@/components/dashboard/stat-filters";
 import { Badge } from "@/components/ui/badge";
@@ -25,7 +25,7 @@ function fmt(ms: number) {
   return `${p(d.getMonth() + 1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}`;
 }
 
-export default async function SuppliesAdmin({ searchParams }: { searchParams: Promise<{ tab?: string; pok?: string; perr?: string; rok?: string; conflict?: string }> }) {
+export default async function SuppliesAdmin({ searchParams }: { searchParams: Promise<{ tab?: string; pok?: string; perr?: string; rok?: string; conflict?: string; notcheaper?: string }> }) {
   const { tab, pok, perr, rok, conflict, notcheaper } = await searchParams;
   const showOrders = tab === "orders";
   const showReview = tab === "review";
@@ -80,11 +80,29 @@ export default async function SuppliesAdmin({ searchParams }: { searchParams: Pr
                         {holder && (() => {
                           const cheaper = p.memberPrice < holder.memberPrice;
                           const delta = holder.memberPrice - p.memberPrice;
+                          const pct = holder.memberPrice > 0 ? Math.round((Math.abs(delta) / holder.memberPrice) * 100) : 0;
                           return (
-                            <div className={cn("mt-1.5 text-[11px] rounded-lg px-2 py-1.5 inline-flex items-center gap-1.5 flex-wrap", cheaper ? "text-accent-tea bg-[#e6f7f1]" : "text-[#a37200] bg-[#fff6d6]")}>
-                              <AlertTriangle className="h-3 w-3 shrink-0" />
-                              价格擂台：「{p.brand}」在架方 {holder.sellerName} ¥{holder.memberPrice} · 挑战 ¥{p.memberPrice}
-                              {cheaper ? <b className="text-accent-tea">（低 ¥{delta}，可替换）</b> : <b className="text-cat-decor">（未更低，不可替换）</b>}
+                            <div className="mt-2.5 rounded-xl border border-accent-yellow/40 bg-[#fff6d6]/40 p-2.5">
+                              <div className="flex items-center gap-1.5 text-[11px] font-semibold text-[#a37200] mb-2"><Swords className="h-3.5 w-3.5" /> 价格擂台 · 同品牌「{p.brand}」唯一最低价</div>
+                              <div className="grid grid-cols-2 gap-2">
+                                <div className={cn("rounded-lg p-2.5 border", cheaper ? "border-accent-tea/50 bg-[#e6f7f1]" : "border-border bg-background")}>
+                                  <div className="text-[10px] text-muted-foreground">挑战者（本次提交）</div>
+                                  <div className="text-[12px] font-medium truncate">{p.sellerName}</div>
+                                  <div className="text-[10px] text-muted-foreground">{SELLER_LABEL[p.sellerType]} · {REASON_LABEL[p.reasonType]}</div>
+                                  <div className="text-[16px] font-semibold text-cat-decor tabular-nums mt-1">¥{p.memberPrice}<span className="text-[10px] text-muted-foreground font-normal">/{p.unit}</span></div>
+                                </div>
+                                <div className="rounded-lg p-2.5 border border-border bg-background">
+                                  <div className="text-[10px] text-muted-foreground">当前在架</div>
+                                  <div className="text-[12px] font-medium truncate">{holder.sellerName}</div>
+                                  <div className="text-[10px] text-muted-foreground">{SELLER_LABEL[holder.sellerType]} · {REASON_LABEL[holder.reasonType]}</div>
+                                  <div className="text-[16px] font-semibold tabular-nums mt-1">¥{holder.memberPrice}<span className="text-[10px] text-muted-foreground font-normal">/{holder.unit}</span></div>
+                                </div>
+                              </div>
+                              <div className={cn("mt-2 text-[11px] font-medium inline-flex items-center gap-1", cheaper ? "text-accent-tea" : "text-cat-decor")}>
+                                {cheaper
+                                  ? <><TrendingDown className="h-3 w-3" /> 挑战价更低 ¥{delta}（{pct}%）· 可裁定替换在架卖家</>
+                                  : <><AlertTriangle className="h-3 w-3" /> 未低于在架价（{delta === 0 ? "持平" : `高 ¥${-delta}`}）· 不可替换，请驳回或令其调价</>}
+                              </div>
                             </div>
                           );
                         })()}
