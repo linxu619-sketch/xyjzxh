@@ -313,6 +313,9 @@ CREATE TABLE IF NOT EXISTS supply_orders (
   unit_price      INTEGER,
   total           INTEGER,
   status          TEXT DEFAULT 'pending', -- pending | confirmed | shipped | done
+  settle_status   TEXT DEFAULT 'unpaid',  -- 结算: unpaid | paid
+  due_at          INTEGER,                -- 账期到期(下单 + 账期天数)
+  paid_at         INTEGER,                -- 结清时间
   created_at      INTEGER
 );
 CREATE TABLE IF NOT EXISTS supply_cart (
@@ -737,6 +740,10 @@ function migrate(db: DB) {
     "ALTER TABLE supply_orders ADD COLUMN seller_type TEXT",
     "ALTER TABLE supply_orders ADD COLUMN seller_id TEXT",
     "ALTER TABLE supply_orders ADD COLUMN seller_name TEXT",
+    // 账期 / 对账
+    "ALTER TABLE supply_orders ADD COLUMN settle_status TEXT DEFAULT 'unpaid'",
+    "ALTER TABLE supply_orders ADD COLUMN due_at INTEGER",
+    "ALTER TABLE supply_orders ADD COLUMN paid_at INTEGER",
     // 企业案例描述（子站案例详情页）
     "ALTER TABLE enterprise_cases ADD COLUMN detail TEXT",
     "ALTER TABLE enterprise_cases ADD COLUMN images TEXT",  // 案例图集(1-10)

@@ -1,10 +1,17 @@
-import { Package, Crown, AlertCircle, CheckCircle2, Clock, XCircle, ShieldCheck, Truck, ShoppingCart } from "lucide-react";
+import { Package, Crown, AlertCircle, CheckCircle2, Clock, XCircle, ShieldCheck, Truck, ShoppingCart, Wallet } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { resolveSeller } from "@/lib/dashboard/seller";
-import { listBySeller, listOrdersBySeller, listOrdersByBuyer, type ProductStatus, type ReasonType, type OrderStatus } from "@/lib/data/supplies-source";
+import { listBySeller, listOrdersBySeller, listOrdersByBuyer, reconcileSeller, reconcileBuyer, isOverdue, SUPPLY_TERM_DAYS, type ProductStatus, type ReasonType, type OrderStatus, type SupplyOrder } from "@/lib/data/supplies-source";
 import { getMemberTier, quotaOf } from "@/lib/data/member-tier";
 import { ListingForm } from "@/components/dashboard/listing-form";
-import { toggleMyListingAction, advanceSellerOrderAction } from "@/app/(dashboard)/dashboard/store-actions";
+import { toggleMyListingAction, advanceSellerOrderAction, markOrderPaidAction } from "@/app/(dashboard)/dashboard/store-actions";
+
+function fmtDay(ms: number) { if (!ms) return "—"; const d = new Date(ms); const p = (n: number) => String(n).padStart(2, "0"); return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`; }
+function SettleBadge({ o }: { o: SupplyOrder }) {
+  if (o.settleStatus === "paid") return <Badge tone="tea" className="shrink-0">已结清</Badge>;
+  if (isOverdue(o)) return <Badge tone="decor" className="shrink-0">逾期</Badge>;
+  return <Badge tone="yellow" className="shrink-0">账期至 {fmtDay(o.dueAt)}</Badge>;
+}
 
 const O_LABEL: Record<OrderStatus, string> = { pending: "待确认", confirmed: "已确认", shipped: "已发货", done: "已完成" };
 const O_TONE: Record<OrderStatus, "yellow" | "brand" | "build" | "tea"> = { pending: "yellow", confirmed: "brand", shipped: "build", done: "tea" };
@@ -28,6 +35,8 @@ export async function SellerPanel({ sp }: { sp?: { ok?: string; err?: string } }
   const items = listBySeller(seller.type, seller.id);
   const sold = listOrdersBySeller(seller.type, seller.id);   // 我收到的采购单（待履约）
   const bought = listOrdersByBuyer(seller.type, seller.id);   // 我下的采购单
+  const recv = reconcileSeller(seller.type, seller.id);       // 应收对账
+  const pay = reconcileBuyer(seller.type, seller.id);         // 应付对账
   const toHandle = sold.filter((o) => o.status !== "done").length;
   const tier = getMemberTier(seller.type, seller.id);
   const quota = quotaOf(tier);
@@ -90,9 +99,15 @@ export async function SellerPanel({ sp }: { sp?: { ok?: string; err?: string } }
         )}
       </div>
 
-      {/* 收到的采购单（卖家履约）*/}
+      {/* 收到的采购单（卖家履约 + 收款对账）*/}
       <div className="mt-5 rounded-2xl border border-border bg-background overflow-hidden">
-        <div className="px-5 py-3 border-b border-border text-[14px] font-semibold inline-flex items-center gap-1.5"><Truck className="h-4 w-4" /> 收到的采购单{toHandle > 0 && <Badge tone="yellow" className="!px-2 !py-0.5">{toHandle} 待处理</Badge>}</div>
+        <div className="px-5 py-3 border-b border-border flex items-center gap-2 flex-wrap">
+          <span className="text-[14px] font-semibold inline-flex items-center gap-1.5"><Truck className="h-4 w-4" /> 收到的采购单</span>
+          {toHandle > 0 && <Badge tone="yellow" className="!px-2 !py-0.5">{toHandle} 待处理</Badge>}
+          {sold.length > 0 && (
+            <span className="ml-auto text-[11px] text-muted-foreground">待收 <b className="text-cat-decor">¥{recv.unpaid.toLocaleString()}</b>{recv.overdue > 0 && <span className="text-cat-decor"> · 逾期 ¥{recv.overdue.toLocaleString()}</span>} · 已收 ¥{recv.paid.toLocaleString()}</span>
+          )}
+        </div>
         {sold.length === 0 ? (
           <div className="px-5 py-12 text-center text-[13px] text-muted-foreground">还没有买家下单。商品在架后，会员下单会出现在这里。</div>
         ) : (
@@ -100,20 +115,31 @@ export async function SellerPanel({ sp }: { sp?: { ok?: string; err?: string } }
             {sold.map((o) => {
               const nx = O_NEXT[o.status];
               return (
-                <li key={o.id} className="px-5 py-3.5 flex items-center gap-3 text-[13px]">
-                  <div className="flex-1 min-w-0">
-                    <div className="font-medium truncate">{o.productName} <span className="text-muted-foreground font-normal">× {o.qty}{o.unit}</span></div>
-                    <div className="text-[11px] text-muted-foreground">买家：{o.buyerName} · {fmtO(o.createdAt)}</div>
+                <li key={o.id} className="px-5 py-3.5 text-[13px]">
+                  <div className="flex items-center gap-3">
+                    <div className="flex-1 min-w-0">
+                      <div className="font-medium truncate">{o.productName} <span className="text-muted-foreground font-normal">× {o.qty}{o.unit}</span></div>
+                      <div className="text-[11px] text-muted-foreground">买家：{o.buyerName} · {fmtO(o.createdAt)}</div>
+                    </div>
+                    <span className="font-semibold text-cat-decor tabular-nums shrink-0">¥{o.total.toLocaleString()}</span>
                   </div>
-                  <span className="font-semibold text-cat-decor tabular-nums shrink-0">¥{o.total.toLocaleString()}</span>
-                  <Badge tone={O_TONE[o.status]} className="shrink-0">{O_LABEL[o.status]}</Badge>
-                  {nx && (
-                    <form action={advanceSellerOrderAction} className="shrink-0">
-                      <input type="hidden" name="id" value={o.id} />
-                      <input type="hidden" name="status" value={nx} />
-                      <button className="h-8 px-3 rounded-full bg-foreground text-background text-[12px] inline-flex items-center gap-1"><Truck className="h-3 w-3" /> {O_NEXT_LABEL[nx]}</button>
-                    </form>
-                  )}
+                  <div className="mt-2 flex items-center gap-2 flex-wrap">
+                    <Badge tone={O_TONE[o.status]}>{O_LABEL[o.status]}</Badge>
+                    <SettleBadge o={o} />
+                    {nx && (
+                      <form action={advanceSellerOrderAction}>
+                        <input type="hidden" name="id" value={o.id} />
+                        <input type="hidden" name="status" value={nx} />
+                        <button className="h-8 px-3 rounded-full bg-foreground text-background text-[12px] inline-flex items-center gap-1"><Truck className="h-3 w-3" /> {O_NEXT_LABEL[nx]}</button>
+                      </form>
+                    )}
+                    {o.settleStatus === "unpaid" && (
+                      <form action={markOrderPaidAction} className="ml-auto">
+                        <input type="hidden" name="id" value={o.id} />
+                        <button className="h-8 px-3 rounded-full border border-accent-tea/40 text-accent-tea text-[12px] inline-flex items-center gap-1 hover:bg-[#e6f7f1]"><Wallet className="h-3 w-3" /> 确认收款</button>
+                      </form>
+                    )}
+                  </div>
                 </li>
               );
             })}
@@ -121,21 +147,31 @@ export async function SellerPanel({ sp }: { sp?: { ok?: string; err?: string } }
         )}
       </div>
 
-      {/* 我的采购单（买家跟踪）*/}
+      {/* 我的采购单（买家跟踪 + 应付对账）*/}
       <div className="mt-5 rounded-2xl border border-border bg-background overflow-hidden">
-        <div className="px-5 py-3 border-b border-border text-[14px] font-semibold inline-flex items-center gap-1.5"><ShoppingCart className="h-4 w-4" /> 我的采购单</div>
+        <div className="px-5 py-3 border-b border-border flex items-center gap-2 flex-wrap">
+          <span className="text-[14px] font-semibold inline-flex items-center gap-1.5"><ShoppingCart className="h-4 w-4" /> 我的采购单</span>
+          {bought.length > 0 && (
+            <span className="ml-auto text-[11px] text-muted-foreground">应付 <b className="text-cat-decor">¥{pay.unpaid.toLocaleString()}</b>{pay.overdue > 0 && <span className="text-cat-decor"> · 逾期 ¥{pay.overdue.toLocaleString()}</span>} · 账期 {SUPPLY_TERM_DAYS} 天</span>
+          )}
+        </div>
         {bought.length === 0 ? (
           <div className="px-5 py-12 text-center text-[13px] text-muted-foreground">还没有采购。去<a href="/supplies" className="text-brand">建材超市</a>选购会员好货。</div>
         ) : (
           <ul className="divide-y divide-border">
             {bought.map((o) => (
-              <li key={o.id} className="px-5 py-3.5 flex items-center gap-3 text-[13px]">
-                <div className="flex-1 min-w-0">
-                  <div className="font-medium truncate">{o.productName} <span className="text-muted-foreground font-normal">× {o.qty}{o.unit}</span></div>
-                  <div className="text-[11px] text-muted-foreground">卖家：{o.sellerName} · {fmtO(o.createdAt)}</div>
+              <li key={o.id} className="px-5 py-3.5 text-[13px]">
+                <div className="flex items-center gap-3">
+                  <div className="flex-1 min-w-0">
+                    <div className="font-medium truncate">{o.productName} <span className="text-muted-foreground font-normal">× {o.qty}{o.unit}</span></div>
+                    <div className="text-[11px] text-muted-foreground">卖家：{o.sellerName} · {fmtO(o.createdAt)}</div>
+                  </div>
+                  <span className="font-semibold text-cat-decor tabular-nums shrink-0">¥{o.total.toLocaleString()}</span>
                 </div>
-                <span className="font-semibold text-cat-decor tabular-nums shrink-0">¥{o.total.toLocaleString()}</span>
-                <Badge tone={O_TONE[o.status]} className="shrink-0">{O_LABEL[o.status]}</Badge>
+                <div className="mt-2 flex items-center gap-2 flex-wrap">
+                  <Badge tone={O_TONE[o.status]}>{O_LABEL[o.status]}</Badge>
+                  <SettleBadge o={o} />
+                </div>
               </li>
             ))}
           </ul>

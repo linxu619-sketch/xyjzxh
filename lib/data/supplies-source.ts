@@ -18,13 +18,20 @@ export type SupplyProduct = {
   imageUrl: string; images: string[]; priceTiers: PriceTier[];
   marketPrice: number; memberPrice: number; status: ProductStatus; rejectReason: string; createdAt: number;
 };
+export type SettleStatus = "unpaid" | "paid";
 export type SupplyOrder = {
   id: number; enterpriseId: string; enterpriseName: string;
   buyerType: string; buyerId: string; buyerName: string;
   sellerType: string; sellerId: string; sellerName: string;
   productId: number; productName: string;
-  unit: string; qty: number; unitPrice: number; total: number; status: OrderStatus; createdAt: number;
+  unit: string; qty: number; unitPrice: number; total: number; status: OrderStatus;
+  settleStatus: SettleStatus; dueAt: number; paidAt: number; createdAt: number;
 };
+
+export const SUPPLY_TERM_DAYS = 30; // 默认账期：月结 30 天
+export function isOverdue(o: SupplyOrder): boolean {
+  return o.settleStatus === "unpaid" && o.dueAt > 0 && Date.now() > o.dueAt;
+}
 
 type PRow = {
   id: number; name: string | null; category: string | null; unit: string | null; spec: string | null; supplier: string | null;
@@ -65,7 +72,8 @@ type ORow = {
   id: number; enterprise_id: string | null; enterprise_name: string | null;
   buyer_type: string | null; buyer_id: string | null; buyer_name: string | null;
   seller_type: string | null; seller_id: string | null; seller_name: string | null;
-  product_id: number; product_name: string | null; unit: string | null; qty: number | null; unit_price: number | null; total: number | null; status: string; created_at: number | null;
+  product_id: number; product_name: string | null; unit: string | null; qty: number | null; unit_price: number | null; total: number | null; status: string;
+  settle_status: string | null; due_at: number | null; paid_at: number | null; created_at: number | null;
 };
 
 function toP(r: PRow): SupplyProduct {
@@ -82,7 +90,8 @@ function toO(r: ORow): SupplyOrder {
     id: r.id, enterpriseId: r.enterprise_id ?? "", enterpriseName: r.enterprise_name ?? "",
     buyerType: r.buyer_type ?? "enterprise", buyerId: r.buyer_id ?? (r.enterprise_id ?? ""), buyerName: r.buyer_name ?? (r.enterprise_name ?? ""),
     sellerType: r.seller_type ?? "association", sellerId: r.seller_id ?? "assoc", sellerName: r.seller_name ?? "协会集采",
-    productId: r.product_id, productName: r.product_name ?? "", unit: r.unit ?? "", qty: r.qty ?? 0, unitPrice: r.unit_price ?? 0, total: r.total ?? 0, status: (r.status as OrderStatus) ?? "pending", createdAt: r.created_at ?? 0,
+    productId: r.product_id, productName: r.product_name ?? "", unit: r.unit ?? "", qty: r.qty ?? 0, unitPrice: r.unit_price ?? 0, total: r.total ?? 0, status: (r.status as OrderStatus) ?? "pending",
+    settleStatus: (r.settle_status as SettleStatus) ?? "unpaid", dueAt: r.due_at ?? 0, paidAt: r.paid_at ?? 0, createdAt: r.created_at ?? 0,
   };
 }
 
@@ -172,17 +181,39 @@ export function createSupplyOrder(input: { buyer: Buyer; product: SupplyProduct;
   const total = unit * input.qty;
   const eid = input.buyer.type === "enterprise" ? input.buyer.id : ""; // 企业买家同时写 enterprise_id 兼容旧查询
   const ename = input.buyer.type === "enterprise" ? input.buyer.name : "";
+  const now = Date.now();
+  const dueAt = now + SUPPLY_TERM_DAYS * 86400000;
   const info = getDb().prepare(
     `INSERT INTO supply_orders
-       (enterprise_id,enterprise_name,buyer_type,buyer_id,buyer_name,seller_type,seller_id,seller_name,product_id,product_name,unit,qty,unit_price,total,status,created_at)
-     VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?, 'pending', ?)`,
+       (enterprise_id,enterprise_name,buyer_type,buyer_id,buyer_name,seller_type,seller_id,seller_name,product_id,product_name,unit,qty,unit_price,total,status,settle_status,due_at,created_at)
+     VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?, 'pending', 'unpaid', ?, ?)`,
   ).run(
     eid, ename, input.buyer.type, input.buyer.id, input.buyer.name,
     input.product.sellerType, input.product.sellerId, input.product.sellerName,
-    input.product.id, input.product.name, input.product.unit, input.qty, unit, total, Date.now(),
+    input.product.id, input.product.name, input.product.unit, input.qty, unit, total, dueAt, now,
   );
   return Number(info.lastInsertRowid);
 }
+
+// 结清（卖家/协会确认收款）
+export function markOrderPaid(id: number) {
+  getDb().prepare("UPDATE supply_orders SET settle_status='paid', paid_at=? WHERE id=?").run(Date.now(), id);
+}
+// 对账汇总
+export type Reconcile = { count: number; totalAmount: number; paid: number; unpaid: number; overdue: number; overdueCount: number };
+function reconcile(orders: SupplyOrder[]): Reconcile {
+  const now = Date.now();
+  let totalAmount = 0, paid = 0, unpaid = 0, overdue = 0, overdueCount = 0;
+  for (const o of orders) {
+    totalAmount += o.total;
+    if (o.settleStatus === "paid") paid += o.total;
+    else { unpaid += o.total; if (o.dueAt > 0 && now > o.dueAt) { overdue += o.total; overdueCount++; } }
+  }
+  return { count: orders.length, totalAmount, paid, unpaid, overdue, overdueCount };
+}
+export function reconcileBuyer(type: string, id: string): Reconcile { return reconcile(listOrdersByBuyer(type, id)); }
+export function reconcileSeller(type: string, id: string): Reconcile { return reconcile(listOrdersBySeller(type, id)); }
+export function reconcileAll(): Reconcile { return reconcile(listAllSupplyOrders()); }
 export function listOrdersByEnterprise(eid: string): SupplyOrder[] {
   return (getDb().prepare("SELECT * FROM supply_orders WHERE enterprise_id=? ORDER BY created_at DESC").all(eid) as ORow[]).map(toO);
 }

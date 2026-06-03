@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import {
   createListing, countListingsBySeller, setProductStatus, getProduct,
-  createSupplyOrder, getSupplyOrder, setSupplyOrderStatus,
+  createSupplyOrder, getSupplyOrder, setSupplyOrderStatus, markOrderPaid,
   type ReasonType, type OrderStatus,
 } from "@/lib/data/supplies-source";
 import { getMemberTier, quotaOf } from "@/lib/data/member-tier";
@@ -85,6 +85,17 @@ export async function advanceSellerOrderAction(fd: FormData) {
   if (owned && ["pending", "confirmed", "shipped", "done"].includes(next)) {
     setSupplyOrderStatus(id, next);
   }
+  revalidatePath(seller.base);
+  redirect(seller.base);
+}
+
+// 卖家确认收款（结清账期）：仅本人为卖家的订单
+export async function markOrderPaidAction(fd: FormData) {
+  const seller = await resolveSeller();
+  if (!seller) throw new Error("无权限");
+  const id = Number(fd.get("id") || 0);
+  const o = getSupplyOrder(id);
+  if (o && o.sellerType === seller.type && o.sellerId === seller.id) markOrderPaid(id);
   revalidatePath(seller.base);
   redirect(seller.base);
 }

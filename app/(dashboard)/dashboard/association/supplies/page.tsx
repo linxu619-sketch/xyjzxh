@@ -4,7 +4,7 @@ import { AssociationShell } from "@/components/dashboard/shell";
 import { StatFilters } from "@/components/dashboard/stat-filters";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/cn";
-import { listProducts, listAllSupplyOrders, listByStatus, brandActiveHolder, type OrderStatus, type ReasonType } from "@/lib/data/supplies-source";
+import { listProducts, listAllSupplyOrders, listByStatus, brandActiveHolder, reconcileAll, type OrderStatus, type ReasonType } from "@/lib/data/supplies-source";
 import { PublishProduct } from "./PublishProduct";
 import { setProductStatusAction, advanceOrderAction, approveListingAction, rejectListingAction, replaceListingAction } from "./actions";
 
@@ -152,6 +152,15 @@ export default async function SuppliesAdmin({ searchParams }: { searchParams: Pr
             <span className="inline-flex items-center gap-1.5"><ShoppingCart className="h-4 w-4" /> 企业采购单</span>
             <Link href={base} className="text-[12px] text-brand font-normal">← 看商品</Link>
           </div>
+          {orders.length > 0 && (() => { const rec = reconcileAll(); return (
+            <div className="px-5 py-2.5 border-b border-border bg-surface/50 flex items-center gap-x-5 gap-y-1 flex-wrap text-[12px]">
+              <span className="text-muted-foreground">平台对账：</span>
+              <span>累计 <b className="tabular-nums">¥{rec.totalAmount.toLocaleString()}</b></span>
+              <span className="text-accent-tea">已结 ¥{rec.paid.toLocaleString()}</span>
+              <span className="text-cat-decor">未结 ¥{rec.unpaid.toLocaleString()}</span>
+              {rec.overdueCount > 0 && <span className="text-cat-decor font-medium">逾期 {rec.overdueCount} 单 · ¥{rec.overdue.toLocaleString()}</span>}
+            </div>
+          ); })()}
           {orders.length === 0 ? (
             <div className="px-5 py-16 text-center text-[13px] text-muted-foreground">暂无采购单。企业在「建材采购」下单后会出现在这里。</div>
           ) : (
