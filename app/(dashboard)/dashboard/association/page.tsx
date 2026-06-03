@@ -183,13 +183,18 @@ export default async function AssociationDashboard() {
                 <div className="text-[12px] text-muted-foreground mt-0.5 leading-5">含项目完成度、四端使用说明、核心业务闭环与运维要点（Word 文档，可用 Word / WPS 打开）</div>
               </div>
             </div>
-            <a
-              href="/docs/xyjzxh-platform-guide.doc"
-              download="信阳建装平台说明书.doc"
-              className="shrink-0 h-10 px-5 rounded-full bg-foreground text-background text-[13px] font-medium inline-flex items-center justify-center gap-1.5 hover:bg-brand transition-colors active:scale-95"
-            >
-              <Download className="h-4 w-4" /> 下载 Word 说明书
-            </a>
+            <div className="shrink-0 flex gap-2">
+              <Link href="/dashboard/association/docs" className="h-10 px-4 rounded-full border border-border text-[13px] font-medium inline-flex items-center justify-center gap-1.5 hover:bg-surface active:scale-95">
+                <BookOpen className="h-4 w-4" /> 在线预览
+              </Link>
+              <a
+                href="/docs/xyjzxh-platform-guide.doc"
+                download="信阳建装平台说明书.doc"
+                className="h-10 px-4 rounded-full bg-foreground text-background text-[13px] font-medium inline-flex items-center justify-center gap-1.5 hover:bg-brand transition-colors active:scale-95"
+              >
+                <Download className="h-4 w-4" /> 下载 Word
+              </a>
+            </div>
           </div>
         </Panel>
 

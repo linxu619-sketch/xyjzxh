@@ -1,6 +1,7 @@
+import Link from "next/link";
 import {
   Building2, Lock, Bell, Plug, Database, ShieldCheck, KeyRound,
-  AlertTriangle, Crown, Sparkles, ExternalLink,
+  AlertTriangle, Crown, Sparkles, ExternalLink, BookOpen, Download,
 } from "lucide-react";
 import { AssociationShell } from "@/components/dashboard/shell";
 import { SettingsCard, FormRow, Toggle, Input, Textarea } from "@/components/dashboard/section";
@@ -46,6 +47,7 @@ export default async function SystemSettings() {
               { h: "#notify",   l: "通知 / 短信", icon: Bell },
               { h: "#integration", l: "对外集成", icon: Plug },
               { h: "#data",     l: "数据 / 备份", icon: Database },
+              { h: "#docs",     l: "平台文档", icon: BookOpen },
               { h: "#danger",   l: "高危操作", icon: AlertTriangle },
             ].map((it) => {
               const Ic = it.icon;
@@ -322,6 +324,21 @@ export default async function SystemSettings() {
                 <button type="button" className="h-9 px-4 rounded-full bg-foreground text-background text-[12px] font-medium">导出报备 (CSV)</button>
                 <button type="button" className="h-9 px-4 rounded-full bg-foreground text-background text-[12px] font-medium">导出调解卷宗 (PDF 打包)</button>
               </div></FormRow>
+            </SettingsCard>
+
+            {/* 平台文档 */}
+            <SettingsCard title="平台文档" desc="平台现状总览与使用说明书，可在线预览或下载 Word 版">
+              <div id="docs" />
+              <FormRow label="《平台现状总览 · 使用说明书》" hint="含模块完成度、四端使用说明、核心业务闭环与运维要点；随平台版本更新">
+                <div className="flex flex-wrap gap-2">
+                  <Link href="/dashboard/association/docs" className="h-10 px-4 rounded-full bg-foreground text-background text-[13px] font-medium inline-flex items-center gap-1.5">
+                    <BookOpen className="h-3.5 w-3.5" /> 在线预览
+                  </Link>
+                  <a href="/docs/xyjzxh-platform-guide.doc" download="信阳建装平台说明书.doc" className="h-10 px-4 rounded-full border border-border text-[13px] font-medium inline-flex items-center gap-1.5 hover:bg-surface">
+                    <Download className="h-3.5 w-3.5" /> 下载 Word
+                  </a>
+                </div>
+              </FormRow>
             </SettingsCard>
 
             {/* 高危 */}
