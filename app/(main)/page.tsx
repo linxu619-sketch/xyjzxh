@@ -147,50 +147,21 @@ export default function ConsumerHome() {
             <Link href="/members" className="text-[13px] text-brand">查看全部 1,052 家 →</Link>
           </div>
 
-          {/* 移动：横向 snap 滑动 */}
-          <div className="md:hidden -mx-5 px-5 overflow-x-auto snap-x snap-mandatory scroll-px-5 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
-            <div className="flex gap-3 pb-2">
-              {FEATURED.map((e) => (
-                <Link
-                  key={e.id}
-                  href={`/biz/${e.slug}`}
-                  className="snap-start shrink-0 w-[78vw] max-w-[300px] rounded-3xl border border-border bg-background p-5 active:scale-[0.99] transition-transform"
-                >
-                  <div className="flex items-center gap-3">
-                    <span className={cn("h-12 w-12 rounded-2xl text-white inline-flex items-center justify-center font-semibold", BG[e.color])}>
-                      {e.hero.brand.slice(0, 1)}
-                    </span>
-                    <div className="min-w-0">
-                      <div className="text-[14px] font-semibold truncate">{e.name}</div>
-                      <div className="text-[10px] text-muted-foreground">{e.district} · {e.staff}</div>
-                    </div>
-                  </div>
-                  <div className="mt-3 text-[12px] text-muted-foreground line-clamp-2 min-h-[36px]">{e.short}</div>
-                  <div className="mt-3 pt-3 border-t border-border flex items-center justify-between text-[11px]">
-                    <span className="inline-flex items-center gap-1"><Star className="h-3 w-3 fill-[#FFB400] text-[#FFB400]" /><span className="font-semibold">{e.rating.toFixed(1)}</span><span className="text-muted-foreground">({e.reviews})</span></span>
-                    <span className="text-muted-foreground">{e.cases} 案例</span>
-                  </div>
-                </Link>
-              ))}
-            </div>
-            <div className="mt-2 text-[10px] text-muted-foreground text-center">← 左右滑动查看更多 →</div>
-          </div>
-
-          {/* 桌面：网格 */}
-          <div className="hidden md:grid grid-cols-2 lg:grid-cols-3 gap-4">
+          {/* 纵向网格 · 不横滑 */}
+          <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">
             {FEATURED.map((e) => (
-              <Link key={e.id} href={`/biz/${e.slug}`} className="group rounded-3xl border border-border bg-background p-5 hover:shadow-md transition-all hover:-translate-y-0.5">
-                <div className="flex items-center gap-3">
-                  <span className={cn("h-12 w-12 rounded-2xl text-white inline-flex items-center justify-center font-semibold", BG[e.color])}>
+              <Link key={e.id} href={`/biz/${e.slug}`} className="group rounded-3xl border border-border bg-background p-4 md:p-5 active:scale-[0.99] hover:shadow-md transition-all md:hover:-translate-y-0.5">
+                <div className="flex items-center gap-2.5 md:gap-3">
+                  <span className={cn("h-11 w-11 md:h-12 md:w-12 rounded-2xl text-white inline-flex items-center justify-center font-semibold shrink-0", BG[e.color])}>
                     {e.hero.brand.slice(0, 1)}
                   </span>
-                  <div>
-                    <div className="text-[15px] font-semibold">{e.name}</div>
-                    <div className="text-[11px] text-muted-foreground">{e.district} · {e.staff}</div>
+                  <div className="min-w-0">
+                    <div className="text-[14px] md:text-[15px] font-semibold truncate">{e.name}</div>
+                    <div className="text-[10px] md:text-[11px] text-muted-foreground truncate">{e.district} · {e.staff}</div>
                   </div>
                 </div>
-                <div className="mt-3 text-[13px] text-muted-foreground line-clamp-2">{e.short}</div>
-                <div className="mt-3 pt-3 border-t border-border flex items-center justify-between text-[12px]">
+                <div className="mt-3 text-[12px] md:text-[13px] text-muted-foreground line-clamp-2 min-h-[36px]">{e.short}</div>
+                <div className="mt-3 pt-3 border-t border-border flex items-center justify-between text-[11px] md:text-[12px]">
                   <span className="inline-flex items-center gap-1"><Star className="h-3.5 w-3.5 fill-[#FFB400] text-[#FFB400]" /><span className="font-semibold">{e.rating.toFixed(1)}</span><span className="text-muted-foreground">({e.reviews})</span></span>
                   <span className="text-muted-foreground">{e.cases} 案例</span>
                 </div>
@@ -228,44 +199,21 @@ export default function ConsumerHome() {
             <Link href="/review" className="text-[13px] text-brand">所有评价 →</Link>
           </div>
 
-          {/* 移动横滑 */}
-          <div className="md:hidden -mx-5 px-5 overflow-x-auto snap-x snap-mandatory [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-            <div className="flex gap-3 pb-2">
-              {C_REVIEWS.map((r, i) => (
-                <div key={i} className="snap-start shrink-0 w-[80vw] max-w-[320px] rounded-3xl border border-border bg-background p-5">
-                  <div className="flex items-center gap-2 mb-3">
-                    <span className="h-10 w-10 rounded-full bg-surface inline-flex items-center justify-center text-[13px] font-semibold">{r.user.slice(0, 1)}</span>
-                    <div>
-                      <div className="text-[13px] font-medium">{r.user}</div>
-                      <div className="text-[10px] text-muted-foreground">{r.area} · {r.enterprise}</div>
-                    </div>
+          {/* 纵向网格 · 不横滑 */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4">
+            {C_REVIEWS.map((r, i) => (
+              <div key={i} className="rounded-3xl border border-border bg-background p-4 md:p-6">
+                <div className="flex items-center gap-2 mb-3">
+                  <span className="h-10 w-10 rounded-full bg-surface inline-flex items-center justify-center text-[13px] font-semibold shrink-0">{r.user.slice(0, 1)}</span>
+                  <div className="min-w-0">
+                    <div className="text-[13px] font-medium">{r.user}</div>
+                    <div className="text-[10px] text-muted-foreground truncate">{r.area} · {r.enterprise}</div>
                   </div>
-                  <div className="flex items-center gap-0.5 mb-2">
+                  <div className="ml-auto flex items-center gap-0.5 shrink-0">
                     {Array.from({ length: 5 }, (_, j) => (
-                      <Star key={j} className={cn("h-3.5 w-3.5", j < r.rating ? "fill-[#FFB400] text-[#FFB400]" : "text-border")} />
+                      <Star key={j} className={cn("h-3 w-3", j < r.rating ? "fill-[#FFB400] text-[#FFB400]" : "text-border")} />
                     ))}
                   </div>
-                  <p className="text-[13px] leading-6">&ldquo;{r.content}&rdquo;</p>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* 桌面 */}
-          <div className="hidden md:grid grid-cols-3 gap-4">
-            {C_REVIEWS.map((r, i) => (
-              <div key={i} className="rounded-3xl border border-border bg-background p-6">
-                <div className="flex items-center gap-2 mb-3">
-                  <span className="h-10 w-10 rounded-full bg-surface inline-flex items-center justify-center text-[13px] font-semibold">{r.user.slice(0, 1)}</span>
-                  <div>
-                    <div className="text-[13px] font-medium">{r.user}</div>
-                    <div className="text-[10px] text-muted-foreground">{r.area} · {r.enterprise}</div>
-                  </div>
-                </div>
-                <div className="flex items-center gap-0.5 mb-2">
-                  {Array.from({ length: 5 }, (_, j) => (
-                    <Star key={j} className={cn("h-3.5 w-3.5", j < r.rating ? "fill-[#FFB400] text-[#FFB400]" : "text-border")} />
-                  ))}
                 </div>
                 <p className="text-[13px] leading-6 text-foreground">&ldquo;{r.content}&rdquo;</p>
               </div>

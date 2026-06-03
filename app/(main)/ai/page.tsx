@@ -36,18 +36,16 @@ export default function AiHall() {
       />
 
       <Container className="py-8 md:py-14">
-        {/* 高频快捷动作 · 移动端横滑 */}
+        {/* 高频快捷动作 · 纵向网格 */}
         <div className="mb-8 md:mb-10">
           <div className="text-[12px] tracking-[0.2em] text-cat-decor uppercase font-medium mb-3">QUICK · 高频动作</div>
-          <div className="-mx-5 px-5 md:-mx-0 md:px-0 overflow-x-auto snap-x snap-mandatory [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-            <div className="flex md:grid md:grid-cols-4 gap-3">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5 md:gap-3">
               {QUICK_ACTIONS.map((q) => (
                 <Link
                   key={q.label}
                   href={q.href}
                   className={cn(
-                    "snap-start shrink-0 w-[64vw] max-w-[260px] md:w-auto md:max-w-none",
-                    "group rounded-3xl p-5 text-white relative overflow-hidden active:scale-[0.99] transition-transform",
+                    "group rounded-3xl p-4 md:p-5 text-white relative overflow-hidden active:scale-[0.99] transition-transform",
                     "bg-gradient-to-br", GRAD[q.color],
                   )}
                 >
@@ -60,7 +58,6 @@ export default function AiHall() {
                   </div>
                 </Link>
               ))}
-            </div>
           </div>
         </div>
 

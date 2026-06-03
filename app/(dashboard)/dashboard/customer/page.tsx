@@ -183,12 +183,10 @@ export default async function CustomerDashboard() {
           <div>
             <div className="flex items-center justify-between mb-2 px-1">
               <h3 className="text-[13px] font-semibold">待您处理</h3>
-              <span className="text-[10px] text-muted-foreground">滑动 →</span>
             </div>
-            <div className="-mx-5 px-5 overflow-x-auto snap-x snap-mandatory [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-              <div className="flex gap-2.5 pb-2">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                 {o.acceptance.filter((a) => a.status === "ready").map((a) => (
-                  <Link key={a.id} href={`/dashboard/customer/projects/${o.id}#acceptance`} className="snap-start shrink-0 w-[78vw] max-w-[280px] rounded-2xl border border-cat-decor/30 bg-cat-decor-soft p-4 active:scale-[0.99] transition-transform">
+                  <Link key={a.id} href={`/dashboard/customer/projects/${o.id}#acceptance`} className="rounded-2xl border border-cat-decor/30 bg-cat-decor-soft p-4 active:scale-[0.99] transition-transform">
                     <div className="flex items-center gap-2 mb-2">
                       <CheckCircle2 className="h-4 w-4 text-cat-decor" />
                       <Badge tone="decor">验收待确认</Badge>
@@ -199,7 +197,7 @@ export default async function CustomerDashboard() {
                   </Link>
                 ))}
                 {o.changeOrders.filter((c) => c.status === "pending").map((c) => (
-                  <Link key={c.id} href={`/dashboard/customer/projects/${o.id}#changes`} className="snap-start shrink-0 w-[78vw] max-w-[280px] rounded-2xl border border-cat-design/30 bg-cat-design-soft p-4 active:scale-[0.99] transition-transform">
+                  <Link key={c.id} href={`/dashboard/customer/projects/${o.id}#changes`} className="rounded-2xl border border-cat-design/30 bg-cat-design-soft p-4 active:scale-[0.99] transition-transform">
                     <div className="flex items-center gap-2 mb-2">
                       <GitPullRequest className="h-4 w-4 text-cat-design" />
                       <Badge tone="design">变更待批</Badge>
@@ -209,7 +207,7 @@ export default async function CustomerDashboard() {
                   </Link>
                 ))}
                 {o.payments.filter((p) => !p.paidAt).slice(0, 1).map((p) => (
-                  <Link key={p.id} href={`/dashboard/customer/projects/${o.id}#payment`} className="snap-start shrink-0 w-[78vw] max-w-[280px] rounded-2xl border border-accent-tea/30 bg-[#e6f7f1] p-4 active:scale-[0.99] transition-transform">
+                  <Link key={p.id} href={`/dashboard/customer/projects/${o.id}#payment`} className="rounded-2xl border border-accent-tea/30 bg-[#e6f7f1] p-4 active:scale-[0.99] transition-transform">
                     <div className="flex items-center gap-2 mb-2">
                       <Wallet className="h-4 w-4 text-accent-tea" />
                       <Badge tone="tea">下期付款</Badge>
@@ -219,7 +217,6 @@ export default async function CustomerDashboard() {
                     <div className="text-[10px] text-muted-foreground">应付 {p.due}</div>
                   </Link>
                 ))}
-              </div>
             </div>
           </div>
         )}

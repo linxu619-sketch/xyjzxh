@@ -107,40 +107,38 @@ export default async function PractitionerHome() {
           <Tile icon={Store} title="我的店铺" sub="卖货 · 集采上架" href="/dashboard/practitioner/store" tone="yellow" />
         </div>
 
-        {/* 为你推荐 · 移动横滑（协会会员企业岗位）*/}
+        {/* 为你推荐 · 纵向网格（协会会员企业岗位）*/}
         <div>
           <div className="flex items-center justify-between mb-2 px-1">
             <h3 className="text-[14px] font-semibold tracking-tight">为你推荐</h3>
             <Link href="/dashboard/practitioner/jobs" className="text-[12px] text-brand">全部 {PRACTITIONER_JOBS.length} →</Link>
           </div>
-          <div className="-mx-5 px-5 overflow-x-auto snap-x snap-mandatory [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-            <div className="flex gap-2.5 pb-2">
-              {PRACTITIONER_JOBS.slice(0, 4).map((j) => (
-                <Link
-                  key={j.id}
-                  href="/dashboard/practitioner/jobs"
-                  className="snap-start shrink-0 w-[78vw] max-w-[300px] rounded-2xl border border-border bg-background p-4 active:scale-[0.99] transition-transform"
-                >
-                  <div className="flex items-center gap-1.5 mb-2 flex-wrap">
-                    <Badge tone="brand">{j.openings} 名额</Badge>
-                    {j.urgent && <Badge tone="decor">🔥 急招</Badge>}
-                    <span className="text-[10px] text-muted-foreground ml-auto inline-flex items-center gap-0.5">
-                      <Clock className="h-2.5 w-2.5" />{j.postedAt}
-                    </span>
-                  </div>
-                  <div className="text-[13px] font-semibold line-clamp-2 min-h-[36px] leading-5">{j.title}</div>
-                  <div className="text-[11px] text-muted-foreground mt-1 inline-flex items-center gap-2">
-                    <span>{j.enterprise}</span>
-                    <span>·</span>
-                    <span className="inline-flex items-center gap-0.5"><MapPin className="h-2.5 w-2.5" />{j.district}</span>
-                  </div>
-                  <div className="mt-3 pt-3 border-t border-border flex items-center justify-between">
-                    <div className="text-[16px] font-semibold text-cat-decor tabular-nums">¥{j.daily}<span className="text-[10px] font-normal text-muted-foreground"> /天</span></div>
-                    <span className="inline-flex items-center gap-1 text-[11px] text-brand font-medium">报名 <ArrowUpRight className="h-3 w-3" /></span>
-                  </div>
-                </Link>
-              ))}
-            </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+            {PRACTITIONER_JOBS.slice(0, 4).map((j) => (
+              <Link
+                key={j.id}
+                href="/dashboard/practitioner/jobs"
+                className="rounded-2xl border border-border bg-background p-4 active:scale-[0.99] hover:shadow-md transition-all"
+              >
+                <div className="flex items-center gap-1.5 mb-2 flex-wrap">
+                  <Badge tone="brand">{j.openings} 名额</Badge>
+                  {j.urgent && <Badge tone="decor">🔥 急招</Badge>}
+                  <span className="text-[10px] text-muted-foreground ml-auto inline-flex items-center gap-0.5">
+                    <Clock className="h-2.5 w-2.5" />{j.postedAt}
+                  </span>
+                </div>
+                <div className="text-[13px] font-semibold line-clamp-2 min-h-[36px] leading-5">{j.title}</div>
+                <div className="text-[11px] text-muted-foreground mt-1 inline-flex items-center gap-2">
+                  <span>{j.enterprise}</span>
+                  <span>·</span>
+                  <span className="inline-flex items-center gap-0.5"><MapPin className="h-2.5 w-2.5" />{j.district}</span>
+                </div>
+                <div className="mt-3 pt-3 border-t border-border flex items-center justify-between">
+                  <div className="text-[16px] font-semibold text-cat-decor tabular-nums">¥{j.daily}<span className="text-[10px] font-normal text-muted-foreground"> /天</span></div>
+                  <span className="inline-flex items-center gap-1 text-[11px] text-brand font-medium">报名 <ArrowUpRight className="h-3 w-3" /></span>
+                </div>
+              </Link>
+            ))}
           </div>
         </div>
 
