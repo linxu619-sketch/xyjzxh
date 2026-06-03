@@ -2,12 +2,17 @@ import Link from "next/link";
 import {
   ArrowRight, ShieldCheck, Sparkles, Star, MessageSquareText,
   Building2, Search, Umbrella, Hammer, CheckCircle2, Phone,
+  MessagesSquare, MessageSquareHeart, HardHat, ChevronRight, ArrowUpRight,
 } from "lucide-react";
 import { Container } from "@/components/container";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { CATEGORIES } from "@/lib/site";
 import { ENTERPRISES } from "@/lib/data/enterprises";
+import { getSession } from "@/lib/auth/session";
+import { listLeadsForCustomer } from "@/lib/data/leads";
+import { listReviewsByUid } from "@/lib/data/reviews";
+import { ORDER_DEMO } from "@/lib/data/orders";
 import { cn } from "@/lib/cn";
 
 export const metadata = {
@@ -28,9 +33,48 @@ const C_REVIEWS = [
 
 const FEATURED = ENTERPRISES.filter((e) => e.featured).slice(0, 6);
 
-export default function ConsumerHome() {
+export default async function ConsumerHome() {
+  const session = await getSession();
+  const customer = session?.role === "customer" ? session : null;
+  const myRequests = customer ? listLeadsForCustomer(customer.uid, customer.phone) : [];
+  const myReviews = customer ? listReviewsByUid(customer.uid) : [];
+  const proj = ORDER_DEMO;
+  const projProgress = Math.round(proj.schedule.reduce((a, t) => a + t.progress, 0) / proj.schedule.length);
+
   return (
     <>
+      {/* 登录业主个性化条 —— 仅业主登录可见，回首页也能一键继续 */}
+      {customer && (
+        <section className="border-b border-border bg-surface">
+          <Container className="py-4 md:py-5">
+            <div className="flex items-center justify-between gap-3 mb-3">
+              <div className="text-[14px] md:text-[15px] font-semibold tracking-tight">
+                欢迎回来，{customer.name} 👋
+              </div>
+              <Link href="/dashboard/customer" className="text-[12px] text-brand inline-flex items-center gap-0.5 shrink-0">
+                进入我的 <ChevronRight className="h-3.5 w-3.5" />
+              </Link>
+            </div>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5">
+              <Link href={`/dashboard/customer/projects/${proj.id}`} className="group rounded-2xl border border-border bg-background p-3.5 active:scale-[0.98] transition-transform">
+                <div className="flex items-center gap-2">
+                  <span className="h-8 w-8 rounded-lg bg-cat-decor-soft text-cat-decor inline-flex items-center justify-center shrink-0"><HardHat className="h-4 w-4" /></span>
+                  <span className="text-[13px] font-semibold">当前项目</span>
+                </div>
+                <div className="mt-2 flex items-center gap-2">
+                  <div className="h-1.5 flex-1 rounded-full bg-surface overflow-hidden">
+                    <div className="h-full rounded-full bg-gradient-to-r from-cat-decor to-[#ff7a45]" style={{ width: `${projProgress}%` }} />
+                  </div>
+                  <span className="text-[11px] font-semibold tabular-nums text-muted-foreground">{projProgress}%</span>
+                </div>
+              </Link>
+              <PersonalTile icon={MessagesSquare} title="我的需求" sub={`${myRequests.length} 条 · 跟踪进度`} href="/dashboard/customer/requests" tone="brand" />
+              <PersonalTile icon={MessageSquareHeart} title="我的评价" sub={myReviews.length > 0 ? `${myReviews.length} 条已发布` : "完工后来打分"} href="/dashboard/customer/review" tone="design" />
+              <PersonalTile icon={Sparkles} title="AI 装修顾问" sub="小装 · 在线" href="/ai/decor" tone="decor" />
+            </div>
+          </Container>
+        </section>
+      )}
       {/* HERO — 强 C 端转化 */}
       <section className="relative overflow-hidden">
         <div className="absolute inset-0 bg-mesh" aria-hidden />
@@ -303,6 +347,30 @@ function ServiceTile({ icon: Ic, t, d, href, tone }: {
       </span>
       <div className="mt-4 text-[15px] font-semibold">{t}</div>
       <div className="mt-1 text-[11px] text-muted-foreground">{d}</div>
+    </Link>
+  );
+}
+
+function PersonalTile({ icon: Icon, title, sub, href, tone }: {
+  icon: React.ComponentType<{ className?: string }>;
+  title: string; sub: string; href: string;
+  tone: "brand" | "decor" | "design";
+}) {
+  const TONE: Record<string, string> = {
+    brand: "bg-brand-50 text-brand",
+    decor: "bg-cat-decor-soft text-cat-decor",
+    design: "bg-cat-design-soft text-cat-design",
+  };
+  return (
+    <Link href={href} className="group rounded-2xl border border-border bg-background p-3.5 flex items-center gap-2.5 active:scale-[0.98] transition-transform">
+      <span className={cn("h-8 w-8 rounded-lg inline-flex items-center justify-center shrink-0", TONE[tone])}>
+        <Icon className="h-4 w-4" />
+      </span>
+      <div className="flex-1 min-w-0">
+        <div className="text-[13px] font-semibold truncate">{title}</div>
+        <div className="text-[11px] text-muted-foreground truncate">{sub}</div>
+      </div>
+      <ArrowUpRight className="h-3.5 w-3.5 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity shrink-0" />
     </Link>
   );
 }
