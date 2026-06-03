@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { Bell, ChevronLeft, ShieldCheck } from "lucide-react";
+import { Settings, ChevronLeft, ShieldCheck } from "lucide-react";
 import { Container } from "@/components/container";
 import { getSession } from "@/lib/auth/session";
 import { PRACTITIONER_TABS } from "@/lib/dashboard/nav";
@@ -30,9 +30,9 @@ export async function PractitionerShell({
               <Link href="/dashboard/practitioner" className="inline-flex items-center gap-1.5 text-[12px] text-background/70 hover:text-background">
                 <ChevronLeft className="h-3.5 w-3.5" /> 返回我的
               </Link>
-              <span className="h-9 w-9 rounded-full bg-white/10 inline-flex items-center justify-center" aria-label="通知">
-                <Bell className="h-4 w-4" />
-              </span>
+              <Link href="/dashboard/practitioner/settings" className="h-9 w-9 rounded-full bg-white/10 inline-flex items-center justify-center hover:bg-white/20 transition-colors" aria-label="设置">
+                <Settings className="h-4 w-4" />
+              </Link>
             </div>
             <div className="mt-4">
               {title && <h1 className="text-[26px] md:text-[32px] font-semibold tracking-tight">{title}</h1>}

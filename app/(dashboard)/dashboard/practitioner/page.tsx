@@ -1,6 +1,6 @@
 import Link from "next/link";
 import {
-  ShieldCheck, Briefcase, GraduationCap, Wallet, Sparkles, Bell,
+  ShieldCheck, Briefcase, GraduationCap, Wallet, Sparkles, Settings,
   ChevronRight, Star, BadgeCheck, ArrowUpRight, AlertCircle, MapPin, Clock, Store,
 } from "lucide-react";
 import { Container } from "@/components/container";
@@ -54,10 +54,9 @@ export default async function PractitionerHome() {
                 <div className="text-[11px] text-background/70">{kind}{years ? ` · ${years} 年` : ""} · ID {pid}</div>
               </div>
             </div>
-            <span className="relative h-9 w-9 rounded-full bg-white/10 backdrop-blur inline-flex items-center justify-center" aria-label="通知">
-              <Bell className="h-4 w-4" />
-              {urgentJobs > 0 && <span className="absolute top-1 right-1 h-2 w-2 rounded-full bg-cat-decor animate-pulse" />}
-            </span>
+            <Link href="/dashboard/practitioner/settings" className="relative h-9 w-9 rounded-full bg-white/10 backdrop-blur inline-flex items-center justify-center hover:bg-white/20 transition-colors" aria-label="设置">
+              <Settings className="h-4 w-4" />
+            </Link>
           </div>
 
           <div className="mt-5 inline-flex items-center gap-1.5 rounded-full bg-white/10 backdrop-blur px-3 py-1.5 text-[11px]">
