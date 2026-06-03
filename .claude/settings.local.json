@@ -147,7 +147,8 @@
       "Bash(grep -vE '/projects/new$|^/projects$')",
       "Bash(grep -v '^/talents$')",
       "Bash(grep -v '^/knowledge$')",
-      "Bash(grep -rnaE 'href=\"#\"|href=\"\"|href={`#`}|href=\"javascript' app/ components/)"
+      "Bash(grep -rnaE 'href=\"#\"|href=\"\"|href={`#`}|href=\"javascript' app/ components/)",
+      "Bash(grep -rnaE \"浉河区|平桥区|ID [A-Z][0-9]{3,}|C[0-9]{5}|尾号|认证编号|会员编号\" \"app/\\(dashboard\\)\" components/dashboard)"
     ]
   }
 }

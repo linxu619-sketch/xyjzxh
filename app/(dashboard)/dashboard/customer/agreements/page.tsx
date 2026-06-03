@@ -1,16 +1,16 @@
 import Link from "next/link";
-import { FileText, Download, ShieldCheck, ChevronRight, Clock, Eye, AlertCircle } from "lucide-react";
+import { FileText, Download, ShieldCheck, ChevronRight, Clock, Eye } from "lucide-react";
 import { CustomerShell } from "@/components/dashboard/customer-shell";
 import { Badge } from "@/components/ui/badge";
-import { signaturesByUser, getTemplate, AGREEMENT_SIGNATURES } from "@/lib/data/agreements";
-import { RevokeButton } from "@/components/agreements/revoke-button";
+import { getSession } from "@/lib/auth/session";
+import { signaturesByUser, getTemplate } from "@/lib/data/agreements";
 
 export const metadata = { title: "我的协议 · 信阳市建筑装饰装修协会" };
 
-export default function CustomerAgreements() {
-  // 演示：使用刘女士的 C00284 签署记录
-  const sigs = signaturesByUser("customer", "C00284");
-  const all = sigs.length ? sigs : AGREEMENT_SIGNATURES.filter((s) => s.signerType === "customer");
+export default async function CustomerAgreements() {
+  const session = await getSession();
+  // 仅本人签署记录（按登录账号），不再回退展示他人记录
+  const all = session ? signaturesByUser("customer", session.uid) : [];
 
   return (
     <CustomerShell
@@ -25,6 +25,12 @@ export default function CustomerAgreements() {
       </div>
 
       <div className="space-y-3">
+        {all.length === 0 && (
+          <div className="rounded-3xl border border-dashed border-border bg-background p-10 text-center">
+            <FileText className="h-8 w-8 mx-auto text-muted-foreground/40 mb-3" />
+            <div className="text-[13px] text-muted-foreground">你还没有签署任何协议。<br />下单、投保或申请调解时签署的协议会在这里留痕，可随时下载 PDF。</div>
+          </div>
+        )}
         {all.map((s) => {
           const t = getTemplate(s.templateId);
           if (!t) return null;

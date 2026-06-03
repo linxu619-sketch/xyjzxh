@@ -5,19 +5,25 @@ import {
 import { CustomerShell } from "@/components/dashboard/customer-shell";
 import { logoutAction } from "@/app/(main)/login/actions";
 import { Toggle } from "@/components/dashboard/section";
+import { getSession } from "@/lib/auth/session";
 
 export const metadata = { title: "账号设置 · 信阳市建筑装饰装修协会" };
 
-export default function CustomerSettings() {
+export default async function CustomerSettings() {
+  const session = await getSession();
+  const name = session?.name || "业主";
+  const phone = session?.phone || "";
+  const maskedPhone = phone.length === 11 ? `${phone.slice(0, 3)}****${phone.slice(-4)}` : phone;
+  const memberId = phone ? `C${phone.slice(-6)}` : "—";
   return (
     <CustomerShell title="账号设置">
       {/* 个人卡片 */}
       <div className="rounded-3xl bg-foreground text-background p-5 mb-4 flex items-center gap-4">
-        <span className="h-16 w-16 rounded-full bg-cat-decor inline-flex items-center justify-center text-[24px] font-semibold">刘</span>
+        <span className="h-16 w-16 rounded-full bg-cat-decor inline-flex items-center justify-center text-[24px] font-semibold">{name.slice(0, 1)}</span>
         <div className="flex-1 min-w-0">
-          <div className="text-[16px] font-semibold">刘女士</div>
-          <div className="text-[11px] text-background/70 mt-0.5">ID: C00284 · 138****8472</div>
-          <div className="text-[11px] text-background/70">浉河区 · 注册于 2025-11-08</div>
+          <div className="text-[16px] font-semibold">{name}</div>
+          <div className="text-[11px] text-background/70 mt-0.5">ID: {memberId}{maskedPhone ? ` · ${maskedPhone}` : ""}</div>
+          <div className="text-[11px] text-background/70">协会注册业主</div>
         </div>
         <button className="h-9 px-3.5 rounded-full bg-accent-yellow text-foreground text-[11px] font-semibold">编辑</button>
       </div>
