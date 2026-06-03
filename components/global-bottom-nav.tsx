@@ -33,7 +33,7 @@ const XH_TABS: Tab[] = [
   { href: "/dashboard", label: "我的",   icon: UserRound,   match: (p) => p.startsWith("/dashboard") || p.startsWith("/login") },
 ];
 
-export function GlobalBottomNav({ face = "consumer" }: { face?: Face }) {
+export function GlobalBottomNav({ face = "consumer", todo = 0 }: { face?: Face; todo?: number }) {
   const pathname = usePathname();
   const tabs = face === "xh" ? XH_TABS : CONSUMER_TABS;
 
@@ -96,10 +96,17 @@ export function GlobalBottomNav({ face = "consumer" }: { face?: Face }) {
                 )}
                 aria-label={t.label}
               >
-                <Icon className={cn(
-                  "h-5 w-5 transition-colors",
-                  active ? "text-foreground" : "text-muted-foreground",
-                )} />
+                <span className="relative">
+                  <Icon className={cn(
+                    "h-5 w-5 transition-colors",
+                    active ? "text-foreground" : "text-muted-foreground",
+                  )} />
+                  {t.href === "/dashboard" && todo > 0 && (
+                    <span className="absolute -top-1.5 -right-2 min-w-[15px] h-[15px] px-1 rounded-full bg-cat-decor text-white text-[9px] font-semibold inline-flex items-center justify-center ring-2 ring-background">
+                      {todo > 99 ? "99+" : todo}
+                    </span>
+                  )}
+                </span>
                 <span className={cn(
                   "text-[10px] transition-colors",
                   active ? "text-foreground font-semibold" : "text-muted-foreground",
