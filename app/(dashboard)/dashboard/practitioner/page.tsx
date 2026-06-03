@@ -7,8 +7,8 @@ import { Container } from "@/components/container";
 import { CustomerBottomNav } from "@/components/dashboard/customer-bottom-nav";
 import { PRACTITIONER_TABS } from "@/lib/dashboard/nav";
 import { Badge } from "@/components/ui/badge";
-import { PRACTITIONER_JOBS } from "@/lib/data/practitioners";
 import { getPractitionerByPhone } from "@/lib/data/practitioners-source";
+import { listOpenJobs } from "@/lib/data/jobs";
 import { redirect } from "next/navigation";
 import { getSession } from "@/lib/auth/session";
 
@@ -31,7 +31,10 @@ export default async function PractitionerHome() {
   const rating = me?.rating ?? 5;
   const jobsDone = me?.jobs ?? 0;
   const insured = me?.insured ?? false;
-  const urgentJobs = PRACTITIONER_JOBS.filter((j) => j.urgent).length;
+  // 真实在招岗位（与「找活」页同源 listOpenJobs）
+  const openJobs = listOpenJobs();
+  const urgentJobs = openJobs.filter((j) => j.urgent).length;
+  const fmtDay = (ms: number) => { if (!ms) return ""; const d = new Date(ms); const p = (n: number) => String(n).padStart(2, "0"); return `${p(d.getMonth() + 1)}-${p(d.getDate())}`; };
 
   return (
     <div className="min-h-screen bg-surface pb-24">
@@ -100,7 +103,7 @@ export default async function PractitionerHome() {
 
         {/* 四宫格 */}
         <div className="grid grid-cols-2 gap-3">
-          <Tile icon={Briefcase} title="找活" sub={`${PRACTITIONER_JOBS.length} 条岗位`} href="/dashboard/practitioner/jobs" tone="build" badge={urgentJobs > 0 ? "🔥" : undefined} />
+          <Tile icon={Briefcase} title="找活" sub={`${openJobs.length} 条岗位`} href="/dashboard/practitioner/jobs" tone="build" badge={urgentJobs > 0 ? "🔥" : undefined} />
           <Tile icon={GraduationCap} title="培训 · 证书" sub="继续教育 / 上传" href="/dashboard/practitioner/training" tone="design" />
           <Tile icon={ShieldCheck} title="工伤险" sub={insured ? "在保中" : "立即投保"} href="/dashboard/practitioner/insurance" tone="tea" />
           <Tile icon={Wallet} title="钱包 · 收入证明" sub="收入流水" href="/dashboard/practitioner/income" tone="decor" />
@@ -111,10 +114,13 @@ export default async function PractitionerHome() {
         <div>
           <div className="flex items-center justify-between mb-2 px-1">
             <h3 className="text-[14px] font-semibold tracking-tight">为你推荐</h3>
-            <Link href="/dashboard/practitioner/jobs" className="text-[12px] text-brand">全部 {PRACTITIONER_JOBS.length} →</Link>
+            <Link href="/dashboard/practitioner/jobs" className="text-[12px] text-brand">全部 {openJobs.length} →</Link>
           </div>
+          {openJobs.length === 0 ? (
+            <div className="rounded-2xl border border-dashed border-border bg-background p-8 text-center text-[12px] text-muted-foreground">暂无在招岗位。协会会员企业发布招聘后会在这里推荐。</div>
+          ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-            {PRACTITIONER_JOBS.slice(0, 4).map((j) => (
+            {openJobs.slice(0, 4).map((j) => (
               <Link
                 key={j.id}
                 href="/dashboard/practitioner/jobs"
@@ -124,14 +130,14 @@ export default async function PractitionerHome() {
                   <Badge tone="brand">{j.openings} 名额</Badge>
                   {j.urgent && <Badge tone="decor">🔥 急招</Badge>}
                   <span className="text-[10px] text-muted-foreground ml-auto inline-flex items-center gap-0.5">
-                    <Clock className="h-2.5 w-2.5" />{j.postedAt}
+                    <Clock className="h-2.5 w-2.5" />{fmtDay(j.createdAt)}
                   </span>
                 </div>
                 <div className="text-[13px] font-semibold line-clamp-2 min-h-[36px] leading-5">{j.title}</div>
                 <div className="text-[11px] text-muted-foreground mt-1 inline-flex items-center gap-2">
-                  <span>{j.enterprise}</span>
+                  <span>{j.enterpriseName}</span>
                   <span>·</span>
-                  <span className="inline-flex items-center gap-0.5"><MapPin className="h-2.5 w-2.5" />{j.district}</span>
+                  <span className="inline-flex items-center gap-0.5"><MapPin className="h-2.5 w-2.5" />{j.district || "信阳"}</span>
                 </div>
                 <div className="mt-3 pt-3 border-t border-border flex items-center justify-between">
                   <div className="text-[16px] font-semibold text-cat-decor tabular-nums">¥{j.daily}<span className="text-[10px] font-normal text-muted-foreground"> /天</span></div>
@@ -140,6 +146,7 @@ export default async function PractitionerHome() {
               </Link>
             ))}
           </div>
+          )}
         </div>
 
         {/* AI 入口 */}
