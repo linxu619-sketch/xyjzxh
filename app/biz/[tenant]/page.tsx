@@ -426,10 +426,157 @@ function EditorialTemplate({ e, tenant, cases, team, reviews }: TplProps) {
   );
 }
 
-// 模板注册表（standard 经典色块 / editorial 简约杂志；新增模板在此登记即可）
+// ============================================================
+//  模板三：showcase（作品优先/画廊风）——压缩 Hero，首屏即大幅案例画廊
+//  遵守全站风格锁：团队矩形照片、纵向网格、移动端紧凑、无横向滚动
+// ============================================================
+function ShowcaseTemplate({ e, tenant, cases, team, reviews }: TplProps) {
+  const services = SERVICES[e.category] ?? SERVICES.decor;
+  const catLabel = e.category === "build" ? "建筑企业" : e.category === "decor" ? "装修企业" : "设计企业";
+
+  return (
+    <div className="overflow-x-hidden">
+      {/* HERO — 压缩条 */}
+      <section className="py-5 md:py-7 border-b border-border">
+        <Container>
+          <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-3">
+            <div className="min-w-0">
+              <div className="flex items-center gap-2 flex-wrap text-[11px] mb-2">
+                <span className={cn("inline-flex items-center gap-1 rounded-full px-2 py-0.5 font-medium", SOFT[e.color])}>{catLabel}</span>
+                <span className="inline-flex items-center gap-1 rounded-full bg-surface px-2 py-0.5 text-muted-foreground"><Star className="h-3 w-3 fill-[#FFB400] text-[#FFB400]" /> {e.rating.toFixed(1)} · {e.reviews}</span>
+                <span className="inline-flex items-center gap-1 rounded-full bg-surface px-2 py-0.5 text-muted-foreground"><ShieldCheck className="h-3 w-3 text-accent-tea" /> 协会认证</span>
+              </div>
+              <h1 className="text-[22px] sm:text-[28px] md:text-[34px] font-semibold tracking-tight leading-tight break-words">{e.hero.tagline}</h1>
+              <p className="mt-1.5 text-[13px] text-muted-foreground max-w-2xl leading-6 line-clamp-2">{e.short}</p>
+            </div>
+            <div className="flex gap-2 shrink-0">
+              <Link href={`/biz/${tenant}/order`} className={cn("inline-flex items-center justify-center gap-1.5 h-11 px-5 rounded-full text-white text-[14px] font-medium active:scale-[0.99]", BG[e.color])}>立即下单 <ArrowRight className="h-4 w-4" /></Link>
+              <Link href={`/biz/${tenant}/inquiry`} className="inline-flex items-center justify-center gap-1.5 h-11 px-4 rounded-full border border-border text-[14px] hover:bg-surface"><MessageSquareText className="h-4 w-4" /> 咨询</Link>
+            </div>
+          </div>
+        </Container>
+      </section>
+
+      {/* 作品画廊 — 首屏主角，大幅网格 */}
+      <section id="cases" className="py-6 md:py-9">
+        <Container>
+          <SectionTitle eyebrow="WORKS · 作品" title="作品画廊" moreHref={cases.length > 0 ? `/biz/${tenant}/cases` : undefined} moreClassName={TEXT[e.color]} />
+          {cases.length > 0 ? (
+            <div className="mt-4 grid grid-cols-2 md:grid-cols-3 gap-2.5 md:gap-3">
+              {cases.slice(0, 6).map((c, i) => (
+                <Link
+                  key={c.id}
+                  href={`/biz/${tenant}/cases/${c.id}`}
+                  className={cn(
+                    "group relative rounded-2xl overflow-hidden bg-surface active:scale-[0.99] hover:shadow-lg md:hover:-translate-y-1 transition-all",
+                    i === 0 ? "col-span-2 md:col-span-2 md:row-span-2 aspect-[4/3] md:aspect-auto" : "aspect-[4/3]",
+                  )}
+                >
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={c.cover} alt={c.title} className="absolute inset-0 h-full w-full object-cover md:transition-transform md:duration-500 md:group-hover:scale-105" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-foreground/70 via-transparent to-transparent" />
+                  <div className="absolute bottom-2.5 left-3 right-3 text-white">
+                    <div className={cn("font-medium line-clamp-1", i === 0 ? "text-[15px] md:text-[18px]" : "text-[12px] md:text-[13px]")}>{c.title}</div>
+                    {i === 0 && <div className="text-[11px] opacity-85">{[c.area && `${c.area}㎡`, c.tag].filter(Boolean).join(" · ")}</div>}
+                  </div>
+                </Link>
+              ))}
+            </div>
+          ) : (
+            <div className="mt-4 rounded-2xl border border-dashed border-border bg-background p-8 text-center text-[13px] text-muted-foreground">
+              案例陆续完善中 · 可先 <Link href={`/biz/${tenant}/inquiry`} className={TEXT[e.color]}>在线咨询</Link>。
+            </div>
+          )}
+        </Container>
+      </section>
+
+      {/* 服务 — 紧凑胶囊 */}
+      <section id="service" className="py-6 md:py-9 bg-surface">
+        <Container>
+          <SectionTitle eyebrow="SERVICES · 服务" title="我们提供" sub="点选直接预约" />
+          <div className="mt-4 flex flex-wrap gap-2.5">
+            {services.map((s) => (
+              <Link key={s.t} href={`/biz/${tenant}/order?service=${encodeURIComponent(s.t)}`} className="group inline-flex items-center gap-2 rounded-full border border-border bg-background pl-3 pr-3.5 py-2 hover:shadow-md transition-all active:scale-[0.99]">
+                <span className={cn("inline-flex h-6 w-6 rounded-full items-center justify-center text-[12px] font-semibold shrink-0", SOFT[e.color])}>{s.t.slice(0, 1)}</span>
+                <span className="text-[13px] font-medium">{s.t}</span>
+                <span className={cn("text-[10px] rounded-full px-1.5 py-0.5", SOFT[e.color])}>{s.h}</span>
+                <ChevronRight className={cn("h-3.5 w-3.5 group-hover:translate-x-0.5 transition-transform", TEXT[e.color])} />
+              </Link>
+            ))}
+          </div>
+        </Container>
+      </section>
+
+      {/* 团队 — 矩形（遵守风格锁） */}
+      {team.length > 0 && (
+        <section id="team" className="py-6 md:py-9">
+          <Container>
+            <SectionTitle eyebrow="TEAM · 团队" title="核心团队" sub={`${team.length} 位`} />
+            <div className="mt-4 grid grid-cols-3 md:grid-cols-4 gap-2.5 md:gap-3">
+              {team.map((m) => (
+                <Link key={m.id} href={`/biz/${tenant}/team/${m.id}`} className="rounded-2xl border border-border bg-background overflow-hidden active:scale-[0.99] hover:shadow-md md:hover:-translate-y-0.5 transition-all">
+                  <div className="relative aspect-[3/4] bg-surface">
+                    {m.photo ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={m.photo} alt={m.name} className="absolute inset-0 w-full h-full object-cover" />
+                    ) : (
+                      <div className={cn("absolute inset-0 flex items-center justify-center text-white text-[32px] font-semibold", BG[e.color])}>{m.name.slice(0, 1)}</div>
+                    )}
+                  </div>
+                  <div className="p-2 md:p-3">
+                    <div className="text-[13px] md:text-[15px] font-semibold truncate">{m.name}</div>
+                    <div className="text-[10px] md:text-[12px] text-muted-foreground truncate">{m.role}</div>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </Container>
+        </section>
+      )}
+
+      {/* 评价 + 联系 — 紧凑收尾 */}
+      {reviews.length > 0 && (
+        <section className="py-6 md:py-9 bg-surface">
+          <Container>
+            <SectionTitle eyebrow="REVIEWS · 口碑" title="业主真实评价" moreHref={`/biz/${tenant}/reviews`} moreClassName={TEXT[e.color]} />
+            <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-3">
+              {reviews.slice(0, 3).map((r) => (
+                <div key={r.id} className="rounded-2xl border border-border bg-background p-4">
+                  <p className="text-[13px] leading-6 line-clamp-3 text-muted-foreground">&ldquo;{r.content}&rdquo;</p>
+                  <div className="mt-2 flex items-center gap-2 text-[12px]">
+                    <span className="font-medium">{r.user}</span>
+                    <span className="ml-auto inline-flex items-center gap-0.5"><Star className="h-3.5 w-3.5 fill-[#FFB400] text-[#FFB400]" />{r.rating}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </Container>
+        </section>
+      )}
+
+      <section id="contact" className="py-6 md:py-9">
+        <Container>
+          <div className="rounded-3xl border border-border bg-background p-6 md:p-7 flex flex-col md:flex-row md:items-center gap-4 md:justify-between">
+            <div>
+              <h2 className="text-[20px] md:text-[26px] font-semibold tracking-tight">准备开工？联系 {e.hero.brand}</h2>
+              <p className="mt-1.5 text-[13px] text-muted-foreground">协会三重保障：履约险先行赔付 · 14 天调解 · 资金监管。</p>
+            </div>
+            <div className="flex flex-wrap gap-2 shrink-0">
+              <Link href={`/biz/${tenant}/order`} className={cn("inline-flex items-center gap-1.5 h-11 px-5 rounded-full text-white text-[14px] font-medium", BG[e.color])}>提交需求 <ArrowRight className="h-4 w-4" /></Link>
+              <a href={`tel:${e.contact.tel.replace(/-/g, "")}`} className="inline-flex items-center gap-1.5 h-11 px-4 rounded-full border border-border text-[14px] hover:bg-surface"><Phone className="h-4 w-4" /> {e.contact.tel}</a>
+            </div>
+          </div>
+        </Container>
+      </section>
+    </div>
+  );
+}
+
+// 模板注册表（standard 经典色块 / editorial 简约杂志 / showcase 作品画廊；新增模板在此登记即可）
 const TEMPLATES: Record<string, typeof StandardTemplate> = {
   standard: StandardTemplate,
   editorial: EditorialTemplate,
+  showcase: ShowcaseTemplate,
 };
 
 function Metric({ label, value }: { label: string; value: string }) {

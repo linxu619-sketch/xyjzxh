@@ -113,10 +113,11 @@ export default async function SitePage({ searchParams }: { searchParams: Promise
                 <Input name="tags" defaultValue={ent.tags.join("，")} />
               </FormRow>
               <FormRow label="子站模板" hint="选择子站版式；保存后立即生效">
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
                   {[
                     { k: "standard", n: "经典色块", d: "色块大 Hero · 等分案例网格" },
                     { k: "editorial", n: "简约杂志", d: "浅色 Hero · 一大三小 · 编号服务" },
+                    { k: "showcase", n: "作品画廊", d: "压缩 Hero · 首屏大幅案例 · 胶囊服务" },
                   ].map((o) => (
                     <label key={o.k} className="cursor-pointer">
                       <input type="radio" name="template" value={o.k} defaultChecked={(ent.template ?? "standard") === o.k} className="peer sr-only" />

@@ -30,7 +30,7 @@ type Row = {
 
 const THEME_KEYS = ["build", "decor", "design", "tea", "brand"] as const;
 type ThemeKey = (typeof THEME_KEYS)[number];
-export const TEMPLATE_KEYS = ["standard", "editorial"] as const;
+export const TEMPLATE_KEYS = ["standard", "editorial", "showcase"] as const;
 function resolveColor(theme: string | null, category: string): ThemeKey {
   if (theme && (THEME_KEYS as readonly string[]).includes(theme)) return theme as ThemeKey;
   return (["build", "decor", "design"].includes(category) ? category : "build") as ThemeKey;
