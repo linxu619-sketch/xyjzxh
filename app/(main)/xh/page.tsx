@@ -4,7 +4,9 @@ import {
   FileCheck2, ShoppingBag, Wallet, Umbrella, Library, GraduationCap,
   Globe2, CalendarDays, Star, ShieldCheck, Sparkles, ChevronRight,
   HardHat, HeartHandshake,
+  LayoutDashboard, Users2, MessageSquareWarning, MessagesSquare, Hammer, Briefcase, Clock,
 } from "lucide-react";
+import { getSession } from "@/lib/auth/session";
 import { Container } from "@/components/container";
 import { Badge } from "@/components/ui/badge";
 import { Numbers } from "@/components/sections/numbers";
@@ -42,6 +44,40 @@ const MEMBER_SERVICES = [
   { icon: Globe2, t: "企业子站", d: "二级域名独立品牌页", href: "/tenant", tone: "brand" },
 ];
 
+// —— 会员登录态：各角色工作台快捷入口 ——
+const MEMBER_HOME: Record<string, {
+  label: string; dashboard: string;
+  tiles: { icon: React.ComponentType<{ className?: string }>; t: string; d: string; href: string; tone: string }[];
+}> = {
+  association: {
+    label: "协会工作台", dashboard: "/dashboard/association",
+    tiles: [
+      { icon: Users2, t: "会员审核", d: "入会申请待处理", href: "/dashboard/association/members", tone: "brand" },
+      { icon: FileCheck2, t: "工装报备", d: "报备审批", href: "/dashboard/association/reports", tone: "build" },
+      { icon: MessageSquareWarning, t: "调解纠纷", d: "投诉与调解", href: "/dashboard/association/mediations", tone: "decor" },
+      { icon: ShoppingBag, t: "建材超市", d: "上架审核 · 对账", href: "/dashboard/association/supplies", tone: "tea" },
+    ],
+  },
+  enterprise: {
+    label: "企业工作台", dashboard: "/dashboard/enterprise",
+    tiles: [
+      { icon: Globe2, t: "我的子站", d: "编辑品牌页", href: "/dashboard/enterprise/site", tone: "brand" },
+      { icon: MessagesSquare, t: "客户线索", d: "接收与跟进", href: "/dashboard/enterprise/leads", tone: "build" },
+      { icon: Hammer, t: "施工订单", d: "进度与验收", href: "/dashboard/enterprise/orders", tone: "decor" },
+      { icon: ShoppingBag, t: "建材采购", d: "集采 · 我的店铺", href: "/dashboard/enterprise/supplies", tone: "tea" },
+    ],
+  },
+  practitioner: {
+    label: "从业者工作台", dashboard: "/dashboard/practitioner",
+    tiles: [
+      { icon: Briefcase, t: "找活", d: "招聘与对接", href: "/dashboard/practitioner/jobs", tone: "build" },
+      { icon: GraduationCap, t: "培训", d: "继续教育 · 证书", href: "/dashboard/practitioner/training", tone: "design" },
+      { icon: Wallet, t: "钱包", d: "收入与提现", href: "/dashboard/practitioner/income", tone: "tea" },
+      { icon: UserRound, t: "我的资料", d: "认证主页 / 名片", href: "/dashboard/practitioner/profile", tone: "brand" },
+    ],
+  },
+};
+
 const TONE_SOFT: Record<string, string> = {
   brand: "bg-brand-50 text-brand",
   build: "bg-cat-build-soft text-cat-build",
@@ -62,6 +98,9 @@ const FEATURED = ENTERPRISES.filter((e) => e.featured).slice(0, 6);
 export default async function AssociationHome() {
   const notices = listPublished().slice(0, 6);
   const trainings = listOpenTrainings().slice(0, 3);
+  const session = await getSession();
+  const roleKey = session?.role === "system_admin" ? "association" : (session?.role ?? "");
+  const home = !session?.pending ? MEMBER_HOME[roleKey] : undefined;
   return (
     <>
       {/* HERO — 会员之家（精简，仅身份与信任标识） */}
@@ -90,6 +129,52 @@ export default async function AssociationHome() {
           </div>
         </Container>
       </section>
+
+      {/* 入会审核中 —— 提示进度页 */}
+      {session?.pending && (
+        <section className="border-b border-border bg-[#fff6d6]/60">
+          <Container className="py-3">
+            <Link href="/dashboard/pending" className="flex items-center gap-2 text-[13px] text-[#a37200] font-medium">
+              <Clock className="h-4 w-4 shrink-0" />
+              <span className="flex-1 min-w-0">您的入会申请审核中 · 点击查看审核进度</span>
+              <ChevronRight className="h-4 w-4 shrink-0" />
+            </Link>
+          </Container>
+        </section>
+      )}
+
+      {/* 会员登录态：工作台快捷入口（仅已通过审核的会员/工作人员可见）*/}
+      {home && session && (
+        <section className="border-b border-border bg-surface">
+          <Container className="py-4 md:py-5">
+            <div className="flex items-center justify-between gap-3 mb-3">
+              <div className="text-[14px] md:text-[15px] font-semibold tracking-tight">
+                欢迎回来，{session.name} 👋
+              </div>
+              <Link href={home.dashboard} className="text-[12px] text-brand inline-flex items-center gap-0.5 shrink-0">
+                进入{home.label} <ChevronRight className="h-3.5 w-3.5" />
+              </Link>
+            </div>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5">
+              {home.tiles.map((s) => {
+                const Icon = s.icon;
+                return (
+                  <Link key={s.t} href={s.href} className="group rounded-2xl border border-border bg-background p-3.5 flex items-center gap-2.5 active:scale-[0.98] transition-transform">
+                    <span className={cn("h-8 w-8 rounded-lg inline-flex items-center justify-center shrink-0", TONE_SOFT[s.tone])}>
+                      <Icon className="h-4 w-4" />
+                    </span>
+                    <div className="flex-1 min-w-0">
+                      <div className="text-[13px] font-semibold truncate">{s.t}</div>
+                      <div className="text-[11px] text-muted-foreground truncate">{s.d}</div>
+                    </div>
+                    <ArrowUpRight className="h-3.5 w-3.5 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity shrink-0" />
+                  </Link>
+                );
+              })}
+            </div>
+          </Container>
+        </section>
+      )}
 
       {/* 会员办事大厅 —— 会员最高频，功能入口前置 */}
       <section id="services" className="py-8 md:py-12 scroll-mt-16">
