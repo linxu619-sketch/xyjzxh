@@ -348,6 +348,21 @@ CREATE TABLE IF NOT EXISTS finance_products (
   created_at  INTEGER
 );
 
+CREATE TABLE IF NOT EXISTS insurance_products (
+  id          INTEGER PRIMARY KEY AUTOINCREMENT,
+  name        TEXT,
+  insurer     TEXT,
+  type        TEXT,
+  price_label TEXT,
+  cover_label TEXT,
+  for_whom    TEXT,
+  color       TEXT,
+  highlights  TEXT,    -- JSON 数组
+  featured    INTEGER DEFAULT 0, -- 1 = 主推（首页 Hero）
+  status      TEXT DEFAULT 'active',
+  created_at  INTEGER
+);
+
 CREATE TABLE IF NOT EXISTS finance_applications (
   id              INTEGER PRIMARY KEY AUTOINCREMENT,
   enterprise_id   TEXT,
@@ -609,6 +624,7 @@ function init(): DB {
   normalizeSupplyProducts(db);
   seedSupplyMemberListings(db);
   seedFinanceProducts(db);
+  seedInsuranceProducts(db);
   seedOrders(db);
   return db;
 }
@@ -641,6 +657,23 @@ function seedFinanceProducts(db: DB) {
   ];
   const stmt = db.prepare(
     "INSERT INTO finance_products (name,provider,type,rate_label,amount_label,term_label,for_whom,color,highlights,status,created_at) VALUES (?,?,?,?,?,?,?,?,?, 'active', ?)",
+  );
+  const now = Date.now();
+  rows.forEach((r, i) => stmt.run(r[0], r[1], r[2], r[3], r[4], r[5], r[6], r[7], JSON.stringify(r[8]), now - i * 3600000));
+}
+
+function seedInsuranceProducts(db: DB) {
+  if (!isEmpty(db, "insurance_products")) return;
+  // [name, insurer, type, price_label, cover_label, for_whom, color, featured, highlights[]]
+  const rows: [string, string, string, string, string, string, string, number, string[]][] = [
+    ["安心家装险 · 协会版", "人保财险", "家装质保险", "299 元/套起", "保额 50 万", "C 端业主", "decor", 1, ["10 年质保", "跑路赔付", "材料合规理赔", "AI 自助理赔"]],
+    ["工程履约保证保险", "平安产险", "工程履约险", "费率 0.7%", "保额 ≤ 工程价款 10%", "总包/分包", "build", 0, ["替代保证金", "工装报备一键出单"]],
+    ["建筑工人团意险", "国寿财险", "工人意外险", "120 元/人/年", "意外身故 80 万 + 医疗 5 万", "建筑/装修企业", "tea", 0, ["按项目投保", "工装报备同步"]],
+    ["施工现场公众责任险", "太平洋产险", "公众责任险", "0.4‰ 起", "保额 ≤ 500 万", "施工方", "yellow", 0, ["第三者人身/财产", "脚手架/吊装高发场景"]],
+    ["材料运输一切险", "中华联合", "材料运输险", "0.6‰ 起", "按货值", "材料供应商", "design", 0, ["陆运/水运", "破损/灭失全保"]],
+  ];
+  const stmt = db.prepare(
+    "INSERT INTO insurance_products (name,insurer,type,price_label,cover_label,for_whom,color,featured,highlights,status,created_at) VALUES (?,?,?,?,?,?,?,?,?, 'active', ?)",
   );
   const now = Date.now();
   rows.forEach((r, i) => stmt.run(r[0], r[1], r[2], r[3], r[4], r[5], r[6], r[7], JSON.stringify(r[8]), now - i * 3600000));

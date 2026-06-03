@@ -4,7 +4,7 @@ import { Container } from "@/components/container";
 import { PageHeader } from "@/components/page-header";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { INSURANCE_PRODUCTS } from "@/lib/data/finance";
+import { listInsuranceProducts } from "@/lib/data/insurance-products";
 import { submitInsuranceAction } from "./actions";
 
 const COLOR: Record<string, string> = {
@@ -20,6 +20,7 @@ export const metadata = { title: "消费保险 · 信阳市建筑装饰装修协
 
 export default async function InsurancePage({ searchParams }: { searchParams: Promise<{ ordered?: string }> }) {
   const { ordered } = await searchParams;
+  const INSURANCE_PRODUCTS = listInsuranceProducts();
   return (
     <>
       <PageHeader
@@ -90,7 +91,6 @@ export default async function InsurancePage({ searchParams }: { searchParams: Pr
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               <select name="product" required defaultValue="" className="h-11 w-full rounded-xl border border-border bg-background px-3.5 text-[14px] outline-none focus:border-foreground/30">
                 <option value="" disabled>选择险种</option>
-                <option>安心家装险（协会版）</option>
                 {INSURANCE_PRODUCTS.map((p) => <option key={p.id} value={p.name}>{p.name}</option>)}
               </select>
               <input name="applicant" placeholder="你的称呼" className="h-11 w-full rounded-xl border border-border bg-background px-3.5 text-[14px] outline-none focus:border-foreground/30" />
@@ -107,7 +107,7 @@ export default async function InsurancePage({ searchParams }: { searchParams: Pr
         <div className="mt-12">
           <h2 className="text-[26px] md:text-[32px] font-semibold tracking-tight">其他险种</h2>
           <div className="mt-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {INSURANCE_PRODUCTS.filter((p) => p.id !== "I1").map((p) => (
+            {INSURANCE_PRODUCTS.filter((p) => !p.featured).map((p) => (
               <div key={p.id} className="rounded-3xl border border-border bg-background overflow-hidden hover:shadow-md transition-shadow">
                 <div className={`h-2 w-full bg-gradient-to-r ${COLOR[p.color]}`} />
                 <div className="p-6">

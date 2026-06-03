@@ -8,6 +8,10 @@ import {
   createFinanceProduct, updateFinanceProduct, setFinanceProductStatus, deleteFinanceProduct,
   getFinanceProduct, type FinanceProductInput,
 } from "@/lib/data/finance-source";
+import {
+  createInsuranceProduct, updateInsuranceProduct, setInsuranceProductStatus, deleteInsuranceProduct,
+  getInsuranceProduct, type InsuranceProductInput,
+} from "@/lib/data/insurance-products";
 
 async function requireAssoc() {
   const s = await getSession();
@@ -17,6 +21,7 @@ function refresh(): never {
   revalidatePath("/dashboard/association/finance");
   revalidatePath("/dashboard/enterprise/finance");
   revalidatePath("/finance");
+  revalidatePath("/insurance");
   redirect("/dashboard/association/finance#products");
 }
 function readProduct(fd: FormData): FinanceProductInput {
@@ -68,5 +73,46 @@ export async function deleteFinanceProductAction(fd: FormData) {
   await requireAssoc();
   const id = Number(fd.get("id") || 0);
   if (getFinanceProduct(id)) deleteFinanceProduct(id);
+  refresh();
+}
+
+/* ---------------- 保险产品 CRUD ---------------- */
+function readInsurance(fd: FormData): InsuranceProductInput {
+  return {
+    name: String(fd.get("name") || "").trim(),
+    insurer: String(fd.get("insurer") || "").trim(),
+    type: String(fd.get("type") || "其他").trim(),
+    priceLabel: String(fd.get("priceLabel") || "").trim(),
+    coverLabel: String(fd.get("coverLabel") || "").trim(),
+    forWhom: String(fd.get("forWhom") || "").trim(),
+    color: String(fd.get("color") || "decor").trim(),
+    highlights: String(fd.get("highlights") || "").split(/[\n,，、]+/).map((x) => x.trim()).filter(Boolean).slice(0, 6),
+    featured: String(fd.get("featured") || "") === "1",
+  };
+}
+export async function createInsuranceProductAction(fd: FormData) {
+  await requireAssoc();
+  const p = readInsurance(fd);
+  if (p.name && p.insurer) createInsuranceProduct(p);
+  refresh();
+}
+export async function updateInsuranceProductAction(fd: FormData) {
+  await requireAssoc();
+  const id = Number(fd.get("id") || 0);
+  const p = readInsurance(fd);
+  if (getInsuranceProduct(id) && p.name && p.insurer) updateInsuranceProduct(id, p);
+  refresh();
+}
+export async function toggleInsuranceProductAction(fd: FormData) {
+  await requireAssoc();
+  const id = Number(fd.get("id") || 0);
+  const next = String(fd.get("status") || "") === "active" ? "active" : "off";
+  if (getInsuranceProduct(id)) setInsuranceProductStatus(id, next);
+  refresh();
+}
+export async function deleteInsuranceProductAction(fd: FormData) {
+  await requireAssoc();
+  const id = Number(fd.get("id") || 0);
+  if (getInsuranceProduct(id)) deleteInsuranceProduct(id);
   refresh();
 }
