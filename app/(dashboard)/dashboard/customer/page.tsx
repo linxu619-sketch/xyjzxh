@@ -173,7 +173,7 @@ export default async function CustomerDashboard() {
         {/* 4 tile 快捷 */}
         <div className="grid grid-cols-2 gap-3">
           <Tile icon={Umbrella}              title="我的保单" sub="1 份在保 · ¥162 万" href="/dashboard/customer/insurance" tone="decor" />
-          <Tile icon={MessageSquareHeart}    title="写评价"   sub={`待评 ${o.acceptance.filter((a) => a.status === "approved").length > 0 ? "1" : "0"}`} href="/review" tone="design" badge={pendingAcc > 0 ? String(pendingAcc) : undefined} />
+          <Tile icon={MessageSquareHeart}    title="写评价"   sub={`待评 ${o.acceptance.filter((a) => a.status === "approved").length > 0 ? "1" : "0"}`} href="/dashboard/customer/review" tone="design" badge={pendingAcc > 0 ? String(pendingAcc) : undefined} />
           <Tile icon={MessageSquareWarning}  title="发起调解" sub="14 天内介入" href="/ai/mediate" tone="yellow" />
           <Tile icon={Sparkles}              title="AI 装修顾问" sub="小装 · 在线" href="/ai/decor" tone="brand" />
         </div>
