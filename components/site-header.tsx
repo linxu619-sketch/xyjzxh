@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { Menu, X, Sparkles, ChevronRight, Building2 } from "lucide-react";
+import { Sparkles, ChevronRight, Building2 } from "lucide-react";
 import { SITE, ASSOCIATION_NAV, CONSUMER_NAV } from "@/lib/site";
 import { Container } from "./container";
 import { Button } from "./ui/button";
@@ -11,7 +11,6 @@ import { cn } from "@/lib/cn";
 type Face = "consumer" | "xh";
 
 export function SiteHeader({ face = "consumer", authed = false, todo = 0 }: { face?: Face; authed?: boolean; todo?: number }) {
-  const [open, setOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
 
   useEffect(() => {
@@ -136,7 +135,6 @@ export function SiteHeader({ face = "consumer", authed = false, todo = 0 }: { fa
                   href={authed ? "/dashboard" : "/login?role=customer"}
                   size="sm"
                   variant="secondary"
-                  className="hidden sm:inline-flex"
                 >
                   {authed ? "我的" : "登录"}
                   {authed && todo > 0 ? (
@@ -149,69 +147,10 @@ export function SiteHeader({ face = "consumer", authed = false, todo = 0 }: { fa
                 </Button>
               </>
             )}
-            {/* 三横菜单：仅消费者面保留；协会面已移除（功能由首页办事大厅 + 底部栏 + 页脚承载） */}
-            {!isXh && (
-              <button
-                type="button"
-                onClick={() => setOpen((v) => !v)}
-                className="lg:hidden inline-flex h-10 w-10 items-center justify-center rounded-full hover:bg-surface"
-                aria-label="菜单"
-              >
-                {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-              </button>
-            )}
           </div>
         </div>
       </Container>
 
-      {/* Mobile menu — 仅消费者面 */}
-      <div
-        className={cn(
-          "lg:hidden overflow-hidden border-t border-border transition-[max-height,opacity] duration-300",
-          !isXh && open ? "max-h-[90vh] opacity-100" : "max-h-0 opacity-0",
-        )}
-      >
-        <Container className="py-4">
-          <nav className="grid grid-cols-2 gap-2">
-            {NAV.map((item) => (
-              <Link
-                key={item.href}
-                href={item.href}
-                onClick={() => setOpen(false)}
-                className="flex items-center justify-between rounded-2xl bg-surface px-4 py-3.5 text-[14px] font-medium hover:bg-surface-2"
-              >
-                {item.label}
-                <ChevronRight className="h-4 w-4 text-muted-foreground" />
-              </Link>
-            ))}
-          </nav>
-
-          {/* 跨门户跳转 */}
-          <Link
-            href={isXh ? "/" : "/xh"}
-            className="mt-3 flex items-center justify-between rounded-2xl bg-foreground text-background px-4 py-3.5 text-[13px] font-medium"
-          >
-            <span className="inline-flex items-center gap-1.5">
-              <Building2 className="h-3.5 w-3.5 text-accent-yellow" />
-              {isXh ? "返回业主门户 (xyjzxh.com)" : "进入协会门户 (xh.xyjzxh.com)"}
-            </span>
-            <ChevronRight className="h-4 w-4" />
-          </Link>
-
-          {authed ? (
-            <div className="mt-4">
-              <Button href="/dashboard" variant="secondary" size="md" className="w-full">进入我的</Button>
-            </div>
-          ) : (
-            <div className="mt-4 grid grid-cols-2 gap-2">
-              <Button href={isXh ? "/login?role=association" : "/login?role=customer"} variant="outline" size="md">登录</Button>
-              <Button href={isXh ? "/join" : "/register?role=customer"} variant="secondary" size="md">
-                {isXh ? "申请入会" : "注册"}
-              </Button>
-            </div>
-          )}
-        </Container>
-      </div>
     </header>
   );
 }
