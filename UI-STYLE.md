@@ -39,8 +39,12 @@
 - 组件：`components/print/print-doc.tsx` —— `PrintBar`（打印按钮，`window.print()`）、`Letterhead`（协会红头：名称+联系方式+红线+标题+文号/日期）、`DocTable`（带边框 key/value 表）、`SealFooter`（签字/盖章落款）。
 - 页面结构：`<div className="no-print">`（返回 + 处置操作按钮 + `PrintBar`）+ `<div className="print-area"><div className="a4-sheet">`（Letterhead + DocTable + 意见栏 + SealFooter）。
 - 打印 CSS 在 `globals.css`：`@media print` 用 visibility 隔离只输出 `.print-area`，`.no-print` 隐藏，`.a4-sheet` 为 210mm 纸张。
-- 文号规则：`XYJZ-{业务码}-编号`（调解 TJ / 金融 JR / 理赔 LP；报备用报备号）。
-- 已落地：调解处置单、工装报备受理回执、理赔受理/定损单、金融服务申请受理单。**新增协会单据类页面照此办。**
+- 文号规则：`XYJZ-{业务码}-编号`（调解 TJ / 金融 JR / 理赔 LP / 入会 RH；报备用报备号）。
+- 两种页面形态：① **文档型页**（调解/报备/理赔/金融受理单）——A4 公文屏幕也显示作预览，操作放 `no-print` 工具栏；② **交互工作台型页**（入会审批 `members/[id]`：有实名核验/审批/证照）——屏幕保留交互(`no-print`)，A4 公文加 `.print-only`（屏幕 `display:none`、打印才显示），不在屏幕上冗余。
+- **坑(务必避开)**：`@page{}` **不能嵌套在 `@media print{}` 内**——会被 Lightning CSS(Tailwind v4)判为非法导致**整个 @media print 块被丢弃**、打印 CSS 静默失效。`@page` 必须写在顶层。
+- 本项目 **Tailwind v4 不会生成 `print:` 变体**（如 `print:hidden`），打印控制一律用自定义类 `.no-print` / `.print-only` / `.print-area`（都在 globals.css，已验证可编译）。
+- 改打印 CSS 后**务必抓编译产物核实**（`/_next/static/chunks/*.css` 里 grep `visibility:hidden`/`print-area`/`no-print`），别只看源码和页面 HTML。
+- 已落地 5 类：调解处置单、工装报备受理回执、理赔受理/定损单、金融服务申请受理单、入会申请审批表。**新增协会单据类页面照此办。**
 
 ## 列表 / 表格 —— 全平台铁律（用户重点强调，所有列表统一遵守）
 > **平台内所有列表都用表格形式：整行可点击 → 进入详情页 → 所有操作都在详情页里做。** 适用于全平台所有门面（消费者门户 / 协会门户 / 企业子站 / 各后台工作台），无一例外。
