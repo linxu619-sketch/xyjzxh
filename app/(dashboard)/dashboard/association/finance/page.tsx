@@ -1,4 +1,5 @@
-import { Wallet, Landmark, Umbrella, CheckCircle2, XCircle, Banknote, Plus, Save, Power, Trash2, AlertCircle } from "lucide-react";
+import Link from "next/link";
+import { Wallet, Landmark, Umbrella, Plus, AlertCircle, ChevronRight } from "lucide-react";
 import { AssociationShell } from "@/components/dashboard/shell";
 import { StatFilters } from "@/components/dashboard/stat-filters";
 import { Badge } from "@/components/ui/badge";
@@ -6,11 +7,10 @@ import { listAllFinanceProducts, listAllFinanceApps, type FinAppStatus } from "@
 import { listAllInsuranceProducts } from "@/lib/data/insurance-products";
 import { listInsuranceOrders } from "@/lib/data/insurance-orders";
 import { listAllClaims, type ClaimStatus } from "@/lib/data/insurance-claims";
-import { reviewFinanceAppAction, createFinanceProductAction, updateFinanceProductAction, toggleFinanceProductAction, deleteFinanceProductAction, createInsuranceProductAction, updateInsuranceProductAction, toggleInsuranceProductAction, deleteInsuranceProductAction, reviewClaimAction } from "./actions";
+import { createFinanceProductAction, createInsuranceProductAction } from "./actions";
 
 const CLAIM_LABEL: Record<ClaimStatus, string> = { pending: "待受理", reviewing: "定损中", settled: "已赔付", rejected: "已驳回" };
 const CLAIM_TONE: Record<ClaimStatus, "yellow" | "brand" | "tea" | "decor"> = { pending: "yellow", reviewing: "brand", settled: "tea", rejected: "decor" };
-const CLAIM_NEXT: Record<ClaimStatus, { status: ClaimStatus; label: string } | null> = { pending: { status: "reviewing", label: "受理·定损" }, reviewing: { status: "settled", label: "确认赔付" }, settled: null, rejected: null };
 
 const FIN_TYPES = ["信用贷", "抵押贷", "经营贷", "保函", "供应链金融", "分期", "票据贴现", "其他"];
 const FIN_COLORS = [["brand", "深蓝"], ["build", "蓝"], ["decor", "红橙"], ["design", "紫"], ["tea", "青绿"]];
@@ -58,90 +58,94 @@ export default async function FinanceAdmin({ searchParams }: { searchParams: Pro
 
       {/* 金融申请审批 */}
       <div className="rounded-2xl border border-border bg-background overflow-hidden mb-6">
-        <div className="px-5 py-3 border-b border-border text-[14px] font-semibold inline-flex items-center gap-1.5"><Landmark className="h-4 w-4" /> 企业金融申请</div>
+        <div className="px-5 py-3 border-b border-border text-[14px] font-semibold inline-flex items-center gap-1.5"><Landmark className="h-4 w-4" /> 企业金融申请 · 点击查看并审批</div>
         {apps.length === 0 ? (
           <div className="px-5 py-12 text-center text-[13px] text-muted-foreground">{active ? "没有该状态的申请。" : "暂无金融申请。企业在「金融保险」申请后会出现在这里。"}</div>
         ) : (
-          <ul className="divide-y divide-border">
-            {apps.map((a) => (
-              <li key={a.id} className="px-5 py-3.5 flex items-center gap-3 text-[13px] flex-wrap">
-                <div className="flex-1 min-w-0">
-                  <div className="font-medium truncate">{a.productName} · {a.amount}</div>
-                  <div className="text-[11px] text-muted-foreground">{a.enterpriseName} · {fmt(a.createdAt)}</div>
-                </div>
-                <Badge tone={FIN_TONE[a.status]} className="shrink-0">{FIN_LABEL[a.status]}</Badge>
-                <div className="flex items-center gap-1.5 shrink-0">
-                  {a.status === "pending" && (
-                    <>
-                      <form action={reviewFinanceAppAction}><input type="hidden" name="id" value={a.id} /><input type="hidden" name="status" value="approved" /><button className="h-8 px-3 rounded-full bg-accent-tea text-white text-[12px] inline-flex items-center gap-1"><CheckCircle2 className="h-3 w-3" /> 批准</button></form>
-                      <form action={reviewFinanceAppAction}><input type="hidden" name="id" value={a.id} /><input type="hidden" name="status" value="rejected" /><button className="h-8 px-3 rounded-full border border-cat-decor/40 text-cat-decor text-[12px] inline-flex items-center gap-1"><XCircle className="h-3 w-3" /> 驳回</button></form>
-                    </>
-                  )}
-                  {a.status === "approved" && (
-                    <form action={reviewFinanceAppAction}><input type="hidden" name="id" value={a.id} /><input type="hidden" name="status" value="disbursed" /><button className="h-8 px-3 rounded-full bg-foreground text-background text-[12px] inline-flex items-center gap-1"><Banknote className="h-3 w-3" /> 标记放款</button></form>
-                  )}
-                </div>
-              </li>
-            ))}
-          </ul>
+          <>
+            <div className="hidden md:grid grid-cols-[1.8fr_1.2fr_1fr_auto] gap-3 px-5 py-2.5 border-b border-border text-[11px] text-muted-foreground tracking-wider">
+              <span>产品 / 额度</span><span>企业</span><span>申请时间</span><span className="text-right">状态</span>
+            </div>
+            <ul className="divide-y divide-border">
+              {apps.map((a) => (
+                <li key={a.id}>
+                  <Link href={`${base}/app/${a.id}`} className="grid grid-cols-[1fr_auto] md:grid-cols-[1.8fr_1.2fr_1fr_auto] gap-3 items-center px-5 py-3.5 text-[13px] hover:bg-surface transition-colors active:scale-[0.99]">
+                    <span className="min-w-0">
+                      <span className="font-medium truncate block">{a.productName} · {a.amount}</span>
+                      <span className="md:hidden text-[11px] text-muted-foreground truncate block">{a.enterpriseName} · {fmt(a.createdAt)}</span>
+                    </span>
+                    <span className="hidden md:block text-muted-foreground truncate">{a.enterpriseName}</span>
+                    <span className="hidden md:block text-muted-foreground tabular-nums">{fmt(a.createdAt)}</span>
+                    <span className="inline-flex items-center gap-2 justify-end shrink-0"><Badge tone={FIN_TONE[a.status]}>{FIN_LABEL[a.status]}</Badge><ChevronRight className="h-4 w-4 text-muted-foreground" /></span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </>
         )}
       </div>
 
-      {/* 保险投保单（真实） */}
+      {/* 保险投保单（只读） */}
       <div className="rounded-2xl border border-border bg-background overflow-hidden mb-6">
         <div className="px-5 py-3 border-b border-border text-[14px] font-semibold inline-flex items-center gap-1.5"><Umbrella className="h-4 w-4" /> 保险投保单</div>
         {insurance.length === 0 ? (
           <div className="px-5 py-12 text-center text-[13px] text-muted-foreground">暂无投保单。</div>
         ) : (
-          <ul className="divide-y divide-border">
-            {insurance.slice(0, 12).map((o) => (
-              <li key={o.id} className="px-5 py-3 flex items-center gap-3 text-[13px]">
-                <div className="flex-1 min-w-0">
-                  <div className="font-medium truncate">{o.product}</div>
-                  <div className="text-[11px] text-muted-foreground">{o.applicant} · {o.phone} · {fmt(o.createdAt)}</div>
-                </div>
-                <Badge tone={o.status === "done" ? "tea" : "yellow"} className="shrink-0">{INS_LABEL[o.status] ?? o.status}</Badge>
-              </li>
-            ))}
-          </ul>
+          <>
+            <div className="hidden md:grid grid-cols-[1.8fr_1.4fr_1fr_auto] gap-3 px-5 py-2.5 border-b border-border text-[11px] text-muted-foreground tracking-wider">
+              <span>产品</span><span>投保人</span><span>时间</span><span className="text-right">状态</span>
+            </div>
+            <ul className="divide-y divide-border">
+              {insurance.slice(0, 12).map((o) => (
+                <li key={o.id} className="grid grid-cols-[1fr_auto] md:grid-cols-[1.8fr_1.4fr_1fr_auto] gap-3 items-center px-5 py-3 text-[13px]">
+                  <span className="min-w-0">
+                    <span className="font-medium truncate block">{o.product}</span>
+                    <span className="md:hidden text-[11px] text-muted-foreground truncate block">{o.applicant} · {o.phone}</span>
+                  </span>
+                  <span className="hidden md:block text-muted-foreground truncate">{o.applicant} · {o.phone}</span>
+                  <span className="hidden md:block text-muted-foreground tabular-nums">{fmt(o.createdAt)}</span>
+                  <span className="text-right"><Badge tone={o.status === "done" ? "tea" : "yellow"}>{INS_LABEL[o.status] ?? o.status}</Badge></span>
+                </li>
+              ))}
+            </ul>
+          </>
         )}
       </div>
 
-      {/* 保险理赔受理（业主报案 → 协会受理 → 定损 → 赔付）*/}
+      {/* 保险理赔受理 */}
       <div id="claims" className="rounded-2xl border border-border bg-background overflow-hidden mb-6 scroll-mt-20">
-        <div className="px-5 py-3 border-b border-border text-[14px] font-semibold inline-flex items-center gap-1.5"><AlertCircle className="h-4 w-4" /> 保险理赔受理 <span className="text-[12px] text-muted-foreground font-normal">· 待受理 {claims.filter((c) => c.status === "pending").length}</span></div>
+        <div className="px-5 py-3 border-b border-border text-[14px] font-semibold inline-flex items-center gap-1.5"><AlertCircle className="h-4 w-4" /> 保险理赔受理 <span className="text-[12px] text-muted-foreground font-normal">· 点击处理 · 待受理 {claims.filter((c) => c.status === "pending").length}</span></div>
         {claims.length === 0 ? (
           <div className="px-5 py-12 text-center text-[13px] text-muted-foreground">暂无理赔申请。业主在「我的保单」报案后会出现在这里。</div>
         ) : (
-          <ul className="divide-y divide-border">
-            {claims.map((c) => {
-              const nx = CLAIM_NEXT[c.status];
-              return (
-                <li key={c.id} className="px-5 py-3.5 flex items-center gap-3 text-[13px] flex-wrap">
-                  <div className="flex-1 min-w-0">
-                    <div className="font-medium truncate">{c.subject}</div>
-                    <div className="text-[11px] text-muted-foreground">CL-{String(c.id).padStart(4, "0")} · {c.applicant} · {c.phone} · {c.policy || c.product} · {fmt(c.createdAt)}</div>
-                  </div>
-                  <Badge tone={CLAIM_TONE[c.status]} className="shrink-0">{CLAIM_LABEL[c.status]}</Badge>
-                  {nx && (
-                    <div className="flex items-center gap-1.5 shrink-0">
-                      <form action={reviewClaimAction}><input type="hidden" name="id" value={c.id} /><input type="hidden" name="status" value={nx.status} /><button className="h-8 px-3 rounded-full bg-accent-tea text-white text-[12px] inline-flex items-center gap-1"><CheckCircle2 className="h-3 w-3" /> {nx.label}</button></form>
-                      {c.status === "pending" && <form action={reviewClaimAction}><input type="hidden" name="id" value={c.id} /><input type="hidden" name="status" value="rejected" /><button className="h-8 px-3 rounded-full border border-cat-decor/40 text-cat-decor text-[12px] inline-flex items-center gap-1"><XCircle className="h-3 w-3" /> 驳回</button></form>}
-                    </div>
-                  )}
+          <>
+            <div className="hidden md:grid grid-cols-[1.8fr_1.2fr_1fr_auto] gap-3 px-5 py-2.5 border-b border-border text-[11px] text-muted-foreground tracking-wider">
+              <span>报案事由</span><span>报案人 / 保单</span><span>报案时间</span><span className="text-right">状态</span>
+            </div>
+            <ul className="divide-y divide-border">
+              {claims.map((c) => (
+                <li key={c.id}>
+                  <Link href={`${base}/claim/${c.id}`} className="grid grid-cols-[1fr_auto] md:grid-cols-[1.8fr_1.2fr_1fr_auto] gap-3 items-center px-5 py-3.5 text-[13px] hover:bg-surface transition-colors active:scale-[0.99]">
+                    <span className="min-w-0">
+                      <span className="font-medium truncate block">{c.subject}</span>
+                      <span className="md:hidden text-[11px] text-muted-foreground truncate block">{c.applicant} · {c.policy || c.product}</span>
+                    </span>
+                    <span className="hidden md:block text-muted-foreground truncate">{c.applicant} · {c.policy || c.product}</span>
+                    <span className="hidden md:block text-muted-foreground tabular-nums">{fmt(c.createdAt)}</span>
+                    <span className="inline-flex items-center gap-2 justify-end shrink-0"><Badge tone={CLAIM_TONE[c.status]}>{CLAIM_LABEL[c.status]}</Badge><ChevronRight className="h-4 w-4 text-muted-foreground" /></span>
+                  </Link>
                 </li>
-              );
-            })}
-          </ul>
+              ))}
+            </ul>
+          </>
         )}
       </div>
 
       {/* 合作金融产品 · 管理 */}
       <div id="products" className="scroll-mt-20" />
       <h2 className="text-[16px] font-semibold mb-1 inline-flex items-center gap-1.5"><Wallet className="h-4 w-4" /> 合作金融产品 · 管理</h2>
-      <p className="text-[12px] text-muted-foreground mb-3">在此维护真实合作金融产品；保存 / 上下架后,企业端「金融保险」与消费者金融页立即同步。</p>
+      <p className="text-[12px] text-muted-foreground mb-3">新增后点任一产品进入详情页编辑 / 上下架 / 删除；保存后企业端与消费者金融页立即同步。</p>
 
-      {/* 新增产品 */}
       <form action={createFinanceProductAction} className="rounded-2xl border border-border bg-background p-4 mb-4">
         <div className="text-[13px] font-semibold mb-3 inline-flex items-center gap-1.5"><Plus className="h-3.5 w-3.5" /> 新增合作产品</div>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5">
@@ -154,56 +158,40 @@ export default async function FinanceAdmin({ searchParams }: { searchParams: Pro
           <input name="termLabel" placeholder="期限(如 12-36 期)" className={FIN_INPUT} />
           <input name="forWhom" placeholder="适用对象(如 在册企业会员)" className={FIN_INPUT} />
         </div>
-        <input name="highlights" placeholder="特性亮点(逗号/换行分隔,最多6条,如 协会会员专属,线上申请,T+1放款)" className={`${FIN_INPUT} mt-2.5`} />
+        <input name="highlights" placeholder="特性亮点(逗号/换行分隔,最多6条)" className={`${FIN_INPUT} mt-2.5`} />
         <button className="mt-3 h-9 px-4 rounded-full bg-foreground text-background text-[13px] font-medium inline-flex items-center gap-1.5"><Plus className="h-3.5 w-3.5" /> 添加产品</button>
       </form>
 
-      {/* 产品列表(含已下架,可编辑/上下架/删除) */}
       {products.length === 0 ? (
         <div className="rounded-2xl border border-dashed border-border p-10 text-center text-[13px] text-muted-foreground">还没有合作金融产品,用上面的表单添加第一个。</div>
       ) : (
-        <div className="space-y-3">
-          {products.map((p) => (
-            <div key={p.id} className={`rounded-2xl border bg-background p-4 ${p.status === "active" ? "border-border" : "border-border/60 opacity-70"}`}>
-              <form action={updateFinanceProductAction} className="space-y-2.5">
-                <input type="hidden" name="id" value={p.id} />
-                <div className="flex items-center gap-2">
-                  <Badge tone={p.status === "active" ? "tea" : "neutral"} className="shrink-0">{p.status === "active" ? "在架" : "已下架"}</Badge>
-                  <span className="text-[11px] text-muted-foreground">ID {p.id}</span>
-                </div>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5">
-                  <input name="name" defaultValue={p.name} placeholder="产品名称" className={FIN_INPUT} />
-                  <input name="provider" defaultValue={p.provider} placeholder="合作机构" className={FIN_INPUT} />
-                  <select name="type" defaultValue={FIN_TYPES.includes(p.type) ? p.type : "其他"} className={FIN_INPUT}>{FIN_TYPES.map((t) => <option key={t} value={t}>{t}</option>)}</select>
-                  <select name="color" defaultValue={p.color} className={FIN_INPUT}>{FIN_COLORS.map(([k, n]) => <option key={k} value={k}>{n}</option>)}</select>
-                  <input name="rateLabel" defaultValue={p.rateLabel} placeholder="利率" className={FIN_INPUT} />
-                  <input name="amountLabel" defaultValue={p.amountLabel} placeholder="额度" className={FIN_INPUT} />
-                  <input name="termLabel" defaultValue={p.termLabel} placeholder="期限" className={FIN_INPUT} />
-                  <input name="forWhom" defaultValue={p.forWhom} placeholder="适用对象" className={FIN_INPUT} />
-                </div>
-                <input name="highlights" defaultValue={p.highlights.join("，")} placeholder="特性亮点(逗号/换行分隔)" className={FIN_INPUT} />
-                <button className="h-8 px-3.5 rounded-full bg-foreground text-background text-[12px] font-medium inline-flex items-center gap-1.5"><Save className="h-3.5 w-3.5" /> 保存修改</button>
-              </form>
-              <div className="flex items-center gap-2 mt-2 pt-2 border-t border-border">
-                <form action={toggleFinanceProductAction}>
-                  <input type="hidden" name="id" value={p.id} />
-                  <input type="hidden" name="status" value={p.status === "active" ? "off" : "active"} />
-                  <button className="h-8 px-3 rounded-full bg-surface text-[12px] inline-flex items-center gap-1.5 hover:bg-surface-2"><Power className="h-3.5 w-3.5" /> {p.status === "active" ? "下架" : "上架"}</button>
-                </form>
-                <form action={deleteFinanceProductAction}>
-                  <input type="hidden" name="id" value={p.id} />
-                  <button className="h-8 px-3 rounded-full text-cat-decor text-[12px] inline-flex items-center gap-1.5 hover:bg-cat-decor-soft"><Trash2 className="h-3.5 w-3.5" /> 删除</button>
-                </form>
-              </div>
-            </div>
-          ))}
+        <div className="rounded-2xl border border-border bg-background overflow-hidden">
+          <div className="hidden md:grid grid-cols-[1.6fr_1.2fr_1fr_1fr_auto] gap-3 px-5 py-2.5 border-b border-border text-[11px] text-muted-foreground tracking-wider">
+            <span>产品</span><span>合作机构</span><span>类型</span><span>利率 / 额度</span><span className="text-right">状态</span>
+          </div>
+          <ul className="divide-y divide-border">
+            {products.map((p) => (
+              <li key={p.id}>
+                <Link href={`${base}/fin-product/${p.id}`} className="grid grid-cols-[1fr_auto] md:grid-cols-[1.6fr_1.2fr_1fr_1fr_auto] gap-3 items-center px-5 py-3.5 text-[13px] hover:bg-surface transition-colors active:scale-[0.99]">
+                  <span className="min-w-0">
+                    <span className="font-medium truncate block">{p.name}</span>
+                    <span className="md:hidden text-[11px] text-muted-foreground truncate block">{p.provider} · {p.type} · {p.rateLabel}</span>
+                  </span>
+                  <span className="hidden md:block text-muted-foreground truncate">{p.provider}</span>
+                  <span className="hidden md:block text-muted-foreground truncate">{p.type}</span>
+                  <span className="hidden md:block text-muted-foreground truncate">{p.rateLabel || "—"}{p.amountLabel ? ` · ${p.amountLabel}` : ""}</span>
+                  <span className="inline-flex items-center gap-2 justify-end shrink-0"><Badge tone={p.status === "active" ? "tea" : "neutral"}>{p.status === "active" ? "在架" : "已下架"}</Badge><ChevronRight className="h-4 w-4 text-muted-foreground" /></span>
+                </Link>
+              </li>
+            ))}
+          </ul>
         </div>
       )}
 
       {/* 合作保险产品 · 管理 */}
       <div id="insurance" className="scroll-mt-20" />
       <h2 className="text-[16px] font-semibold mt-8 mb-1 inline-flex items-center gap-1.5"><Umbrella className="h-4 w-4" /> 合作保险产品 · 管理</h2>
-      <p className="text-[12px] text-muted-foreground mb-3">维护真实合作保险产品；保存 / 上下架后,消费者「消费保险」页立即同步。勾选「主推」的产品作为保险页顶部主打。</p>
+      <p className="text-[12px] text-muted-foreground mb-3">新增后点任一产品进入详情页编辑 / 上下架 / 删除 / 设主推；保存后消费者「消费保险」页立即同步。</p>
 
       <form action={createInsuranceProductAction} className="rounded-2xl border border-border bg-background p-4 mb-4">
         <div className="text-[13px] font-semibold mb-3 inline-flex items-center gap-1.5"><Plus className="h-3.5 w-3.5" /> 新增保险产品</div>
@@ -224,42 +212,26 @@ export default async function FinanceAdmin({ searchParams }: { searchParams: Pro
       {insProducts.length === 0 ? (
         <div className="rounded-2xl border border-dashed border-border p-10 text-center text-[13px] text-muted-foreground">还没有合作保险产品,用上面的表单添加第一个。</div>
       ) : (
-        <div className="space-y-3">
-          {insProducts.map((p) => (
-            <div key={p.id} className={`rounded-2xl border bg-background p-4 ${p.status === "active" ? "border-border" : "border-border/60 opacity-70"}`}>
-              <form action={updateInsuranceProductAction} className="space-y-2.5">
-                <input type="hidden" name="id" value={p.id} />
-                <div className="flex items-center gap-2 flex-wrap">
-                  <Badge tone={p.status === "active" ? "tea" : "neutral"} className="shrink-0">{p.status === "active" ? "在架" : "已下架"}</Badge>
-                  {p.featured && <Badge tone="decor" className="shrink-0">主推</Badge>}
-                  <span className="text-[11px] text-muted-foreground">ID {p.id}</span>
-                </div>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5">
-                  <input name="name" defaultValue={p.name} placeholder="产品名称" className={FIN_INPUT} />
-                  <input name="insurer" defaultValue={p.insurer} placeholder="承保机构" className={FIN_INPUT} />
-                  <select name="type" defaultValue={INS_TYPES.includes(p.type) ? p.type : "其他"} className={FIN_INPUT}>{INS_TYPES.map((t) => <option key={t} value={t}>{t}</option>)}</select>
-                  <select name="color" defaultValue={p.color} className={FIN_INPUT}>{FIN_COLORS_INS.map(([k, n]) => <option key={k} value={k}>{n}</option>)}</select>
-                  <input name="priceLabel" defaultValue={p.priceLabel} placeholder="价格" className={FIN_INPUT} />
-                  <input name="coverLabel" defaultValue={p.coverLabel} placeholder="保额" className={FIN_INPUT} />
-                  <input name="forWhom" defaultValue={p.forWhom} placeholder="适用对象" className={FIN_INPUT} />
-                  <label className="inline-flex items-center gap-2 text-[12px] px-1"><input type="checkbox" name="featured" value="1" defaultChecked={p.featured} className="accent-brand" /> 主推</label>
-                </div>
-                <input name="highlights" defaultValue={p.highlights.join("，")} placeholder="特性亮点(逗号/换行分隔)" className={FIN_INPUT} />
-                <button className="h-8 px-3.5 rounded-full bg-foreground text-background text-[12px] font-medium inline-flex items-center gap-1.5"><Save className="h-3.5 w-3.5" /> 保存修改</button>
-              </form>
-              <div className="flex items-center gap-2 mt-2 pt-2 border-t border-border">
-                <form action={toggleInsuranceProductAction}>
-                  <input type="hidden" name="id" value={p.id} />
-                  <input type="hidden" name="status" value={p.status === "active" ? "off" : "active"} />
-                  <button className="h-8 px-3 rounded-full bg-surface text-[12px] inline-flex items-center gap-1.5 hover:bg-surface-2"><Power className="h-3.5 w-3.5" /> {p.status === "active" ? "下架" : "上架"}</button>
-                </form>
-                <form action={deleteInsuranceProductAction}>
-                  <input type="hidden" name="id" value={p.id} />
-                  <button className="h-8 px-3 rounded-full text-cat-decor text-[12px] inline-flex items-center gap-1.5 hover:bg-cat-decor-soft"><Trash2 className="h-3.5 w-3.5" /> 删除</button>
-                </form>
-              </div>
-            </div>
-          ))}
+        <div className="rounded-2xl border border-border bg-background overflow-hidden">
+          <div className="hidden md:grid grid-cols-[1.6fr_1.2fr_1fr_1fr_auto] gap-3 px-5 py-2.5 border-b border-border text-[11px] text-muted-foreground tracking-wider">
+            <span>产品</span><span>承保机构</span><span>类型</span><span>价格 / 保额</span><span className="text-right">状态</span>
+          </div>
+          <ul className="divide-y divide-border">
+            {insProducts.map((p) => (
+              <li key={p.id}>
+                <Link href={`${base}/ins-product/${p.id}`} className="grid grid-cols-[1fr_auto] md:grid-cols-[1.6fr_1.2fr_1fr_1fr_auto] gap-3 items-center px-5 py-3.5 text-[13px] hover:bg-surface transition-colors active:scale-[0.99]">
+                  <span className="min-w-0">
+                    <span className="font-medium truncate flex items-center gap-1.5">{p.name}{p.featured && <Badge tone="decor" className="!px-1.5 !py-0">主推</Badge>}</span>
+                    <span className="md:hidden text-[11px] text-muted-foreground truncate block">{p.insurer} · {p.type} · {p.priceLabel}</span>
+                  </span>
+                  <span className="hidden md:block text-muted-foreground truncate">{p.insurer}</span>
+                  <span className="hidden md:block text-muted-foreground truncate">{p.type}</span>
+                  <span className="hidden md:block text-muted-foreground truncate">{p.priceLabel || "—"}{p.coverLabel ? ` · ${p.coverLabel}` : ""}</span>
+                  <span className="inline-flex items-center gap-2 justify-end shrink-0"><Badge tone={p.status === "active" ? "tea" : "neutral"}>{p.status === "active" ? "在架" : "已下架"}</Badge><ChevronRight className="h-4 w-4 text-muted-foreground" /></span>
+                </Link>
+              </li>
+            ))}
+          </ul>
         </div>
       )}
     </AssociationShell>
