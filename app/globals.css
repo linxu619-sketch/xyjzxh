@@ -195,8 +195,8 @@ html, body {
   padding: 18mm 16mm;
   box-shadow: 0 1px 3px rgba(0,0,0,.08), 0 8px 30px rgba(0,0,0,.06);
 }
+@page { size: A4; margin: 14mm; }
 @media print {
-  @page { size: A4; margin: 14mm; }
   html, body { background: #fff !important; }
   /* 只显示打印区，其余（后台外壳、工具栏、导航）全部隐藏 */
   body * { visibility: hidden !important; }

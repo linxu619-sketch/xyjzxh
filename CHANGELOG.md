@@ -14,6 +14,12 @@
 
 ---
 
+## [0.90.2] - 2026-06-04
+
+### 修复(关键):打印 CSS 此前根本没生效
+- 根因:globals.css 里 `@media print` 内嵌套 `@page`,导致 Lightning CSS(Tailwind v4)解析时丢弃整个 @media print 块——打印隐藏规则从未下发浏览器,所以红头上方的后台界面一直在打印。
+- 修复:`@page` 移到顶层。重新编译产物确认 visibility:hidden / .print-area / .no-print / @page 全部到位。打印 / 另存 PDF 现只输出红头以下的 A4 公文。
+
 ## [0.90.1] - 2026-06-04
 
 ### 修复:打印时只输出 A4 公文(从协会红头开始)
