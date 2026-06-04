@@ -10,7 +10,8 @@ export const metadata = { title: "用户管理 · 协会工作台" };
 
 const ST_LABEL: Record<AccountStatus, string> = { active: "正常", pending: "审核中", rejected: "已停用" };
 const ST_TONE: Record<AccountStatus, "tea" | "yellow" | "decor"> = { active: "tea", pending: "yellow", rejected: "decor" };
-const STAFF_ROLE: Record<string, string> = { super_admin: "超级管理员", admin: "管理员", staff: "工作人员", reviewer: "审核员", mediator: "调解员" };
+const STAFF_ROLE: Record<string, string> = { super_admin: "超级管理员", secretary: "秘书长", reviewer: "审核员", finance: "金融保险专员", content: "内容编辑", support: "客服支持", admin: "管理员", staff: "工作人员", mediator: "调解员" };
+const STAFF_TONE: Record<string, "brand" | "build" | "design" | "decor" | "tea" | "yellow" | "neutral"> = { super_admin: "brand", secretary: "build", reviewer: "design", finance: "tea", content: "yellow", support: "neutral" };
 
 function mask(p: string) { return p && p.length === 11 ? `${p.slice(0, 3)}****${p.slice(-4)}` : p; }
 function fmt(ms: number) { if (!ms) return "—"; const d = new Date(ms); const p = (n: number) => String(n).padStart(2, "0"); return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`; }
@@ -45,21 +46,28 @@ export default async function UsersAdmin({ searchParams }: { searchParams: Promi
 
       {active === "staff" ? (
         <div className="rounded-2xl border border-border bg-background overflow-hidden">
-          <div className="px-5 py-3 border-b border-border text-[14px] font-semibold inline-flex items-center gap-1.5"><Crown className="h-4 w-4" /> 协会工作人员 <span className="text-[12px] text-muted-foreground font-normal">· 编译进程序,永不入库</span></div>
+          <div className="px-5 py-3 border-b border-border text-[14px] font-semibold inline-flex items-center gap-1.5"><Crown className="h-4 w-4" /> 协会工作人员 · {SEED_STAFF.length} 人 <span className="text-[12px] text-muted-foreground font-normal">· 编译进程序,永不入库</span></div>
+          <div className="hidden md:grid grid-cols-[1.3fr_1.1fr_1fr_1fr_auto] gap-3 px-5 py-2.5 border-b border-border text-[11px] text-muted-foreground tracking-wider">
+            <span>姓名</span><span>角色</span><span>手机号</span><span>状态</span><span className="text-right">维护方式</span>
+          </div>
           <ul className="divide-y divide-border">
             {SEED_STAFF.map((s) => (
-              <li key={s.id} className="px-5 py-3.5 flex items-center gap-3 text-[13px]">
-                <span className="h-9 w-9 rounded-xl bg-brand-50 text-brand inline-flex items-center justify-center shrink-0 font-semibold">{s.name.slice(0, 1)}</span>
-                <div className="flex-1 min-w-0">
-                  <div className="font-medium">{s.name} <span className="text-[11px] text-muted-foreground font-normal ml-1">{STAFF_ROLE[s.staffRole] ?? s.staffRole}</span></div>
-                  <div className="text-[11px] text-muted-foreground">{mask(s.phone)}</div>
-                </div>
-                <Badge tone="tea" className="shrink-0">正常</Badge>
-                <span className="shrink-0 text-[11px] text-muted-foreground inline-flex items-center gap-1"><Lock className="h-3 w-3" /> 仅源码可改</span>
+              <li key={s.id} className="grid grid-cols-[1fr_auto] md:grid-cols-[1.3fr_1.1fr_1fr_1fr_auto] gap-3 items-center px-5 py-3.5 text-[13px]">
+                <span className="min-w-0 inline-flex items-center gap-2">
+                  <span className="h-8 w-8 rounded-lg bg-brand-50 text-brand inline-flex items-center justify-center shrink-0 font-semibold">{s.name.slice(0, 1)}</span>
+                  <span className="min-w-0">
+                    <span className="font-medium truncate block">{s.name}</span>
+                    <span className="md:hidden text-[11px] text-muted-foreground">{STAFF_ROLE[s.staffRole] ?? s.staffRole} · {mask(s.phone)}</span>
+                  </span>
+                </span>
+                <span className="hidden md:block"><Badge tone={STAFF_TONE[s.staffRole] ?? "neutral"}>{STAFF_ROLE[s.staffRole] ?? s.staffRole}</Badge></span>
+                <span className="hidden md:block text-muted-foreground tabular-nums">{mask(s.phone)}</span>
+                <span className="hidden md:block"><Badge tone={s.status === "active" ? "tea" : "decor"}>{s.status === "active" ? "正常" : "已锁定"}</Badge></span>
+                <span className="inline-flex items-center gap-1 justify-end shrink-0 text-[11px] text-muted-foreground"><Lock className="h-3 w-3" /> 仅源码可改</span>
               </li>
             ))}
           </ul>
-          <div className="px-5 py-3 text-[12px] text-muted-foreground border-t border-border">协会工作人员账号由秘书处/平台运维在源码中维护,不在此处增删。</div>
+          <div className="px-5 py-3 text-[12px] text-muted-foreground border-t border-border">协会工作人员账号由秘书处 / 平台运维在源码中维护,不在此处增删;登录密码为各自手机号后 6 位。</div>
         </div>
       ) : (
         (() => {
