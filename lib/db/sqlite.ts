@@ -7,6 +7,7 @@ import { KNOWLEDGE } from "@/lib/ai/knowledge";
 import { PROJECTS as SHOWCASE_PROJECTS } from "@/lib/data/projects";
 import { JOBS as RECRUIT_JOBS, CERTIFICATES as MEMBER_CERTS } from "@/lib/data/talents";
 import { PRACTITIONER_JOBS, WORKER_INSURANCE } from "@/lib/data/practitioners";
+import { KNOWLEDGE as KB_ARTICLES } from "@/lib/data/knowledge";
 
 /* ============================================================
    本地 SQLite 数据库（Node 24 内置 node:sqlite，零依赖、零云端）
@@ -156,6 +157,20 @@ CREATE TABLE IF NOT EXISTS worker_insurance (
   cover        TEXT,
   badges       TEXT,    -- JSON
   created_at   INTEGER
+);
+
+-- 装修知识库文章（消费者 /knowledge）
+CREATE TABLE IF NOT EXISTS knowledge_articles (
+  id          TEXT PRIMARY KEY,
+  title       TEXT,
+  category    TEXT,
+  tags        TEXT,    -- JSON
+  date        TEXT,
+  size        TEXT,
+  hot         INTEGER,
+  excerpt     TEXT,
+  content     TEXT,    -- JSON: [{h, points[]}]
+  created_at  INTEGER
 );
 
 -- 会员证书查询展示
@@ -727,7 +742,17 @@ function init(): DB {
   seedMemberCertificates(db);
   seedPractitionerJobs(db);
   seedWorkerInsurance(db);
+  seedKnowledgeArticles(db);
   return db;
+}
+
+// 装修知识库文章
+function seedKnowledgeArticles(db: DB) {
+  if (!isEmpty(db, "knowledge_articles")) return;
+  for (const k of KB_ARTICLES) {
+    db.prepare("INSERT INTO knowledge_articles (id,title,category,tags,date,size,hot,excerpt,content,created_at) VALUES (?,?,?,?,?,?,?,?,?,?)")
+      .run(k.id, k.title, k.category, JSON.stringify(k.tags ?? []), k.date ?? "", k.size ?? "", k.hot ? 1 : 0, k.excerpt ?? "", JSON.stringify(k.content ?? []), Date.parse(k.date ?? "") || Date.now());
+  }
 }
 
 // 从业者实时找活 feed

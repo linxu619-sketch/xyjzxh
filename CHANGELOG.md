@@ -14,6 +14,14 @@
 
 ---
 
+## [0.87.0] - 2026-06-04
+
+### 去硬编码(4/4 上):装修知识库 /knowledge 改读数据库
+- 新增 knowledge_articles 表(8 篇,含 excerpt + content 章节)+ seedKnowledgeArticles(KNOWLEDGE 降为种子源)。
+- 新增 lib/data/knowledge-source.ts(listKnowledge/getKnowledgeArticle,回退静态)。
+- /knowledge、/knowledge/[id]、协会知识库管理页 改读库;KNOWLEDGE_CATEGORIES 作配置保留。
+- 经一次无损重启,新表(showcase_projects/recruitment_jobs/member_certificates/practitioner_jobs/worker_insurance/knowledge_articles)全部灌种子;已有数据未动。
+
 ## [0.86.0] - 2026-06-04
 
 ### 去硬编码(3/4):从业者门户演示数据改读数据库

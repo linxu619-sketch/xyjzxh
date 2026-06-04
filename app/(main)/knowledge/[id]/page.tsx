@@ -3,19 +3,15 @@ import { notFound } from "next/navigation";
 import { ArrowLeft, Library, FileText, Sparkles, ShieldCheck, CalendarDays, ArrowUpRight } from "lucide-react";
 import { Container } from "@/components/container";
 import { Badge } from "@/components/ui/badge";
-import { KNOWLEDGE, getKnowledge } from "@/lib/data/knowledge";
+import { listKnowledge, getKnowledgeArticle } from "@/lib/data/knowledge-source";
 
 export const metadata = { title: "资料详情 · 知识库 · 信阳市建筑装饰装修协会" };
 
-export async function generateStaticParams() {
-  return KNOWLEDGE.map((k) => ({ id: k.id }));
-}
-
 export default async function KnowledgeDetail({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const k = getKnowledge(id);
+  const k = getKnowledgeArticle(id);
   if (!k) notFound();
-  const related = KNOWLEDGE.filter((x) => x.id !== k.id && x.category === k.category).slice(0, 4);
+  const related = listKnowledge().filter((x) => x.id !== k.id && x.category === k.category).slice(0, 4);
 
   return (
     <Container className="py-6 md:py-10 max-w-3xl">

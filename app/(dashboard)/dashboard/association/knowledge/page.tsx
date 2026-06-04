@@ -3,11 +3,13 @@ import { Upload, Eye, Pencil, Trash2, Library, Sparkles } from "lucide-react";
 import { AssociationShell } from "@/components/dashboard/shell";
 import { DataTable } from "@/components/dashboard/section";
 import { Badge } from "@/components/ui/badge";
-import { KNOWLEDGE, KNOWLEDGE_CATEGORIES } from "@/lib/data/knowledge";
+import { KNOWLEDGE_CATEGORIES } from "@/lib/data/knowledge";
+import { listKnowledge } from "@/lib/data/knowledge-source";
 
 export const metadata = { title: "知识库管理 · 协会工作台" };
 
 export default function KnowledgeAdmin() {
+  const KNOWLEDGE = listKnowledge();
   return (
     <AssociationShell
       title="知识库管理"

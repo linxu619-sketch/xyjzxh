@@ -3,7 +3,8 @@ import { Library, Search, ArrowUpRight, FileText, Sparkles } from "lucide-react"
 import { Container } from "@/components/container";
 import { PageHeader } from "@/components/page-header";
 import { Badge } from "@/components/ui/badge";
-import { KNOWLEDGE, KNOWLEDGE_CATEGORIES } from "@/lib/data/knowledge";
+import { KNOWLEDGE_CATEGORIES } from "@/lib/data/knowledge";
+import { listKnowledge } from "@/lib/data/knowledge-source";
 
 const TONE: Record<string, "build" | "decor" | "design" | "tea" | "brand"> = {
   brand: "brand", build: "build", decor: "decor", design: "design", tea: "tea",
@@ -12,6 +13,7 @@ const TONE: Record<string, "build" | "decor" | "design" | "tea" | "brand"> = {
 export const metadata = { title: "知识库 · 信阳市建筑装饰装修协会" };
 
 export default function KnowledgePage() {
+  const KNOWLEDGE = listKnowledge();
   const hot = KNOWLEDGE.filter((k) => k.hot);
   return (
     <>
