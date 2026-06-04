@@ -45,22 +45,24 @@ export async function AssociationShell({ title, subtitle, actions, children }: S
 
   return (
     <div className="flex">
-      <Sidebar
-        brand={isSys ? "平台超管控制台" : "协会工作台"}
-        role={isSys ? "Platform Owner" : "Association Console"}
-        items={items}
-        user={{
-          name: session.name,
-          meta: isSys
-            ? "系统管理员 · 最高权限"
-            : `${session.staffRole ?? "staff"} · ${maskPhone(session.phone)}`,
-        }}
-        tone="brand"
-      />
+      <div className="no-print contents">
+        <Sidebar
+          brand={isSys ? "平台超管控制台" : "协会工作台"}
+          role={isSys ? "Platform Owner" : "Association Console"}
+          items={items}
+          user={{
+            name: session.name,
+            meta: isSys
+              ? "系统管理员 · 最高权限"
+              : `${session.staffRole ?? "staff"} · ${maskPhone(session.phone)}`,
+          }}
+          tone="brand"
+        />
+      </div>
       <div className="flex-1 bg-surface min-h-screen">
         <div className="px-5 pb-8 pt-[72px] md:p-10 max-w-7xl">
-          {isSys && <SuperAdminBanner session={session} />}
-          <TopBar title={title} subtitle={subtitle} actions={actions} />
+          {isSys && <div className="no-print"><SuperAdminBanner session={session} /></div>}
+          <div className="no-print"><TopBar title={title} subtitle={subtitle} actions={actions} /></div>
           {children}
         </div>
       </div>
