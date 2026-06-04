@@ -91,6 +91,7 @@ export async function EnterpriseShell({ title, subtitle, actions, children }: Sh
         items={items}
         user={{ name: preview ? "协会预览" : session!.name, meta: preview ? "只读预览样板企业" : `企业管理员 · ${maskPhone(session!.phone)}` }}
         tone="build"
+        back={preview ? { href: "/dashboard/association", label: "返回协会工作台" } : { href: ent?.slug ? `/biz/${ent.slug}` : "/", label: "查看我的子站" }}
       />
       <div className="flex-1 bg-surface min-h-screen">
         <div className="px-5 pb-8 pt-[72px] md:p-10 max-w-7xl">

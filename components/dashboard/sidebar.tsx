@@ -15,12 +15,14 @@ export function Sidebar({
   items,
   user,
   tone = "brand",
+  back,
 }: {
   brand: string;
   role: string;
   items: Item[];
   user: { name: string; meta: string };
   tone?: "brand" | "build" | "decor";
+  back?: { href: string; label: string };
 }) {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
@@ -81,10 +83,12 @@ export function Sidebar({
 
   const brandBlock = (
     <div className="px-5 py-5 border-b border-border">
-      <Link href="/" className="inline-flex items-center gap-1.5 text-[11px] text-muted-foreground hover:text-foreground">
-        <ChevronLeft className="h-3 w-3" /> 返回主站
-      </Link>
-      <div className="mt-3 flex items-center gap-2.5">
+      {back && (
+        <Link href={back.href} className="inline-flex items-center gap-1.5 text-[11px] text-muted-foreground hover:text-foreground">
+          <ChevronLeft className="h-3 w-3" /> {back.label}
+        </Link>
+      )}
+      <div className={cn("flex items-center gap-2.5", back && "mt-3")}>
         <span className={cn("h-9 w-9 rounded-xl flex items-center justify-center text-white text-[13px] font-semibold", TONE[tone])}>
           {brand.slice(0, 2)}
         </span>
@@ -151,9 +155,11 @@ export function Sidebar({
                 <X className="h-5 w-5" />
               </button>
             </div>
-            <Link href="/" onClick={() => setOpen(false)} className="px-4 py-2.5 text-[11px] text-muted-foreground hover:text-foreground inline-flex items-center gap-1.5 border-b border-border">
-              <ChevronLeft className="h-3 w-3" /> 返回主站
-            </Link>
+            {back && (
+              <Link href={back.href} onClick={() => setOpen(false)} className="px-4 py-2.5 text-[11px] text-muted-foreground hover:text-foreground inline-flex items-center gap-1.5 border-b border-border">
+                <ChevronLeft className="h-3 w-3" /> {back.label}
+              </Link>
+            )}
             {navList(() => setOpen(false))}
             {userFooter}
           </aside>
