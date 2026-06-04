@@ -639,8 +639,16 @@ function seedApplications(db: DB) {
     ["individual", "吴小明", "13800010005", { realName: "吴小明", profession: "独立工长", idcard: "411500198805053456", years: "6", phone: "13800010005", "身份证人像面": "/samples/id-front.svg", "身份证国徽面": "/samples/id-back.svg", "代表作品": "/samples/work-1.svg" }, "rejected"],
   ];
   const stmt = db.prepare("INSERT INTO applications (type,applicant,phone,payload,status,created_at) VALUES (?,?,?,?,?,?)");
+  const acct = db.prepare("INSERT OR IGNORE INTO accounts (phone,role,status,name,app_id,created_at) VALUES (?,?,?,?,?,?)");
   const now = Date.now();
-  rows.forEach((r, i) => stmt.run(r[0], r[1], r[2], JSON.stringify(r[3]), r[4], now - i * DAY));
+  rows.forEach((r, i) => {
+    const info = stmt.run(r[0], r[1], r[2], JSON.stringify(r[3]), r[4], now - i * DAY);
+    // 入会申请同步建账号（业主无需）：approved→active / rejected→rejected / 其余 pending
+    if (r[0] === "enterprise" || r[0] === "individual") {
+      const st = r[4] === "approved" ? "active" : r[4] === "rejected" ? "rejected" : "pending";
+      acct.run(r[2], r[0], st, r[1], Number(info.lastInsertRowid), now - i * DAY);
+    }
+  });
 }
 
 function seedReports(db: DB) {
