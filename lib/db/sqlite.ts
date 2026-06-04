@@ -379,7 +379,8 @@ CREATE TABLE IF NOT EXISTS association_staff (
   name          TEXT,
   phone         TEXT UNIQUE,
   email         TEXT,
-  staff_role    TEXT,    -- secretary | reviewer | finance | content | support | super_admin
+  staff_role    TEXT,    -- 主角色（兼容旧字段）
+  roles         TEXT,    -- 多角色 JSON 数组，如 ["secretary","reviewer"]
   password_hash TEXT,
   status        TEXT DEFAULT 'active', -- active | locked
   created_at    INTEGER
@@ -804,8 +805,9 @@ function seedAssociationStaff(db: DB) {
   if (!isEmpty(db, "association_staff")) return;
   const now = Date.now();
   SEED_STAFF.forEach((s, i) => {
-    db.prepare("INSERT INTO association_staff (id,name,phone,email,staff_role,password_hash,status,created_at) VALUES (?,?,?,?,?,?,?,?)")
-      .run(s.id, s.name, s.phone, s.email ?? null, s.staffRole, s.passwordHash, s.status, now - i * 86400000);
+    const roles = s.roles && s.roles.length ? s.roles : [s.staffRole];
+    db.prepare("INSERT INTO association_staff (id,name,phone,email,staff_role,roles,password_hash,status,created_at) VALUES (?,?,?,?,?,?,?,?,?)")
+      .run(s.id, s.name, s.phone, s.email ?? null, s.staffRole, JSON.stringify(roles), s.passwordHash, s.status, now - i * 86400000);
   });
 }
 
@@ -1108,10 +1110,14 @@ function migrate(db: DB) {
     "ALTER TABLE finance_applications ADD COLUMN reviewed_at INTEGER",
     "ALTER TABLE mediations ADD COLUMN handled_by TEXT",
     "ALTER TABLE mediations ADD COLUMN handled_at INTEGER",
+    // 协会员工多角色
+    "ALTER TABLE association_staff ADD COLUMN roles TEXT",
   ];
   for (const sql of alters) {
     try { db.exec(sql); } catch { /* 列已存在，忽略 */ }
   }
+  // 旧库 association_staff.roles 为空时，用主角色兜底成单元素数组（幂等）
+  try { db.exec("UPDATE association_staff SET roles = '[\"' || staff_role || '\"]' WHERE roles IS NULL OR roles = ''"); } catch { /* 表/列不存在则忽略 */ }
 }
 
 // 把历史/种子的协会自营商品补齐卖家与品牌字段（幂等）

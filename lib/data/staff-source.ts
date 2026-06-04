@@ -8,12 +8,17 @@ import { SEED_STAFF } from "@/lib/data/users-seed";
 export type StaffStatus = "active" | "locked";
 export type Staff = {
   id: string; name: string; phone: string; email: string;
-  staffRole: string; status: StaffStatus; createdAt: number;
+  staffRole: string; roles: string[]; status: StaffStatus; createdAt: number;
 };
-type Row = { id: string; name: string | null; phone: string | null; email: string | null; staff_role: string | null; password_hash: string | null; status: string; created_at: number | null };
+type Row = { id: string; name: string | null; phone: string | null; email: string | null; staff_role: string | null; roles: string | null; password_hash: string | null; status: string; created_at: number | null };
 
+function parseRoles(s: string | null, fallback: string): string[] {
+  if (s) { try { const v = JSON.parse(s); if (Array.isArray(v) && v.length) return v.map(String); } catch { /**/ } }
+  return [fallback];
+}
 function rowTo(r: Row): Staff {
-  return { id: r.id, name: r.name ?? "", phone: r.phone ?? "", email: r.email ?? "", staffRole: r.staff_role ?? "support", status: (r.status as StaffStatus) ?? "active", createdAt: r.created_at ?? 0 };
+  const primary = r.staff_role ?? "support";
+  return { id: r.id, name: r.name ?? "", phone: r.phone ?? "", email: r.email ?? "", staffRole: primary, roles: parseRoles(r.roles, primary), status: (r.status as StaffStatus) ?? "active", createdAt: r.created_at ?? 0 };
 }
 
 export function listStaff(): Staff[] {
@@ -21,7 +26,7 @@ export function listStaff(): Staff[] {
     const rows = getDb().prepare("SELECT * FROM association_staff ORDER BY created_at ASC").all() as Row[];
     if (rows.length) return rows.map(rowTo);
   } catch { /* fall through */ }
-  return SEED_STAFF.map((s, i) => ({ id: s.id, name: s.name, phone: s.phone, email: s.email ?? "", staffRole: s.staffRole, status: s.status, createdAt: Date.now() - i * 86400000 }));
+  return SEED_STAFF.map((s, i) => ({ id: s.id, name: s.name, phone: s.phone, email: s.email ?? "", staffRole: s.staffRole, roles: s.roles ?? [s.staffRole], status: s.status, createdAt: Date.now() - i * 86400000 }));
 }
 
 export function getStaff(id: string): Staff | undefined {
@@ -30,7 +35,7 @@ export function getStaff(id: string): Staff | undefined {
     if (r) return rowTo(r);
   } catch { /* fall through */ }
   const s = SEED_STAFF.find((x) => x.id === id);
-  return s ? { id: s.id, name: s.name, phone: s.phone, email: s.email ?? "", staffRole: s.staffRole, status: s.status, createdAt: 0 } : undefined;
+  return s ? { id: s.id, name: s.name, phone: s.phone, email: s.email ?? "", staffRole: s.staffRole, roles: s.roles ?? [s.staffRole], status: s.status, createdAt: 0 } : undefined;
 }
 
 // 登录用：含密码哈希

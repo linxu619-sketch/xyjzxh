@@ -5,13 +5,12 @@ import { StatFilters } from "@/components/dashboard/stat-filters";
 import { Badge } from "@/components/ui/badge";
 import { listAccounts, countAccountsByRole, type AccountStatus } from "@/lib/data/accounts";
 import { listStaff } from "@/lib/data/staff-source";
+import { roleLabel, roleTone } from "@/lib/auth/roles";
 
 export const metadata = { title: "用户管理 · 协会工作台" };
 
 const ST_LABEL: Record<AccountStatus, string> = { active: "正常", pending: "审核中", rejected: "已停用" };
 const ST_TONE: Record<AccountStatus, "tea" | "yellow" | "decor"> = { active: "tea", pending: "yellow", rejected: "decor" };
-const STAFF_ROLE: Record<string, string> = { super_admin: "超级管理员", secretary: "秘书长", reviewer: "审核员", finance: "金融保险专员", content: "内容编辑", support: "客服支持", admin: "管理员", staff: "工作人员", mediator: "调解员" };
-const STAFF_TONE: Record<string, "brand" | "build" | "design" | "decor" | "tea" | "yellow" | "neutral"> = { super_admin: "brand", secretary: "build", reviewer: "design", finance: "tea", content: "yellow", support: "neutral" };
 
 function mask(p: string) { return p && p.length === 11 ? `${p.slice(0, 3)}****${p.slice(-4)}` : p; }
 function fmt(ms: number) { if (!ms) return "—"; const d = new Date(ms); const p = (n: number) => String(n).padStart(2, "0"); return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`; }
@@ -59,10 +58,10 @@ export default async function UsersAdmin({ searchParams }: { searchParams: Promi
                     <span className="h-8 w-8 rounded-lg bg-brand-50 text-brand inline-flex items-center justify-center shrink-0 font-semibold">{s.name.slice(0, 1)}</span>
                     <span className="min-w-0">
                       <span className="font-medium truncate block">{s.name}</span>
-                      <span className="md:hidden text-[11px] text-muted-foreground">{STAFF_ROLE[s.staffRole] ?? s.staffRole} · {mask(s.phone)}</span>
+                      <span className="md:hidden text-[11px] text-muted-foreground">{s.roles.map(roleLabel).join(" / ")} · {mask(s.phone)}</span>
                     </span>
                   </span>
-                  <span className="hidden md:block"><Badge tone={STAFF_TONE[s.staffRole] ?? "neutral"}>{STAFF_ROLE[s.staffRole] ?? s.staffRole}</Badge></span>
+                  <span className="hidden md:flex flex-wrap gap-1">{s.roles.map((r) => <Badge key={r} tone={roleTone(r)}>{roleLabel(r)}</Badge>)}</span>
                   <span className="hidden md:block text-muted-foreground tabular-nums">{mask(s.phone)}</span>
                   <span className="inline-flex items-center gap-2 justify-end shrink-0">
                     <Badge tone={s.status === "active" ? "tea" : "decor"}>{s.status === "active" ? "正常" : "已停用"}</Badge>
