@@ -1,0 +1,99 @@
+import { Crown, Building2, UserRound, Users2, ShieldCheck, Power, Lock } from "lucide-react";
+import { AssociationShell } from "@/components/dashboard/shell";
+import { StatFilters } from "@/components/dashboard/stat-filters";
+import { Badge } from "@/components/ui/badge";
+import { listAccounts, countAccountsByRole, type AccountStatus } from "@/lib/data/accounts";
+import { SEED_STAFF } from "@/lib/data/users-seed";
+import { setAccountStatusAction } from "./actions";
+
+export const metadata = { title: "用户管理 · 协会工作台" };
+
+const ST_LABEL: Record<AccountStatus, string> = { active: "正常", pending: "审核中", rejected: "已停用" };
+const ST_TONE: Record<AccountStatus, "tea" | "yellow" | "decor"> = { active: "tea", pending: "yellow", rejected: "decor" };
+const STAFF_ROLE: Record<string, string> = { super_admin: "超级管理员", admin: "管理员", staff: "工作人员", reviewer: "审核员", mediator: "调解员" };
+
+function mask(p: string) { return p && p.length === 11 ? `${p.slice(0, 3)}****${p.slice(-4)}` : p; }
+function fmt(ms: number) { if (!ms) return "—"; const d = new Date(ms); const p = (n: number) => String(n).padStart(2, "0"); return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`; }
+
+const TABS = [
+  { key: "staff", label: "协会工作人员", icon: Crown },
+  { key: "enterprise", label: "企业会员", icon: Building2 },
+  { key: "individual", label: "个人会员", icon: UserRound },
+  { key: "customer", label: "业主", icon: Users2 },
+] as const;
+
+export default async function UsersAdmin({ searchParams }: { searchParams: Promise<{ tab?: string }> }) {
+  const { tab } = await searchParams;
+  const active = TABS.some((t) => t.key === tab) ? tab! : "staff";
+  const counts = countAccountsByRole();
+  const base = "/dashboard/association/users";
+
+  return (
+    <AssociationShell title="用户管理" subtitle="平台四类用户的账号总览与启用/停用">
+      <StatFilters
+        items={TABS.map((t) => ({
+          key: t.key,
+          label: t.label,
+          value: t.key === "staff" ? SEED_STAFF.length : (counts[t.key] ?? 0),
+          color: t.key === "staff" ? "text-brand" : t.key === "enterprise" ? "text-cat-build" : t.key === "individual" ? "text-cat-design" : "text-cat-decor",
+          href: `${base}?tab=${t.key}`,
+          active: active === t.key,
+        }))}
+      />
+
+      {active === "staff" ? (
+        <div className="rounded-2xl border border-border bg-background overflow-hidden">
+          <div className="px-5 py-3 border-b border-border text-[14px] font-semibold inline-flex items-center gap-1.5"><Crown className="h-4 w-4" /> 协会工作人员 <span className="text-[12px] text-muted-foreground font-normal">· 编译进程序,永不入库</span></div>
+          <ul className="divide-y divide-border">
+            {SEED_STAFF.map((s) => (
+              <li key={s.id} className="px-5 py-3.5 flex items-center gap-3 text-[13px]">
+                <span className="h-9 w-9 rounded-xl bg-brand-50 text-brand inline-flex items-center justify-center shrink-0 font-semibold">{s.name.slice(0, 1)}</span>
+                <div className="flex-1 min-w-0">
+                  <div className="font-medium">{s.name} <span className="text-[11px] text-muted-foreground font-normal ml-1">{STAFF_ROLE[s.staffRole] ?? s.staffRole}</span></div>
+                  <div className="text-[11px] text-muted-foreground">{mask(s.phone)}</div>
+                </div>
+                <Badge tone="tea" className="shrink-0">正常</Badge>
+                <span className="shrink-0 text-[11px] text-muted-foreground inline-flex items-center gap-1"><Lock className="h-3 w-3" /> 仅源码可改</span>
+              </li>
+            ))}
+          </ul>
+          <div className="px-5 py-3 text-[12px] text-muted-foreground border-t border-border">协会工作人员账号由秘书处/平台运维在源码中维护,不在此处增删。</div>
+        </div>
+      ) : (
+        (() => {
+          const list = listAccounts(active as "enterprise" | "individual" | "customer");
+          return (
+            <div className="rounded-2xl border border-border bg-background overflow-hidden">
+              <div className="px-5 py-3 border-b border-border text-[14px] font-semibold inline-flex items-center gap-1.5"><ShieldCheck className="h-4 w-4" /> {TABS.find((t) => t.key === active)!.label} · {list.length} 个账号</div>
+              {list.length === 0 ? (
+                <div className="px-5 py-12 text-center text-[13px] text-muted-foreground">
+                  {active === "customer" ? "业主为 C 端短信验证码登录,通常不预建账号;入会/下单产生绑定后在此显示。" : "暂无账号。会员入会审核通过后在此显示。"}
+                </div>
+              ) : (
+                <ul className="divide-y divide-border">
+                  {list.map((a) => (
+                    <li key={a.phone} className="px-5 py-3.5 flex items-center gap-3 text-[13px] flex-wrap">
+                      <span className="h-9 w-9 rounded-xl bg-surface inline-flex items-center justify-center shrink-0 font-semibold">{(a.name || "?").slice(0, 1)}</span>
+                      <div className="flex-1 min-w-0">
+                        <div className="font-medium truncate">{a.name || "(未填名称)"}</div>
+                        <div className="text-[11px] text-muted-foreground">{mask(a.phone)}{a.memberRef ? ` · 会员档案 ${a.memberRef}` : ""} · 注册 {fmt(a.createdAt)}</div>
+                      </div>
+                      <Badge tone={ST_TONE[a.status]} className="shrink-0">{ST_LABEL[a.status]}</Badge>
+                      <form action={setAccountStatusAction} className="shrink-0">
+                        <input type="hidden" name="phone" value={a.phone} />
+                        <input type="hidden" name="tab" value={active} />
+                        <input type="hidden" name="status" value={a.status === "active" ? "rejected" : "active"} />
+                        <button className="h-8 px-3 rounded-full bg-surface text-[12px] inline-flex items-center gap-1.5 hover:bg-surface-2"><Power className="h-3.5 w-3.5" /> {a.status === "active" ? "停用" : "启用"}</button>
+                      </form>
+                    </li>
+                  ))}
+                </ul>
+              )}
+              <div className="px-5 py-3 text-[12px] text-muted-foreground border-t border-border">「停用」后该账号无法登录使用;入会申请的审核在「会员审核」处理。</div>
+            </div>
+          );
+        })()
+      )}
+    </AssociationShell>
+  );
+}

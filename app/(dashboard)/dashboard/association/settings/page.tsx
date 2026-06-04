@@ -1,7 +1,7 @@
 import Link from "next/link";
 import {
   Building2, Lock, Bell, Plug, Database, ShieldCheck, KeyRound,
-  AlertTriangle, Sparkles, ExternalLink, BookOpen, Download,
+  AlertTriangle, Sparkles, ExternalLink, BookOpen, Download, Users2,
 } from "lucide-react";
 import { AssociationShell } from "@/components/dashboard/shell";
 import { SettingsCard, FormRow, Toggle, Input, Textarea } from "@/components/dashboard/section";
@@ -83,6 +83,11 @@ export default async function SystemSettings() {
               action={<Badge tone="brand">协会超管可改</Badge>}
             >
               <div id="security" />
+              <FormRow label="用户管理" hint="业主 / 企业会员 / 个人会员 / 协会工作人员 账号总览与启用停用">
+                <Link href="/dashboard/association/users" className="h-10 px-4 rounded-full bg-foreground text-background text-[13px] font-medium inline-flex items-center gap-1.5 w-fit">
+                  <Users2 className="h-3.5 w-3.5" /> 打开用户管理
+                </Link>
+              </FormRow>
               <FormRow label="协会员工密码策略">
                 <div className="space-y-2.5">
                   <div className="flex items-center justify-between"><span className="text-[13px]">最小长度</span>

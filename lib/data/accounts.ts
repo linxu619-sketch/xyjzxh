@@ -73,3 +73,17 @@ export function rejectAccountByAppId(appId: number): void {
 export function setAccountStatus(phone: string, status: AccountStatus): void {
   getDb().prepare("UPDATE accounts SET status=? WHERE phone=?").run(status, phone.trim());
 }
+
+// 超管用户管理：全部账号（可按角色筛）
+export function listAccounts(role?: AccountRole): Account[] {
+  const rows = role
+    ? getDb().prepare("SELECT * FROM accounts WHERE role=? ORDER BY status ASC, created_at DESC").all(role) as Row[]
+    : getDb().prepare("SELECT * FROM accounts ORDER BY created_at DESC").all() as Row[];
+  return rows.map(rowTo);
+}
+export function countAccountsByRole(): Record<string, number> {
+  const rows = getDb().prepare("SELECT role, COUNT(*) c FROM accounts GROUP BY role").all() as { role: string; c: number }[];
+  const m: Record<string, number> = {};
+  for (const r of rows) m[r.role] = r.c;
+  return m;
+}
