@@ -1,11 +1,12 @@
 import Link from "next/link";
 import {
   ShieldCheck, FileCheck2, GraduationCap, MessageSquareWarning, Stamp,
-  Users2, Award, ArrowUpRight, Sparkles,
+  Users2, Award, ArrowUpRight, Sparkles, Building2, Crown,
 } from "lucide-react";
 import { Container } from "@/components/container";
 import { PageHeader } from "@/components/page-header";
 import { Button } from "@/components/ui/button";
+import { ENTERPRISE_TIERS, PRACTITIONER_TIERS } from "@/lib/data/member-tier";
 
 const SERVICES = [
   { key: "join", title: "入会申请", desc: "建筑 / 装修 / 设计三大类会籍，秘书处 1-3 日审核。", icon: Users2, color: "build" as const, href: "/join" },
@@ -61,35 +62,61 @@ export default function ServicesPage() {
           })}
         </div>
 
-        {/* 会籍等级 */}
+        {/* 会籍等级 —— 两套互不相干的梯队 */}
         <div className="mt-16">
           <div className="text-[12px] tracking-[0.2em] text-brand uppercase font-medium">MEMBERSHIP</div>
           <h2 className="mt-3 text-[30px] md:text-[40px] font-semibold tracking-tight leading-tight">会籍等级</h2>
-          <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-4">
-            {[
-              { tier: "普通会员", price: "1,200", suffix: "/年", color: "build", benefits: ["会员目录展示", "工装报备直通", "知识库基础权限", "AI 助手 100 次/月"] },
-              { tier: "高级会员", price: "4,800", suffix: "/年", color: "design", featured: true, benefits: ["以上全部", "首页推荐位", "金融保险优惠", "AI 助手 1,000 次/月", "调解优先受理"] },
-              { tier: "理事单位", price: "面议", suffix: "", color: "brand", benefits: ["以上全部", "参与协会决策", "联合品牌活动", "定制 AI 员工"] },
-            ].map((m) => (
-              <div key={m.tier} className={`rounded-3xl border p-7 ${m.featured ? "border-foreground bg-foreground text-background" : "border-border bg-background"}`}>
-                <div className={`text-[12px] tracking-wider uppercase ${m.featured ? "text-background/60" : "text-muted-foreground"}`}>{m.tier}</div>
-                <div className="mt-3 flex items-baseline gap-1">
-                  <span className="text-[42px] font-semibold tracking-tight">¥{m.price}</span>
-                  <span className={m.featured ? "text-background/60" : "text-muted-foreground"}>{m.suffix}</span>
+          <p className="mt-3 text-[14px] text-muted-foreground max-w-2xl leading-7">企业会员与个人(专业)会员是<b className="text-foreground">两套互不相干</b>的等级体系——企业按<b className="text-foreground">治理地位</b>分档,个人按<b className="text-foreground">专业资历</b>分档,各自进阶、各享权益。会费按档核定,详询秘书处。</p>
+
+          {/* 企业会员 · 治理梯队 */}
+          <div className="mt-8 flex items-center gap-2">
+            <Building2 className="h-4 w-4 text-cat-build" />
+            <h3 className="text-[16px] font-semibold">企业会员 · 治理梯队</h3>
+            <span className="text-[12px] text-muted-foreground">建筑 / 装修 / 设计公司</span>
+          </div>
+          <div className="mt-4 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
+            {ENTERPRISE_TIERS.map((m, i) => (
+              <div key={m.tier} className={`rounded-2xl border p-4 flex flex-col ${i === ENTERPRISE_TIERS.length - 1 ? "border-foreground bg-foreground text-background" : "border-border bg-background"}`}>
+                <div className="flex items-center justify-between">
+                  <span className={`text-[11px] tracking-wider ${i === ENTERPRISE_TIERS.length - 1 ? "text-accent-yellow" : "text-muted-foreground"}`}>L{m.level}</span>
+                  <Crown className={`h-4 w-4 ${i === ENTERPRISE_TIERS.length - 1 ? "text-accent-yellow" : "text-cat-build/50"}`} />
                 </div>
-                <ul className="mt-6 space-y-2.5 text-[13px]">
-                  {m.benefits.map((b) => (
-                    <li key={b} className="flex items-start gap-2">
-                      <ShieldCheck className={`h-4 w-4 mt-0.5 ${m.featured ? "text-accent-yellow" : "text-accent-tea"}`} /> {b}
-                    </li>
+                <div className="mt-1 text-[15px] font-semibold leading-tight">{m.tier}</div>
+                <div className={`mt-0.5 text-[11px] ${i === ENTERPRISE_TIERS.length - 1 ? "text-background/60" : "text-muted-foreground"}`}>商城 {m.quota === Infinity ? "不限" : `${m.quota} 款`}</div>
+                <ul className="mt-3 space-y-1.5 text-[12px] leading-5">
+                  {m.perks.slice(0, 4).map((b) => (
+                    <li key={b} className="flex items-start gap-1.5"><ShieldCheck className={`h-3.5 w-3.5 mt-0.5 shrink-0 ${i === ENTERPRISE_TIERS.length - 1 ? "text-accent-yellow" : "text-accent-tea"}`} />{b}</li>
                   ))}
                 </ul>
-                <Link href="/join" className={`mt-6 inline-flex w-full h-11 items-center justify-center rounded-full text-[13px] font-medium ${m.featured ? "bg-accent-yellow text-foreground" : "bg-foreground text-background hover:bg-brand"}`}>
-                  {m.tier === "理事单位" ? "联系秘书处" : "立即申请"}
-                </Link>
               </div>
             ))}
           </div>
+
+          {/* 个人(专业)会员 · 专业梯队 */}
+          <div className="mt-10 flex items-center gap-2">
+            <Award className="h-4 w-4 text-cat-design" />
+            <h3 className="text-[16px] font-semibold">个人(专业)会员 · 专业梯队</h3>
+            <span className="text-[12px] text-muted-foreground">设计师 / 项目经理 / 监理 / 独立工长</span>
+          </div>
+          <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-3">
+            {PRACTITIONER_TIERS.map((m, i) => (
+              <div key={m.tier} className={`rounded-2xl border p-5 flex flex-col ${i === PRACTITIONER_TIERS.length - 1 ? "border-foreground bg-foreground text-background" : "border-border bg-background"}`}>
+                <div className="flex items-center justify-between">
+                  <span className={`text-[12px] tracking-wider ${i === PRACTITIONER_TIERS.length - 1 ? "text-accent-yellow" : "text-muted-foreground"}`}>专业等级 L{m.level}</span>
+                  <Award className={`h-4 w-4 ${i === PRACTITIONER_TIERS.length - 1 ? "text-accent-yellow" : "text-cat-design/50"}`} />
+                </div>
+                <div className="mt-1 text-[18px] font-semibold leading-tight">{m.tier}</div>
+                <div className={`mt-0.5 text-[12px] ${i === PRACTITIONER_TIERS.length - 1 ? "text-background/60" : "text-muted-foreground"}`}>商城 {m.quota === Infinity ? "不限" : `${m.quota} 款`}</div>
+                <ul className="mt-4 space-y-2 text-[13px]">
+                  {m.perks.map((b) => (
+                    <li key={b} className="flex items-start gap-2"><ShieldCheck className={`h-4 w-4 mt-0.5 shrink-0 ${i === PRACTITIONER_TIERS.length - 1 ? "text-accent-yellow" : "text-accent-tea"}`} />{b}</li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </div>
+
+          <Link href="/join" className="mt-8 inline-flex h-11 px-6 items-center justify-center rounded-full text-[13px] font-medium bg-foreground text-background hover:bg-brand">立即入会 →</Link>
         </div>
 
         {/* FAQ */}
@@ -99,7 +126,8 @@ export default function ServicesPage() {
             {[
               { q: "非信阳本地企业可以入会吗？", a: "可以。注册地不在信阳但在信阳有承接项目的企业，可申请「联络会员」。" },
               { q: "调解结果有法律效力吗？", a: "协会调解为非诉调解，双方签字后可向法院申请司法确认获得强制执行力。" },
-              { q: "AI 员工是免费的吗？", a: "普通会员每月 100 次，高级会员每月 1,000 次，超出按 0.1 元/次计费。" },
+              { q: "企业会员和个人会员的等级一样吗？", a: "不一样,是两套互不相干的体系:企业按治理地位分「会员单位→理事→常务理事→副会长→会长单位」5 档;个人按专业资历分「注册→资深→专家会员」3 档。各自进阶、各享权益。" },
+              { q: "AI 员工是免费的吗？", a: "企业「会员单位」每月 100 次,「理事单位」起每月 1,000 次,超出按 0.1 元/次计费。" },
               { q: "可以转让会籍吗？", a: "不可以。如发生公司合并、收购，请联系秘书处办理变更。" },
             ].map((f, i) => (
               <details key={i} className="group">

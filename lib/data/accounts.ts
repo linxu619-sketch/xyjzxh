@@ -19,19 +19,20 @@ export type Account = {
   name: string;
   appId: number | null;
   memberRef: string | null;
+  tier: string | null;
   createdAt: number;
 };
 
 type Row = {
   id: number; phone: string | null; role: string | null; status: string;
-  password_hash: string | null; name: string | null; app_id: number | null; member_ref: string | null; created_at: number | null;
+  password_hash: string | null; name: string | null; app_id: number | null; member_ref: string | null; tier: string | null; created_at: number | null;
 };
 
 function rowTo(r: Row): Account {
   return {
     id: r.id, phone: r.phone ?? "", role: (r.role as AccountRole) ?? "customer",
     status: (r.status as AccountStatus) ?? "pending", passwordHash: r.password_hash,
-    name: r.name ?? "", appId: r.app_id, memberRef: r.member_ref, createdAt: r.created_at ?? 0,
+    name: r.name ?? "", appId: r.app_id, memberRef: r.member_ref, tier: r.tier ?? null, createdAt: r.created_at ?? 0,
   };
 }
 
@@ -72,6 +73,11 @@ export function rejectAccountByAppId(appId: number): void {
 
 export function setAccountStatus(phone: string, status: AccountStatus): void {
   getDb().prepare("UPDATE accounts SET status=? WHERE phone=?").run(status, phone.trim());
+}
+
+// 协会调整会员等级（调用方需先按角色校验 tier 合法性）
+export function setAccountTier(phone: string, tier: string): void {
+  getDb().prepare("UPDATE accounts SET tier=? WHERE phone=?").run(tier, phone.trim());
 }
 
 // 超管用户管理：全部账号（可按角色筛）

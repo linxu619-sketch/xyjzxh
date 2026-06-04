@@ -1,11 +1,11 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, Power, ShieldCheck, Building2, UserRound, Users2 } from "lucide-react";
+import { ArrowLeft, Power, ShieldCheck, Building2, UserRound, Users2, Crown, Check } from "lucide-react";
 import { AssociationShell } from "@/components/dashboard/shell";
 import { Badge } from "@/components/ui/badge";
 import { getAccountByPhone, type AccountStatus } from "@/lib/data/accounts";
-import { getMemberTier } from "@/lib/data/member-tier";
-import { setAccountStatusAction } from "../actions";
+import { tierLadder, normalizeTier, quotaOf, type TierTrack } from "@/lib/data/member-tier";
+import { setAccountStatusAction, setMemberTierAction } from "../actions";
 
 const ST_LABEL: Record<AccountStatus, string> = { active: "正常", pending: "审核中", rejected: "已停用" };
 const ST_TONE: Record<AccountStatus, "tea" | "yellow" | "decor"> = { active: "tea", pending: "yellow", rejected: "decor" };
@@ -21,9 +21,11 @@ export default async function UserDetail({ params }: { params: Promise<{ phone: 
   const a = getAccountByPhone(decodeURIComponent(phone));
   if (!a) notFound();
   const Icon = ROLE_ICON[a.role] ?? UserRound;
-  const tier = (a.role === "enterprise" || a.role === "individual") && a.memberRef
-    ? getMemberTier(a.role === "enterprise" ? "enterprise" : "practitioner", a.memberRef)
-    : null;
+  // 两套互不相干的等级梯队：企业=治理梯队 / 个人=专业梯队；业主无等级
+  const track: TierTrack | null = a.role === "enterprise" ? "enterprise" : a.role === "individual" ? "practitioner" : null;
+  const ladder = track ? tierLadder(track) : [];
+  const tier = track ? normalizeTier(track, a.tier) : null;
+  const trackLabel = track === "enterprise" ? "治理梯队" : track === "practitioner" ? "专业梯队" : "";
 
   return (
     <AssociationShell title="用户详情" subtitle={`${ROLE_LABEL[a.role] ?? a.role} · ${a.name || "(未填名称)"}`}>
@@ -46,7 +48,7 @@ export default async function UserDetail({ params }: { params: Promise<{ phone: 
           <Row k="用户类型" v={ROLE_LABEL[a.role] ?? a.role} />
           <Row k="账号状态" v={ST_LABEL[a.status]} />
           {a.memberRef && <Row k="会员档案" v={a.memberRef} />}
-          {tier && <Row k="会员等级" v={tier} />}
+          {tier && <Row k="会员等级" v={<span className="inline-flex items-center gap-1.5"><Crown className="h-3.5 w-3.5 text-accent-yellow" />{tier}<span className="text-[11px] text-muted-foreground">· {trackLabel} · 商城上架 {quotaOf(tier) === Infinity ? "不限" : quotaOf(tier)} 款</span></span>} />}
           <Row k="注册时间" v={fmt(a.createdAt)} />
         </dl>
 
@@ -71,6 +73,36 @@ export default async function UserDetail({ params }: { params: Promise<{ phone: 
           </div>
           <p className="mt-3 text-[11px] text-muted-foreground">停用后该账号无法登录使用;入会申请的审核请到「会员审核」。</p>
         </div>
+
+        {track && (
+          <div className="mt-6 pt-5 border-t border-border">
+            <div className="text-[12px] text-muted-foreground mb-1 inline-flex items-center gap-1.5"><Crown className="h-3.5 w-3.5 text-accent-yellow" /> 会员等级 · {trackLabel}</div>
+            <p className="text-[11px] text-muted-foreground mb-3">{track === "enterprise" ? "企业按治理地位分档,等级越高商城配额越大、决策权越重。" : "个人按专业资历分档,与企业梯队互不相干。"}点选下方等级即调整。</p>
+            <div className="flex flex-wrap gap-2">
+              {ladder.map((m) => {
+                const cur = m.tier === tier;
+                return (
+                  <form key={m.tier} action={setMemberTierAction}>
+                    <input type="hidden" name="phone" value={a.phone} />
+                    <input type="hidden" name="tier" value={m.tier} />
+                    <button
+                      className={`h-9 px-4 rounded-full text-[13px] font-medium inline-flex items-center gap-1.5 border transition-colors ${cur ? "bg-foreground text-background border-foreground" : "bg-background border-border hover:bg-surface"}`}
+                      title={m.perks.join(" / ")}
+                    >
+                      {cur && <Check className="h-3.5 w-3.5" />}{m.tier}
+                      <span className={`text-[11px] ${cur ? "text-background/60" : "text-muted-foreground"}`}>· {m.quota === Infinity ? "不限" : `${m.quota} 款`}</span>
+                    </button>
+                  </form>
+                );
+              })}
+            </div>
+            {tier && (() => { const meta = ladder.find((m) => m.tier === tier); return meta ? (
+              <ul className="mt-3 flex flex-wrap gap-x-3 gap-y-1 text-[11px] text-muted-foreground">
+                {meta.perks.map((p) => <li key={p} className="inline-flex items-center gap-1"><Check className="h-3 w-3 text-accent-tea" />{p}</li>)}
+              </ul>
+            ) : null; })()}
+          </div>
+        )}
       </div>
     </AssociationShell>
   );

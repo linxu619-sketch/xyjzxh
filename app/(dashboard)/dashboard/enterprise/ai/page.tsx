@@ -113,7 +113,7 @@ export default function EnterpriseAi() {
       <div className="mt-4 rounded-2xl border border-border bg-foreground text-background p-5 flex items-start gap-3">
         <Globe2 className="h-5 w-5 text-accent-yellow mt-0.5 shrink-0" />
         <div className="text-[12px] leading-5">
-          <b>计费提醒：</b> 高级会员每月 1,000 次免费 AI 对话，超出按 0.1 元 / 次计费；克隆 AI 不额外收费。
+          <b>计费提醒：</b> 理事单位起每月 1,000 次免费 AI 对话，超出按 0.1 元 / 次计费；克隆 AI 不额外收费。
         </div>
       </div>
     </EnterpriseShell>

@@ -632,6 +632,7 @@ function init(): DB {
   seedTeam(db);
   seedJobs(db);
   seedAccounts(db);
+  backfillEnterpriseAccounts(db);
   seedNews(db);
   seedTrainings(db);
   seedSupplyProducts(db);
@@ -760,6 +761,23 @@ function seedAccounts(db: DB) {
   }
 }
 
+// 幂等：给已建档企业补「活跃企业会员账号」+ 分布治理梯队等级（现有库也会补齐）
+function backfillEnterpriseAccounts(db: DB) {
+  // 演示分布：少量高层 + 多数基层（其余企业回落「会员单位」）
+  const ENT_TIER_SEED = ["会长单位", "副会长单位", "常务理事单位", "理事单位", "理事单位"];
+  const has = db.prepare("SELECT 1 FROM accounts WHERE member_ref=? LIMIT 1");
+  const ins = db.prepare(
+    "INSERT INTO accounts (phone,role,status,name,member_ref,tier,created_at) VALUES (?, 'enterprise','active',?,?,?,?)",
+  );
+  const now = Date.now();
+  ENTERPRISES.forEach((e, i) => {
+    if (has.get(e.id)) return;                       // 已有账号则跳过
+    const tier = ENT_TIER_SEED[i] ?? "会员单位";
+    const phone = `1370001${String(i + 1).padStart(4, "0")}`; // 演示登录手机号，避免与既有冲突
+    try { ins.run(phone, e.name, e.id, tier, now - i * DAY); } catch { /* 手机号重复忽略 */ }
+  });
+}
+
 // 对已存在的库做幂等列迁移（新增列时用）
 function migrate(db: DB) {
   const alters = [
@@ -830,6 +848,15 @@ function normalizeSupplyProducts(db: DB) {
     UPDATE supply_orders SET seller_id='assoc'         WHERE seller_id IS NULL OR seller_id='';
     UPDATE supply_orders SET seller_name='协会集采'     WHERE seller_name IS NULL OR seller_name='';
   `);
+  // 会员等级：把历史单一梯队(普通/高级/理事)按角色映射到两套独立梯队（幂等）
+  db.exec(`
+    -- 企业会员梯队：普通→会员单位、高级→理事单位（理事单位保持）
+    UPDATE accounts SET tier='会员单位' WHERE role='enterprise'  AND tier='普通会员';
+    UPDATE accounts SET tier='理事单位' WHERE role='enterprise'  AND tier='高级会员';
+    -- 个人(专业)会员梯队：普通→注册、高级→资深、(误写的)理事→资深
+    UPDATE accounts SET tier='注册会员' WHERE role='individual'  AND tier='普通会员';
+    UPDATE accounts SET tier='资深会员' WHERE role='individual'  AND tier IN ('高级会员','理事单位');
+  `);
 }
 
 // 演示：灌入几条会员自助上架的商品（含待审/在架），用于跑通审核与卖家闭环（幂等）
@@ -851,8 +878,8 @@ function seedSupplyMemberListings(db: DB) {
   );
   const now = Date.now();
   rows.forEach((r, i) => stmt.run(r[0], r[1], r[2], r[3], r[4], r[5], r[6], r[7], r[8], r[9], r[10], r[11], r[12], r[13], r[14], r[15], now - i * 3600000));
-  // 演示等级：给一个从业者账号升为高级会员（配额 20）
-  try { db.exec("UPDATE accounts SET tier='高级会员' WHERE member_ref='p-5'"); } catch { /* ignore */ }
+  // 演示等级：给一个从业者账号升为资深会员（专业梯队，配额 10）
+  try { db.exec("UPDATE accounts SET tier='资深会员' WHERE member_ref='p-5'"); } catch { /* ignore */ }
 }
 
 export function getDb(): DB {

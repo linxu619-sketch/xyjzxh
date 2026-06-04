@@ -3,7 +3,8 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { getSession } from "@/lib/auth/session";
-import { getAccountByPhone, setAccountStatus, type AccountStatus } from "@/lib/data/accounts";
+import { getAccountByPhone, setAccountStatus, setAccountTier, type AccountStatus } from "@/lib/data/accounts";
+import { tierLadder } from "@/lib/data/member-tier";
 
 export async function setAccountStatusAction(fd: FormData) {
   const s = await getSession();
@@ -20,4 +21,20 @@ export async function setAccountStatusAction(fd: FormData) {
     redirect(to);
   }
   redirect(`/dashboard/association/users${fd.get("tab") ? `?tab=${fd.get("tab")}` : ""}`);
+}
+
+// 协会调整会员等级（企业=治理梯队 / 个人=专业梯队，两套互不相干，按角色校验）
+export async function setMemberTierAction(fd: FormData) {
+  const s = await getSession();
+  if (!s || (s.role !== "association" && s.role !== "system_admin")) throw new Error("无权限：仅协会工作人员可调整会员等级");
+  const phone = String(fd.get("phone") || "").trim();
+  const tier = String(fd.get("tier") || "").trim();
+  const acc = phone ? getAccountByPhone(phone) : undefined;
+  if (acc && (acc.role === "enterprise" || acc.role === "individual")) {
+    const track = acc.role === "enterprise" ? "enterprise" : "practitioner";
+    if (tierLadder(track).some((m) => m.tier === tier)) setAccountTier(phone, tier);
+  }
+  const to = `/dashboard/association/users/${encodeURIComponent(phone)}`;
+  revalidatePath(to);
+  redirect(to);
 }

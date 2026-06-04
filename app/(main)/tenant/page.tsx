@@ -113,7 +113,7 @@ export default function TenantPage() {
 
         <div className="mt-12 rounded-[28px] bg-mesh border border-border p-7 md:p-10 text-center">
           <h2 className="text-[26px] md:text-[36px] font-semibold tracking-tight">想给您的企业开一个？</h2>
-          <p className="mt-3 text-[13px] text-muted-foreground max-w-md mx-auto">高级会员开通免费 · 普通会员 ¥1,200/年（含 SSL + CDN + AI）</p>
+          <p className="mt-3 text-[13px] text-muted-foreground max-w-md mx-auto">理事单位及以上开通免费 · 会员单位 ¥1,200/年（含 SSL + CDN + AI）</p>
           <div className="mt-6">
             <Button href="/register?role=enterprise" variant="primary" size="lg">立即开通 <ArrowRight className="h-4 w-4" /></Button>
           </div>

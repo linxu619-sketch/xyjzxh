@@ -4,7 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/cn";
 import { resolveSeller } from "@/lib/dashboard/seller";
 import { listBySeller, listOrdersBySeller, listOrdersByBuyer, reconcileSeller, reconcileBuyer, isOverdue, SUPPLY_TERM_DAYS, type ProductStatus, type ReasonType, type OrderStatus, type SupplyOrder } from "@/lib/data/supplies-source";
-import { getMemberTier, quotaOf, TIER_ORDER } from "@/lib/data/member-tier";
+import { getMemberTier, quotaOf, nextTierForSeller } from "@/lib/data/member-tier";
 import { ListingForm } from "@/components/dashboard/listing-form";
 import { toggleMyListingAction, advanceSellerOrderAction, markOrderPaidAction } from "@/app/(dashboard)/dashboard/store-actions";
 
@@ -45,8 +45,7 @@ export async function SellerPanel({ sp }: { sp?: { ok?: string; err?: string; bp
   const used = items.filter((p) => p.status === "active" || p.status === "pending").length;
   const reachedQuota = used >= quota;
   const quotaText = quota === Infinity ? "不限" : String(quota);
-  const tierIdx = TIER_ORDER.indexOf(tier);
-  const nextTier = tierIdx >= 0 && tierIdx < TIER_ORDER.length - 1 ? TIER_ORDER[tierIdx + 1] : null;
+  const nextTier = nextTierForSeller(seller.type, tier);
   const nextQuota = nextTier ? quotaOf(nextTier) : 0;
   const nextQuotaText = nextQuota === Infinity ? "不限" : String(nextQuota);
 

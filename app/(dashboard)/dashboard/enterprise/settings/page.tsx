@@ -13,7 +13,7 @@ export default async function EnterpriseSettings() {
   const session = await getSession();
   const eid = effectiveEnterpriseId(session);
   const e = eid ? await getEnterpriseBySlugOrId(eid) : undefined;
-  const tier = eid ? getMemberTier("enterprise", eid) : "普通会员";
+  const tier = eid ? getMemberTier("enterprise", eid) : "会员单位";
   const fullName = e?.name ?? "";
   const region = e?.district ?? "";
   const intro = e?.short ?? "";
