@@ -80,6 +80,21 @@ export function setAccountTier(phone: string, tier: string): void {
   getDb().prepare("UPDATE accounts SET tier=? WHERE phone=?").run(tier, phone.trim());
 }
 
+// 超管重置 / 设置登录密码（传入已哈希值）
+export function setAccountPassword(phone: string, passwordHash: string): void {
+  getDb().prepare("UPDATE accounts SET password_hash=? WHERE phone=?").run(passwordHash, phone.trim());
+}
+
+// 超管删除账号
+export function deleteAccount(phone: string): void {
+  getDb().prepare("DELETE FROM accounts WHERE phone=?").run(phone.trim());
+}
+
+// 超管编辑账号资料（姓名等）
+export function updateAccountProfile(phone: string, name: string): void {
+  getDb().prepare("UPDATE accounts SET name=? WHERE phone=?").run(name, phone.trim());
+}
+
 // 超管用户管理：全部账号（可按角色筛）
 export function listAccounts(role?: AccountRole): Account[] {
   const rows = role

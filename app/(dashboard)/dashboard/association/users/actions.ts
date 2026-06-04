@@ -3,9 +3,25 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { getSession } from "@/lib/auth/session";
-import { getAccountByPhone, setAccountStatus, setAccountTier, type AccountStatus } from "@/lib/data/accounts";
+import { getAccountByPhone, setAccountStatus, setAccountTier, setAccountPassword, deleteAccount, updateAccountProfile, type AccountStatus } from "@/lib/data/accounts";
 import { tierLadder } from "@/lib/data/member-tier";
-import { getStaff, setStaffStatus, type StaffStatus } from "@/lib/data/staff-source";
+import { getStaff, setStaffStatus, setStaffRoles, setStaffPassword, deleteStaff, type StaffStatus } from "@/lib/data/staff-source";
+import { ROLE_KEYS } from "@/lib/auth/roles";
+import { hashPassword } from "@/lib/auth/password";
+
+async function requireAssoc() {
+  const s = await getSession();
+  if (!s || (s.role !== "association" && s.role !== "system_admin")) throw new Error("无权限：仅协会工作人员可管理账号");
+  return s;
+}
+function backToAccount(phone: string): never {
+  const to = `/dashboard/association/users/${encodeURIComponent(phone)}`;
+  revalidatePath(to); redirect(to);
+}
+function backToStaff(id: string): never {
+  const to = `/dashboard/association/users/staff/${id}`;
+  revalidatePath(to); redirect(to);
+}
 
 // 协会工作人员 启用/停用（超级管理员账号不可停用）
 export async function setStaffStatusAction(fd: FormData) {
@@ -53,4 +69,61 @@ export async function setMemberTierAction(fd: FormData) {
   const to = `/dashboard/association/users/${encodeURIComponent(phone)}`;
   revalidatePath(to);
   redirect(to);
+}
+
+/* ---------------- 账号资料 / 密码 / 删除（企业·个人·业主）---------------- */
+export async function updateAccountProfileAction(fd: FormData) {
+  await requireAssoc();
+  const phone = String(fd.get("phone") || "").trim();
+  const name = String(fd.get("name") || "").trim();
+  if (phone && name && getAccountByPhone(phone)) updateAccountProfile(phone, name);
+  backToAccount(phone);
+}
+
+export async function setAccountPasswordAction(fd: FormData) {
+  await requireAssoc();
+  const phone = String(fd.get("phone") || "").trim();
+  const pwd = String(fd.get("password") || "");
+  if (phone && pwd.length >= 6 && getAccountByPhone(phone)) setAccountPassword(phone, hashPassword(pwd));
+  backToAccount(phone);
+}
+
+export async function deleteAccountAction(fd: FormData) {
+  await requireAssoc();
+  const phone = String(fd.get("phone") || "").trim();
+  const role = getAccountByPhone(phone)?.role;
+  if (phone) deleteAccount(phone);
+  const to = `/dashboard/association/users${role ? `?tab=${role}` : ""}`;
+  revalidatePath("/dashboard/association/users");
+  redirect(to);
+}
+
+/* ---------------- 协会工作人员 角色 / 密码 / 删除 ---------------- */
+export async function setStaffRolesAction(fd: FormData) {
+  await requireAssoc();
+  const id = String(fd.get("id") || "").trim();
+  const st = id ? getStaff(id) : undefined;
+  // 超级管理员角色不可更改
+  if (st && !st.roles.includes("super_admin")) {
+    const roles = fd.getAll("role").map(String).filter((r) => ROLE_KEYS.includes(r) && r !== "super_admin");
+    if (roles.length) setStaffRoles(id, roles);
+  }
+  backToStaff(id);
+}
+
+export async function setStaffPasswordAction(fd: FormData) {
+  await requireAssoc();
+  const id = String(fd.get("id") || "").trim();
+  const pwd = String(fd.get("password") || "");
+  if (id && pwd.length >= 6 && getStaff(id)) setStaffPassword(id, hashPassword(pwd));
+  backToStaff(id);
+}
+
+export async function deleteStaffAction(fd: FormData) {
+  await requireAssoc();
+  const id = String(fd.get("id") || "").trim();
+  const st = id ? getStaff(id) : undefined;
+  if (st && !st.roles.includes("super_admin")) deleteStaff(id);
+  revalidatePath("/dashboard/association/users");
+  redirect("/dashboard/association/users?tab=staff");
 }

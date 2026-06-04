@@ -1,10 +1,10 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, Crown, Power, ShieldCheck, Lock, KeyRound } from "lucide-react";
+import { ArrowLeft, Crown, Power, ShieldCheck, Lock, KeyRound, Trash2, Save, UserCog } from "lucide-react";
 import { AssociationShell } from "@/components/dashboard/shell";
 import { Badge } from "@/components/ui/badge";
 import { getStaff } from "@/lib/data/staff-source";
-import { setStaffStatusAction } from "../../actions";
+import { setStaffStatusAction, setStaffRolesAction, setStaffPasswordAction, deleteStaffAction } from "../../actions";
 import { roleLabel, roleTone, permissionsOf, PERMISSIONS, STAFF_ROLES, ROLE_KEYS } from "@/lib/auth/roles";
 
 export const metadata = { title: "工作人员详情 · 协会工作台" };
@@ -67,6 +67,49 @@ export default async function StaffDetail({ params }: { params: Promise<{ id: st
           )}
           <p className="mt-3 text-[11px] text-muted-foreground">停用后该工作人员无法登录协会工作台。角色为多角色制,权限取各角色并集。平台超级管理员账号写死源码、不在此处管理。</p>
         </div>
+
+        {/* 设置角色（多选，超管不可改）*/}
+        {!isSuper && (
+          <div className="mt-6 pt-5 border-t border-border">
+            <div className="text-[12px] text-muted-foreground mb-3 inline-flex items-center gap-1.5"><UserCog className="h-3.5 w-3.5" /> 设置角色 · 可多选</div>
+            <form action={setStaffRolesAction}>
+              <input type="hidden" name="id" value={s.id} />
+              <div className="flex flex-wrap gap-2">
+                {ROLE_KEYS.filter((r) => r !== "super_admin").map((r) => {
+                  const on = s.roles.includes(r);
+                  return (
+                    <label key={r} className={`inline-flex items-center gap-1.5 h-9 px-3.5 rounded-full text-[13px] border cursor-pointer transition-colors ${on ? "bg-foreground text-background border-foreground" : "bg-background border-border hover:bg-surface"}`}>
+                      <input type="checkbox" name="role" value={r} defaultChecked={on} className="accent-brand" />{roleLabel(r)}
+                    </label>
+                  );
+                })}
+              </div>
+              <button className="mt-3 h-9 px-4 rounded-full bg-foreground text-background text-[13px] font-medium inline-flex items-center gap-1.5"><Save className="h-3.5 w-3.5" /> 保存角色</button>
+            </form>
+          </div>
+        )}
+
+        {/* 改密码 */}
+        <div className="mt-6 pt-5 border-t border-border">
+          <div className="text-[12px] text-muted-foreground mb-3 inline-flex items-center gap-1.5"><KeyRound className="h-3.5 w-3.5" /> 重置登录密码</div>
+          <form action={setStaffPasswordAction} className="flex items-center gap-2 flex-wrap">
+            <input type="hidden" name="id" value={s.id} />
+            <input name="password" type="text" placeholder="新密码（≥6 位）" className="h-10 w-56 rounded-xl border border-border bg-background px-3 text-[13px] outline-none focus:border-foreground/30" />
+            <button className="h-10 px-4 rounded-full border border-border text-[13px] font-medium inline-flex items-center gap-1.5 hover:bg-surface"><KeyRound className="h-4 w-4" /> 重置密码</button>
+          </form>
+        </div>
+
+        {/* 删除（超管不可删）*/}
+        {!isSuper && (
+          <div className="mt-6 pt-5 border-t border-border">
+            <div className="text-[12px] text-cat-decor mb-3 inline-flex items-center gap-1.5"><Trash2 className="h-3.5 w-3.5" /> 高危操作</div>
+            <form action={deleteStaffAction}>
+              <input type="hidden" name="id" value={s.id} />
+              <button className="h-10 px-5 rounded-full border border-cat-decor/40 text-cat-decor text-[13px] font-medium inline-flex items-center gap-1.5 hover:bg-cat-decor-soft"><Trash2 className="h-4 w-4" /> 删除该工作人员</button>
+            </form>
+            <p className="mt-2 text-[11px] text-muted-foreground">删除后该工作人员从数据库移除,不可恢复。</p>
+          </div>
+        )}
       </div>
 
       {/* 角色权限对照表 */}

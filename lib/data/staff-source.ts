@@ -54,6 +54,26 @@ export function setStaffStatus(id: string, status: StaffStatus): void {
   getDb().prepare("UPDATE association_staff SET status = ? WHERE id = ?").run(status, id);
 }
 
+export function setStaffRoles(id: string, roles: string[]): void {
+  const primary = roles[0] ?? "support";
+  getDb().prepare("UPDATE association_staff SET roles = ?, staff_role = ? WHERE id = ?").run(JSON.stringify(roles), primary, id);
+}
+
+export function setStaffPassword(id: string, passwordHash: string): void {
+  getDb().prepare("UPDATE association_staff SET password_hash = ? WHERE id = ?").run(passwordHash, id);
+}
+
+export function deleteStaff(id: string): void {
+  getDb().prepare("DELETE FROM association_staff WHERE id = ?").run(id);
+}
+
+export function createStaff(input: { name: string; phone: string; email?: string; roles: string[]; passwordHash: string }): string {
+  const id = `as-${Date.now().toString(36)}`;
+  getDb().prepare("INSERT INTO association_staff (id,name,phone,email,staff_role,roles,password_hash,status,created_at) VALUES (?,?,?,?,?,?,?, 'active', ?)")
+    .run(id, input.name, input.phone.trim(), input.email ?? null, input.roles[0] ?? "support", JSON.stringify(input.roles), input.passwordHash, Date.now());
+  return id;
+}
+
 export function countStaff(): number {
   try { return (getDb().prepare("SELECT COUNT(*) c FROM association_staff").get() as { c: number }).c; } catch { return SEED_STAFF.length; }
 }

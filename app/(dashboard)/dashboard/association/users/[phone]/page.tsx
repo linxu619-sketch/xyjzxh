@@ -1,12 +1,12 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, Power, ShieldCheck, Building2, UserRound, Users2, Crown, Check } from "lucide-react";
+import { ArrowLeft, Power, ShieldCheck, Building2, UserRound, Users2, Crown, Check, KeyRound, Trash2, Save } from "lucide-react";
 import { AssociationShell } from "@/components/dashboard/shell";
 import { Badge } from "@/components/ui/badge";
 import { getAccountByPhone, type AccountStatus } from "@/lib/data/accounts";
 import { getApplicationByAppId, type IdVerifyStatus } from "@/lib/data/applications";
 import { tierLadder, normalizeTier, quotaOf, type TierTrack } from "@/lib/data/member-tier";
-import { setAccountStatusAction, setMemberTierAction } from "../actions";
+import { setAccountStatusAction, setMemberTierAction, updateAccountProfileAction, setAccountPasswordAction, deleteAccountAction } from "../actions";
 
 const VERIFY_LABEL: Record<IdVerifyStatus, string> = { verified: "已实名核验", failed: "核验未通过", unverified: "待实名核验" };
 const VERIFY_TONE: Record<IdVerifyStatus, "tea" | "decor" | "yellow"> = { verified: "tea", failed: "decor", unverified: "yellow" };
@@ -131,6 +131,36 @@ export default async function UserDetail({ params }: { params: Promise<{ phone: 
             ) : null; })()}
           </div>
         )}
+
+        {/* 账号资料管理（超管可改）*/}
+        <div className="mt-6 pt-5 border-t border-border">
+          <div className="text-[12px] text-muted-foreground mb-3 inline-flex items-center gap-1.5"><Save className="h-3.5 w-3.5" /> 账号资料</div>
+          <form action={updateAccountProfileAction} className="flex items-center gap-2 flex-wrap">
+            <input type="hidden" name="phone" value={a.phone} />
+            <input name="name" defaultValue={a.name} placeholder="姓名 / 名称" className="h-10 w-56 rounded-xl border border-border bg-background px-3 text-[13px] outline-none focus:border-foreground/30" />
+            <button className="h-10 px-4 rounded-full bg-foreground text-background text-[13px] font-medium inline-flex items-center gap-1.5"><Save className="h-4 w-4" /> 保存姓名</button>
+          </form>
+
+          {a.role === "enterprise" ? (
+            <form action={setAccountPasswordAction} className="mt-3 flex items-center gap-2 flex-wrap">
+              <input type="hidden" name="phone" value={a.phone} />
+              <input name="password" type="text" placeholder="新登录密码（≥6 位）" className="h-10 w-56 rounded-xl border border-border bg-background px-3 text-[13px] outline-none focus:border-foreground/30" />
+              <button className="h-10 px-4 rounded-full border border-border text-[13px] font-medium inline-flex items-center gap-1.5 hover:bg-surface"><KeyRound className="h-4 w-4" /> 重置密码</button>
+            </form>
+          ) : (
+            <p className="mt-3 text-[11px] text-muted-foreground inline-flex items-center gap-1.5"><KeyRound className="h-3.5 w-3.5" /> {a.role === "customer" ? "业主" : "个人会员"}用短信验证码登录,无需密码。</p>
+          )}
+        </div>
+
+        {/* 删除账号（高危）*/}
+        <div className="mt-6 pt-5 border-t border-border">
+          <div className="text-[12px] text-cat-decor mb-3 inline-flex items-center gap-1.5"><Trash2 className="h-3.5 w-3.5" /> 高危操作</div>
+          <form action={deleteAccountAction}>
+            <input type="hidden" name="phone" value={a.phone} />
+            <button className="h-10 px-5 rounded-full border border-cat-decor/40 text-cat-decor text-[13px] font-medium inline-flex items-center gap-1.5 hover:bg-cat-decor-soft"><Trash2 className="h-4 w-4" /> 删除该账号</button>
+          </form>
+          <p className="mt-2 text-[11px] text-muted-foreground">删除后该账号从数据库移除,不可恢复(会员档案 / 入会申请不受影响)。</p>
+        </div>
       </div>
     </AssociationShell>
   );

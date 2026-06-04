@@ -797,7 +797,22 @@ function init(): DB {
   seedKnowledgeArticles(db);
   seedAgreements(db);
   seedAssociationStaff(db);
+  seedDemoCustomers(db);
   return db;
+}
+
+// 业主账号演示数据（C 端短信登录，平时仅登录/下单建号；此处补一批便于「用户管理」查看）
+function seedDemoCustomers(db: DB) {
+  const has = (db.prepare("SELECT COUNT(*) c FROM accounts WHERE role='customer'").get() as { c: number }).c;
+  if (has > 0) return;
+  const rows: [string, string, string][] = [
+    ["13900088001", "刘女士", "active"], ["13900088002", "陈先生", "active"],
+    ["13900088003", "周女士", "active"], ["13900088004", "王先生", "active"],
+    ["13900088005", "赵女士", "active"], ["13900088006", "孙先生", "rejected"],
+  ];
+  const stmt = db.prepare("INSERT OR IGNORE INTO accounts (phone,role,status,name,created_at) VALUES (?, 'customer', ?, ?, ?)");
+  const now = Date.now();
+  rows.forEach((r, i) => stmt.run(r[0], r[2], r[1], now - i * 2 * 86400000));
 }
 
 // 协会工作人员入库（SEED_STAFF 作种子源；平台超管 SYSTEM_ADMIN 不入此表）

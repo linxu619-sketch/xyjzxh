@@ -14,6 +14,14 @@
 
 ---
 
+## [0.96.0] - 2026-06-04
+
+### 用户管理详情可被超管全面管理 + 补业主数据
+- 账号详情(企业/个人/业主):新增 改姓名、重置密码(仅企业;个人/业主为短信登录提示无需密码)、删除账号(高危);保留 启停 / 调级。
+- 工作人员详情:新增 设置角色(多选,超管不可改)、重置密码、删除(超管不可删);保留 启停。
+- 数据层加 setAccountPassword/deleteAccount/updateAccountProfile、setStaffRoles/setStaffPassword/deleteStaff/createStaff;动作均限 association/system_admin。
+- 补业主(customer)演示账号 6 个(此前为 0;含 1 个已停用),四类用户在用户管理均有数据。
+
 ## [0.95.1] - 2026-06-04
 
 ### 角色权限表补充治理领导岗:会长 / 副会长
