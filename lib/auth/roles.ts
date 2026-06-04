@@ -29,6 +29,8 @@ export type RoleDef = { label: string; tone: "brand" | "build" | "design" | "dec
 
 export const STAFF_ROLES: Record<string, RoleDef> = {
   super_admin: { label: "超级管理员", tone: "brand", permissions: [...ALL_PERMISSIONS] },
+  president: { label: "会长", tone: "decor", permissions: [...ALL_PERMISSIONS] },
+  vice_president: { label: "副会长", tone: "yellow", permissions: ["members", "reports", "mediation", "finance", "claims", "supplies", "news", "training", "knowledge", "agreements"] },
   secretary: { label: "秘书长", tone: "build", permissions: ["members", "reports", "mediation", "news", "training", "agreements", "users"] },
   reviewer: { label: "审核员", tone: "design", permissions: ["members", "reports", "supplies"] },
   finance: { label: "金融保险专员", tone: "tea", permissions: ["finance", "claims", "finance_products"] },

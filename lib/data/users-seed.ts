@@ -13,7 +13,7 @@ export type SeedStaff = {
   phone: string;
   email?: string;
   staffRole:
-    | "super_admin" | "secretary" | "reviewer"
+    | "super_admin" | "president" | "vice_president" | "secretary" | "reviewer"
     | "finance" | "content" | "support" | "mediator";
   roles?: string[];  // 多角色（不填则默认 [staffRole]）
   passwordHash: string;
@@ -38,6 +38,9 @@ export const SEED_STAFF: SeedStaff[] = [
   { id: "as-005", name: "陈思远", phone: "13803760045", staffRole: "content", passwordHash: "scrypt$64152bbca8bbbcaa24dad062d81dc23d$42f46302571da628997a69b99113892989c7fb69cf33ce9fd3828555954d07518876a855ae8a4f05905974027f17e961bfdb6ecb1a0151104adc7da382f7be0b", status: "active" },
   { id: "as-006", name: "刘海涛", phone: "13803760056", staffRole: "support", passwordHash: "scrypt$fcc6c4345c5f1b1a99f484bc0ba66dd6$eb3ccff24da44f8773bb0e94583c43a90ac58083ef682609502050eeb05243a828541b300fedd70b3064076d9fc184c8f1944c2955ec0fd5b142b89d870a666a", status: "active" },
   { id: "as-007", name: "周晓梅", phone: "13803760067", staffRole: "reviewer", passwordHash: "scrypt$770aff0785597187809b05f71d14654b$9aa01a763ae734252d53db7032330a0976eecad1a89ee6f7e48d4c45d0f057d81cc1d9786319f6f8de2d570d3a7ea2ea88d57da496dd32385086d78319315115", status: "active" },
+  // 协会治理领导岗
+  { id: "as-008", name: "郑国华", phone: "13803760078", staffRole: "president", passwordHash: "scrypt$6fb2a8eb508e6ec75fd8f05cfa113e24$454990a56c8eb2c9da5961d183609ca834cd6b6013897dab8803e6bf8ad3a00cb525084b28a3ef4144e737d1bbcb304ba61f23a4811d1d121b720167d4ee2014", status: "active" },
+  { id: "as-009", name: "孙建华", phone: "13803760089", staffRole: "vice_president", passwordHash: "scrypt$c2ca53ed53b1bd0dc65e28b2c3800a87$74590d91b61e6ac0af9ce3e1f1e89f7beaa6a7610d4eda67eca9caa7fdb43d48a077873186e522a62aca365a53ed13185d6fc33c9b2f269bf2fef398c27f1517", status: "active" },
 ];
 
 export function findStaffByPhone(phone: string): SeedStaff | undefined {
