@@ -2,7 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import {
   Umbrella, MessageSquareHeart, MessageSquareWarning, Sparkles,
-  Bell, ChevronRight, ShieldCheck, ArrowUpRight, Camera,
+  Settings, ChevronRight, ShieldCheck, ArrowUpRight, Camera,
   AlertCircle, CheckCircle2, Wallet, GitPullRequest, MessagesSquare,
 } from "lucide-react";
 import { Container } from "@/components/container";
@@ -75,12 +75,9 @@ export default async function CustomerDashboard() {
                 <div className="text-[11px] text-background/70">协会业主{session.phone ? ` · ID C${session.phone.slice(-6)}` : ""}</div>
               </div>
             </div>
-            <span className="relative h-9 w-9 rounded-full bg-white/10 backdrop-blur inline-flex items-center justify-center" aria-label="通知">
-              <Bell className="h-4 w-4" />
-              {pending > 0 && (
-                <span className="absolute top-1 right-1 h-2 w-2 rounded-full bg-cat-decor animate-pulse" />
-              )}
-            </span>
+            <Link href="/dashboard/customer/settings" className="relative h-9 w-9 rounded-full bg-white/10 backdrop-blur inline-flex items-center justify-center hover:bg-white/20 transition-colors" aria-label="设置">
+              <Settings className="h-4 w-4" />
+            </Link>
           </div>
 
           <div className="mt-6 inline-flex items-center gap-1.5 rounded-full bg-white/10 backdrop-blur px-3 py-1.5 text-[11px]">
