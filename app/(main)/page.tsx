@@ -164,6 +164,38 @@ export default async function ConsumerHome() {
         </Container>
       </section>
 
+      {/* 协会认证流程 · 信任带（讲清为什么协会平台靠谱，与下方"协会守护"服务入口不重复）*/}
+      <section className="py-6 md:py-8 border-y border-border bg-surface/60">
+        <Container>
+          <div className="flex items-center gap-1.5 mb-4 text-[12px] tracking-[0.2em] text-brand uppercase font-medium">
+            <ShieldCheck className="h-3.5 w-3.5" /> WHY · 每家上架企业要过的关
+          </div>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            {[
+              { icon: ShieldCheck, t: "资质核验", d: "营业执照 · 资质证书逐项核验" },
+              { icon: Search, t: "信用评估", d: "工商 · 涉诉 · 失信记录筛查" },
+              { icon: Building2, t: "现场核查", d: "协会实地走访办公与在建工地" },
+              { icon: Star, t: "实名口碑监督", d: "业主实名评价 · 发布后不可删" },
+            ].map((s, i) => {
+              const Ic = s.icon;
+              return (
+                <div key={s.t} className="rounded-2xl border border-border bg-background p-4 flex items-start gap-3">
+                  <span className="relative h-10 w-10 rounded-xl bg-brand-50 text-brand inline-flex items-center justify-center shrink-0">
+                    <Ic className="h-5 w-5" />
+                    <span className="absolute -top-1.5 -left-1.5 h-5 w-5 rounded-full bg-foreground text-background text-[10px] font-semibold inline-flex items-center justify-center">{i + 1}</span>
+                  </span>
+                  <div className="min-w-0">
+                    <div className="text-[14px] font-semibold">{s.t}</div>
+                    <div className="text-[11px] text-muted-foreground mt-0.5 leading-4">{s.d}</div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+          <p className="mt-3 text-[12px] text-muted-foreground">过关后方可在平台上架接单;不达标或出现严重投诉将被暂停或清退。</p>
+        </Container>
+      </section>
+
       {/* 三大品类 */}
       <section className="py-8 md:py-12">
         <Container>
@@ -172,7 +204,7 @@ export default async function ConsumerHome() {
               <div className="text-[12px] tracking-[0.2em] text-brand uppercase font-medium">FIND · 找企业</div>
               <h2 className="mt-2 text-[34px] md:text-[44px] font-semibold tracking-tight leading-tight">按需求挑企业</h2>
             </div>
-            <p className="text-[13px] text-muted-foreground max-w-md">所有企业经资质核验 · 信用评估 · 现场核查 · 实名业主评价</p>
+            <p className="text-[13px] text-muted-foreground max-w-md">建筑施工 / 装饰装修 / 设计三类,均为协会认证会员,按你的需求直接挑。</p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-5">
             {CATEGORIES.map((cat) => (
