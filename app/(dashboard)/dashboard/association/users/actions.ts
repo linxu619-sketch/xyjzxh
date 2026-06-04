@@ -5,6 +5,22 @@ import { redirect } from "next/navigation";
 import { getSession } from "@/lib/auth/session";
 import { getAccountByPhone, setAccountStatus, setAccountTier, type AccountStatus } from "@/lib/data/accounts";
 import { tierLadder } from "@/lib/data/member-tier";
+import { getStaff, setStaffStatus, type StaffStatus } from "@/lib/data/staff-source";
+
+// 协会工作人员 启用/停用（超级管理员账号不可停用）
+export async function setStaffStatusAction(fd: FormData) {
+  const s = await getSession();
+  if (!s || (s.role !== "association" && s.role !== "system_admin")) throw new Error("无权限：仅协会工作人员可管理员工账号");
+  const id = String(fd.get("id") || "").trim();
+  const status = String(fd.get("status") || "") as StaffStatus;
+  const st = id ? getStaff(id) : undefined;
+  if (st && st.staffRole !== "super_admin" && (status === "active" || status === "locked")) {
+    setStaffStatus(id, status);
+  }
+  const to = `/dashboard/association/users/staff/${id}`;
+  revalidatePath(to);
+  redirect(to);
+}
 
 export async function setAccountStatusAction(fd: FormData) {
   const s = await getSession();

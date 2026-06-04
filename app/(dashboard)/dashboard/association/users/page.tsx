@@ -1,10 +1,10 @@
 import Link from "next/link";
-import { Crown, Building2, UserRound, Users2, ShieldCheck, Lock, ChevronRight } from "lucide-react";
+import { Crown, Building2, UserRound, Users2, ShieldCheck, ChevronRight } from "lucide-react";
 import { AssociationShell } from "@/components/dashboard/shell";
 import { StatFilters } from "@/components/dashboard/stat-filters";
 import { Badge } from "@/components/ui/badge";
 import { listAccounts, countAccountsByRole, type AccountStatus } from "@/lib/data/accounts";
-import { SEED_STAFF } from "@/lib/data/users-seed";
+import { listStaff } from "@/lib/data/staff-source";
 
 export const metadata = { title: "用户管理 · 协会工作台" };
 
@@ -27,6 +27,7 @@ export default async function UsersAdmin({ searchParams }: { searchParams: Promi
   const { tab, q, st } = await searchParams;
   const active = TABS.some((t) => t.key === tab) ? tab! : "staff";
   const counts = countAccountsByRole();
+  const staffList = listStaff();
   const base = "/dashboard/association/users";
   const kw = (q ?? "").trim();
   const stFilter = (["active", "pending", "rejected"] as const).find((s) => s === st);
@@ -37,7 +38,7 @@ export default async function UsersAdmin({ searchParams }: { searchParams: Promi
         items={TABS.map((t) => ({
           key: t.key,
           label: t.label,
-          value: t.key === "staff" ? SEED_STAFF.length : (counts[t.key] ?? 0),
+          value: t.key === "staff" ? staffList.length : (counts[t.key] ?? 0),
           color: t.key === "staff" ? "text-brand" : t.key === "enterprise" ? "text-cat-build" : t.key === "individual" ? "text-cat-design" : "text-cat-decor",
           href: `${base}?tab=${t.key}`,
           active: active === t.key,
@@ -46,28 +47,32 @@ export default async function UsersAdmin({ searchParams }: { searchParams: Promi
 
       {active === "staff" ? (
         <div className="rounded-2xl border border-border bg-background overflow-hidden">
-          <div className="px-5 py-3 border-b border-border text-[14px] font-semibold inline-flex items-center gap-1.5"><Crown className="h-4 w-4" /> 协会工作人员 · {SEED_STAFF.length} 人 <span className="text-[12px] text-muted-foreground font-normal">· 编译进程序,永不入库</span></div>
-          <div className="hidden md:grid grid-cols-[1.3fr_1.1fr_1fr_1fr_auto] gap-3 px-5 py-2.5 border-b border-border text-[11px] text-muted-foreground tracking-wider">
-            <span>姓名</span><span>角色</span><span>手机号</span><span>状态</span><span className="text-right">维护方式</span>
+          <div className="px-5 py-3 border-b border-border text-[14px] font-semibold inline-flex items-center gap-1.5"><Crown className="h-4 w-4" /> 协会工作人员 · {staffList.length} 人 <span className="text-[12px] text-muted-foreground font-normal">· 入库可管理</span></div>
+          <div className="hidden md:grid grid-cols-[1.3fr_1.1fr_1fr_auto] gap-3 px-5 py-2.5 border-b border-border text-[11px] text-muted-foreground tracking-wider">
+            <span>姓名</span><span>角色</span><span>手机号</span><span className="text-right">状态</span>
           </div>
           <ul className="divide-y divide-border">
-            {SEED_STAFF.map((s) => (
-              <li key={s.id} className="grid grid-cols-[1fr_auto] md:grid-cols-[1.3fr_1.1fr_1fr_1fr_auto] gap-3 items-center px-5 py-3.5 text-[13px]">
-                <span className="min-w-0 inline-flex items-center gap-2">
-                  <span className="h-8 w-8 rounded-lg bg-brand-50 text-brand inline-flex items-center justify-center shrink-0 font-semibold">{s.name.slice(0, 1)}</span>
-                  <span className="min-w-0">
-                    <span className="font-medium truncate block">{s.name}</span>
-                    <span className="md:hidden text-[11px] text-muted-foreground">{STAFF_ROLE[s.staffRole] ?? s.staffRole} · {mask(s.phone)}</span>
+            {staffList.map((s) => (
+              <li key={s.id}>
+                <Link href={`${base}/staff/${s.id}`} className="grid grid-cols-[1fr_auto] md:grid-cols-[1.3fr_1.1fr_1fr_auto] gap-3 items-center px-5 py-3.5 text-[13px] hover:bg-surface transition-colors active:scale-[0.99]">
+                  <span className="min-w-0 inline-flex items-center gap-2">
+                    <span className="h-8 w-8 rounded-lg bg-brand-50 text-brand inline-flex items-center justify-center shrink-0 font-semibold">{s.name.slice(0, 1)}</span>
+                    <span className="min-w-0">
+                      <span className="font-medium truncate block">{s.name}</span>
+                      <span className="md:hidden text-[11px] text-muted-foreground">{STAFF_ROLE[s.staffRole] ?? s.staffRole} · {mask(s.phone)}</span>
+                    </span>
                   </span>
-                </span>
-                <span className="hidden md:block"><Badge tone={STAFF_TONE[s.staffRole] ?? "neutral"}>{STAFF_ROLE[s.staffRole] ?? s.staffRole}</Badge></span>
-                <span className="hidden md:block text-muted-foreground tabular-nums">{mask(s.phone)}</span>
-                <span className="hidden md:block"><Badge tone={s.status === "active" ? "tea" : "decor"}>{s.status === "active" ? "正常" : "已锁定"}</Badge></span>
-                <span className="inline-flex items-center gap-1 justify-end shrink-0 text-[11px] text-muted-foreground"><Lock className="h-3 w-3" /> 仅源码可改</span>
+                  <span className="hidden md:block"><Badge tone={STAFF_TONE[s.staffRole] ?? "neutral"}>{STAFF_ROLE[s.staffRole] ?? s.staffRole}</Badge></span>
+                  <span className="hidden md:block text-muted-foreground tabular-nums">{mask(s.phone)}</span>
+                  <span className="inline-flex items-center gap-2 justify-end shrink-0">
+                    <Badge tone={s.status === "active" ? "tea" : "decor"}>{s.status === "active" ? "正常" : "已停用"}</Badge>
+                    <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                  </span>
+                </Link>
               </li>
             ))}
           </ul>
-          <div className="px-5 py-3 text-[12px] text-muted-foreground border-t border-border">协会工作人员账号由秘书处 / 平台运维在源码中维护,不在此处增删;登录密码为各自手机号后 6 位。</div>
+          <div className="px-5 py-3 text-[12px] text-muted-foreground border-t border-border">点击任一行进入详情启用 / 停用;登录密码为各自手机号后 6 位。平台超级管理员账号写死源码、不在此处管理。</div>
         </div>
       ) : (
         (() => {

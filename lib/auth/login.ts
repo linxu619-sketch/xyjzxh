@@ -1,6 +1,6 @@
 import "server-only";
 import { SYSTEM_ADMIN } from "./system-admin";
-import { findStaffByPhone } from "@/lib/data/users-seed";
+import { getStaffAuthByPhone } from "@/lib/data/staff-source";
 import { findEnterpriseByContactPhone } from "@/lib/data/enterprises-source";
 import { getPractitionerByPhone } from "@/lib/data/practitioners-source";
 import { getAccountByPhone, upsertAccount } from "@/lib/data/accounts";
@@ -44,8 +44,11 @@ export async function loginWithPassword(
     return { ok: false, error: "密码错误" };
   }
 
-  // —— 协会数据库账号 ——
-  const staff = findStaffByPhone(cleanPhone);
+  // —— 协会工作人员（数据库 association_staff）——
+  const staff = getStaffAuthByPhone(cleanPhone);
+  if (staff && staff.status !== "active") {
+    return { ok: false, error: "该工作人员账号已被停用,请联系秘书处" };
+  }
   if (staff && verifyPassword(password, staff.passwordHash)) {
     return {
       ok: true,

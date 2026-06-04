@@ -9,6 +9,7 @@ import { JOBS as RECRUIT_JOBS, CERTIFICATES as MEMBER_CERTS } from "@/lib/data/t
 import { PRACTITIONER_JOBS, WORKER_INSURANCE } from "@/lib/data/practitioners";
 import { KNOWLEDGE as KB_ARTICLES } from "@/lib/data/knowledge";
 import { AGREEMENT_TEMPLATES, AGREEMENT_SIGNATURES } from "@/lib/data/agreements";
+import { SEED_STAFF } from "@/lib/data/users-seed";
 
 /* ============================================================
    本地 SQLite 数据库（Node 24 内置 node:sqlite，零依赖、零云端）
@@ -371,6 +372,19 @@ CREATE TABLE IF NOT EXISTS accounts (
   created_at    INTEGER
 );
 CREATE INDEX IF NOT EXISTS idx_accounts_phone ON accounts(phone);
+
+-- 协会工作人员（除平台超管 SYSTEM_ADMIN 写死源码外，全部入库可管理）
+CREATE TABLE IF NOT EXISTS association_staff (
+  id            TEXT PRIMARY KEY,
+  name          TEXT,
+  phone         TEXT UNIQUE,
+  email         TEXT,
+  staff_role    TEXT,    -- secretary | reviewer | finance | content | support | super_admin
+  password_hash TEXT,
+  status        TEXT DEFAULT 'active', -- active | locked
+  created_at    INTEGER
+);
+CREATE INDEX IF NOT EXISTS idx_staff_phone ON association_staff(phone);
 
 CREATE TABLE IF NOT EXISTS news (
   id          INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -781,7 +795,18 @@ function init(): DB {
   seedWorkerInsurance(db);
   seedKnowledgeArticles(db);
   seedAgreements(db);
+  seedAssociationStaff(db);
   return db;
+}
+
+// 协会工作人员入库（SEED_STAFF 作种子源；平台超管 SYSTEM_ADMIN 不入此表）
+function seedAssociationStaff(db: DB) {
+  if (!isEmpty(db, "association_staff")) return;
+  const now = Date.now();
+  SEED_STAFF.forEach((s, i) => {
+    db.prepare("INSERT INTO association_staff (id,name,phone,email,staff_role,password_hash,status,created_at) VALUES (?,?,?,?,?,?,?,?)")
+      .run(s.id, s.name, s.phone, s.email ?? null, s.staffRole, s.passwordHash, s.status, now - i * 86400000);
+  });
 }
 
 // 协议模板 + 签署存证

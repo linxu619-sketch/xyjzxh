@@ -14,6 +14,13 @@
 
 ---
 
+## [0.94.0] - 2026-06-04
+
+### 协会工作人员全部入库,仅平台超管(林旭)留源码
+- 新增 association_staff 表 + lib/data/staff-source.ts(listStaff/getStaff/getStaffAuthByPhone/setStaffStatus);SEED_STAFF 降为种子源,7 名工作人员全部入库。
+- 登录改读库(getStaffAuthByPhone,回退种子);停用工作人员拒绝登录。唯一写死源码的账号是平台超级管理员 SYSTEM_ADMIN(林旭),不入库、不在用户管理显示。
+- 用户管理「协会工作人员」tab 由"仅源码可改"改为入库可管理:列对齐表格 + 整行点进 staff/[id] 详情启用/停用;超级管理员账号守卫不可停用。
+
 ## [0.93.1] - 2026-06-04
 
 ### 协会工作人员补齐一套虚拟名册 + 改表格
