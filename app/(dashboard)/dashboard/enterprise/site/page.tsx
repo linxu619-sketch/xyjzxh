@@ -10,16 +10,18 @@ import { listTeamByEnterprise } from "@/lib/data/team";
 import { saveSiteAction } from "./actions";
 import { CasesManager } from "./CasesManager";
 import { TeamManager } from "./TeamManager";
+import { effectiveEnterpriseId } from "@/lib/dashboard/preview";
 
 export const metadata = { title: "我的子站 · 企业工作台" };
 
 export default async function SitePage({ searchParams }: { searchParams: Promise<{ ok?: string; err?: string; cok?: string; cerr?: string; tok?: string; terr?: string }> }) {
   const { ok, err, cok, cerr, tok, terr } = await searchParams;
   const session = await getSession();
-  const ent = session?.enterpriseId ? await getEnterpriseBySlugOrId(session.enterpriseId) : undefined;
-  const leads = session?.enterpriseId ? listLeadsByEnterprise(session.enterpriseId) : [];
-  const cases = session?.enterpriseId ? listCasesByEnterprise(session.enterpriseId) : [];
-  const team = session?.enterpriseId ? listTeamByEnterprise(session.enterpriseId) : [];
+  const eid = effectiveEnterpriseId(session);
+  const ent = eid ? await getEnterpriseBySlugOrId(eid) : undefined;
+  const leads = eid ? listLeadsByEnterprise(eid) : [];
+  const cases = eid ? listCasesByEnterprise(eid) : [];
+  const team = eid ? listTeamByEnterprise(eid) : [];
 
   const slug = ent?.slug ?? "";
   const signed = leads.filter((l) => l.status === "signed").length;

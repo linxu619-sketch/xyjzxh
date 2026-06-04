@@ -6,17 +6,18 @@ import { Badge } from "@/components/ui/badge";
 import { getSession } from "@/lib/auth/session";
 import { listOpenTrainings, listEnrollmentsByPractitioner, countEnrolled } from "@/lib/data/training";
 import { enrollTrainingAction } from "./actions";
+import { effectivePractitionerPhone, isPractitionerPreview } from "@/lib/dashboard/preview";
 
 export const metadata = { title: "培训 · 从业者门户" };
 
 export default async function PractitionerTraining({ searchParams }: { searchParams: Promise<{ tok?: string; tdup?: string; terr?: string }> }) {
   const session = await getSession();
-  if (!session || session.role !== "practitioner") redirect("/login?role=practitioner");
-  if (session.pending) redirect("/dashboard/pending");
+  if (!session || (session.role !== "practitioner" && !isPractitionerPreview(session))) redirect("/login?role=practitioner");
+  if (session.role === "practitioner" && session.pending) redirect("/dashboard/pending");
   const { tok, tdup, terr } = await searchParams;
 
   const trainings = listOpenTrainings();
-  const myEnrolls = listEnrollmentsByPractitioner(session.phone);
+  const myEnrolls = listEnrollmentsByPractitioner(effectivePractitionerPhone(session));
   const enrolledSet = new Set(myEnrolls.map((e) => e.trainingId));
 
   return (

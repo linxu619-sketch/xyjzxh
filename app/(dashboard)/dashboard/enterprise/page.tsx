@@ -13,6 +13,7 @@ import { listLeadsByEnterprise } from "@/lib/data/leads";
 import { listCasesByEnterprise } from "@/lib/data/cases";
 import { questionCounts } from "@/lib/ai/knowledge-source";
 import { AI_EMPLOYEES } from "@/lib/site";
+import { effectiveEnterpriseId, isEnterprisePreview } from "@/lib/dashboard/preview";
 
 export const metadata = { title: "企业工作台 · 信阳市建筑装饰装修协会" };
 
@@ -28,12 +29,13 @@ function maskPhone(p: string) {
 
 export default async function EnterpriseDashboard() {
   const session = await getSession();
-  const ent = session?.enterpriseId ? await getEnterpriseBySlugOrId(session.enterpriseId) : undefined;
+  const eid = effectiveEnterpriseId(session);
+  const ent = eid ? await getEnterpriseBySlugOrId(eid) : undefined;
   const brand = ent?.hero.brand ?? ent?.name ?? "企业工作台";
   const slug = ent?.slug ?? "mingjia";
-  const myReports = session ? listReportsByUid(session.uid) : [];
-  const myLeads = session?.enterpriseId ? listLeadsByEnterprise(session.enterpriseId) : [];
-  const myCases = session?.enterpriseId ? listCasesByEnterprise(session.enterpriseId) : [];
+  const myReports = session && !isEnterprisePreview(session) ? listReportsByUid(session.uid) : [];
+  const myLeads = eid ? listLeadsByEnterprise(eid) : [];
+  const myCases = eid ? listCasesByEnterprise(eid) : [];
   const newLeads = myLeads.filter((l) => l.status === "new").length;
   const pendingReports = myReports.filter((r) => r.status === "pending").length;
   // 真实线索漏斗

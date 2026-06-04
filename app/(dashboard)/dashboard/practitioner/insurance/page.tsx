@@ -8,6 +8,7 @@ import { getSession } from "@/lib/auth/session";
 import { getPractitionerByPhone } from "@/lib/data/practitioners-source";
 import { listInsuranceByUid } from "@/lib/data/insurance-orders";
 import { applyInsuranceAction } from "./actions";
+import { effectivePractitionerPhone, isPractitionerPreview } from "@/lib/dashboard/preview";
 
 export const metadata = { title: "保障 · 从业者门户" };
 
@@ -26,11 +27,11 @@ function fmt(ms: number) {
 
 export default async function PractitionerInsurance({ searchParams }: { searchParams: Promise<{ ok?: string }> }) {
   const session = await getSession();
-  if (!session || session.role !== "practitioner") redirect("/login?role=practitioner");
-  if (session.pending) redirect("/dashboard/pending");
+  if (!session || (session.role !== "practitioner" && !isPractitionerPreview(session))) redirect("/login?role=practitioner");
+  if (session.role === "practitioner" && session.pending) redirect("/dashboard/pending");
   const { ok } = await searchParams;
 
-  const me = getPractitionerByPhone(session.phone);
+  const me = getPractitionerByPhone(effectivePractitionerPhone(session));
   const orders = listInsuranceByUid(session.uid);
   const active = orders.find((o) => o.status === "done");
   const insured = !!active || (me?.insured ?? false);

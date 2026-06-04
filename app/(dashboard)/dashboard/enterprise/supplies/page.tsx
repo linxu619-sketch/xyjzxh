@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { getSession } from "@/lib/auth/session";
 import { listProducts, listOrdersByEnterprise, type OrderStatus } from "@/lib/data/supplies-source";
 import { placeSupplyOrderAction } from "./actions";
+import { effectiveEnterpriseId } from "@/lib/dashboard/preview";
 
 export const metadata = { title: "建材采购 · 企业工作台" };
 
@@ -21,7 +22,7 @@ export default async function SuppliesPage({ searchParams }: { searchParams: Pro
   const { sok, serr } = await searchParams;
   const session = await getSession();
   const products = listProducts();
-  const orders = session?.enterpriseId ? listOrdersByEnterprise(session.enterpriseId) : [];
+  const orders = effectiveEnterpriseId(session) ? listOrdersByEnterprise(effectiveEnterpriseId(session)!) : [];
   const saved = orders.reduce((a, o) => {
     const p = products.find((x) => x.id === o.productId);
     return a + (p ? (p.marketPrice - o.unitPrice) * o.qty : 0);

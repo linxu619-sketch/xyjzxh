@@ -5,6 +5,7 @@ import { Container } from "@/components/container";
 import { getSession } from "@/lib/auth/session";
 import { PRACTITIONER_TABS } from "@/lib/dashboard/nav";
 import { CustomerBottomNav } from "./customer-bottom-nav";
+import { isPractitionerPreview } from "@/lib/dashboard/preview";
 
 export async function PractitionerShell({
   title, subtitle, children, showHeader = true,
@@ -15,13 +16,20 @@ export async function PractitionerShell({
   showHeader?: boolean;
 }) {
   const session = await getSession();
-  if (!session || session.role !== "practitioner") {
+  const preview = isPractitionerPreview(session);
+  if (!session || (session.role !== "practitioner" && !preview)) {
     redirect("/login?role=practitioner");
   }
-  if (session.pending) redirect("/dashboard/pending");
+  if (session.role === "practitioner" && session.pending) redirect("/dashboard/pending");
 
   return (
     <div className="min-h-screen bg-surface pb-24">
+      {preview && (
+        <div className="bg-[#fff6d6] text-[#a37200] text-[12px] px-4 py-2.5 flex items-center justify-between gap-2">
+          <span>👁 从业者门户预览 · 协会只读体验</span>
+          <Link href="/dashboard/association" className="underline font-medium shrink-0">返回协会工作台</Link>
+        </div>
+      )}
       {showHeader && (
         <div className="bg-foreground text-background pt-7 pb-8 relative overflow-hidden">
           <div className="absolute -top-10 -right-10 h-40 w-40 rounded-full bg-cat-design/30 blur-3xl" />

@@ -9,6 +9,9 @@ import { countByStatus } from "@/lib/data/applications";
 import { listReports, listReportsByUid } from "@/lib/data/reports";
 import { listMediations } from "@/lib/data/mediations";
 import { getEnterpriseBySlugOrId } from "@/lib/data/enterprises-source";
+import { isEnterprisePreview, effectiveEnterpriseId } from "@/lib/dashboard/preview";
+import Link from "next/link";
+import { Eye } from "lucide-react";
 
 type ShellProps = {
   title: string;
@@ -67,32 +70,45 @@ export async function AssociationShell({ title, subtitle, actions, children }: S
 
 export async function EnterpriseShell({ title, subtitle, actions, children }: ShellProps) {
   const session = await getSession();
-  if (!session || session.role !== "enterprise") {
+  const preview = isEnterprisePreview(session);
+  if (!session || (session.role !== "enterprise" && !preview)) {
     redirect("/login?role=enterprise");
   }
-  if (session.pending) redirect("/dashboard/pending");
-  const pendingReports = listReportsByUid(session.uid).filter((r) => r.status === "pending").length;
+  if (session.role === "enterprise" && session.pending) redirect("/dashboard/pending");
+  const eid = effectiveEnterpriseId(session);
+  const pendingReports = preview ? 0 : listReportsByUid(session!.uid).filter((r) => r.status === "pending").length;
   const items = withBadges(ENT_NAV, {
     "/dashboard/enterprise/projects": pendingReports,
   });
   // 品牌名按登录企业动态显示（解析 mock 的 e001~ 与入会建档的 app-X 企业）
-  const ent = session.enterpriseId ? await getEnterpriseBySlugOrId(session.enterpriseId) : undefined;
-  const brand = ent?.hero.brand ?? ent?.name ?? session.name ?? "企业工作台";
+  const ent = eid ? await getEnterpriseBySlugOrId(eid) : undefined;
+  const brand = ent?.hero.brand ?? ent?.name ?? session!.name ?? "企业工作台";
   return (
     <div className="flex">
       <Sidebar
         brand={brand}
         role={ent?.name ?? "Enterprise Console"}
         items={items}
-        user={{ name: session.name, meta: `企业管理员 · ${maskPhone(session.phone)}` }}
+        user={{ name: preview ? "协会预览" : session!.name, meta: preview ? "只读预览样板企业" : `企业管理员 · ${maskPhone(session!.phone)}` }}
         tone="build"
       />
       <div className="flex-1 bg-surface min-h-screen">
         <div className="px-5 pb-8 pt-[72px] md:p-10 max-w-7xl">
+          {preview && <PreviewBanner back="返回协会工作台" portal={`企业工作台预览 · ${ent?.name ?? ""}`} />}
           <TopBar title={title} subtitle={subtitle} actions={actions} />
           {children}
         </div>
       </div>
+    </div>
+  );
+}
+
+function PreviewBanner({ portal, back }: { portal: string; back: string }) {
+  return (
+    <div className="mb-6 rounded-2xl border border-accent-yellow/40 bg-[#fff6d6] text-[#a37200] px-5 py-3 flex items-center gap-3">
+      <Eye className="h-4 w-4 shrink-0" />
+      <div className="flex-1 min-w-0 text-[13px]"><b>{portal}</b> · 你正以协会身份只读预览该端体验,操作仅用于测试。</div>
+      <Link href="/dashboard/association" className="shrink-0 h-8 px-3.5 rounded-full bg-foreground text-background text-[12px] font-medium inline-flex items-center">{back}</Link>
     </div>
   );
 }

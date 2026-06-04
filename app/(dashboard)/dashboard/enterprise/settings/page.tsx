@@ -5,13 +5,15 @@ import { Badge } from "@/components/ui/badge";
 import { getSession } from "@/lib/auth/session";
 import { getEnterpriseBySlugOrId } from "@/lib/data/enterprises-source";
 import { getMemberTier } from "@/lib/data/member-tier";
+import { effectiveEnterpriseId } from "@/lib/dashboard/preview";
 
 export const metadata = { title: "企业设置 · 企业工作台" };
 
 export default async function EnterpriseSettings() {
   const session = await getSession();
-  const e = session?.enterpriseId ? await getEnterpriseBySlugOrId(session.enterpriseId) : undefined;
-  const tier = session?.enterpriseId ? getMemberTier("enterprise", session.enterpriseId) : "普通会员";
+  const eid = effectiveEnterpriseId(session);
+  const e = eid ? await getEnterpriseBySlugOrId(eid) : undefined;
+  const tier = eid ? getMemberTier("enterprise", eid) : "普通会员";
   const fullName = e?.name ?? "";
   const region = e?.district ?? "";
   const intro = e?.short ?? "";

@@ -2,7 +2,7 @@ import Link from "next/link";
 import {
   ShieldCheck, CheckCircle2, AlertCircle, ChevronRight,
   Users2, FileCheck2, MessageSquareWarning, Newspaper, Sparkles,
-  Download, BookOpen,
+  Download, BookOpen, Eye, ExternalLink, Home, Building2, UserRound, Store,
 } from "lucide-react";
 import { AssociationShell } from "@/components/dashboard/shell";
 import { StatCard, Panel } from "@/components/dashboard/widgets";
@@ -80,6 +80,34 @@ export default async function AssociationDashboard() {
         <Link href="/dashboard/association/members" className="hidden md:inline-flex items-center gap-1 text-[12px] font-medium bg-accent-yellow text-foreground h-9 px-4 rounded-full">
           立即处理 <ChevronRight className="h-3 w-3" />
         </Link>
+      </div>
+
+      {/* 门面预览 · 一键跳各端首页（公开页新开标签；工作台为协会只读预览样板账号） */}
+      <div className="mb-5 rounded-2xl border border-border bg-background p-4">
+        <div className="text-[13px] font-semibold mb-1 inline-flex items-center gap-1.5"><Eye className="h-4 w-4" /> 门面预览 · 一键体验各端首页</div>
+        <p className="text-[11px] text-muted-foreground mb-3">业主/协会门户与企业子站为公开页;企业、从业者工作台以协会身份只读预览样板账号,便于测试。</p>
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-2.5">
+          {[
+            { icon: Home, t: "业主门户首页", d: "xyjzxh.com 主页", href: "/", tone: "decor" },
+            { icon: ShieldCheck, t: "协会门户首页", d: "会员之家 /xh", href: "/xh", tone: "brand" },
+            { icon: Building2, t: "企业工作台", d: "经营后台(预览)", href: "/dashboard/enterprise", tone: "build" },
+            { icon: Store, t: "企业子站(样板)", d: "面向业主的品牌页", href: "/biz/mingjia", tone: "tea" },
+            { icon: UserRound, t: "从业者门户", d: "个人工作台(预览)", href: "/dashboard/practitioner", tone: "design" },
+          ].map((c) => {
+            const Ic = c.icon;
+            const SOFT: Record<string, string> = { brand: "bg-brand-50 text-brand", build: "bg-cat-build-soft text-cat-build", decor: "bg-cat-decor-soft text-cat-decor", design: "bg-cat-design-soft text-cat-design", tea: "bg-[#e6f7f1] text-accent-tea" };
+            return (
+              <a key={c.href} href={c.href} target="_blank" rel="noreferrer" className="group rounded-2xl border border-border bg-background p-3 hover:shadow-md hover:-translate-y-0.5 transition-all active:scale-[0.98]">
+                <div className="flex items-center justify-between">
+                  <span className={`h-9 w-9 rounded-xl inline-flex items-center justify-center ${SOFT[c.tone]}`}><Ic className="h-4 w-4" /></span>
+                  <ExternalLink className="h-3.5 w-3.5 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+                </div>
+                <div className="mt-2 text-[13px] font-semibold">{c.t}</div>
+                <div className="text-[11px] text-muted-foreground">{c.d}</div>
+              </a>
+            );
+          })}
+        </div>
       </div>
 
       {/* KPI（真实） */}

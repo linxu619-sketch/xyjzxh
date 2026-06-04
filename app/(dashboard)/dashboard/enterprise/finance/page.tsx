@@ -5,6 +5,7 @@ import { getSession } from "@/lib/auth/session";
 import { listFinanceProducts, listFinanceAppsByEnterprise, type FinAppStatus } from "@/lib/data/finance-source";
 import { listInsuranceByUid } from "@/lib/data/insurance-orders";
 import { applyFinanceAction, applyEnterpriseInsuranceAction } from "./actions";
+import { effectiveEnterpriseId } from "@/lib/dashboard/preview";
 
 export const metadata = { title: "金融保险 · 企业工作台" };
 
@@ -23,8 +24,9 @@ export default async function FinancePage({ searchParams }: { searchParams: Prom
   const { fok, ferr, iok } = await searchParams;
   const session = await getSession();
   const products = listFinanceProducts();
-  const apps = session?.enterpriseId ? listFinanceAppsByEnterprise(session.enterpriseId) : [];
-  const insurance = session?.enterpriseId ? listInsuranceByUid(session.enterpriseId) : [];
+  const eid = effectiveEnterpriseId(session);
+  const apps = eid ? listFinanceAppsByEnterprise(eid) : [];
+  const insurance = eid ? listInsuranceByUid(eid) : [];
 
   return (
     <EnterpriseShell title="金融保险" subtitle={`协会合作金融产品 ${products.length} 款 · 我的申请 ${apps.length}`}>

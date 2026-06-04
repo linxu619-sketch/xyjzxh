@@ -163,7 +163,8 @@
       "Bash(grep -nA8 \"const COLOR\" \"app/\\(main\\)/finance/page.tsx\")",
       "Bash(grep -nA6 \"const TYPE_TONE\" \"app/\\(main\\)/finance/page.tsx\")",
       "Bash(grep -rnaE 'aria-label=\"通知\"|<Bell ' \"app/\\(dashboard\\)/dashboard/customer/page.tsx\" \"app/\\(dashboard\\)/dashboard/enterprise/page.tsx\" \"components/dashboard/customer-shell.tsx\" \"components/dashboard/shell.tsx\")",
-      "Bash(ls \"app/\\(dashboard\\)/dashboard/customer/settings/page.tsx\" \"app/\\(dashboard\\)/dashboard/enterprise/settings/page.tsx\")"
+      "Bash(ls \"app/\\(dashboard\\)/dashboard/customer/settings/page.tsx\" \"app/\\(dashboard\\)/dashboard/enterprise/settings/page.tsx\")",
+      "Bash(grep -naE 'role !== \"practitioner\"|session\\\\.phone|getSession' 'app/\\(dashboard\\)/dashboard/practitioner/__TRACKED_VAR__/page.tsx')"
     ]
   }
 }

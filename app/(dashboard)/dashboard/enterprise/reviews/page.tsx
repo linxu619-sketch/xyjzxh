@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { getSession } from "@/lib/auth/session";
 import { getEnterpriseBySlugOrId } from "@/lib/data/enterprises-source";
 import { listReviewsByEnterprise } from "@/lib/data/reviews";
+import { effectiveEnterpriseId } from "@/lib/dashboard/preview";
 import { cn } from "@/lib/cn";
 
 export const metadata = { title: "口碑评价 · 企业工作台" };
@@ -17,7 +18,8 @@ function fmt(ms: number) {
 
 export default async function ReviewsPage() {
   const session = await getSession();
-  const ent = session?.enterpriseId ? await getEnterpriseBySlugOrId(session.enterpriseId) : undefined;
+  const eid = effectiveEnterpriseId(session);
+  const ent = eid ? await getEnterpriseBySlugOrId(eid) : undefined;
   const names = [ent?.hero.brand, ent?.name].filter(Boolean) as string[];
   const reviews = names.length ? listReviewsByEnterprise(names) : [];
 

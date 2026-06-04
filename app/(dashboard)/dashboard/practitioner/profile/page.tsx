@@ -7,15 +7,16 @@ import { PractitionerShell } from "@/components/dashboard/practitioner-shell";
 import { logoutAction } from "@/app/(main)/login/actions";
 import { getSession } from "@/lib/auth/session";
 import { getPractitionerByPhone } from "@/lib/data/practitioners-source";
+import { effectivePractitionerPhone, isPractitionerPreview } from "@/lib/dashboard/preview";
 
 export const metadata = { title: "我的 · 从业者门户" };
 
 export default async function PractitionerProfile() {
   const session = await getSession();
-  if (!session || session.role !== "practitioner") {
+  if (!session || (session.role !== "practitioner" && !isPractitionerPreview(session))) {
     redirect("/login?role=practitioner");
   }
-  const me = getPractitionerByPhone(session.phone);
+  const me = getPractitionerByPhone(effectivePractitionerPhone(session));
   const name = me?.name ?? session.name;
   const kind = me?.kind ?? "从业者";
   const years = me?.years ?? 0;

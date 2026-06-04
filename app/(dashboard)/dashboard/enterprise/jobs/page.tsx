@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { getSession } from "@/lib/auth/session";
 import { listJobsByEnterprise, countApplicants, type JobStatus } from "@/lib/data/jobs";
 import { PostJobForm } from "./PostJobForm";
+import { effectiveEnterpriseId } from "@/lib/dashboard/preview";
 
 export const metadata = { title: "招聘管理 · 企业工作台" };
 
@@ -14,7 +15,7 @@ const FILTERABLE: JobStatus[] = ["open", "closed"];
 export default async function JobsPage({ searchParams }: { searchParams: Promise<{ f?: string; jok?: string; jerr?: string }> }) {
   const { f, jok, jerr } = await searchParams;
   const session = await getSession();
-  const all = session?.enterpriseId ? listJobsByEnterprise(session.enterpriseId) : [];
+  const all = effectiveEnterpriseId(session) ? listJobsByEnterprise(effectiveEnterpriseId(session)!) : [];
 
   const active = f && FILTERABLE.includes(f as JobStatus) ? (f as JobStatus) : undefined;
   const list = active ? all.filter((j) => j.status === active) : all;

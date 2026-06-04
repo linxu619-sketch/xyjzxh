@@ -6,6 +6,7 @@ import { StatFilters } from "@/components/dashboard/stat-filters";
 import { Badge } from "@/components/ui/badge";
 import { getSession } from "@/lib/auth/session";
 import { listLeadsByEnterprise, type LeadStatus } from "@/lib/data/leads";
+import { effectiveEnterpriseId } from "@/lib/dashboard/preview";
 
 const FILTERABLE: LeadStatus[] = ["new", "contacting", "surveying", "signed", "lost"];
 
@@ -28,7 +29,8 @@ function fmt(ms: number) {
 export default async function LeadsPage({ searchParams }: { searchParams: Promise<{ f?: string }> }) {
   const { f } = await searchParams;
   const session = await getSession();
-  const all = session?.enterpriseId ? listLeadsByEnterprise(session.enterpriseId) : [];
+  const eid = effectiveEnterpriseId(session);
+  const all = eid ? listLeadsByEnterprise(eid) : [];
 
   const total = all.length;
   const signed = all.filter((l) => l.status === "signed").length;

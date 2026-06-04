@@ -9,6 +9,7 @@ import { PRACTITIONER_TABS } from "@/lib/dashboard/nav";
 import { Badge } from "@/components/ui/badge";
 import { getPractitionerByPhone } from "@/lib/data/practitioners-source";
 import { listOpenJobs } from "@/lib/data/jobs";
+import { effectivePractitionerPhone, isPractitionerPreview } from "@/lib/dashboard/preview";
 import { redirect } from "next/navigation";
 import { getSession } from "@/lib/auth/session";
 
@@ -16,13 +17,14 @@ export const metadata = { title: "我的 · 从业者门户" };
 
 export default async function PractitionerHome() {
   const session = await getSession();
-  if (!session || session.role !== "practitioner") {
+  const preview = isPractitionerPreview(session);
+  if (!session || (session.role !== "practitioner" && !preview)) {
     redirect("/login?role=practitioner");
   }
-  if (session.pending) redirect("/dashboard/pending");
+  if (session.role === "practitioner" && session.pending) redirect("/dashboard/pending");
 
-  // 真实从业者记录（按登录手机号匹配协会名录）
-  const me = getPractitionerByPhone(session.phone);
+  // 真实从业者记录（按登录手机号匹配协会名录；协会预览用样板从业者）
+  const me = getPractitionerByPhone(effectivePractitionerPhone(session));
   const name = me?.name ?? session.name;
   const kind = me?.kind ?? "从业者";
   const years = me?.years ?? 0;
@@ -38,6 +40,12 @@ export default async function PractitionerHome() {
 
   return (
     <div className="min-h-screen bg-surface pb-24">
+      {preview && (
+        <div className="bg-[#fff6d6] text-[#a37200] text-[12px] px-4 py-2.5 flex items-center justify-between gap-2">
+          <span className="inline-flex items-center gap-1.5">👁 从业者门户预览 · 协会只读体验样板从业者</span>
+          <Link href="/dashboard/association" className="underline font-medium shrink-0">返回协会工作台</Link>
+        </div>
+      )}
       {/* hero */}
       <div className="bg-foreground text-background pt-10 pb-24 relative overflow-hidden">
         <div className="absolute -top-16 -right-16 h-56 w-56 rounded-full bg-cat-design/35 blur-3xl" />

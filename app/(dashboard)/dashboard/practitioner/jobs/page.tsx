@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { getSession } from "@/lib/auth/session";
 import { listOpenJobs, listApplicationsByPractitioner } from "@/lib/data/jobs";
 import { applyJobAction } from "./actions";
+import { effectivePractitionerPhone, isPractitionerPreview } from "@/lib/dashboard/preview";
 
 export const metadata = { title: "找活 · 从业者门户" };
 
@@ -13,11 +14,11 @@ const STATUS_LABEL: Record<string, string> = { pending: "已投递 · 待企业�
 
 export default async function PractitionerJobs({ searchParams }: { searchParams: Promise<{ aok?: string; adup?: string; aerr?: string }> }) {
   const session = await getSession();
-  if (!session || session.role !== "practitioner") redirect("/login?role=practitioner");
+  if (!session || (session.role !== "practitioner" && !isPractitionerPreview(session))) redirect("/login?role=practitioner");
   const { aok, adup, aerr } = await searchParams;
 
   const jobs = listOpenJobs();
-  const myApps = listApplicationsByPractitioner(session.phone);
+  const myApps = listApplicationsByPractitioner(effectivePractitionerPhone(session));
   const appliedMap = new Map(myApps.map((a) => [a.jobId, a.status]));
   const urgentCount = jobs.filter((j) => j.urgent).length;
 

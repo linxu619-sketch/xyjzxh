@@ -5,6 +5,7 @@ import { PractitionerShell } from "@/components/dashboard/practitioner-shell";
 import { Badge } from "@/components/ui/badge";
 import { getSession } from "@/lib/auth/session";
 import { listApplicationsByPractitioner, getJob } from "@/lib/data/jobs";
+import { effectivePractitionerPhone, isPractitionerPreview } from "@/lib/dashboard/preview";
 
 export const metadata = { title: "钱包 / 收入流水 · 从业者门户" };
 
@@ -21,11 +22,11 @@ function fmt(ms: number) {
 
 export default async function PractitionerIncome() {
   const session = await getSession();
-  if (!session || session.role !== "practitioner") redirect("/login?role=practitioner");
-  if (session.pending) redirect("/dashboard/pending");
+  if (!session || (session.role !== "practitioner" && !isPractitionerPreview(session))) redirect("/login?role=practitioner");
+  if (session.role === "practitioner" && session.pending) redirect("/dashboard/pending");
 
   // 收入来自「已录用」的岗位（日薪 × 工期推算，实际以结算为准）
-  const apps = listApplicationsByPractitioner(session.phone).filter((a) => a.status === "accepted");
+  const apps = listApplicationsByPractitioner(effectivePractitionerPhone(session)).filter((a) => a.status === "accepted");
   const engagements = apps.map((a) => {
     const job = getJob(a.jobId);
     const d = job ? days(job.duration) : 0;

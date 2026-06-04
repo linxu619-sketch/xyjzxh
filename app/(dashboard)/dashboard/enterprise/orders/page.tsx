@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { getSession } from "@/lib/auth/session";
 import { listOrdersByEnterprise, type OrderStage } from "@/lib/data/orders-source";
 import { NewOrder } from "./NewOrder";
+import { effectiveEnterpriseId } from "@/lib/dashboard/preview";
 
 export const metadata = { title: "施工订单 · 企业工作台" };
 
@@ -16,7 +17,7 @@ const FILTERABLE: OrderStage[] = ["signed", "planning", "in-progress", "accepted
 export default async function OrdersPage({ searchParams }: { searchParams: Promise<{ f?: string; ook?: string; oerr?: string }> }) {
   const { f, ook, oerr } = await searchParams;
   const session = await getSession();
-  const all = session?.enterpriseId ? listOrdersByEnterprise(session.enterpriseId) : [];
+  const all = effectiveEnterpriseId(session) ? listOrdersByEnterprise(effectiveEnterpriseId(session)!) : [];
   const active = f && FILTERABLE.includes(f as OrderStage) ? (f as OrderStage) : undefined;
   const list = active ? all.filter((o) => o.stage === active) : all;
   const inProgress = all.filter((o) => o.stage === "in-progress").length;
