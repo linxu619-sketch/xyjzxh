@@ -47,13 +47,36 @@ export default async function KnowledgeDetail({ params }: { params: Promise<{ id
         </p>
       </div>
 
+      {/* 正文要点 · 在线阅读 */}
+      {k.content && k.content.length > 0 && (
+        <div className="mt-5 rounded-2xl border border-border bg-background p-5 md:p-6">
+          <div className="text-[12px] tracking-wider text-muted-foreground uppercase mb-4 inline-flex items-center gap-1.5"><FileText className="h-3.5 w-3.5" />正文要点 · 在线阅读</div>
+          <div className="space-y-5">
+            {k.content.map((sec, i) => (
+              <div key={i}>
+                <h3 className="text-[15px] font-semibold tracking-tight inline-flex items-center gap-2">
+                  <span className="h-5 w-5 rounded-md bg-brand-50 text-brand text-[11px] font-semibold inline-flex items-center justify-center tabular-nums">{i + 1}</span>
+                  {sec.h}
+                </h3>
+                <ul className="mt-2 space-y-1.5 pl-7">
+                  {sec.points.map((p, j) => (
+                    <li key={j} className="text-[13px] leading-6 text-muted-foreground relative before:content-['·'] before:absolute before:-left-3.5 before:text-brand before:font-bold">{p}</li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </div>
+          <p className="mt-5 pt-4 border-t border-border text-[11px] text-muted-foreground">以上为协会技术委员会整理的要点摘录,便于快速查阅;完整官方原文以发布机构正式文本为准。</p>
+        </div>
+      )}
+
       {/* 操作 */}
       <div className="mt-4 flex flex-wrap gap-2">
         <Link href="/ai/know" className="inline-flex items-center gap-1.5 h-11 px-5 rounded-full bg-foreground text-background text-[14px] font-medium hover:bg-brand transition-colors">
           <Sparkles className="h-4 w-4 text-accent-yellow" /> 问 AI 小知
         </Link>
         <span className="inline-flex items-center gap-1.5 h-11 px-4 rounded-full border border-border text-[14px] text-muted-foreground opacity-70">
-          <FileText className="h-4 w-4" /> 下载 / 在线浏览 · 即将开放
+          <FileText className="h-4 w-4" /> 下载 PDF 原文 · 即将开放
         </span>
       </div>
 
