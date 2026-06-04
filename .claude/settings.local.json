@@ -167,7 +167,8 @@
       "Bash(grep -naE 'role !== \"practitioner\"|session\\\\.phone|getSession' 'app/\\(dashboard\\)/dashboard/practitioner/__TRACKED_VAR__/page.tsx')",
       "Bash(grep -nA14 \"export const ASSOC_NAV\" lib/dashboard/nav.tsx)",
       "PowerShell(cd D:\\\\xyjzxh; $env:NEXT_DIST_DIR = \".next-build\"; node --max-old-space-size=4096 ./node_modules/next/dist/bin/next build 2>&1 | Select-Object -Last 45)",
-      "Bash([ -s \"$f\" ])"
+      "Bash([ -s \"$f\" ])",
+      "Bash(grep -nE \"^const SCHEMA|^\\\\`;\" lib/db/sqlite.ts)"
     ]
   }
 }

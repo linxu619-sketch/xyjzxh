@@ -4,6 +4,7 @@ import { mkdirSync } from "node:fs";
 import { join } from "node:path";
 import { ENTERPRISES } from "@/lib/data/enterprises";
 import { KNOWLEDGE } from "@/lib/ai/knowledge";
+import { PROJECTS as SHOWCASE_PROJECTS } from "@/lib/data/projects";
 
 /* ============================================================
    本地 SQLite 数据库（Node 24 内置 node:sqlite，零依赖、零云端）
@@ -88,6 +89,25 @@ CREATE TABLE IF NOT EXISTS project_reports (
   created_at  INTEGER
 );
 CREATE INDEX IF NOT EXISTS idx_reports_status ON project_reports(status, created_at);
+
+-- 消费者门户「工装报备一网通办」公开展示项目（带进度/投保/工期）
+CREATE TABLE IF NOT EXISTS showcase_projects (
+  id           TEXT PRIMARY KEY,
+  name         TEXT,
+  type         TEXT,
+  enterprise   TEXT,
+  enterprise_id TEXT,
+  area         INTEGER,
+  budget       REAL,
+  district     TEXT,
+  start_date   TEXT,
+  end_date     TEXT,
+  status       TEXT,
+  progress     INTEGER,
+  insured      INTEGER,
+  reported_at  TEXT,
+  created_at   INTEGER
+);
 
 CREATE TABLE IF NOT EXISTS reviews (
   id          INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -643,7 +663,18 @@ function init(): DB {
   seedOrders(db);
   seedInsuranceClaims(db);
   seedJobApplications(db);
+  seedShowcaseProjects(db);
   return db;
+}
+
+// 消费者门户工装报备公开展示项目
+function seedShowcaseProjects(db: DB) {
+  if (!isEmpty(db, "showcase_projects")) return;
+  for (const p of SHOWCASE_PROJECTS) {
+    db.prepare(
+      "INSERT INTO showcase_projects (id,name,type,enterprise,enterprise_id,area,budget,district,start_date,end_date,status,progress,insured,reported_at,created_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
+    ).run(p.id, p.name, p.type, p.enterprise, p.enterpriseId, p.area, p.budget, p.district, p.startDate, p.endDate, p.status, p.progress, p.insured ? 1 : 0, p.reportedAt, Date.parse(p.reportedAt) || Date.now());
+  }
 }
 
 // 保险理赔（业主报案 → 受理 → 定损 → 赔付）演示数据

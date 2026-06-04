@@ -4,7 +4,8 @@ import { Container } from "@/components/container";
 import { PageHeader } from "@/components/page-header";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { PROJECTS, STATUS_META } from "@/lib/data/projects";
+import { STATUS_META } from "@/lib/data/projects";
+import { listShowcaseProjects } from "@/lib/data/projects-source";
 
 export const metadata = { title: "工装报备 · 信阳市建筑装饰装修协会" };
 
@@ -13,6 +14,7 @@ const TYPE_TONE: Record<string, "build" | "decor" | "design" | "tea"> = {
 };
 
 export default function ProjectsPage() {
+  const PROJECTS = listShowcaseProjects();
   return (
     <>
       <PageHeader

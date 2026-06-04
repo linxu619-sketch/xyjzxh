@@ -14,6 +14,13 @@
 
 ---
 
+## [0.84.0] - 2026-06-04
+
+### 去硬编码(1/4):消费者工装报备 /projects 改读数据库
+- 新增 showcase_projects 表 + seedShowcaseProjects(7 条,静态 PROJECTS 降为种子源)。
+- 新增 lib/data/projects-source.ts(listShowcaseProjects/getShowcaseProject,失败回退静态)。
+- /projects、/projects/[id]、企业端项目页 改读库;STATUS_META 仍作配置保留。
+
 ## [0.83.0] - 2026-06-04
 
 ### 调解申请支持上传证据照片（1-5 张，方角·身份证尺寸）

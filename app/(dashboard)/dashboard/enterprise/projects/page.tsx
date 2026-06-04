@@ -3,7 +3,8 @@ import { Plus, Eye, Search, Sparkles, ShieldCheck } from "lucide-react";
 import { EnterpriseShell } from "@/components/dashboard/shell";
 import { FilterBar, DataTable } from "@/components/dashboard/section";
 import { Badge } from "@/components/ui/badge";
-import { PROJECTS, STATUS_META } from "@/lib/data/projects";
+import { STATUS_META } from "@/lib/data/projects";
+import { listShowcaseProjects } from "@/lib/data/projects-source";
 import { getSession } from "@/lib/auth/session";
 import { listReportsByUid } from "@/lib/data/reports";
 
@@ -15,6 +16,7 @@ const RPT_STATUS: Record<string, string> = { pending: "待审核", approved: "�
 export default async function ProjectsPage() {
   const session = await getSession();
   const myReports = session ? listReportsByUid(session.uid) : [];
+  const PROJECTS = listShowcaseProjects();
   return (
     <EnterpriseShell
       title="项目与报备"

@@ -4,15 +4,12 @@ import { ArrowLeft, ShieldCheck, MapPin, Calendar, Wallet, CheckCircle2, Clock }
 import { Container } from "@/components/container";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { getProject, PROJECTS, STATUS_META } from "@/lib/data/projects";
+import { STATUS_META } from "@/lib/data/projects";
+import { getShowcaseProject } from "@/lib/data/projects-source";
 
 const TYPE_TONE: Record<string, "build" | "decor" | "design" | "tea"> = {
   家装: "decor", 工装: "build", 公装: "design", 市政: "tea",
 };
-
-export function generateStaticParams() {
-  return PROJECTS.map((p) => ({ id: p.id }));
-}
 
 const TIMELINE = [
   { t: "提交报备", at: "2026-05-12 09:24", done: true },
@@ -27,7 +24,7 @@ const TIMELINE = [
 
 export default async function ProjectDetail({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const p = getProject(id);
+  const p = getShowcaseProject(id);
   if (!p) notFound();
 
   return (
