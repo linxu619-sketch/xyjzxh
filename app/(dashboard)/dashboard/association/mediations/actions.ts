@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { getSession } from "@/lib/auth/session";
 import { setMediationStatus, type MediationStatus } from "@/lib/data/mediations";
+import { operatorName } from "@/lib/dashboard/operator";
 
 const MAP: Record<string, MediationStatus> = {
   accept: "accepted",
@@ -18,7 +19,7 @@ export async function reviewMediationAction(fd: FormData) {
   }
   const id = Number(fd.get("id") || 0);
   const next = MAP[String(fd.get("act") || "")];
-  if (id && next) setMediationStatus(id, next);
+  if (id && next) setMediationStatus(id, next, operatorName(s));
   revalidatePath("/dashboard/association/mediations");
   redirect("/dashboard/association/mediations");
 }

@@ -1072,6 +1072,17 @@ function migrate(db: DB) {
     "ALTER TABLE applications ADD COLUMN idverify_at INTEGER",
     // 调解申请证据照片（JSON 数组，1-5 张）
     "ALTER TABLE mediations ADD COLUMN photos TEXT",
+    // 流程办理人 + 时间（单据落款挂钩实际经办人）
+    "ALTER TABLE applications ADD COLUMN reviewed_by TEXT",
+    "ALTER TABLE applications ADD COLUMN reviewed_at INTEGER",
+    "ALTER TABLE project_reports ADD COLUMN reviewed_by TEXT",
+    "ALTER TABLE project_reports ADD COLUMN reviewed_at INTEGER",
+    "ALTER TABLE insurance_claims ADD COLUMN handled_by TEXT",
+    "ALTER TABLE insurance_claims ADD COLUMN handled_at INTEGER",
+    "ALTER TABLE finance_applications ADD COLUMN reviewed_by TEXT",
+    "ALTER TABLE finance_applications ADD COLUMN reviewed_at INTEGER",
+    "ALTER TABLE mediations ADD COLUMN handled_by TEXT",
+    "ALTER TABLE mediations ADD COLUMN handled_at INTEGER",
   ];
   for (const sql of alters) {
     try { db.exec(sql); } catch { /* 列已存在，忽略 */ }

@@ -62,7 +62,15 @@ export default async function FinanceAppDetail({ params }: { params: Promise<{ i
               {a!.status === "disbursed" ? "（已批准并完成放款 / 出函。）" : a!.status === "approved" ? "（资格审核通过，待放款 / 出函。）" : a!.status === "rejected" ? "（不符合受理条件，已告知申请企业。）" : ""}
             </div>
           </div>
-          <SealFooter lines={[{ label: "经办人（签字）" }, { label: "审核人（签字）" }, { label: "申请企业（盖章）" }, { label: "协会 / 合作机构（盖章）" }]} />
+          <SealFooter
+            date={a!.reviewedAt ? fmtDay(a!.reviewedAt) : undefined}
+            lines={[
+              { label: "审批经办", value: a!.reviewedBy ? `${a!.reviewedBy} · ${fmtDay(a!.reviewedAt)}` : undefined },
+              { label: "复核人（签字）" },
+              { label: "申请企业（盖章）" },
+              { label: "协会 / 合作机构（盖章）" },
+            ]}
+          />
         </div>
       </div>
     </AssociationShell>

@@ -59,8 +59,10 @@ export function DocTable({ rows }: { rows: { k: string; v: React.ReactNode }[] }
   );
 }
 
-/* 落款 / 盖章栏 */
-export function SealFooter({ lines }: { lines?: { label: string }[] }) {
+/* 落款 / 盖章栏
+   - line.value 有值 = 系统已记录的经办人/时间，直接打印在签名线上（单据与流程挂钩）
+   - 无值 = 留空线供手写签字 / 盖章 */
+export function SealFooter({ lines, date }: { lines?: { label: string; value?: string }[]; date?: string }) {
   const items = lines ?? [
     { label: "经办人（签字）" },
     { label: "审核人（签字）" },
@@ -70,14 +72,16 @@ export function SealFooter({ lines }: { lines?: { label: string }[] }) {
   return (
     <div className="mt-12">
       <div className="grid grid-cols-2 gap-x-10 gap-y-8 text-[13px]">
-        {items.map((it) => (
-          <div key={it.label} className="flex items-end gap-2">
+        {items.map((it, i) => (
+          <div key={i} className="flex items-end gap-2">
             <span className="text-muted-foreground whitespace-nowrap">{it.label}：</span>
-            <span className="flex-1 border-b border-[#999] h-6" />
+            {it.value
+              ? <span className="flex-1 border-b border-[#999] h-6 font-medium pb-0.5">{it.value}</span>
+              : <span className="flex-1 border-b border-[#999] h-6" />}
           </div>
         ))}
       </div>
-      <div className="mt-10 text-right text-[12px] text-muted-foreground">　　　　年　　月　　日</div>
+      <div className="mt-10 text-right text-[12px] text-muted-foreground">{date ? `出具日期：${date}` : "　　　　年　　月　　日"}</div>
     </div>
   );
 }

@@ -36,6 +36,8 @@ export type ProjectReport = {
   phone: string;
   payload: Record<string, unknown>;
   status: ReportStatus;
+  reviewedBy: string;
+  reviewedAt: number;
   createdAt: number;
 };
 
@@ -43,7 +45,7 @@ type Row = {
   id: number; code: string | null; project: string | null; type: string | null;
   enterprise: string | null; area: string | null; budget: string | null;
   manager: string | null; phone: string | null; payload: string | null;
-  status: string; created_at: number | null;
+  status: string; reviewed_by: string | null; reviewed_at: number | null; created_at: number | null;
 };
 
 function rowTo(r: Row): ProjectReport {
@@ -53,7 +55,8 @@ function rowTo(r: Row): ProjectReport {
     id: r.id, code: r.code ?? "", project: r.project ?? "", type: r.type ?? "",
     enterprise: r.enterprise ?? "", area: r.area ?? "", budget: r.budget ?? "",
     manager: r.manager ?? "", phone: r.phone ?? "", payload,
-    status: (r.status as ReportStatus) ?? "pending", createdAt: r.created_at ?? 0,
+    status: (r.status as ReportStatus) ?? "pending",
+    reviewedBy: r.reviewed_by ?? "", reviewedAt: r.reviewed_at ?? 0, createdAt: r.created_at ?? 0,
   };
 }
 
@@ -93,6 +96,7 @@ export function listReports(status?: ReportStatus): ProjectReport[] {
   return rows.map(rowTo);
 }
 
-export function setReportStatus(id: number, status: ReportStatus) {
-  getDb().prepare("UPDATE project_reports SET status = ? WHERE id = ?").run(status, id);
+export function setReportStatus(id: number, status: ReportStatus, by?: string) {
+  if (by) getDb().prepare("UPDATE project_reports SET status = ?, reviewed_by = ?, reviewed_at = ? WHERE id = ?").run(status, by, Date.now(), id);
+  else getDb().prepare("UPDATE project_reports SET status = ? WHERE id = ?").run(status, id);
 }

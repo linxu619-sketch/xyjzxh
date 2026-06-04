@@ -19,6 +19,8 @@ export type Application = {
   idVerifyStatus: IdVerifyStatus;
   idVerifyBy: string;
   idVerifyAt: number;
+  reviewedBy: string;
+  reviewedAt: number;
   createdAt: number;
 };
 
@@ -32,6 +34,8 @@ type Row = {
   idverify_status: string | null;
   idverify_by: string | null;
   idverify_at: number | null;
+  reviewed_by: string | null;
+  reviewed_at: number | null;
   created_at: number | null;
 };
 
@@ -48,6 +52,8 @@ function rowTo(r: Row): Application {
     idVerifyStatus: (r.idverify_status as IdVerifyStatus) ?? "unverified",
     idVerifyBy: r.idverify_by ?? "",
     idVerifyAt: r.idverify_at ?? 0,
+    reviewedBy: r.reviewed_by ?? "",
+    reviewedAt: r.reviewed_at ?? 0,
     createdAt: r.created_at ?? 0,
   };
 }
@@ -95,8 +101,9 @@ export function countByStatus(): Record<AppStatus, number> {
   return out;
 }
 
-export function setApplicationStatus(id: number, status: AppStatus) {
-  getDb().prepare("UPDATE applications SET status = ? WHERE id = ?").run(status, id);
+export function setApplicationStatus(id: number, status: AppStatus, by?: string) {
+  if (by) getDb().prepare("UPDATE applications SET status = ?, reviewed_by = ?, reviewed_at = ? WHERE id = ?").run(status, by, Date.now(), id);
+  else getDb().prepare("UPDATE applications SET status = ? WHERE id = ?").run(status, id);
 }
 
 // 实名核验（人工）：记录核验结果、核验人与时间

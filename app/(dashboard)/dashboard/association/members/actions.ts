@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { getSession } from "@/lib/auth/session";
 import { getApplication, setApplicationStatus, setIdVerify, type IdVerifyStatus } from "@/lib/data/applications";
+import { operatorName } from "@/lib/dashboard/operator";
 import { createEnterpriseFromApplication } from "@/lib/data/enterprises-source";
 import { createPractitionerFromApplication, getPractitionerRefByAppId } from "@/lib/data/practitioners-source";
 import { activateAccountByAppId, rejectAccountByAppId } from "@/lib/data/accounts";
@@ -18,7 +19,7 @@ export async function reviewApplicationAction(fd: FormData) {
   if (!id) return;
 
   const app = getApplication(id);
-  setApplicationStatus(id, act === "approve" ? "approved" : "rejected");
+  setApplicationStatus(id, act === "approve" ? "approved" : "rejected", operatorName(s));
 
   // 企业申请通过 → 自动成为正式会员，出现在 /members；账号激活并绑定
   if (act === "approve" && app?.type === "enterprise") {

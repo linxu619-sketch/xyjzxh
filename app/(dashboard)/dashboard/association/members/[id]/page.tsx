@@ -217,7 +217,15 @@ export default async function ApplicationDetail({ params }: { params: Promise<{ 
                 {app.status === "approved" ? "（材料齐全、实名核验通过，准予入会，已入册。）" : app.status === "rejected" ? "（不符合入会条件 / 材料不齐，未予通过，已告知申请人。）" : ""}
               </div>
             </div>
-            <SealFooter lines={[{ label: "经办人（签字）" }, { label: "审核人（签字）" }, { label: "秘书长（签字）" }, { label: "协会（盖章）" }]} />
+            <SealFooter
+              date={app.reviewedAt ? fmtDay(app.reviewedAt) : undefined}
+              lines={[
+                { label: "实名核验", value: app.idVerifyBy ? `${app.idVerifyBy} · ${fmtDay(app.idVerifyAt)}` : undefined },
+                { label: "审批经办", value: app.reviewedBy ? `${app.reviewedBy} · ${fmtDay(app.reviewedAt)}` : undefined },
+                { label: "秘书长（签字）" },
+                { label: "协会（盖章）" },
+              ]}
+            />
           </div>
         </div>
       )}

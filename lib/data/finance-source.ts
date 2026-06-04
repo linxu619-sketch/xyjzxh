@@ -13,11 +13,11 @@ export type FinanceProduct = {
 };
 export type FinanceApplication = {
   id: number; enterpriseId: string; enterpriseName: string; productId: number; productName: string;
-  amount: string; note: string; status: FinAppStatus; createdAt: number;
+  amount: string; note: string; status: FinAppStatus; reviewedBy: string; reviewedAt: number; createdAt: number;
 };
 
 type PRow = { id: number; name: string | null; provider: string | null; type: string | null; rate_label: string | null; amount_label: string | null; term_label: string | null; for_whom: string | null; color: string | null; highlights: string | null; status: string; created_at: number | null };
-type ARow = { id: number; enterprise_id: string | null; enterprise_name: string | null; product_id: number; product_name: string | null; amount: string | null; note: string | null; status: string; created_at: number | null };
+type ARow = { id: number; enterprise_id: string | null; enterprise_name: string | null; product_id: number; product_name: string | null; amount: string | null; note: string | null; status: string; reviewed_by: string | null; reviewed_at: number | null; created_at: number | null };
 
 function parseHl(s: string | null): string[] {
   if (!s) return [];
@@ -27,7 +27,7 @@ function toP(r: PRow): FinanceProduct {
   return { id: r.id, name: r.name ?? "", provider: r.provider ?? "", type: r.type ?? "", rateLabel: r.rate_label ?? "", amountLabel: r.amount_label ?? "", termLabel: r.term_label ?? "", forWhom: r.for_whom ?? "", color: r.color ?? "brand", highlights: parseHl(r.highlights), status: r.status ?? "active", createdAt: r.created_at ?? 0 };
 }
 function toA(r: ARow): FinanceApplication {
-  return { id: r.id, enterpriseId: r.enterprise_id ?? "", enterpriseName: r.enterprise_name ?? "", productId: r.product_id, productName: r.product_name ?? "", amount: r.amount ?? "", note: r.note ?? "", status: (r.status as FinAppStatus) ?? "pending", createdAt: r.created_at ?? 0 };
+  return { id: r.id, enterpriseId: r.enterprise_id ?? "", enterpriseName: r.enterprise_name ?? "", productId: r.product_id, productName: r.product_name ?? "", amount: r.amount ?? "", note: r.note ?? "", status: (r.status as FinAppStatus) ?? "pending", reviewedBy: r.reviewed_by ?? "", reviewedAt: r.reviewed_at ?? 0, createdAt: r.created_at ?? 0 };
 }
 
 export function listFinanceProducts(): FinanceProduct[] {
@@ -79,6 +79,7 @@ export function getFinanceApplication(id: number): FinanceApplication | undefine
   const r = getDb().prepare("SELECT * FROM finance_applications WHERE id=?").get(id) as ARow | undefined;
   return r ? toA(r) : undefined;
 }
-export function setFinanceAppStatus(id: number, status: FinAppStatus) {
+export function setFinanceAppStatus(id: number, status: FinAppStatus, by?: string) {
+  if (by) { getDb().prepare("UPDATE finance_applications SET status=?, reviewed_by=?, reviewed_at=? WHERE id=?").run(status, by, Date.now(), id); return; }
   getDb().prepare("UPDATE finance_applications SET status=? WHERE id=?").run(status, id);
 }

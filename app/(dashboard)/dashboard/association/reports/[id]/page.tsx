@@ -78,7 +78,15 @@ export default async function ReportDetail({ params }: { params: Promise<{ id: s
               {r.status === "approved" ? "（材料齐全，符合工装报备要求，准予备案。）" : r.status === "rejected" ? "（材料不齐 / 不符合要求，已退回补正。）" : ""}
             </div>
           </div>
-          <SealFooter lines={[{ label: "经办人（签字）" }, { label: "审核人（签字）" }, { label: "申报企业（盖章）" }, { label: "协会（盖章）" }]} />
+          <SealFooter
+            date={r.reviewedAt ? fmtDay(r.reviewedAt) : undefined}
+            lines={[
+              { label: "审批经办", value: r.reviewedBy ? `${r.reviewedBy} · ${fmtDay(r.reviewedAt)}` : undefined },
+              { label: "复核人（签字）" },
+              { label: "申报企业（盖章）" },
+              { label: "协会（盖章）" },
+            ]}
+          />
         </div>
       </div>
     </AssociationShell>

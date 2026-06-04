@@ -13,10 +13,12 @@ import {
   getInsuranceProduct, type InsuranceProductInput,
 } from "@/lib/data/insurance-products";
 import { getClaim, setClaimStatus, type ClaimStatus } from "@/lib/data/insurance-claims";
+import { operatorName } from "@/lib/dashboard/operator";
 
 async function requireAssoc() {
   const s = await getSession();
   if (!s || (s.role !== "association" && s.role !== "system_admin")) throw new Error("无权限：仅协会工作人员可管理金融合作");
+  return s;
 }
 function refresh(fd?: FormData): never {
   revalidatePath("/dashboard/association/finance");
@@ -42,10 +44,10 @@ function readProduct(fd: FormData): FinanceProductInput {
 }
 
 export async function reviewFinanceAppAction(fd: FormData) {
-  await requireAssoc();
+  const s = await requireAssoc();
   const id = Number(fd.get("id") || 0);
   const status = String(fd.get("status") || "") as FinAppStatus;
-  if (getFinanceApplication(id) && ["pending", "approved", "rejected", "disbursed"].includes(status)) setFinanceAppStatus(id, status);
+  if (getFinanceApplication(id) && ["pending", "approved", "rejected", "disbursed"].includes(status)) setFinanceAppStatus(id, status, operatorName(s));
   refresh(fd);
 }
 
@@ -122,10 +124,10 @@ export async function deleteInsuranceProductAction(fd: FormData) {
 
 /* ---------------- 保险理赔受理 ---------------- */
 export async function reviewClaimAction(fd: FormData) {
-  await requireAssoc();
+  const s = await requireAssoc();
   const id = Number(fd.get("id") || 0);
   const status = String(fd.get("status") || "") as ClaimStatus;
-  if (getClaim(id) && ["pending", "reviewing", "settled", "rejected"].includes(status)) setClaimStatus(id, status);
+  if (getClaim(id) && ["pending", "reviewing", "settled", "rejected"].includes(status)) setClaimStatus(id, status, operatorName(s));
   revalidatePath("/dashboard/association/finance");
   revalidatePath("/dashboard/customer/insurance");
   const to = String(fd.get("redirect") || "");

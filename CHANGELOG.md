@@ -14,6 +14,16 @@
 
 ---
 
+## [0.93.0] - 2026-06-04
+
+### 单据与流程挂钩:落款自动填实际办理人 + 时间
+- 之前各流程动作(审批/受理/推进/核验)未记录"谁办的、何时办",单据落款全是空白线。本次:
+  - 5 张表新增办理人/时间列:applications.reviewed_by/at、project_reports.reviewed_by/at、insurance_claims.handled_by/at、finance_applications.reviewed_by/at、mediations.handled_by/at(入会实名核验沿用 idverify_by/at)。
+  - 对应 action(reviewApplication / reviewReport / reviewClaim / reviewFinanceApp / reviewMediation)办理时记录 operatorName(session)+时间;超管办理记为"协会秘书处"(不暴露平台运维个人身份)。
+  - SealFooter 支持已填值:系统已记录的经办人/核验人直接打印在签名线上(姓名·日期),物理签字/盖章项仍留空线;出具日期取办理时间。
+  - 5 类单据(调解/报备/理赔/金融/入会审批)落款均挂实际办理人。
+- 工具:scripts/backfill-operators.mjs 给历史已办结记录回填演示办理人。
+
 ## [0.92.0] - 2026-06-04
 
 ### 采购单 / 结算单 A4 打印

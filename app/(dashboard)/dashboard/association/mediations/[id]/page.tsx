@@ -95,12 +95,15 @@ export default async function MediationDetail({ params }: { params: Promise<{ id
             </div>
           </div>
 
-          <SealFooter lines={[
-            { label: "调解员（签字）" },
-            { label: "申请人（签字）" },
-            { label: "被投诉方（签字）" },
-            { label: "协会调解委员会（盖章）" },
-          ]} />
+          <SealFooter
+            date={m.handledAt ? fmtDay(m.handledAt) : undefined}
+            lines={[
+              { label: "调解经办", value: m.handledBy ? `${m.handledBy} · ${fmtDay(m.handledAt)}` : undefined },
+              { label: "申请人（签字）" },
+              { label: "被投诉方（签字）" },
+              { label: "协会调解委员会（盖章）" },
+            ]}
+          />
         </div>
       </div>
     </AssociationShell>

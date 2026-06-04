@@ -61,7 +61,15 @@ export default async function ClaimDetail({ params }: { params: Promise<{ id: st
               {c!.status === "settled" ? "（核定损失，已按保单约定完成赔付。）" : c!.status === "rejected" ? "（经核查不属于保险责任范围，不予赔付，已告知报案人。）" : c!.status === "reviewing" ? "（已受理，正在现场核损。）" : ""}
             </div>
           </div>
-          <SealFooter lines={[{ label: "定损员（签字）" }, { label: "报案人（签字）" }, { label: "承保机构（盖章）" }, { label: "协会（盖章）" }]} />
+          <SealFooter
+            date={c!.handledAt ? fmtDay(c!.handledAt) : undefined}
+            lines={[
+              { label: "定损经办", value: c!.handledBy ? `${c!.handledBy} · ${fmtDay(c!.handledAt)}` : undefined },
+              { label: "报案人（签字）" },
+              { label: "承保机构（盖章）" },
+              { label: "协会（盖章）" },
+            ]}
+          />
         </div>
       </div>
     </AssociationShell>
