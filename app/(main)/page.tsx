@@ -2,7 +2,7 @@ import Link from "next/link";
 import {
   ArrowRight, ShieldCheck, Sparkles, Star, MessageSquareText,
   Building2, Search, Umbrella, Hammer, CheckCircle2, Phone,
-  MessagesSquare, MessageSquareHeart, HardHat, ChevronRight, ArrowUpRight,
+  MessagesSquare, MessageSquareHeart, HardHat, ChevronRight, ArrowUpRight, BookOpen,
 } from "lucide-react";
 import { Container } from "@/components/container";
 import { Button } from "@/components/ui/button";
@@ -235,15 +235,15 @@ export default async function ConsumerHome() {
       <section className="py-8 md:py-12">
         <Container>
           <div className="text-center mb-12 max-w-2xl mx-auto">
-            <div className="text-[12px] tracking-[0.2em] text-brand uppercase font-medium">SERVICES · 业主服务</div>
+            <div className="text-[12px] tracking-[0.2em] text-brand uppercase font-medium">PROTECTION · 协会守护</div>
             <h2 className="mt-2 text-[34px] md:text-[44px] font-semibold tracking-tight">不只是找企业</h2>
-            <p className="mt-3 text-[14px] text-muted-foreground">协会还为业主提供这些</p>
+            <p className="mt-3 text-[14px] text-muted-foreground">从签约到验收,协会为业主兜底</p>
           </div>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
-            <ServiceTile icon={Sparkles} t="AI 估价" d="30 秒生成方案" href="/ai/decor" tone="brand" />
-            <ServiceTile icon={Umbrella} t="家装质保险" d="299 起 · 10 年" href="/insurance" tone="decor" />
-            <ServiceTile icon={MessageSquareText} t="实名评价" d="发布后企业不可删" href="/review" tone="design" />
-            <ServiceTile icon={Hammer} t="协会调解" d="14 天先行赔付" href="/ai/mediate" tone="tea" />
+            <ServiceTile icon={Umbrella} t="家装质保险" d="299 起 · 跑路赔付" href="/insurance" tone="decor" />
+            <ServiceTile icon={Hammer} t="14 天调解" d="纠纷免诉 · 先行赔付" href="/mediate" tone="tea" />
+            <ServiceTile icon={MessageSquareText} t="实名口碑" d="发布后企业不可删" href="/review" tone="design" />
+            <ServiceTile icon={BookOpen} t="装修知识库" d="避坑指南 · 验收规范" href="/knowledge" tone="brand" />
           </div>
         </Container>
       </section>
