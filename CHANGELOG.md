@@ -14,6 +14,13 @@
 
 ---
 
+## [0.77.0] - 2026-06-04
+
+### 新增（健康探针 + SEO robots/sitemap）
+- **`/api/health`** 就绪探针:返回 `{status, version, db, time}`,数据库可用时 200、异常时 503,供部署/负载均衡健康检查。
+- **`/robots.txt`**(`app/robots.ts`):允许公开页索引,禁止 `/dashboard/ /api/ /login /register`,声明 Host 与 Sitemap。
+- **`/sitemap.xml`**(`app/sitemap.ts`):列出 13 个公开页(消费者门户 + 协会门户公开页),使用正式域名。
+
 ## [0.76.3] - 2026-06-04
 
 ### 修复 + 新增（上线准备 · 类型检查通过 + 环境变量模板）
