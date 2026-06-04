@@ -4,7 +4,8 @@ import { Container } from "@/components/container";
 import { PageHeader } from "@/components/page-header";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { JOBS, CERTIFICATES, TRAININGS } from "@/lib/data/talents";
+import { listRecruitmentJobs, listCertificates } from "@/lib/data/talents-source";
+import { listOpenTrainings, countEnrolled } from "@/lib/data/training";
 
 const TONE: Record<string, "build" | "decor" | "design"> = {
   build: "build", decor: "decor", design: "design",
@@ -13,6 +14,12 @@ const TONE: Record<string, "build" | "decor" | "design"> = {
 export const metadata = { title: "人才中心 · 信阳市建筑装饰装修协会" };
 
 export default function TalentsPage() {
+  const JOBS = listRecruitmentJobs();
+  const CERTIFICATES = listCertificates();
+  const TRAININGS = listOpenTrainings().slice(0, 4).map((t) => ({
+    id: t.id, tag: t.category, date: t.schedule || "待定", title: t.title,
+    enrolled: countEnrolled(t.id), seats: t.capacity, feeText: t.fee || "免费",
+  }));
   return (
     <>
       <PageHeader
@@ -107,8 +114,8 @@ export default function TalentsPage() {
                   </div>
                   <div className="text-[14px] font-semibold">{t.title}</div>
                   <div className="mt-1.5 flex items-center justify-between text-[11px]">
-                    <span className="text-background/70">{t.days} 天 · 已报 {t.enrolled}/{t.seats}</span>
-                    <span className="font-semibold">{t.fee === 0 ? "免费" : `¥${t.fee}`}</span>
+                    <span className="text-background/70">已报 {t.enrolled}/{t.seats || "不限"}</span>
+                    <span className="font-semibold">{t.feeText}</span>
                   </div>
                 </li>
               ))}

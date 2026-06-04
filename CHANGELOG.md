@@ -14,6 +14,13 @@
 
 ---
 
+## [0.85.0] - 2026-06-04
+
+### 去硬编码(2/4):人才中心 /talents 改读数据库
+- 新增 recruitment_jobs(招聘职位,8条)+ member_certificates(证书,4条)表与种子(JOBS/CERTIFICATES 降为种子源)。
+- 新增 lib/data/talents-source.ts(listRecruitmentJobs/getRecruitmentJob/listCertificates)。
+- /talents、/talents/[id] 改读库;培训预告改接现有 trainings 库(listOpenTrainings)。
+
 ## [0.84.0] - 2026-06-04
 
 ### 去硬编码(1/4):消费者工装报备 /projects 改读数据库

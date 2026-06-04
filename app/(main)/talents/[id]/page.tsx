@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { ArrowLeft, MapPin, ShieldCheck, Briefcase, GraduationCap, Building2, ArrowUpRight, Sparkles } from "lucide-react";
 import { Container } from "@/components/container";
 import { Badge } from "@/components/ui/badge";
-import { JOBS, getTalentJob } from "@/lib/data/talents";
+import { listRecruitmentJobs, getRecruitmentJob } from "@/lib/data/talents-source";
 import { getEnterpriseBySlugOrId } from "@/lib/data/enterprises-source";
 import { cn } from "@/lib/cn";
 
@@ -11,16 +11,12 @@ export const metadata = { title: "职位详情 · 人才中心 · 信阳市建�
 
 const TONE: Record<string, "build" | "decor" | "design"> = { build: "build", decor: "decor", design: "design" };
 
-export async function generateStaticParams() {
-  return JOBS.map((j) => ({ id: j.id }));
-}
-
 export default async function JobDetail({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const j = getTalentJob(id);
+  const j = getRecruitmentJob(id);
   if (!j) notFound();
   const ent = await getEnterpriseBySlugOrId(j.enterpriseId);
-  const related = JOBS.filter((x) => x.id !== j.id && x.category === j.category).slice(0, 4);
+  const related = listRecruitmentJobs().filter((x) => x.id !== j.id && x.category === j.category).slice(0, 4);
 
   return (
     <Container className="py-6 md:py-10 max-w-3xl">

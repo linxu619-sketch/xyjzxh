@@ -5,6 +5,7 @@ import { join } from "node:path";
 import { ENTERPRISES } from "@/lib/data/enterprises";
 import { KNOWLEDGE } from "@/lib/ai/knowledge";
 import { PROJECTS as SHOWCASE_PROJECTS } from "@/lib/data/projects";
+import { JOBS as RECRUIT_JOBS, CERTIFICATES as MEMBER_CERTS } from "@/lib/data/talents";
 
 /* ============================================================
    本地 SQLite 数据库（Node 24 内置 node:sqlite，零依赖、零云端）
@@ -107,6 +108,35 @@ CREATE TABLE IF NOT EXISTS showcase_projects (
   insured      INTEGER,
   reported_at  TEXT,
   created_at   INTEGER
+);
+
+-- 人才中心招聘职位（专业岗位:月薪/经验/学历，区别于 jobs 的找活/日薪）
+CREATE TABLE IF NOT EXISTS recruitment_jobs (
+  id           TEXT PRIMARY KEY,
+  title        TEXT,
+  enterprise   TEXT,
+  enterprise_id TEXT,
+  category     TEXT,
+  type         TEXT,
+  salary_min   INTEGER,
+  salary_max   INTEGER,
+  district     TEXT,
+  experience   TEXT,
+  education    TEXT,
+  tags         TEXT,    -- JSON
+  hot          INTEGER,
+  posted_at    TEXT,
+  created_at   INTEGER
+);
+
+-- 会员证书查询展示
+CREATE TABLE IF NOT EXISTS member_certificates (
+  code        TEXT PRIMARY KEY,
+  name        TEXT,
+  holder      TEXT,
+  enterprise  TEXT,
+  issued      TEXT,
+  created_at  INTEGER
 );
 
 CREATE TABLE IF NOT EXISTS reviews (
@@ -664,7 +694,28 @@ function init(): DB {
   seedInsuranceClaims(db);
   seedJobApplications(db);
   seedShowcaseProjects(db);
+  seedRecruitmentJobs(db);
+  seedMemberCertificates(db);
   return db;
+}
+
+// 人才中心招聘职位
+function seedRecruitmentJobs(db: DB) {
+  if (!isEmpty(db, "recruitment_jobs")) return;
+  for (const j of RECRUIT_JOBS) {
+    db.prepare(
+      "INSERT INTO recruitment_jobs (id,title,enterprise,enterprise_id,category,type,salary_min,salary_max,district,experience,education,tags,hot,posted_at,created_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
+    ).run(j.id, j.title, j.enterprise, j.enterpriseId, j.category, j.type, j.salaryMin, j.salaryMax, j.district, j.experience, j.education, JSON.stringify(j.tags ?? []), j.hot ? 1 : 0, j.postedAt, Date.parse(j.postedAt) || Date.now());
+  }
+}
+
+// 会员证书查询展示
+function seedMemberCertificates(db: DB) {
+  if (!isEmpty(db, "member_certificates")) return;
+  for (const c of MEMBER_CERTS) {
+    db.prepare("INSERT INTO member_certificates (code,name,holder,enterprise,issued,created_at) VALUES (?,?,?,?,?,?)")
+      .run(c.code, c.name, c.holder, c.enterprise, c.issued, Date.now());
+  }
 }
 
 // 消费者门户工装报备公开展示项目
