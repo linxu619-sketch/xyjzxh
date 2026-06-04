@@ -3,16 +3,12 @@ import { notFound } from "next/navigation";
 import { ArrowLeft, Pencil, Sparkles } from "lucide-react";
 import { AssociationShell } from "@/components/dashboard/shell";
 import { Badge } from "@/components/ui/badge";
-import { AGREEMENT_TEMPLATES } from "@/lib/data/agreements";
+import { getAgreementTemplate } from "@/lib/data/agreements-source";
 import { EditorClient } from "./EditorClient";
-
-export function generateStaticParams() {
-  return AGREEMENT_TEMPLATES.map((t) => ({ id: t.id }));
-}
 
 export default async function EditTemplatePage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const tpl = AGREEMENT_TEMPLATES.find((t) => t.id === id);
+  const tpl = getAgreementTemplate(id);
   if (!tpl) notFound();
 
   return (

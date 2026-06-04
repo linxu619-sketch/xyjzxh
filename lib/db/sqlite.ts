@@ -8,6 +8,7 @@ import { PROJECTS as SHOWCASE_PROJECTS } from "@/lib/data/projects";
 import { JOBS as RECRUIT_JOBS, CERTIFICATES as MEMBER_CERTS } from "@/lib/data/talents";
 import { PRACTITIONER_JOBS, WORKER_INSURANCE } from "@/lib/data/practitioners";
 import { KNOWLEDGE as KB_ARTICLES } from "@/lib/data/knowledge";
+import { AGREEMENT_TEMPLATES, AGREEMENT_SIGNATURES } from "@/lib/data/agreements";
 
 /* ============================================================
    本地 SQLite 数据库（Node 24 内置 node:sqlite，零依赖、零云端）
@@ -157,6 +158,41 @@ CREATE TABLE IF NOT EXISTS worker_insurance (
   cover        TEXT,
   badges       TEXT,    -- JSON
   created_at   INTEGER
+);
+
+-- 协议模板（版本化法律文档）
+CREATE TABLE IF NOT EXISTS agreements (
+  id            TEXT PRIMARY KEY,
+  code          TEXT,
+  title         TEXT,
+  category      TEXT,
+  target        TEXT,
+  version       TEXT,
+  status        TEXT,
+  required      INTEGER,
+  requires_separate_consent INTEGER,
+  requires_resign_on_change INTEGER,
+  min_read_seconds INTEGER,
+  effective_at  TEXT,
+  expires_at    TEXT,
+  drafted_by    TEXT,
+  reviewed_by   TEXT,
+  approved_by   TEXT,
+  approved_at   TEXT,
+  content       TEXT,
+  highlights    TEXT,    -- JSON
+  changelog     TEXT,
+  created_at    INTEGER
+);
+
+-- 协议签署存证（合规审计；整条记录存 data JSON + 索引列）
+CREATE TABLE IF NOT EXISTS agreement_signatures (
+  id          TEXT PRIMARY KEY,
+  signer_type TEXT,
+  signer_id   TEXT,
+  status      TEXT,
+  data        TEXT,    -- JSON: 完整 AgreementSignature
+  created_at  INTEGER
 );
 
 -- 装修知识库文章（消费者 /knowledge）
@@ -627,15 +663,16 @@ function seedInsurance(db: DB) {
 
 function seedMediations(db: DB) {
   if (!isEmpty(db, "mediations")) return;
-  const rows: [string, string, string, string, string][] = [
-    ["王女士", "13800040001", "某装饰公司", "工期延误 20 天，要求按合同支付违约金。", "pending"],
-    ["李先生", "13800040002", "某建工", "墙面瓷砖大面积空鼓，要求返工或减免尾款。", "accepted"],
-    ["张先生", "13800040003", "某设计工作室", "设计方案与实际施工不符，要求整改。", "pending"],
-    ["赵女士", "13800040004", "某装企", "已在协会主持下达成和解，各让一步。", "closed"],
+  // [申请人, 电话, 被投诉方, 经过, 状态, 证据照片URL[]]
+  const rows: [string, string, string, string, string, string[]][] = [
+    ["王女士", "13800040001", "某装饰公司", "工期延误 20 天，要求按合同支付违约金。", "pending", ["/samples/work-1.svg", "/samples/work-2.svg"]],
+    ["李先生", "13800040002", "某建工", "墙面瓷砖大面积空鼓，要求返工或减免尾款。", "accepted", ["/samples/work-1.svg"]],
+    ["张先生", "13800040003", "某设计工作室", "设计方案与实际施工不符，要求整改。", "pending", []],
+    ["赵女士", "13800040004", "某装企", "已在协会主持下达成和解，各让一步。", "closed", ["/samples/work-2.svg"]],
   ];
-  const stmt = db.prepare("INSERT INTO mediations (uid,applicant,phone,respondent,detail,status,created_at) VALUES (NULL,?,?,?,?,?,?)");
+  const stmt = db.prepare("INSERT INTO mediations (uid,applicant,phone,respondent,detail,status,photos,created_at) VALUES (NULL,?,?,?,?,?,?,?)");
   const now = Date.now();
-  rows.forEach((r, i) => stmt.run(r[0], r[1], r[2], r[3], r[4], now - i * DAY));
+  rows.forEach((r, i) => stmt.run(r[0], r[1], r[2], r[3], r[4], r[5].length ? JSON.stringify(r[5]) : null, now - i * DAY));
 }
 
 function seedLeads(db: DB) {
@@ -743,7 +780,25 @@ function init(): DB {
   seedPractitionerJobs(db);
   seedWorkerInsurance(db);
   seedKnowledgeArticles(db);
+  seedAgreements(db);
   return db;
+}
+
+// 协议模板 + 签署存证
+function seedAgreements(db: DB) {
+  if (isEmpty(db, "agreements")) {
+    for (const t of AGREEMENT_TEMPLATES) {
+      db.prepare(
+        "INSERT INTO agreements (id,code,title,category,target,version,status,required,requires_separate_consent,requires_resign_on_change,min_read_seconds,effective_at,expires_at,drafted_by,reviewed_by,approved_by,approved_at,content,highlights,changelog,created_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
+      ).run(t.id, t.code, t.title, t.category, t.target, t.version, t.status, t.required ? 1 : 0, t.requiresSeparateConsent ? 1 : 0, t.requiresResignOnChange ? 1 : 0, t.minReadSeconds, t.effectiveAt, t.expiresAt ?? null, t.draftedBy, t.reviewedBy ?? null, t.approvedBy ?? null, t.approvedAt ?? null, t.content, JSON.stringify(t.highlights ?? []), t.changelog ?? null, Date.parse(t.effectiveAt) || Date.now());
+    }
+  }
+  if (isEmpty(db, "agreement_signatures")) {
+    for (const s of AGREEMENT_SIGNATURES) {
+      db.prepare("INSERT INTO agreement_signatures (id,signer_type,signer_id,status,data,created_at) VALUES (?,?,?,?,?,?)")
+        .run(s.id, s.signerType, s.signerId, s.status, JSON.stringify(s), Date.parse(s.signedAt) || Date.now());
+    }
+  }
 }
 
 // 装修知识库文章

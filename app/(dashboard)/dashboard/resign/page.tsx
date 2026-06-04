@@ -4,7 +4,7 @@ import { ArrowLeft, FileText, AlertCircle, ShieldCheck, ChevronRight, GitCompare
 import { Container } from "@/components/container";
 import { Badge } from "@/components/ui/badge";
 import { getSession } from "@/lib/auth/session";
-import { AGREEMENT_TEMPLATES } from "@/lib/data/agreements";
+import { listAgreementTemplates } from "@/lib/data/agreements-source";
 
 export const metadata = { title: "待重签协议 · 信阳市建筑装饰装修协会" };
 
@@ -32,8 +32,9 @@ export default async function ResignPage() {
   const session = await getSession();
   if (!session) redirect("/login");
 
+  const templates = listAgreementTemplates();
   const items = DEMO_PENDING.map((p) => {
-    const tpl = AGREEMENT_TEMPLATES.find((t) => t.code === p.templateCode);
+    const tpl = templates.find((t) => t.code === p.templateCode);
     return { ...p, template: tpl };
   }).filter((x) => x.template);
 

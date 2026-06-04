@@ -14,6 +14,15 @@
 
 ---
 
+## [0.88.0] - 2026-06-04
+
+### 去硬编码(4/4 下):协议模板/签署存证改读数据库 + 调解照片种子
+- 新增 agreements(模板 13)+ agreement_signatures(签署 3)表与种子;AGREEMENT_TEMPLATES/SIGNATURES 降为种子源。
+- 新增 lib/data/agreements-source.ts(listAgreementTemplates/getAgreementTemplate/requiredAgreementsFor/allAgreementsFor/listSignatures/signaturesByUser,回退静态)。
+- 改读库:注册签署链路(register、register/agreements)、协议管理(列表/[id]/[id]/edit)、合规审计导出、resign、从业者我的协议。
+- 修复:调解证据照片烤入 seedMediations(清库重置后曾丢失),运行库已补回(3 条带图)。
+- 至此 9 类此前硬编码数据(企业/报备/招聘/证书/找活/工人险/知识库/协议/签署)全部入库。
+
 ## [0.87.0] - 2026-06-04
 
 ### 去硬编码(4/4 上):装修知识库 /knowledge 改读数据库

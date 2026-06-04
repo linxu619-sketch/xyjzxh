@@ -1,7 +1,7 @@
 "use server";
 
 import { getSession } from "@/lib/auth/session";
-import { AGREEMENT_SIGNATURES, AGREEMENT_TEMPLATES } from "@/lib/data/agreements";
+import { listSignatures, listAgreementTemplates } from "@/lib/data/agreements-source";
 
 /**
  * 合规审计 CSV 导出
@@ -22,8 +22,9 @@ export async function exportAuditAction(): Promise<string | null> {
     "内容哈希", "状态",
   ];
 
-  const rows = AGREEMENT_SIGNATURES.map((s) => {
-    const tpl = AGREEMENT_TEMPLATES.find((t) => t.id === s.templateId);
+  const templates = listAgreementTemplates();
+  const rows = listSignatures().map((s) => {
+    const tpl = templates.find((t) => t.id === s.templateId);
     return [
       s.id,
       s.templateCode,

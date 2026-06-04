@@ -2,7 +2,7 @@ import Link from "next/link";
 import { Download, ShieldCheck, ChevronRight, Clock, Eye, AlertCircle } from "lucide-react";
 import { PractitionerShell } from "@/components/dashboard/practitioner-shell";
 import { Badge } from "@/components/ui/badge";
-import { allAgreementsFor, AGREEMENT_SIGNATURES, getTemplate } from "@/lib/data/agreements";
+import { allAgreementsFor, getAgreementTemplate } from "@/lib/data/agreements-source";
 import { RevokeButton } from "@/components/agreements/revoke-button";
 
 export const metadata = { title: "我的协议 · 从业者门户" };
@@ -37,7 +37,7 @@ export default function PractitionerAgreements() {
       <h2 className="text-[13px] font-semibold tracking-tight mb-2 px-1">已签协议</h2>
       <div className="space-y-3 mb-6">
         {sigsAll.map((s) => {
-          const t = getTemplate(s.templateId);
+          const t = getAgreementTemplate(s.templateId);
           if (!t) return null;
           return (
             <div key={s.id} className="rounded-3xl border border-border bg-background p-5">
@@ -90,8 +90,6 @@ export default function PractitionerAgreements() {
         </>
       )}
 
-      {/* AGREEMENT_SIGNATURES unused but imported for type — silence  */}
-      {AGREEMENT_SIGNATURES.length === -1 && null}
     </PractitionerShell>
   );
 }

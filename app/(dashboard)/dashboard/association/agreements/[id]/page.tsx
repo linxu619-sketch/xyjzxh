@@ -6,13 +6,9 @@ import {
 } from "lucide-react";
 import { AssociationShell } from "@/components/dashboard/shell";
 import { Badge } from "@/components/ui/badge";
-import { AGREEMENT_TEMPLATES } from "@/lib/data/agreements";
+import { getAgreementTemplate } from "@/lib/data/agreements-source";
 import { WORKFLOW_META, getEventsForTemplate, type WorkflowStatus } from "@/lib/agreements/workflow";
 import { WorkflowActions } from "./WorkflowActions";
-
-export function generateStaticParams() {
-  return AGREEMENT_TEMPLATES.map((t) => ({ id: t.id }));
-}
 
 const CATEGORY_LABEL: Record<string, string> = {
   membership: "入会 / 服务", privacy: "隐私", data_processing: "DPA",
@@ -28,7 +24,7 @@ const TARGET_LABEL: Record<string, string> = {
 
 export default async function TemplateDetail({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const tpl = AGREEMENT_TEMPLATES.find((t) => t.id === id);
+  const tpl = getAgreementTemplate(id);
   if (!tpl) notFound();
 
   // Demo：所有 published 模板视为已走完工作流

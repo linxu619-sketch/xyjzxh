@@ -1,10 +1,8 @@
 import Link from "next/link";
 import { Container } from "@/components/container";
 import { ArrowLeft, ShieldCheck } from "lucide-react";
-import {
-  requiredAgreementsFor,
-  type AgreementTarget,
-} from "@/lib/data/agreements";
+import { type AgreementTarget } from "@/lib/data/agreements";
+import { requiredAgreementsFor } from "@/lib/data/agreements-source";
 import { Badge } from "@/components/ui/badge";
 import { AgreementsClient } from "./AgreementsClient";
 

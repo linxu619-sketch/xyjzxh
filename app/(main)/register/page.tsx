@@ -2,7 +2,8 @@ import Link from "next/link";
 import { Container } from "@/components/container";
 import { ROLE_META, type Role } from "@/lib/auth";
 import { Building2, UserRound, ShieldCheck, CheckCircle2, HardHat } from "lucide-react";
-import { requiredAgreementsFor, type AgreementTarget } from "@/lib/data/agreements";
+import { type AgreementTarget } from "@/lib/data/agreements";
+import { requiredAgreementsFor } from "@/lib/data/agreements-source";
 import { RegisterWizard } from "./RegisterWizard";
 
 export const metadata = { title: "注册 · 信阳市建筑装饰装修协会" };

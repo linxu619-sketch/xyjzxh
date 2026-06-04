@@ -6,7 +6,7 @@ import {
 import { AssociationShell } from "@/components/dashboard/shell";
 import { DataTable } from "@/components/dashboard/section";
 import { Badge } from "@/components/ui/badge";
-import { AGREEMENT_TEMPLATES, AGREEMENT_SIGNATURES } from "@/lib/data/agreements";
+import { listAgreementTemplates, listSignatures } from "@/lib/data/agreements-source";
 import { ExportAuditButton } from "./ExportAuditButton";
 
 export const metadata = { title: "协议管理 · 协会工作台" };
@@ -33,6 +33,8 @@ const TARGET_LABEL: Record<string, string> = {
 };
 
 export default function AssociationAgreements() {
+  const AGREEMENT_TEMPLATES = listAgreementTemplates();
+  const AGREEMENT_SIGNATURES = listSignatures();
   const published = AGREEMENT_TEMPLATES.filter((t) => t.status === "published");
   const drafts = AGREEMENT_TEMPLATES.filter((t) => t.status === "draft");
   const archived = AGREEMENT_TEMPLATES.filter((t) => t.status === "archived");
