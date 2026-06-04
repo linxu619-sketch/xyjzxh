@@ -823,6 +823,10 @@ function migrate(db: DB) {
     "ALTER TABLE enterprises ADD COLUMN template TEXT",
     // 金融产品特性条目（JSON 数组，前台展示）
     "ALTER TABLE finance_products ADD COLUMN highlights TEXT",
+    // 入会申请实名核验（人工）：状态 / 核验人 / 时间
+    "ALTER TABLE applications ADD COLUMN idverify_status TEXT DEFAULT 'unverified'",
+    "ALTER TABLE applications ADD COLUMN idverify_by TEXT",
+    "ALTER TABLE applications ADD COLUMN idverify_at INTEGER",
   ];
   for (const sql of alters) {
     try { db.exec(sql); } catch { /* 列已存在，忽略 */ }

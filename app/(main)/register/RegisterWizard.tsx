@@ -43,6 +43,8 @@ export function RegisterWizard({ role, agreements }: { role: Role; agreements: T
     if (role === "enterprise") {
       if (!f.entName?.trim()) return "请填写企业全称";
       if (!f.creditCode?.trim()) return "请填写统一社会信用代码";
+      if (!f.legalName?.trim()) return "请填写法定代表人姓名";
+      if (!f.legalIdcard?.trim()) return "请填写法人身份证号";
       if (!f.contactName?.trim()) return "请填写联系人姓名";
       if (!f.contactPhone?.trim()) return "请填写联系人手机";
       if (!f.password || f.password.length < 6) return "请设置登录密码（≥6 位）";
@@ -191,6 +193,8 @@ function EnterpriseFields({ f, set, setFile }: FU) {
         <Field label="企业类型" required>
           <select className={INPUT} value={f.entType ?? "建筑施工"} onChange={(e) => set("entType", e.target.value)}><option>建筑施工</option><option>装饰装修</option><option>设计公司</option></select>
         </Field>
+        <Field label="法定代表人姓名" required><input className={INPUT} placeholder="与营业执照一致" value={f.legalName ?? ""} onChange={(e) => set("legalName", e.target.value)} /></Field>
+        <Field label="法人身份证号" required><input className={INPUT} placeholder="18 位，用于实名核验" value={f.legalIdcard ?? ""} onChange={(e) => set("legalIdcard", e.target.value)} /></Field>
         <Field label="期望子域名"><div className="flex items-center gap-2"><input className={`${INPUT} flex-1`} placeholder="如 huatai" value={f.subdomain ?? ""} onChange={(e) => set("subdomain", e.target.value)} /><span className="text-[13px] text-muted-foreground">.xyjzxh.com</span></div></Field>
         <Field label="联系人姓名" required><input className={INPUT} value={f.contactName ?? ""} onChange={(e) => set("contactName", e.target.value)} /></Field>
         <Field label="联系人手机" required><input type="tel" className={INPUT} placeholder="11 位手机号（即登录账号）" value={f.contactPhone ?? ""} onChange={(e) => set("contactPhone", e.target.value)} /></Field>
@@ -267,7 +271,8 @@ function summaryRows(role: Role, f: Record<string, string>, files: Record<string
   const count = (k: string) => (files[k]?.length ? `${files[k].length} 张` : "未上传");
   if (role === "enterprise") {
     return [
-      ["企业全称", f.entName], ["信用代码", f.creditCode], ["企业类型", f.entType], ["子域名", f.subdomain ? `${f.subdomain}.xyjzxh.com` : ""],
+      ["企业全称", f.entName], ["信用代码", f.creditCode], ["企业类型", f.entType],
+      ["法定代表人", f.legalName], ["法人身份证号", f.legalIdcard], ["子域名", f.subdomain ? `${f.subdomain}.xyjzxh.com` : ""],
       ["联系人", `${f.contactName ?? ""} ${f.contactPhone ?? ""}`], ["主营地区", f.region],
       ["营业执照", count("营业执照")], ["法人身份证", `${files["身份证人像面"]?.length ? "人像面✓" : "人像面✗"} ${files["身份证国徽面"]?.length ? "国徽面✓" : "国徽面✗"}`],
       ["资质证书", count("资质证书")], ["项目业绩", count("项目业绩")],

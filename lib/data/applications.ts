@@ -7,6 +7,7 @@ import { getDb } from "@/lib/db/sqlite";
 
 export type AppType = "enterprise" | "individual" | "customer";
 export type AppStatus = "pending" | "approved" | "rejected";
+export type IdVerifyStatus = "unverified" | "verified" | "failed";
 
 export type Application = {
   id: number;
@@ -15,6 +16,9 @@ export type Application = {
   phone: string;
   payload: Record<string, unknown>;
   status: AppStatus;
+  idVerifyStatus: IdVerifyStatus;
+  idVerifyBy: string;
+  idVerifyAt: number;
   createdAt: number;
 };
 
@@ -25,6 +29,9 @@ type Row = {
   phone: string | null;
   payload: string | null;
   status: string;
+  idverify_status: string | null;
+  idverify_by: string | null;
+  idverify_at: number | null;
   created_at: number | null;
 };
 
@@ -38,6 +45,9 @@ function rowTo(r: Row): Application {
     phone: r.phone ?? "",
     payload,
     status: (r.status as AppStatus) ?? "pending",
+    idVerifyStatus: (r.idverify_status as IdVerifyStatus) ?? "unverified",
+    idVerifyBy: r.idverify_by ?? "",
+    idVerifyAt: r.idverify_at ?? 0,
     createdAt: r.created_at ?? 0,
   };
 }
@@ -87,4 +97,16 @@ export function countByStatus(): Record<AppStatus, number> {
 
 export function setApplicationStatus(id: number, status: AppStatus) {
   getDb().prepare("UPDATE applications SET status = ? WHERE id = ?").run(status, id);
+}
+
+// 实名核验（人工）：记录核验结果、核验人与时间
+export function setIdVerify(id: number, status: IdVerifyStatus, by: string) {
+  getDb().prepare("UPDATE applications SET idverify_status = ?, idverify_by = ?, idverify_at = ? WHERE id = ?")
+    .run(status, by, Date.now(), id);
+}
+
+// 按 appId 取申请（用户管理详情页回链实名信息用）
+export function getApplicationByAppId(appId: number): Application | undefined {
+  const row = getDb().prepare("SELECT * FROM applications WHERE id = ?").get(appId) as Row | undefined;
+  return row ? rowTo(row) : undefined;
 }

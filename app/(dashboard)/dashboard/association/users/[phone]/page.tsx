@@ -4,8 +4,12 @@ import { ArrowLeft, Power, ShieldCheck, Building2, UserRound, Users2, Crown, Che
 import { AssociationShell } from "@/components/dashboard/shell";
 import { Badge } from "@/components/ui/badge";
 import { getAccountByPhone, type AccountStatus } from "@/lib/data/accounts";
+import { getApplicationByAppId, type IdVerifyStatus } from "@/lib/data/applications";
 import { tierLadder, normalizeTier, quotaOf, type TierTrack } from "@/lib/data/member-tier";
 import { setAccountStatusAction, setMemberTierAction } from "../actions";
+
+const VERIFY_LABEL: Record<IdVerifyStatus, string> = { verified: "已实名核验", failed: "核验未通过", unverified: "待实名核验" };
+const VERIFY_TONE: Record<IdVerifyStatus, "tea" | "decor" | "yellow"> = { verified: "tea", failed: "decor", unverified: "yellow" };
 
 const ST_LABEL: Record<AccountStatus, string> = { active: "正常", pending: "审核中", rejected: "已停用" };
 const ST_TONE: Record<AccountStatus, "tea" | "yellow" | "decor"> = { active: "tea", pending: "yellow", rejected: "decor" };
@@ -26,6 +30,13 @@ export default async function UserDetail({ params }: { params: Promise<{ phone: 
   const ladder = track ? tierLadder(track) : [];
   const tier = track ? normalizeTier(track, a.tier) : null;
   const trackLabel = track === "enterprise" ? "治理梯队" : track === "practitioner" ? "专业梯队" : "";
+  // 回链入会申请：展示实名信息摘要 + 跳完整申请与证照
+  const appRec = a.appId ? getApplicationByAppId(a.appId) : undefined;
+  const pl = (appRec?.payload ?? {}) as Record<string, unknown>;
+  const pv = (k: string) => String(pl[k] ?? "").trim();
+  const idName = pv("legalName") || pv("realName");
+  const idNo = pv("legalIdcard") || pv("idcard");
+  const idCredit = pv("creditCode");
 
   return (
     <AssociationShell title="用户详情" subtitle={`${ROLE_LABEL[a.role] ?? a.role} · ${a.name || "(未填名称)"}`}>
@@ -51,6 +62,23 @@ export default async function UserDetail({ params }: { params: Promise<{ phone: 
           {tier && <Row k="会员等级" v={<span className="inline-flex items-center gap-1.5"><Crown className="h-3.5 w-3.5 text-accent-yellow" />{tier}<span className="text-[11px] text-muted-foreground">· {trackLabel} · 商城上架 {quotaOf(tier) === Infinity ? "不限" : quotaOf(tier)} 款</span></span>} />}
           <Row k="注册时间" v={fmt(a.createdAt)} />
         </dl>
+
+        {appRec && a.role !== "customer" && (
+          <div className="mt-6 pt-5 border-t border-border">
+            <div className="text-[12px] text-muted-foreground mb-3 inline-flex items-center gap-1.5">
+              <ShieldCheck className="h-3.5 w-3.5 text-brand" /> 实名信息
+              <Badge tone={VERIFY_TONE[appRec.idVerifyStatus]} className="ml-1">{VERIFY_LABEL[appRec.idVerifyStatus]}</Badge>
+            </div>
+            <dl className="space-y-2.5 text-[13px]">
+              {idName && <Row k={a.role === "enterprise" ? "法定代表人" : "真实姓名"} v={idName} />}
+              {idNo && <Row k={a.role === "enterprise" ? "法人身份证号" : "身份证号"} v={idNo} />}
+              {idCredit && <Row k="统一社会信用代码" v={idCredit} />}
+            </dl>
+            <Link href={`/dashboard/association/members/${appRec.id}`} className="mt-3 inline-flex items-center gap-1.5 text-[13px] text-brand font-medium hover:underline">
+              查看完整入会申请与证照 / 实名核验 →
+            </Link>
+          </div>
+        )}
 
         <div className="mt-6 pt-5 border-t border-border">
           <div className="text-[12px] text-muted-foreground mb-3 inline-flex items-center gap-1.5"><ShieldCheck className="h-3.5 w-3.5" /> 账号操作</div>
