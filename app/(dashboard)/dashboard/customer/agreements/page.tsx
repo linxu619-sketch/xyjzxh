@@ -3,7 +3,8 @@ import { FileText, Download, ShieldCheck, ChevronRight, Clock, Eye } from "lucid
 import { CustomerShell } from "@/components/dashboard/customer-shell";
 import { Badge } from "@/components/ui/badge";
 import { getSession } from "@/lib/auth/session";
-import { signaturesByUser, getTemplate } from "@/lib/data/agreements";
+import { signaturesByUser, getTemplate, allAgreementsFor } from "@/lib/data/agreements";
+import { RevokeButton } from "@/components/agreements/revoke-button";
 
 export const metadata = { title: "我的协议 · 信阳市建筑装饰装修协会" };
 
@@ -11,6 +12,7 @@ export default async function CustomerAgreements() {
   const session = await getSession();
   // 仅本人签署记录（按登录账号），不再回退展示他人记录
   const all = session ? signaturesByUser("customer", session.uid) : [];
+  const myAuths = allAgreementsFor("customer");
 
   return (
     <CustomerShell
@@ -72,17 +74,30 @@ export default async function CustomerAgreements() {
         })}
       </div>
 
-      {/* 撤回授权说明 */}
-      <div className="mt-6 rounded-2xl bg-foreground text-background p-5">
-        <FileText className="h-5 w-5 text-accent-yellow" />
-        <div className="mt-2 text-[13px] font-semibold">想撤回某项授权？</div>
-        <p className="mt-1 text-[11px] text-background/70 leading-5">
-          PIPL 赋予您"随时撤回同意"的权利。撤回后协会将在 7 日内删除非法定保留信息。
-          有些撤回会影响账户继续使用（如撤回"实名授权"将无法继续投保），请谨慎操作。
+      {/* 我的授权 · PIPL 随时撤回 */}
+      <div className="mt-6">
+        <div className="flex items-center justify-between mb-2 px-1">
+          <h2 className="text-[14px] font-semibold inline-flex items-center gap-1.5"><ShieldCheck className="h-4 w-4 text-accent-tea" /> 我的授权 · 可随时撤回</h2>
+          <span className="text-[11px] text-muted-foreground">依据 PIPL 第 15 条</span>
+        </div>
+        <div className="rounded-3xl border border-border bg-background divide-y divide-border overflow-hidden">
+          {myAuths.map((t) => (
+            <div key={t.id} className="px-4 py-3.5 flex items-center gap-3">
+              <div className="flex-1 min-w-0">
+                <div className="text-[13px] font-medium flex items-center gap-1.5 flex-wrap">
+                  {t.title}
+                  {t.requiresSeparateConsent && <Badge tone="decor" className="!text-[9px] !px-1.5">PIPL 单独同意</Badge>}
+                  {t.required && <Badge tone="brand" className="!text-[9px] !px-1.5">必签</Badge>}
+                </div>
+                <div className="text-[11px] text-muted-foreground mt-0.5">{t.category} · v{t.version}</div>
+              </div>
+              <RevokeButton templateId={t.id} templateTitle={t.title} />
+            </div>
+          ))}
+        </div>
+        <p className="mt-2 px-1 text-[11px] text-muted-foreground leading-5">
+          撤回后协会将在 7 日内删除非法定保留信息;部分撤回会影响账户继续使用(如撤回「实名授权」将无法继续投保/理赔),请谨慎操作。撤回会实时通知协会。
         </p>
-        <span className="mt-3 inline-flex items-center gap-1 h-9 px-4 rounded-full border border-border text-muted-foreground text-[12px] opacity-70">
-          管理授权 · 即将开放
-        </span>
       </div>
     </CustomerShell>
   );
