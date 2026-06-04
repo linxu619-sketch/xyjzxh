@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ChevronRight, Eye, CheckCircle2, AlertCircle, Newspaper } from "lucide-react";
+import { ChevronRight, Eye, CheckCircle2, AlertCircle } from "lucide-react";
 import { AssociationShell } from "@/components/dashboard/shell";
 import { StatFilters } from "@/components/dashboard/stat-filters";
 import { Badge } from "@/components/ui/badge";
@@ -53,27 +53,30 @@ export default async function NewsAdmin({ searchParams }: { searchParams: Promis
         {list.length === 0 ? (
           <div className="px-5 py-16 text-center text-[13px] text-muted-foreground">{active ? "没有该状态的内容。" : "还没有新闻。点右上「发布新闻」发布第一条。"}</div>
         ) : (
-          <ul className="divide-y divide-border">
-            {list.map((n) => (
-              <li key={n.id}>
-                <Link href={`/dashboard/association/news/${n.id}`} className="flex items-center gap-3 px-5 py-4 hover:bg-surface transition-colors">
-                  <span className="h-9 w-9 rounded-xl bg-cat-build-soft text-cat-build inline-flex items-center justify-center shrink-0"><Newspaper className="h-4 w-4" /></span>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <Badge tone={CAT_TONE[n.category] ?? "build"}>{n.category}</Badge>
-                      {n.hot && <Badge tone="decor">热门</Badge>}
-                      <span className="font-medium truncate">{n.title}</span>
-                    </div>
-                    <div className="text-[12px] text-muted-foreground mt-0.5 inline-flex items-center gap-2">
-                      <span>{n.author}</span><span>·</span><span>{fmt(n.createdAt)}</span><span>·</span><span className="inline-flex items-center gap-0.5"><Eye className="h-3 w-3" />{n.views}</span>
-                    </div>
-                  </div>
-                  <Badge tone={n.status === "published" ? "tea" : "neutral"} className="shrink-0">{n.status === "published" ? "已发布" : "草稿"}</Badge>
-                  <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0" />
-                </Link>
-              </li>
-            ))}
-          </ul>
+          <>
+            <div className="hidden md:grid grid-cols-[2fr_1fr_1fr_0.7fr_auto] gap-3 px-5 py-2.5 border-b border-border text-[11px] text-muted-foreground tracking-wider">
+              <span>标题</span><span>作者</span><span>发布时间</span><span>阅读</span><span className="text-right">状态</span>
+            </div>
+            <ul className="divide-y divide-border">
+              {list.map((n) => (
+                <li key={n.id}>
+                  <Link href={`/dashboard/association/news/${n.id}`} className="grid grid-cols-[1fr_auto] md:grid-cols-[2fr_1fr_1fr_0.7fr_auto] gap-3 items-center px-5 py-3.5 text-[13px] hover:bg-surface transition-colors active:scale-[0.99]">
+                    <span className="min-w-0">
+                      <span className="font-medium truncate flex items-center gap-1.5"><Badge tone={CAT_TONE[n.category] ?? "build"} className="!px-1.5 !py-0">{n.category}</Badge>{n.hot && <Badge tone="decor" className="!px-1.5 !py-0">热</Badge>}{n.title}</span>
+                      <span className="md:hidden text-[11px] text-muted-foreground truncate block">{n.author} · {fmt(n.createdAt)} · {n.views} 阅读</span>
+                    </span>
+                    <span className="hidden md:block text-muted-foreground truncate">{n.author}</span>
+                    <span className="hidden md:block text-muted-foreground tabular-nums">{fmt(n.createdAt)}</span>
+                    <span className="hidden md:inline-flex items-center gap-0.5 text-muted-foreground"><Eye className="h-3 w-3" />{n.views}</span>
+                    <span className="inline-flex items-center gap-2 justify-end shrink-0">
+                      <Badge tone={n.status === "published" ? "tea" : "neutral"}>{n.status === "published" ? "已发布" : "草稿"}</Badge>
+                      <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                    </span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </>
         )}
       </div>
     </AssociationShell>

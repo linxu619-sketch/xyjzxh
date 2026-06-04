@@ -47,24 +47,30 @@ export default async function ReportsAdmin({ searchParams }: { searchParams: Pro
         {list.length === 0 ? (
           <div className="px-5 py-16 text-center text-[13px] text-muted-foreground">{active ? `没有「${STATUS_LABEL[active]}」的报备。` : "暂无报备。企业在 /projects/new 提交后会出现在这里。"}</div>
         ) : (
-          <ul className="divide-y divide-border">
-            {list.map((r) => (
-              <li key={r.id}>
-                <Link href={`/dashboard/association/reports/${r.id}`} className="flex items-center gap-3 px-5 py-4 hover:bg-surface transition-colors">
-                  <code className="text-[12px] font-mono text-muted-foreground shrink-0 hidden sm:inline">{r.code}</code>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2">
-                      <span className="font-medium truncate">{r.project}</span>
-                      {r.type && <Badge tone={TYPE_TONE[r.type] ?? "build"}>{r.type}</Badge>}
-                    </div>
-                    <div className="text-[12px] text-muted-foreground mt-0.5 truncate">{r.enterprise} · {r.area || "—"}㎡ · {r.budget || "—"}万</div>
-                  </div>
-                  <Badge tone={r.status === "approved" ? "tea" : r.status === "rejected" ? "decor" : "yellow"} className="shrink-0">{STATUS_LABEL[r.status]}</Badge>
-                  <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0" />
-                </Link>
-              </li>
-            ))}
-          </ul>
+          <>
+            <div className="hidden md:grid grid-cols-[110px_1.8fr_1.2fr_0.7fr_auto] gap-3 px-5 py-2.5 border-b border-border text-[11px] text-muted-foreground tracking-wider">
+              <span>报备号</span><span>项目</span><span>企业</span><span>面积/预算</span><span className="text-right">状态</span>
+            </div>
+            <ul className="divide-y divide-border">
+              {list.map((r) => (
+                <li key={r.id}>
+                  <Link href={`/dashboard/association/reports/${r.id}`} className="grid grid-cols-[1fr_auto] md:grid-cols-[110px_1.8fr_1.2fr_0.7fr_auto] gap-3 items-center px-5 py-3.5 text-[13px] hover:bg-surface transition-colors active:scale-[0.99]">
+                    <span className="hidden md:block font-mono text-[12px] text-muted-foreground truncate">{r.code}</span>
+                    <span className="min-w-0">
+                      <span className="font-medium truncate flex items-center gap-1.5">{r.project}{r.type && <Badge tone={TYPE_TONE[r.type] ?? "build"} className="!px-1.5 !py-0">{r.type}</Badge>}</span>
+                      <span className="md:hidden text-[11px] text-muted-foreground truncate block">{r.enterprise} · {r.area || "—"}㎡ · {r.budget || "—"}万</span>
+                    </span>
+                    <span className="hidden md:block text-muted-foreground truncate">{r.enterprise}</span>
+                    <span className="hidden md:block text-muted-foreground">{r.area || "—"}㎡ · {r.budget || "—"}万</span>
+                    <span className="inline-flex items-center gap-2 justify-end shrink-0">
+                      <Badge tone={r.status === "approved" ? "tea" : r.status === "rejected" ? "decor" : "yellow"}>{STATUS_LABEL[r.status]}</Badge>
+                      <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                    </span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </>
         )}
       </div>
     </AssociationShell>

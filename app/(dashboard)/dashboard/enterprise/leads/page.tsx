@@ -79,29 +79,33 @@ export default async function LeadsPage({ searchParams }: { searchParams: Promis
         {leads.length === 0 ? (
           <div className="px-5 py-16 text-center text-[13px] text-muted-foreground">{active ? `没有「${STATUS_LABEL[active]}」的线索。` : "还没有客户线索。子站「提交需求」表单提交后会实时出现在这里。"}</div>
         ) : (
-          <ul className="divide-y divide-border">
-            {leads.map((l) => (
-              <li key={l.id}>
-                <Link href={`/dashboard/enterprise/leads/${l.id}`} className="flex items-center gap-3 px-5 py-4 hover:bg-surface transition-colors">
-                  <span className="h-9 w-9 rounded-full bg-cat-decor-soft text-cat-decor inline-flex items-center justify-center text-[12px] font-semibold shrink-0">{l.name.slice(0, 1)}</span>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2">
-                      <span className="font-medium truncate">{l.name}</span>
-                      <span className="text-[12px] text-muted-foreground truncate">{l.type || "—"}{l.area ? ` · ${l.area}㎡` : ""}{l.budget ? ` · ${l.budget}万` : ""}</span>
-                    </div>
-                    <div className="text-[11px] text-muted-foreground mt-0.5 flex items-center gap-2 flex-wrap">
-                      <span>{l.source}</span>
-                      <span className="hidden sm:inline">· {fmt(l.createdAt)}</span>
-                      {l.address && <span className="hidden md:inline truncate">· {l.address}</span>}
-                    </div>
-                  </div>
-                  <span className="hidden sm:inline-flex items-center gap-1 text-[12px] text-muted-foreground shrink-0"><PhoneCall className="h-3 w-3" /> {l.phone}</span>
-                  <Badge tone={STATUS_TONE[l.status]} className="shrink-0">{STATUS_LABEL[l.status]}</Badge>
-                  <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0" />
-                </Link>
-              </li>
-            ))}
-          </ul>
+          <>
+            <div className="hidden md:grid grid-cols-[1.2fr_1.3fr_1fr_1fr_auto] gap-3 px-5 py-2.5 border-b border-border text-[11px] text-muted-foreground tracking-wider">
+              <span>客户</span><span>需求</span><span>来源</span><span>电话</span><span className="text-right">状态</span>
+            </div>
+            <ul className="divide-y divide-border">
+              {leads.map((l) => (
+                <li key={l.id}>
+                  <Link href={`/dashboard/enterprise/leads/${l.id}`} className="grid grid-cols-[1fr_auto] md:grid-cols-[1.2fr_1.3fr_1fr_1fr_auto] gap-3 items-center px-5 py-3.5 text-[13px] hover:bg-surface transition-colors active:scale-[0.99]">
+                    <span className="min-w-0 inline-flex items-center gap-2">
+                      <span className="h-8 w-8 rounded-full bg-cat-decor-soft text-cat-decor inline-flex items-center justify-center text-[12px] font-semibold shrink-0 md:hidden">{l.name.slice(0, 1)}</span>
+                      <span className="min-w-0">
+                        <span className="font-medium truncate block">{l.name}</span>
+                        <span className="md:hidden text-[11px] text-muted-foreground truncate block">{l.type || "—"}{l.area ? ` · ${l.area}㎡` : ""} · {l.source} · {l.phone}</span>
+                      </span>
+                    </span>
+                    <span className="hidden md:block text-muted-foreground truncate">{l.type || "—"}{l.area ? ` · ${l.area}㎡` : ""}{l.budget ? ` · ${l.budget}万` : ""}</span>
+                    <span className="hidden md:block text-muted-foreground truncate">{l.source}</span>
+                    <span className="hidden md:inline-flex items-center gap-1 text-muted-foreground"><PhoneCall className="h-3 w-3" />{l.phone}</span>
+                    <span className="inline-flex items-center gap-2 justify-end shrink-0">
+                      <Badge tone={STATUS_TONE[l.status]}>{STATUS_LABEL[l.status]}</Badge>
+                      <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                    </span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </>
         )}
       </div>
     </EnterpriseShell>

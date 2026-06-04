@@ -43,28 +43,37 @@ export default async function TrainingAdmin({ searchParams }: { searchParams: Pr
         {list.length === 0 ? (
           <div className="px-5 py-16 text-center text-[13px] text-muted-foreground">{active ? "没有该状态的课程。" : "还没有培训课程。点右上「发布培训」发布第一门。"}</div>
         ) : (
-          <ul className="divide-y divide-border">
-            {list.map((t) => {
-              const n = countEnrolled(t.id);
-              return (
-                <li key={t.id}>
-                  <Link href={`/dashboard/association/training/${t.id}`} className="flex items-center gap-3 px-5 py-4 hover:bg-surface transition-colors">
-                    <span className="h-9 w-9 rounded-xl bg-cat-design-soft text-cat-design inline-flex items-center justify-center shrink-0"><GraduationCap className="h-4 w-4" /></span>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <Badge tone="design">{t.category}</Badge>
-                        <span className="font-medium truncate">{t.title}</span>
-                      </div>
-                      <div className="text-[12px] text-muted-foreground mt-0.5">{t.instructor} · {t.schedule || "待定"} · {t.fee}</div>
-                    </div>
-                    <span className="inline-flex items-center gap-1 text-[12px] text-accent-tea shrink-0"><Users2 className="h-3.5 w-3.5" />{n}{t.capacity > 0 ? `/${t.capacity}` : ""}</span>
-                    <Badge tone={t.status === "open" ? "tea" : "neutral"} className="shrink-0">{t.status === "open" ? "在招" : "已结束"}</Badge>
-                    <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0" />
-                  </Link>
-                </li>
-              );
-            })}
-          </ul>
+          <>
+            <div className="hidden md:grid grid-cols-[1.8fr_1fr_1.2fr_0.8fr_0.7fr_auto] gap-3 px-5 py-2.5 border-b border-border text-[11px] text-muted-foreground tracking-wider">
+              <span>课程</span><span>讲师</span><span>时间</span><span>费用</span><span>报名</span><span className="text-right">状态</span>
+            </div>
+            <ul className="divide-y divide-border">
+              {list.map((t) => {
+                const n = countEnrolled(t.id);
+                return (
+                  <li key={t.id}>
+                    <Link href={`/dashboard/association/training/${t.id}`} className="grid grid-cols-[1fr_auto] md:grid-cols-[1.8fr_1fr_1.2fr_0.8fr_0.7fr_auto] gap-3 items-center px-5 py-3.5 text-[13px] hover:bg-surface transition-colors active:scale-[0.99]">
+                      <span className="min-w-0 inline-flex items-center gap-2">
+                        <span className="h-8 w-8 rounded-lg bg-cat-design-soft text-cat-design inline-flex items-center justify-center shrink-0 md:hidden"><GraduationCap className="h-4 w-4" /></span>
+                        <span className="min-w-0">
+                          <span className="font-medium truncate flex items-center gap-1.5"><Badge tone="design" className="!px-1.5 !py-0">{t.category}</Badge>{t.title}</span>
+                          <span className="md:hidden text-[11px] text-muted-foreground">{t.instructor} · {t.schedule || "待定"} · {t.fee}</span>
+                        </span>
+                      </span>
+                      <span className="hidden md:block text-muted-foreground truncate">{t.instructor}</span>
+                      <span className="hidden md:block text-muted-foreground truncate">{t.schedule || "待定"}</span>
+                      <span className="hidden md:block text-muted-foreground">{t.fee}</span>
+                      <span className="hidden md:inline-flex items-center gap-1 text-accent-tea"><Users2 className="h-3.5 w-3.5" />{n}{t.capacity > 0 ? `/${t.capacity}` : ""}</span>
+                      <span className="inline-flex items-center gap-2 justify-end shrink-0">
+                        <Badge tone={t.status === "open" ? "tea" : "neutral"}>{t.status === "open" ? "在招" : "已结束"}</Badge>
+                        <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                      </span>
+                    </Link>
+                  </li>
+                );
+              })}
+            </ul>
+          </>
         )}
       </div>
     </AssociationShell>

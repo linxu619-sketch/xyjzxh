@@ -47,23 +47,29 @@ export default async function MediationsAdmin({ searchParams }: { searchParams: 
         {list.length === 0 ? (
           <div className="px-5 py-16 text-center text-[13px] text-muted-foreground">{active ? `没有「${STATUS_LABEL[active]}」的调解。` : "暂无调解申请。用户在 /mediate 提交后会出现在这里。"}</div>
         ) : (
-          <ul className="divide-y divide-border">
-            {list.map((m) => (
-              <li key={m.id}>
-                <Link href={`/dashboard/association/mediations/${m.id}`} className="flex items-center gap-3 px-5 py-4 hover:bg-surface transition-colors">
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <span className="font-medium">{m.applicant}</span>
-                      {m.respondent && <span className="text-[12px] text-muted-foreground">投诉 {m.respondent}</span>}
-                    </div>
-                    <div className="text-[12px] text-muted-foreground mt-0.5 truncate">{m.detail}</div>
-                  </div>
-                  <Badge tone={STATUS_TONE[m.status] ?? "yellow"} className="shrink-0">{STATUS_LABEL[m.status] ?? m.status}</Badge>
-                  <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0" />
-                </Link>
-              </li>
-            ))}
-          </ul>
+          <>
+            <div className="hidden md:grid grid-cols-[1fr_1fr_2.4fr_auto] gap-3 px-5 py-2.5 border-b border-border text-[11px] text-muted-foreground tracking-wider">
+              <span>申请人</span><span>被投诉方</span><span>纠纷摘要</span><span className="text-right">状态</span>
+            </div>
+            <ul className="divide-y divide-border">
+              {list.map((m) => (
+                <li key={m.id}>
+                  <Link href={`/dashboard/association/mediations/${m.id}`} className="grid grid-cols-[1fr_auto] md:grid-cols-[1fr_1fr_2.4fr_auto] gap-3 items-center px-5 py-3.5 text-[13px] hover:bg-surface transition-colors active:scale-[0.99]">
+                    <span className="min-w-0">
+                      <span className="font-medium truncate block">{m.applicant}</span>
+                      <span className="md:hidden text-[11px] text-muted-foreground truncate block">{m.respondent ? `投诉 ${m.respondent} · ` : ""}{m.detail}</span>
+                    </span>
+                    <span className="hidden md:block text-muted-foreground truncate">{m.respondent || "—"}</span>
+                    <span className="hidden md:block text-muted-foreground truncate">{m.detail}</span>
+                    <span className="inline-flex items-center gap-2 justify-end shrink-0">
+                      <Badge tone={STATUS_TONE[m.status] ?? "yellow"}>{STATUS_LABEL[m.status] ?? m.status}</Badge>
+                      <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                    </span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </>
         )}
       </div>
     </AssociationShell>

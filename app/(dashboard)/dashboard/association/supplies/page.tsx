@@ -56,29 +56,33 @@ export default async function SuppliesAdmin({ searchParams }: { searchParams: Pr
           {pending.length === 0 ? (
             <div className="px-5 py-16 text-center text-[13px] text-muted-foreground">暂无待审核。会员在「我的店铺」提交上架后出现在这里。</div>
           ) : (
-            <ul className="divide-y divide-border">
-              {pending.map((p) => {
-                const holder = brandActiveHolder(p.brand, p.id);
-                const cheaper = holder ? p.memberPrice < holder.memberPrice : false;
-                return (
-                  <li key={p.id}>
-                    <Link href={`${base}/product/${p.id}`} className="flex items-center gap-3 px-5 py-3.5 hover:bg-surface transition-colors active:scale-[0.99]">
-                      <span className="h-9 w-9 rounded-xl bg-surface inline-flex items-center justify-center shrink-0"><Package className="h-4 w-4 text-cat-build" /></span>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <span className="font-medium truncate">{p.name}</span>
-                          <Badge tone="brand" className="!px-2 !py-0.5">{p.brand}</Badge>
-                          <span className="inline-flex items-center gap-0.5 text-[11px] text-accent-tea"><ShieldCheck className="h-3 w-3" />{REASON_LABEL[p.reasonType]}</span>
-                        </div>
-                        <div className="text-[12px] text-muted-foreground mt-0.5">{SELLER_LABEL[p.sellerType]} · {p.sellerName} · 会员价 <b className="text-cat-decor">¥{p.memberPrice}</b>/{p.unit}</div>
-                      </div>
-                      {holder && <Badge tone={cheaper ? "tea" : "decor"} className="shrink-0 inline-flex items-center gap-1"><Swords className="h-3 w-3" />擂台{cheaper ? "·价更低" : "·未低于"}</Badge>}
-                      <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0" />
-                    </Link>
-                  </li>
-                );
-              })}
-            </ul>
+            <>
+              <div className="hidden md:grid grid-cols-[2fr_1.3fr_1fr_auto] gap-3 px-5 py-2.5 border-b border-border text-[11px] text-muted-foreground tracking-wider">
+                <span>商品</span><span>卖家</span><span>会员价</span><span className="text-right">擂台</span>
+              </div>
+              <ul className="divide-y divide-border">
+                {pending.map((p) => {
+                  const holder = brandActiveHolder(p.brand, p.id);
+                  const cheaper = holder ? p.memberPrice < holder.memberPrice : false;
+                  return (
+                    <li key={p.id}>
+                      <Link href={`${base}/product/${p.id}`} className="grid grid-cols-[1fr_auto] md:grid-cols-[2fr_1.3fr_1fr_auto] gap-3 items-center px-5 py-3.5 text-[13px] hover:bg-surface transition-colors active:scale-[0.99]">
+                        <span className="min-w-0">
+                          <span className="font-medium truncate flex items-center gap-1.5">{p.name}<Badge tone="brand" className="!px-1.5 !py-0">{p.brand}</Badge><span className="hidden md:inline-flex items-center gap-0.5 text-[11px] text-accent-tea"><ShieldCheck className="h-3 w-3" />{REASON_LABEL[p.reasonType]}</span></span>
+                          <span className="md:hidden text-[11px] text-muted-foreground truncate block">{SELLER_LABEL[p.sellerType]} · {p.sellerName} · ¥{p.memberPrice}/{p.unit}</span>
+                        </span>
+                        <span className="hidden md:block text-muted-foreground truncate">{SELLER_LABEL[p.sellerType]} · {p.sellerName}</span>
+                        <span className="hidden md:block"><b className="text-cat-decor">¥{p.memberPrice}</b><span className="text-muted-foreground">/{p.unit}</span></span>
+                        <span className="inline-flex items-center gap-2 justify-end shrink-0">
+                          {holder ? <Badge tone={cheaper ? "tea" : "decor"} className="inline-flex items-center gap-1"><Swords className="h-3 w-3" />{cheaper ? "价更低" : "未低于"}</Badge> : <span className="text-[11px] text-muted-foreground hidden md:inline">—</span>}
+                          <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                        </span>
+                      </Link>
+                    </li>
+                  );
+                })}
+              </ul>
+            </>
           )}
           <div className="px-5 py-3 text-[12px] text-muted-foreground border-t border-border">点击任一行进入详情页进行通过 / 驳回 / 价格擂台裁定。</div>
         </div>
@@ -88,28 +92,32 @@ export default async function SuppliesAdmin({ searchParams }: { searchParams: Pr
           {products.length === 0 ? (
             <div className="px-5 py-16 text-center text-[13px] text-muted-foreground">还没有商品。点右上「上架商品」新增。</div>
           ) : (
-            <ul className="divide-y divide-border">
-              {products.map((p) => {
-                const off = p.marketPrice > 0 ? Math.round((1 - p.memberPrice / p.marketPrice) * 100) : 0;
-                return (
-                  <li key={p.id}>
-                    <Link href={`${base}/product/${p.id}`} className="flex items-center gap-3 px-5 py-3.5 hover:bg-surface transition-colors active:scale-[0.99]">
-                      <span className="h-9 w-9 rounded-xl bg-surface inline-flex items-center justify-center shrink-0"><Package className="h-4 w-4 text-cat-build" /></span>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <span className="font-medium truncate">{p.name}</span>
-                          {p.brand && <Badge tone="brand" className="!px-2 !py-0.5">{p.brand}</Badge>}
-                          <Badge tone="decor">{p.category}</Badge>
-                        </div>
-                        <div className="text-[12px] text-muted-foreground mt-0.5">{SELLER_LABEL[p.sellerType]} · {p.sellerName} · ¥{p.memberPrice}<span className="line-through ml-1 text-[11px]">¥{p.marketPrice}</span>/{p.unit}{off > 0 && <span className="text-accent-tea ml-1.5 inline-flex items-center gap-0.5"><TrendingDown className="h-2.5 w-2.5" />省{off}%</span>}</div>
-                      </div>
-                      <Badge tone={p.status === "active" ? "tea" : "neutral"} className="shrink-0">{p.status === "active" ? "在架" : "已下架"}</Badge>
-                      <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0" />
-                    </Link>
-                  </li>
-                );
-              })}
-            </ul>
+            <>
+              <div className="hidden md:grid grid-cols-[2fr_1.3fr_1.1fr_auto] gap-3 px-5 py-2.5 border-b border-border text-[11px] text-muted-foreground tracking-wider">
+                <span>商品</span><span>卖家</span><span>价格</span><span className="text-right">状态</span>
+              </div>
+              <ul className="divide-y divide-border">
+                {products.map((p) => {
+                  const off = p.marketPrice > 0 ? Math.round((1 - p.memberPrice / p.marketPrice) * 100) : 0;
+                  return (
+                    <li key={p.id}>
+                      <Link href={`${base}/product/${p.id}`} className="grid grid-cols-[1fr_auto] md:grid-cols-[2fr_1.3fr_1.1fr_auto] gap-3 items-center px-5 py-3.5 text-[13px] hover:bg-surface transition-colors active:scale-[0.99]">
+                        <span className="min-w-0">
+                          <span className="font-medium truncate flex items-center gap-1.5">{p.name}{p.brand && <Badge tone="brand" className="!px-1.5 !py-0">{p.brand}</Badge>}<Badge tone="decor" className="!px-1.5 !py-0">{p.category}</Badge></span>
+                          <span className="md:hidden text-[11px] text-muted-foreground truncate block">{SELLER_LABEL[p.sellerType]} · {p.sellerName} · ¥{p.memberPrice}/{p.unit}</span>
+                        </span>
+                        <span className="hidden md:block text-muted-foreground truncate">{SELLER_LABEL[p.sellerType]} · {p.sellerName}</span>
+                        <span className="hidden md:block text-muted-foreground">¥{p.memberPrice}<span className="line-through ml-1 text-[11px]">¥{p.marketPrice}</span>/{p.unit}{off > 0 && <span className="text-accent-tea ml-1.5">省{off}%</span>}</span>
+                        <span className="inline-flex items-center gap-2 justify-end shrink-0">
+                          <Badge tone={p.status === "active" ? "tea" : "neutral"}>{p.status === "active" ? "在架" : "已下架"}</Badge>
+                          <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                        </span>
+                      </Link>
+                    </li>
+                  );
+                })}
+              </ul>
+            </>
           )}
           <div className="px-5 py-3 text-[12px] text-muted-foreground border-t border-border">点击任一行进入详情页进行上架 / 下架。</div>
         </div>
@@ -131,21 +139,29 @@ export default async function SuppliesAdmin({ searchParams }: { searchParams: Pr
           {orders.length === 0 ? (
             <div className="px-5 py-16 text-center text-[13px] text-muted-foreground">暂无采购单。企业在「建材采购」下单后会出现在这里。</div>
           ) : (
-            <ul className="divide-y divide-border">
-              {orders.map((o) => (
-                <li key={o.id}>
-                  <Link href={`${base}/order/${o.id}`} className="flex items-center gap-3 px-5 py-3.5 text-[13px] hover:bg-surface transition-colors active:scale-[0.99]">
-                    <div className="flex-1 min-w-0">
-                      <div className="font-medium truncate">{o.productName} <span className="text-muted-foreground font-normal">× {o.qty}{o.unit}</span></div>
-                      <div className="text-[11px] text-muted-foreground">{o.enterpriseName} · {fmt(o.createdAt)}</div>
-                    </div>
-                    <span className="font-semibold text-cat-decor tabular-nums shrink-0">¥{o.total.toLocaleString()}</span>
-                    <Badge tone={ORDER_TONE[o.status]} className="shrink-0">{ORDER_LABEL[o.status]}</Badge>
-                    <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0" />
-                  </Link>
-                </li>
-              ))}
-            </ul>
+            <>
+              <div className="hidden md:grid grid-cols-[1.8fr_1.2fr_0.9fr_auto] gap-3 px-5 py-2.5 border-b border-border text-[11px] text-muted-foreground tracking-wider">
+                <span>商品 / 数量</span><span>买家</span><span>金额</span><span className="text-right">状态</span>
+              </div>
+              <ul className="divide-y divide-border">
+                {orders.map((o) => (
+                  <li key={o.id}>
+                    <Link href={`${base}/order/${o.id}`} className="grid grid-cols-[1fr_auto] md:grid-cols-[1.8fr_1.2fr_0.9fr_auto] gap-3 items-center px-5 py-3.5 text-[13px] hover:bg-surface transition-colors active:scale-[0.99]">
+                      <span className="min-w-0">
+                        <span className="font-medium truncate block">{o.productName} <span className="text-muted-foreground font-normal">× {o.qty}{o.unit}</span></span>
+                        <span className="md:hidden text-[11px] text-muted-foreground truncate block">{o.enterpriseName} · ¥{o.total.toLocaleString()}</span>
+                      </span>
+                      <span className="hidden md:block text-muted-foreground truncate">{o.enterpriseName}</span>
+                      <span className="hidden md:block font-semibold text-cat-decor tabular-nums">¥{o.total.toLocaleString()}</span>
+                      <span className="inline-flex items-center gap-2 justify-end shrink-0">
+                        <Badge tone={ORDER_TONE[o.status]}>{ORDER_LABEL[o.status]}</Badge>
+                        <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                      </span>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </>
           )}
           <div className="px-5 py-3 text-[12px] text-muted-foreground border-t border-border">点击任一行进入详情页推进履约状态流转。</div>
         </div>

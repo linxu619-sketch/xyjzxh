@@ -49,28 +49,36 @@ export default async function JobsPage({ searchParams }: { searchParams: Promise
             {active ? "没有该状态的岗位。" : "还没有招聘岗位。点右上「发布岗位」发布第一个，从业者即可在「找活」报名。"}
           </div>
         ) : (
-          <ul className="divide-y divide-border">
-            {list.map((j) => {
-              const apps = countApplicants(j.id);
-              return (
-                <li key={j.id}>
-                  <Link href={`/dashboard/enterprise/jobs/${j.id}`} className="flex items-center gap-3 px-5 py-4 hover:bg-surface transition-colors">
-                    <span className="h-9 w-9 rounded-xl bg-cat-build-soft text-cat-build inline-flex items-center justify-center shrink-0"><Briefcase className="h-4 w-4" /></span>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <span className="font-medium truncate">{j.title}</span>
-                        {j.urgent && <Badge tone="decor">急招</Badge>}
-                      </div>
-                      <div className="text-[12px] text-muted-foreground mt-0.5">{j.kind} · {j.district || "信阳"} · ¥{j.daily}/天 · {j.openings} 名额</div>
-                    </div>
-                    <span className="inline-flex items-center gap-1 text-[12px] text-accent-tea shrink-0"><Users2 className="h-3.5 w-3.5" />{apps} 投递</span>
-                    <Badge tone={j.status === "open" ? "tea" : "neutral"} className="shrink-0">{j.status === "open" ? "在招" : "已结束"}</Badge>
-                    <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0" />
-                  </Link>
-                </li>
-              );
-            })}
-          </ul>
+          <>
+            <div className="hidden md:grid grid-cols-[1.8fr_1fr_1.3fr_0.8fr_auto] gap-3 px-5 py-2.5 border-b border-border text-[11px] text-muted-foreground tracking-wider">
+              <span>岗位</span><span>工种</span><span>待遇 / 名额</span><span>投递</span><span className="text-right">状态</span>
+            </div>
+            <ul className="divide-y divide-border">
+              {list.map((j) => {
+                const apps = countApplicants(j.id);
+                return (
+                  <li key={j.id}>
+                    <Link href={`/dashboard/enterprise/jobs/${j.id}`} className="grid grid-cols-[1fr_auto] md:grid-cols-[1.8fr_1fr_1.3fr_0.8fr_auto] gap-3 items-center px-5 py-3.5 text-[13px] hover:bg-surface transition-colors active:scale-[0.99]">
+                      <span className="min-w-0 inline-flex items-center gap-2">
+                        <span className="h-8 w-8 rounded-lg bg-cat-build-soft text-cat-build inline-flex items-center justify-center shrink-0 md:hidden"><Briefcase className="h-4 w-4" /></span>
+                        <span className="min-w-0">
+                          <span className="font-medium truncate flex items-center gap-1.5">{j.title}{j.urgent && <Badge tone="decor" className="!px-1.5 !py-0">急</Badge>}</span>
+                          <span className="md:hidden text-[11px] text-muted-foreground truncate block">{j.kind} · ¥{j.daily}/天 · {j.openings}名额 · {apps}投递</span>
+                        </span>
+                      </span>
+                      <span className="hidden md:block text-muted-foreground truncate">{j.kind}</span>
+                      <span className="hidden md:block text-muted-foreground">{j.district || "信阳"} · ¥{j.daily}/天 · {j.openings}名额</span>
+                      <span className="hidden md:inline-flex items-center gap-1 text-accent-tea"><Users2 className="h-3.5 w-3.5" />{apps}</span>
+                      <span className="inline-flex items-center gap-2 justify-end shrink-0">
+                        <Badge tone={j.status === "open" ? "tea" : "neutral"}>{j.status === "open" ? "在招" : "已结束"}</Badge>
+                        <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                      </span>
+                    </Link>
+                  </li>
+                );
+              })}
+            </ul>
+          </>
         )}
       </div>
     </EnterpriseShell>

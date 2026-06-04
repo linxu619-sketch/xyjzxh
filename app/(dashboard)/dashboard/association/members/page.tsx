@@ -52,25 +52,30 @@ export default async function MembersAdmin({ searchParams }: { searchParams: Pro
         {list.length === 0 ? (
           <div className="px-5 py-16 text-center text-[13px] text-muted-foreground">{active ? `没有「${STATUS_LABEL[active]}」的申请。` : "暂无入会申请。用户在 /join → /register 提交后会出现在这里。"}</div>
         ) : (
-          <ul className="divide-y divide-border">
-            {list.map((a) => (
-              <li key={a.id}>
-                <Link href={`/dashboard/association/members/${a.id}`} className="flex items-center gap-3 px-5 py-4 hover:bg-surface transition-colors">
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2">
-                      <span className="font-medium truncate">{a.applicant}</span>
-                      <Badge tone={TYPE_TONE[a.type]}>{TYPE_LABEL[a.type]}</Badge>
-                    </div>
-                    <div className="text-[12px] text-muted-foreground mt-0.5 truncate">
-                      {a.phone}{summarize(a) ? ` · ${summarize(a)}` : ""}
-                    </div>
-                  </div>
-                  <Badge tone={a.status === "approved" ? "tea" : a.status === "rejected" ? "decor" : "yellow"} className="shrink-0">{STATUS_LABEL[a.status]}</Badge>
-                  <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0" />
-                </Link>
-              </li>
-            ))}
-          </ul>
+          <>
+            <div className="hidden md:grid grid-cols-[1.4fr_0.9fr_1fr_1.3fr_auto] gap-3 px-5 py-2.5 border-b border-border text-[11px] text-muted-foreground tracking-wider">
+              <span>申请人</span><span>类型</span><span>手机号</span><span>简介</span><span className="text-right">状态</span>
+            </div>
+            <ul className="divide-y divide-border">
+              {list.map((a) => (
+                <li key={a.id}>
+                  <Link href={`/dashboard/association/members/${a.id}`} className="grid grid-cols-[1fr_auto] md:grid-cols-[1.4fr_0.9fr_1fr_1.3fr_auto] gap-3 items-center px-5 py-3.5 text-[13px] hover:bg-surface transition-colors active:scale-[0.99]">
+                    <span className="min-w-0">
+                      <span className="font-medium truncate block">{a.applicant}</span>
+                      <span className="md:hidden text-[11px] text-muted-foreground truncate block">{TYPE_LABEL[a.type]} · {a.phone}{summarize(a) ? ` · ${summarize(a)}` : ""}</span>
+                    </span>
+                    <span className="hidden md:block"><Badge tone={TYPE_TONE[a.type]}>{TYPE_LABEL[a.type]}</Badge></span>
+                    <span className="hidden md:block text-muted-foreground tabular-nums">{a.phone}</span>
+                    <span className="hidden md:block text-muted-foreground truncate">{summarize(a) || "—"}</span>
+                    <span className="inline-flex items-center gap-2 justify-end shrink-0">
+                      <Badge tone={a.status === "approved" ? "tea" : a.status === "rejected" ? "decor" : "yellow"}>{STATUS_LABEL[a.status]}</Badge>
+                      <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                    </span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </>
         )}
       </div>
 

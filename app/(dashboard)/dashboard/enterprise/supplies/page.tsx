@@ -1,9 +1,9 @@
-import { Truck, ShoppingCart, TrendingDown, CheckCircle2, Package } from "lucide-react";
+import Link from "next/link";
+import { Truck, TrendingDown, CheckCircle2, Package, ChevronRight } from "lucide-react";
 import { EnterpriseShell } from "@/components/dashboard/shell";
 import { Badge } from "@/components/ui/badge";
 import { getSession } from "@/lib/auth/session";
 import { listProducts, listOrdersByEnterprise, type OrderStatus } from "@/lib/data/supplies-source";
-import { placeSupplyOrderAction } from "./actions";
 import { effectiveEnterpriseId } from "@/lib/dashboard/preview";
 
 export const metadata = { title: "建材采购 · 企业工作台" };
@@ -51,7 +51,7 @@ export default async function SuppliesPage({ searchParams }: { searchParams: Pro
         {products.map((p) => {
           const off = p.marketPrice > 0 ? Math.round((1 - p.memberPrice / p.marketPrice) * 100) : 0;
           return (
-            <div key={p.id} className="rounded-2xl border border-border bg-background p-4">
+            <Link key={p.id} href={`/supplies/${p.id}`} className="rounded-2xl border border-border bg-background p-4 block hover:shadow-md hover:-translate-y-0.5 transition-all">
               <div className="flex items-start gap-2">
                 <span className="h-10 w-10 rounded-xl bg-surface inline-flex items-center justify-center shrink-0"><Package className="h-5 w-5 text-cat-build" /></span>
                 <div className="flex-1 min-w-0">
@@ -66,13 +66,8 @@ export default async function SuppliesPage({ searchParams }: { searchParams: Pro
                 <span className="text-[11px] text-muted-foreground mb-0.5">/{p.unit}</span>
                 {off > 0 && <span className="ml-auto text-[11px] text-accent-tea font-medium inline-flex items-center gap-0.5 mb-0.5"><TrendingDown className="h-3 w-3" /> 省{off}%</span>}
               </div>
-              <form action={placeSupplyOrderAction} className="mt-3 flex items-center gap-2">
-                <input type="hidden" name="productId" value={p.id} />
-                <input name="qty" type="number" min="1" defaultValue="1" className="w-20 h-10 rounded-xl border border-border bg-background px-3 text-[14px] outline-none focus:border-foreground/30" />
-                <span className="text-[12px] text-muted-foreground">{p.unit}</span>
-                <button className="ml-auto h-10 px-4 rounded-full bg-foreground text-background text-[12px] font-medium inline-flex items-center gap-1.5 active:scale-95 transition-transform"><ShoppingCart className="h-3.5 w-3.5" /> 下单</button>
-              </form>
-            </div>
+              <div className="mt-3 pt-3 border-t border-border flex items-center justify-end text-[12px] text-brand font-medium">查看详情并下单 <ChevronRight className="h-3.5 w-3.5" /></div>
+            </Link>
           );
         })}
       </div>
@@ -83,18 +78,29 @@ export default async function SuppliesPage({ searchParams }: { searchParams: Pro
         {orders.length === 0 ? (
           <div className="px-5 py-12 text-center text-[13px] text-muted-foreground">还没有采购单。在上方商品目录下单后会出现在这里。</div>
         ) : (
-          <ul className="divide-y divide-border">
-            {orders.map((o) => (
-              <li key={o.id} className="px-5 py-3.5 flex items-center gap-3 text-[13px]">
-                <div className="flex-1 min-w-0">
-                  <div className="font-medium truncate">{o.productName}</div>
-                  <div className="text-[11px] text-muted-foreground">{o.qty} {o.unit} × ¥{o.unitPrice} · {fmt(o.createdAt)}</div>
-                </div>
-                <span className="font-semibold text-cat-decor tabular-nums shrink-0">¥{o.total.toLocaleString()}</span>
-                <Badge tone={ORDER_TONE[o.status]} className="shrink-0">{ORDER_LABEL[o.status]}</Badge>
-              </li>
-            ))}
-          </ul>
+          <>
+            <div className="hidden md:grid grid-cols-[2fr_1.4fr_0.9fr_auto] gap-3 px-5 py-2.5 border-b border-border text-[11px] text-muted-foreground tracking-wider">
+              <span>商品</span><span>数量 / 单价 / 时间</span><span>金额</span><span className="text-right">状态</span>
+            </div>
+            <ul className="divide-y divide-border">
+              {orders.map((o) => (
+                <li key={o.id}>
+                  <Link href={`/dashboard/enterprise/store/order/${o.id}`} className="grid grid-cols-[1fr_auto] md:grid-cols-[2fr_1.4fr_0.9fr_auto] gap-3 items-center px-5 py-3.5 text-[13px] hover:bg-surface transition-colors active:scale-[0.99]">
+                    <span className="min-w-0">
+                      <span className="font-medium truncate block">{o.productName}</span>
+                      <span className="md:hidden text-[11px] text-muted-foreground truncate block">{o.qty}{o.unit} × ¥{o.unitPrice} · ¥{o.total.toLocaleString()}</span>
+                    </span>
+                    <span className="hidden md:block text-muted-foreground truncate">{o.qty}{o.unit} × ¥{o.unitPrice} · {fmt(o.createdAt)}</span>
+                    <span className="hidden md:block font-semibold text-cat-decor tabular-nums">¥{o.total.toLocaleString()}</span>
+                    <span className="inline-flex items-center gap-2 justify-end shrink-0">
+                      <Badge tone={ORDER_TONE[o.status]}>{ORDER_LABEL[o.status]}</Badge>
+                      <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                    </span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </>
         )}
       </div>
     </EnterpriseShell>

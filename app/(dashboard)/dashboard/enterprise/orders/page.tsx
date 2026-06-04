@@ -48,24 +48,34 @@ export default async function OrdersPage({ searchParams }: { searchParams: Promi
         {list.length === 0 ? (
           <div className="px-5 py-16 text-center text-[13px] text-muted-foreground">{active ? "没有该阶段的订单。" : "还没有施工订单。点右上「新建订单」创建第一个。"}</div>
         ) : (
-          <ul className="divide-y divide-border">
-            {list.map((o) => (
-              <li key={o.id}>
-                <Link href={`/dashboard/enterprise/orders/${o.id}`} className="flex items-center gap-3 px-5 py-4 hover:bg-surface transition-colors">
-                  <span className="h-9 w-9 rounded-xl bg-cat-decor-soft text-cat-decor inline-flex items-center justify-center shrink-0"><Hammer className="h-4 w-4" /></span>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <code className="text-[11px] font-mono text-muted-foreground">{o.code}</code>
-                      <span className="font-medium truncate">{o.scope}</span>
-                    </div>
-                    <div className="text-[12px] text-muted-foreground mt-0.5">{o.customerName} · {o.type} · ¥{(o.amount / 10000).toFixed(1)}万 · 进度 {o.progress}%</div>
-                  </div>
-                  <Badge tone={STAGE_TONE[o.stage]} className="shrink-0">{STAGE_LABEL[o.stage]}</Badge>
-                  <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0" />
-                </Link>
-              </li>
-            ))}
-          </ul>
+          <>
+            <div className="hidden md:grid grid-cols-[110px_1.8fr_1fr_0.9fr_0.7fr_auto] gap-3 px-5 py-2.5 border-b border-border text-[11px] text-muted-foreground tracking-wider">
+              <span>订单号</span><span>项目</span><span>客户</span><span>合同额</span><span>进度</span><span className="text-right">阶段</span>
+            </div>
+            <ul className="divide-y divide-border">
+              {list.map((o) => (
+                <li key={o.id}>
+                  <Link href={`/dashboard/enterprise/orders/${o.id}`} className="grid grid-cols-[1fr_auto] md:grid-cols-[110px_1.8fr_1fr_0.9fr_0.7fr_auto] gap-3 items-center px-5 py-3.5 text-[13px] hover:bg-surface transition-colors active:scale-[0.99]">
+                    <span className="hidden md:block font-mono text-[11px] text-muted-foreground truncate">{o.code}</span>
+                    <span className="min-w-0 inline-flex items-center gap-2">
+                      <span className="h-8 w-8 rounded-lg bg-cat-decor-soft text-cat-decor inline-flex items-center justify-center shrink-0 md:hidden"><Hammer className="h-4 w-4" /></span>
+                      <span className="min-w-0">
+                        <span className="font-medium truncate block">{o.scope}</span>
+                        <span className="md:hidden text-[11px] text-muted-foreground truncate block">{o.code} · {o.customerName} · ¥{(o.amount / 10000).toFixed(1)}万 · {o.progress}%</span>
+                      </span>
+                    </span>
+                    <span className="hidden md:block text-muted-foreground truncate">{o.customerName}</span>
+                    <span className="hidden md:block text-muted-foreground tabular-nums">¥{(o.amount / 10000).toFixed(1)}万</span>
+                    <span className="hidden md:block text-muted-foreground tabular-nums">{o.progress}%</span>
+                    <span className="inline-flex items-center gap-2 justify-end shrink-0">
+                      <Badge tone={STAGE_TONE[o.stage]}>{STAGE_LABEL[o.stage]}</Badge>
+                      <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                    </span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </>
         )}
       </div>
 

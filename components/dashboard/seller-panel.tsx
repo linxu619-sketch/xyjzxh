@@ -76,34 +76,37 @@ export async function SellerPanel({ sp }: { sp?: { ok?: string; err?: string; bp
         {items.length === 0 ? (
           <div className="px-5 py-16 text-center text-[13px] text-muted-foreground">还没有上架商品。<br />凭独家代理 / 自产自销 / 厂家直供资格，提交给协会审核后即可在商城销售。</div>
         ) : (
-          <ul className="divide-y divide-border">
-            {items.map((p) => {
-              const st = STATUS[p.status];
-              const StIcon = st.icon;
-              const off = p.marketPrice > 0 ? Math.round((1 - p.memberPrice / p.marketPrice) * 100) : 0;
-              const replaced = p.status === "off" && (p.rejectReason ?? "").startsWith("价格擂台");
-              return (
-                <li key={p.id}>
-                  <Link href={`${seller.base}/product/${p.id}`} className="flex items-center gap-3 px-5 py-3.5 hover:bg-surface transition-colors active:scale-[0.99]">
-                    <span className="h-9 w-9 rounded-xl bg-surface inline-flex items-center justify-center shrink-0"><Package className="h-4 w-4 text-cat-build" /></span>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <span className="font-medium truncate">{p.name}</span>
-                        <Badge tone="brand" className="!px-2 !py-0.5">{p.brand}</Badge>
-                        <span className="inline-flex items-center gap-0.5 text-[11px] text-accent-tea"><ShieldCheck className="h-3 w-3" />{REASON_LABEL[p.reasonType]}</span>
-                      </div>
-                      <div className="text-[12px] text-muted-foreground mt-0.5">{p.spec ? p.spec + " · " : ""}起批 {p.moq}{p.unit} · ¥{p.memberPrice}<span className="line-through ml-1 text-[11px]">¥{p.marketPrice}</span>/{p.unit}{off > 0 && <span className="text-accent-tea ml-1.5">省{off}%</span>}</div>
-                      {(p.status === "rejected" || p.status === "off") && p.rejectReason && <div className={`text-[11px] mt-0.5 ${replaced ? "text-[#a37200]" : "text-cat-decor"}`}>{replaced ? "擂台" : p.status === "rejected" ? "驳回原因" : "下架原因"}：{p.rejectReason}</div>}
-                    </div>
-                    {replaced
-                      ? <Badge tone="decor" className="shrink-0 inline-flex items-center gap-1"><Swords className="h-3 w-3" />擂台被替换</Badge>
-                      : <Badge tone={st.tone} className="shrink-0 inline-flex items-center gap-1"><StIcon className="h-3 w-3" />{st.label}</Badge>}
-                    <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0" />
-                  </Link>
-                </li>
-              );
-            })}
-          </ul>
+          <>
+            <div className="hidden md:grid grid-cols-[2fr_1.2fr_auto] gap-3 px-5 py-2.5 border-b border-border text-[11px] text-muted-foreground tracking-wider">
+              <span>商品</span><span>价格</span><span className="text-right">状态</span>
+            </div>
+            <ul className="divide-y divide-border">
+              {items.map((p) => {
+                const st = STATUS[p.status];
+                const StIcon = st.icon;
+                const off = p.marketPrice > 0 ? Math.round((1 - p.memberPrice / p.marketPrice) * 100) : 0;
+                const replaced = p.status === "off" && (p.rejectReason ?? "").startsWith("价格擂台");
+                return (
+                  <li key={p.id}>
+                    <Link href={`${seller.base}/product/${p.id}`} className="grid grid-cols-[1fr_auto] md:grid-cols-[2fr_1.2fr_auto] gap-3 items-center px-5 py-3.5 text-[13px] hover:bg-surface transition-colors active:scale-[0.99]">
+                      <span className="min-w-0">
+                        <span className="font-medium truncate flex items-center gap-1.5">{p.name}<Badge tone="brand" className="!px-1.5 !py-0">{p.brand}</Badge><span className="hidden md:inline-flex items-center gap-0.5 text-[11px] text-accent-tea"><ShieldCheck className="h-3 w-3" />{REASON_LABEL[p.reasonType]}</span></span>
+                        <span className="md:hidden text-[11px] text-muted-foreground truncate block">起批 {p.moq}{p.unit} · ¥{p.memberPrice}/{p.unit}</span>
+                        {(p.status === "rejected" || p.status === "off") && p.rejectReason && <span className={`text-[11px] mt-0.5 block truncate ${replaced ? "text-[#a37200]" : "text-cat-decor"}`}>{replaced ? "擂台" : p.status === "rejected" ? "驳回" : "下架"}：{p.rejectReason}</span>}
+                      </span>
+                      <span className="hidden md:block text-muted-foreground">¥{p.memberPrice}<span className="line-through ml-1 text-[11px]">¥{p.marketPrice}</span>/{p.unit}{off > 0 && <span className="text-accent-tea ml-1.5">省{off}%</span>}</span>
+                      <span className="inline-flex items-center gap-2 justify-end shrink-0">
+                        {replaced
+                          ? <Badge tone="decor" className="inline-flex items-center gap-1"><Swords className="h-3 w-3" />擂台被替换</Badge>
+                          : <Badge tone={st.tone} className="inline-flex items-center gap-1"><StIcon className="h-3 w-3" />{st.label}</Badge>}
+                        <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                      </span>
+                    </Link>
+                  </li>
+                );
+              })}
+            </ul>
+          </>
         )}
         <div className="px-5 py-3 text-[12px] text-muted-foreground border-t border-border">点击任一商品进入详情页进行上架 / 下架。</div>
       </div>
@@ -120,26 +123,30 @@ export async function SellerPanel({ sp }: { sp?: { ok?: string; err?: string; bp
         {sold.length === 0 ? (
           <div className="px-5 py-12 text-center text-[13px] text-muted-foreground">还没有买家下单。商品在架后，会员下单会出现在这里。</div>
         ) : (
-          <ul className="divide-y divide-border">
-            {sold.map((o) => (
-              <li key={o.id}>
-                <Link href={`${seller.base}/order/${o.id}`} className="block px-5 py-3.5 text-[13px] hover:bg-surface transition-colors active:scale-[0.99]">
-                  <div className="flex items-center gap-3">
-                    <div className="flex-1 min-w-0">
-                      <div className="font-medium truncate">{o.productName} <span className="text-muted-foreground font-normal">× {o.qty}{o.unit}</span></div>
-                      <div className="text-[11px] text-muted-foreground">买家：{o.buyerName} · {fmtO(o.createdAt)}</div>
-                    </div>
-                    <span className="font-semibold text-cat-decor tabular-nums shrink-0">¥{o.total.toLocaleString()}</span>
-                    <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0" />
-                  </div>
-                  <div className="mt-2 flex items-center gap-2 flex-wrap">
-                    <Badge tone={O_TONE[o.status]}>{O_LABEL[o.status]}</Badge>
-                    <SettleBadge o={o} />
-                  </div>
-                </Link>
-              </li>
-            ))}
-          </ul>
+          <>
+            <div className="hidden md:grid grid-cols-[1.8fr_1fr_0.9fr_auto] gap-3 px-5 py-2.5 border-b border-border text-[11px] text-muted-foreground tracking-wider">
+              <span>商品 / 数量</span><span>买家</span><span>金额</span><span className="text-right">状态</span>
+            </div>
+            <ul className="divide-y divide-border">
+              {sold.map((o) => (
+                <li key={o.id}>
+                  <Link href={`${seller.base}/order/${o.id}`} className="grid grid-cols-[1fr_auto] md:grid-cols-[1.8fr_1fr_0.9fr_auto] gap-3 items-center px-5 py-3.5 text-[13px] hover:bg-surface transition-colors active:scale-[0.99]">
+                    <span className="min-w-0">
+                      <span className="font-medium truncate block">{o.productName} <span className="text-muted-foreground font-normal">× {o.qty}{o.unit}</span></span>
+                      <span className="md:hidden text-[11px] text-muted-foreground truncate block">买家：{o.buyerName} · ¥{o.total.toLocaleString()}</span>
+                    </span>
+                    <span className="hidden md:block text-muted-foreground truncate">{o.buyerName}</span>
+                    <span className="hidden md:block font-semibold text-cat-decor tabular-nums">¥{o.total.toLocaleString()}</span>
+                    <span className="inline-flex items-center gap-1.5 justify-end shrink-0 flex-wrap">
+                      <Badge tone={O_TONE[o.status]}>{O_LABEL[o.status]}</Badge>
+                      <SettleBadge o={o} />
+                      <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                    </span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </>
         )}
         {sold.length > 0 && <div className="px-5 py-3 text-[12px] text-muted-foreground border-t border-border">点击任一单进入详情页推进履约 / 确认收款。</div>}
       </div>
@@ -155,26 +162,30 @@ export async function SellerPanel({ sp }: { sp?: { ok?: string; err?: string; bp
         {bought.length === 0 ? (
           <div className="px-5 py-12 text-center text-[13px] text-muted-foreground">还没有采购。去<a href="/supplies" className="text-brand">建材超市</a>选购会员好货。</div>
         ) : (
-          <ul className="divide-y divide-border">
-            {bought.map((o) => (
-              <li key={o.id}>
-                <Link href={`${seller.base}/order/${o.id}`} className="block px-5 py-3.5 text-[13px] hover:bg-surface transition-colors active:scale-[0.99]">
-                  <div className="flex items-center gap-3">
-                    <div className="flex-1 min-w-0">
-                      <div className="font-medium truncate">{o.productName} <span className="text-muted-foreground font-normal">× {o.qty}{o.unit}</span></div>
-                      <div className="text-[11px] text-muted-foreground">卖家：{o.sellerName} · {fmtO(o.createdAt)}</div>
-                    </div>
-                    <span className="font-semibold text-cat-decor tabular-nums shrink-0">¥{o.total.toLocaleString()}</span>
-                    <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0" />
-                  </div>
-                  <div className="mt-2 flex items-center gap-2 flex-wrap">
-                    <Badge tone={O_TONE[o.status]}>{O_LABEL[o.status]}</Badge>
-                    <SettleBadge o={o} />
-                  </div>
-                </Link>
-              </li>
-            ))}
-          </ul>
+          <>
+            <div className="hidden md:grid grid-cols-[1.8fr_1fr_0.9fr_auto] gap-3 px-5 py-2.5 border-b border-border text-[11px] text-muted-foreground tracking-wider">
+              <span>商品 / 数量</span><span>卖家</span><span>金额</span><span className="text-right">状态</span>
+            </div>
+            <ul className="divide-y divide-border">
+              {bought.map((o) => (
+                <li key={o.id}>
+                  <Link href={`${seller.base}/order/${o.id}`} className="grid grid-cols-[1fr_auto] md:grid-cols-[1.8fr_1fr_0.9fr_auto] gap-3 items-center px-5 py-3.5 text-[13px] hover:bg-surface transition-colors active:scale-[0.99]">
+                    <span className="min-w-0">
+                      <span className="font-medium truncate block">{o.productName} <span className="text-muted-foreground font-normal">× {o.qty}{o.unit}</span></span>
+                      <span className="md:hidden text-[11px] text-muted-foreground truncate block">卖家：{o.sellerName} · ¥{o.total.toLocaleString()}</span>
+                    </span>
+                    <span className="hidden md:block text-muted-foreground truncate">{o.sellerName}</span>
+                    <span className="hidden md:block font-semibold text-cat-decor tabular-nums">¥{o.total.toLocaleString()}</span>
+                    <span className="inline-flex items-center gap-1.5 justify-end shrink-0 flex-wrap">
+                      <Badge tone={O_TONE[o.status]}>{O_LABEL[o.status]}</Badge>
+                      <SettleBadge o={o} />
+                      <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                    </span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </>
         )}
       </div>
     </>
