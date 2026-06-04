@@ -10,7 +10,13 @@ const TTL_DAYS = 7;
 const DEV_SECRET = "xyzhxh-dev-secret-please-change-in-production-99d3c4";
 
 function secret() {
-  return process.env.SESSION_SECRET || DEV_SECRET;
+  const s = process.env.SESSION_SECRET;
+  if (s) return s;
+  // 生产环境严禁使用内置开发密钥（已公开于源码），未配置则 fail-fast
+  if (process.env.NODE_ENV === "production") {
+    throw new Error("SESSION_SECRET 未配置：生产环境必须设置环境变量 SESSION_SECRET（不可使用开发默认密钥）");
+  }
+  return DEV_SECRET;
 }
 
 export type SessionRole =
