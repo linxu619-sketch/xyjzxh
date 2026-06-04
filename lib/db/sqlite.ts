@@ -6,6 +6,7 @@ import { ENTERPRISES } from "@/lib/data/enterprises";
 import { KNOWLEDGE } from "@/lib/ai/knowledge";
 import { PROJECTS as SHOWCASE_PROJECTS } from "@/lib/data/projects";
 import { JOBS as RECRUIT_JOBS, CERTIFICATES as MEMBER_CERTS } from "@/lib/data/talents";
+import { PRACTITIONER_JOBS, WORKER_INSURANCE } from "@/lib/data/practitioners";
 
 /* ============================================================
    本地 SQLite 数据库（Node 24 内置 node:sqlite，零依赖、零云端）
@@ -126,6 +127,34 @@ CREATE TABLE IF NOT EXISTS recruitment_jobs (
   tags         TEXT,    -- JSON
   hot          INTEGER,
   posted_at    TEXT,
+  created_at   INTEGER
+);
+
+-- 从业者门户「实时找活」零工岗位 feed
+CREATE TABLE IF NOT EXISTS practitioner_jobs (
+  id          TEXT PRIMARY KEY,
+  title       TEXT,
+  enterprise  TEXT,
+  area        TEXT,
+  duration    TEXT,
+  daily       TEXT,
+  openings    INTEGER,
+  district    TEXT,
+  urgent      INTEGER,
+  posted_at   TEXT,
+  created_at  INTEGER
+);
+
+-- 从业者工伤 / 个人保险产品
+CREATE TABLE IF NOT EXISTS worker_insurance (
+  id           TEXT PRIMARY KEY,
+  name         TEXT,
+  insurer      TEXT,
+  price_daily  INTEGER,
+  price_monthly INTEGER,
+  price_yearly INTEGER,
+  cover        TEXT,
+  badges       TEXT,    -- JSON
   created_at   INTEGER
 );
 
@@ -696,7 +725,30 @@ function init(): DB {
   seedShowcaseProjects(db);
   seedRecruitmentJobs(db);
   seedMemberCertificates(db);
+  seedPractitionerJobs(db);
+  seedWorkerInsurance(db);
   return db;
+}
+
+// 从业者实时找活 feed
+function seedPractitionerJobs(db: DB) {
+  if (!isEmpty(db, "practitioner_jobs")) return;
+  const now = Date.now();
+  PRACTITIONER_JOBS.forEach((j, i) => {
+    db.prepare("INSERT INTO practitioner_jobs (id,title,enterprise,area,duration,daily,openings,district,urgent,posted_at,created_at) VALUES (?,?,?,?,?,?,?,?,?,?,?)")
+      .run(j.id, j.title, j.enterprise, j.area, j.duration, j.daily, j.openings, j.district, j.urgent ? 1 : 0, j.postedAt, now - i * 3600000);
+  });
+}
+
+// 从业者工伤 / 个人保险产品（补第 3 条满足展示）
+function seedWorkerInsurance(db: DB) {
+  if (!isEmpty(db, "worker_insurance")) return;
+  const extra = { id: "WI-003", name: "高空作业专项意外险", insurer: "太保产险", priceDaily: 8, priceMonthly: 180, priceYearly: 1880, cover: "高空坠落意外身故 100 万 + 意外医疗 8 万", badges: ["高空专项", "当日生效", "协会贴息"] };
+  const all = [...WORKER_INSURANCE, extra];
+  for (const w of all) {
+    db.prepare("INSERT INTO worker_insurance (id,name,insurer,price_daily,price_monthly,price_yearly,cover,badges,created_at) VALUES (?,?,?,?,?,?,?,?,?)")
+      .run(w.id, w.name, w.insurer, w.priceDaily, w.priceMonthly, w.priceYearly, w.cover, JSON.stringify(w.badges ?? []), Date.now());
+  }
 }
 
 // 人才中心招聘职位

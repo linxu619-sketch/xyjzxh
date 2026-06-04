@@ -168,7 +168,9 @@
       "Bash(grep -nA14 \"export const ASSOC_NAV\" lib/dashboard/nav.tsx)",
       "PowerShell(cd D:\\\\xyjzxh; $env:NEXT_DIST_DIR = \".next-build\"; node --max-old-space-size=4096 ./node_modules/next/dist/bin/next build 2>&1 | Select-Object -Last 45)",
       "Bash([ -s \"$f\" ])",
-      "Bash(grep -nE \"^const SCHEMA|^\\\\`;\" lib/db/sqlite.ts)"
+      "Bash(grep -nE \"^const SCHEMA|^\\\\`;\" lib/db/sqlite.ts)",
+      "Bash(grep -nA6 \"export const PRACTITIONER_JOBS\" lib/data/practitioners.ts)",
+      "Bash(grep -nA5 \"export const WORKER_INSURANCE\" lib/data/practitioners.ts)"
     ]
   }
 }

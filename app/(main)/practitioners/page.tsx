@@ -7,8 +7,7 @@ import { Container } from "@/components/container";
 import { PageHeader } from "@/components/page-header";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { PRACTITIONER_JOBS } from "@/lib/data/practitioners";
-import { listPractitioners } from "@/lib/data/practitioners-source";
+import { listPractitioners, listPractitionerJobs } from "@/lib/data/practitioners-source";
 import { cn } from "@/lib/cn";
 
 export const metadata = { title: "从业者门户 · 信阳市建筑装饰装修协会" };
@@ -39,6 +38,7 @@ const TONE: Record<string, string> = {
 
 export default function PractitionersLanding() {
   const list = listPractitioners();
+  const PRACTITIONER_JOBS = listPractitionerJobs();
   return (
     <>
       <PageHeader

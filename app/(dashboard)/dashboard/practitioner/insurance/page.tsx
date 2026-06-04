@@ -3,9 +3,8 @@ import { redirect } from "next/navigation";
 import { ShieldCheck, HeartHandshake, Sparkles, AlertCircle, ChevronRight, CheckCircle2, Clock } from "lucide-react";
 import { PractitionerShell } from "@/components/dashboard/practitioner-shell";
 import { Badge } from "@/components/ui/badge";
-import { WORKER_INSURANCE } from "@/lib/data/practitioners";
 import { getSession } from "@/lib/auth/session";
-import { getPractitionerByPhone } from "@/lib/data/practitioners-source";
+import { getPractitionerByPhone, listWorkerInsurance } from "@/lib/data/practitioners-source";
 import { listInsuranceByUid } from "@/lib/data/insurance-orders";
 import { applyInsuranceAction } from "./actions";
 import { effectivePractitionerPhone, isPractitionerPreview } from "@/lib/dashboard/preview";
@@ -32,6 +31,7 @@ export default async function PractitionerInsurance({ searchParams }: { searchPa
   const { ok } = await searchParams;
 
   const me = getPractitionerByPhone(effectivePractitionerPhone(session));
+  const WORKER_INSURANCE = listWorkerInsurance();
   const orders = listInsuranceByUid(session.uid);
   const active = orders.find((o) => o.status === "done");
   const insured = !!active || (me?.insured ?? false);

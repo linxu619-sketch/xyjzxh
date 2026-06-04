@@ -14,6 +14,13 @@
 
 ---
 
+## [0.86.0] - 2026-06-04
+
+### 去硬编码(3/4):从业者门户演示数据改读数据库
+- 新增 practitioner_jobs(实时找活 5 条)+ worker_insurance(工人险 3 条)表与种子。
+- practitioners-source 新增 listPractitionerJobs/listWorkerInsurance(回退静态)。
+- /practitioners 找活 feed、从业者「保障」页 改读库。practitioners.ts 中未被引用的演示数组(收入/同行圈/培训等)为死代码,保留为种子源备用。
+
 ## [0.85.0] - 2026-06-04
 
 ### 去硬编码(2/4):人才中心 /talents 改读数据库
