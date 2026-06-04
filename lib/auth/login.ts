@@ -3,7 +3,7 @@ import { SYSTEM_ADMIN } from "./system-admin";
 import { findStaffByPhone } from "@/lib/data/users-seed";
 import { findEnterpriseByContactPhone } from "@/lib/data/enterprises-source";
 import { getPractitionerByPhone } from "@/lib/data/practitioners-source";
-import { getAccountByPhone } from "@/lib/data/accounts";
+import { getAccountByPhone, upsertAccount } from "@/lib/data/accounts";
 import { verifyPassword } from "./password";
 import type { Session } from "./session";
 
@@ -77,14 +77,23 @@ export async function loginCustomerWithSms(
   if (!/^\d{4,6}$/.test(code)) {
     return { ok: false, error: "请输入验证码" };
   }
+  const clean = phone.trim();
+  // 尊重协会「用户管理」的停用：被停用的业主账号拒绝登录
+  const existing = getAccountByPhone(clean);
+  if (existing && existing.role === "customer" && existing.status === "rejected") {
+    return { ok: false, error: "该账号已被协会停用,如有疑问请联系协会" };
+  }
+  const name = existing?.name || `业主 ${clean.slice(0, 3)}***${clean.slice(-4)}`;
+  // 登录即建/更新业主账号,便于在「用户管理」可见
+  try { upsertAccount({ phone: clean, role: "customer", status: "active", name }); } catch { /* 演示库不可用时忽略 */ }
   return {
     ok: true,
     isSystemAdmin: false,
     session: {
-      uid: `cust-${phone.slice(-4)}`,
+      uid: `cust-${clean.slice(-4)}`,
       role: "customer",
-      name: `用户 ${phone.slice(0, 3)}***${phone.slice(-4)}`,
-      phone,
+      name,
+      phone: clean,
     },
   };
 }
