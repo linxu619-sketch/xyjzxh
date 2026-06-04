@@ -13,6 +13,13 @@ import { resolveSeller } from "@/lib/dashboard/seller";
 
 const REASONS: ReasonType[] = ["agent", "self", "direct"];
 
+// 详情页操作后可回到详情页（仅允许 /dashboard 内路径），否则回卖家工作台
+function backTo(fd: FormData, fallback: string): never {
+  const to = String(fd.get("redirect") || "");
+  if (to.startsWith("/dashboard/")) { revalidatePath(to); redirect(to); }
+  redirect(fallback);
+}
+
 export async function createListingAction(fd: FormData) {
   const seller = await resolveSeller();
   if (!seller) throw new Error("无权限：仅企业会员 / 个人会员可上架商品");
@@ -99,7 +106,7 @@ export async function advanceSellerOrderAction(fd: FormData) {
     setSupplyOrderStatus(id, next);
   }
   revalidatePath(seller.base);
-  redirect(seller.base);
+  backTo(fd, seller.base);
 }
 
 // 卖家确认收款（结清账期）：仅本人为卖家的订单
@@ -110,7 +117,7 @@ export async function markOrderPaidAction(fd: FormData) {
   const o = getSupplyOrder(id);
   if (o && o.sellerType === seller.type && o.sellerId === seller.id) markOrderPaid(id);
   revalidatePath(seller.base);
-  redirect(seller.base);
+  backTo(fd, seller.base);
 }
 
 // 会员对自己的商品：下架 / 重新上架（仅本人，仅 active/off 之间）
@@ -132,5 +139,5 @@ export async function toggleMyListingAction(fd: FormData) {
     setProductStatus(id, "active");
   }
   revalidatePath(seller.base);
-  redirect(seller.base);
+  backTo(fd, seller.base);
 }

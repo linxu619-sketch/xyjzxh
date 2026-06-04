@@ -13,6 +13,12 @@ function refresh() {
   revalidatePath("/dashboard/association/supplies");
   revalidatePath("/dashboard/enterprise/supplies");
 }
+// 详情页操作后可回到详情页（传 redirect 字段，仅允许本模块路径）
+function redirectTo(fd: FormData, fallback: string): never {
+  const to = String(fd.get("redirect") || "");
+  if (to.startsWith("/dashboard/association/supplies")) { revalidatePath(to); redirect(to); }
+  redirect(fallback);
+}
 
 export async function createProductAction(fd: FormData) {
   await requireAssoc();
@@ -33,7 +39,7 @@ export async function setProductStatusAction(fd: FormData) {
   const status = String(fd.get("status") || "") as ProductStatus;
   if (getProduct(id) && (status === "active" || status === "off")) setProductStatus(id, status);
   refresh();
-  redirect("/dashboard/association/supplies");
+  redirectTo(fd, "/dashboard/association/supplies");
 }
 
 // 审核通过：先校验品牌排他（同品牌已有在架卖家则拒绝，需走价格擂台·二期）
@@ -94,5 +100,5 @@ export async function advanceOrderAction(fd: FormData) {
   const status = String(fd.get("status") || "") as OrderStatus;
   if (getSupplyOrder(id) && ["pending", "confirmed", "shipped", "done"].includes(status)) setSupplyOrderStatus(id, status);
   refresh();
-  redirect("/dashboard/association/supplies?tab=orders");
+  redirectTo(fd, "/dashboard/association/supplies?tab=orders");
 }

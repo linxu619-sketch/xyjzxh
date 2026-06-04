@@ -1,12 +1,10 @@
-import { Package, Crown, AlertCircle, CheckCircle2, Clock, XCircle, ShieldCheck, Truck, ShoppingCart, Wallet, Swords } from "lucide-react";
+import { Package, Crown, AlertCircle, CheckCircle2, Clock, XCircle, ShieldCheck, Truck, ShoppingCart, Swords, ChevronRight } from "lucide-react";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
-import { cn } from "@/lib/cn";
 import { resolveSeller } from "@/lib/dashboard/seller";
 import { listBySeller, listOrdersBySeller, listOrdersByBuyer, reconcileSeller, reconcileBuyer, isOverdue, SUPPLY_TERM_DAYS, type ProductStatus, type ReasonType, type OrderStatus, type SupplyOrder } from "@/lib/data/supplies-source";
 import { getMemberTier, quotaOf, nextTierForSeller } from "@/lib/data/member-tier";
 import { ListingForm } from "@/components/dashboard/listing-form";
-import { toggleMyListingAction, advanceSellerOrderAction, markOrderPaidAction } from "@/app/(dashboard)/dashboard/store-actions";
 
 function fmtDay(ms: number) { if (!ms) return "—"; const d = new Date(ms); const p = (n: number) => String(n).padStart(2, "0"); return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`; }
 function SettleBadge({ o }: { o: SupplyOrder }) {
@@ -17,8 +15,6 @@ function SettleBadge({ o }: { o: SupplyOrder }) {
 
 const O_LABEL: Record<OrderStatus, string> = { pending: "待确认", confirmed: "已确认", shipped: "已发货", done: "已完成" };
 const O_TONE: Record<OrderStatus, "yellow" | "brand" | "build" | "tea"> = { pending: "yellow", confirmed: "brand", shipped: "build", done: "tea" };
-const O_NEXT: Record<OrderStatus, OrderStatus | null> = { pending: "confirmed", confirmed: "shipped", shipped: "done", done: null };
-const O_NEXT_LABEL: Record<string, string> = { confirmed: "确认接单", shipped: "发货", done: "完成" };
 function fmtO(ms: number) { if (!ms) return "—"; const d = new Date(ms); const p = (n: number) => String(n).padStart(2, "0"); return `${p(d.getMonth() + 1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}`; }
 
 const STATUS: Record<ProductStatus, { label: string; tone: "yellow" | "tea" | "decor" | "neutral"; icon: React.ComponentType<{ className?: string }> }> = {
@@ -87,34 +83,29 @@ export async function SellerPanel({ sp }: { sp?: { ok?: string; err?: string; bp
               const off = p.marketPrice > 0 ? Math.round((1 - p.memberPrice / p.marketPrice) * 100) : 0;
               const replaced = p.status === "off" && (p.rejectReason ?? "").startsWith("价格擂台");
               return (
-                <li key={p.id} className="px-5 py-3.5 flex items-center gap-3">
-                  <span className="h-9 w-9 rounded-xl bg-surface inline-flex items-center justify-center shrink-0"><Package className="h-4 w-4 text-cat-build" /></span>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <span className="font-medium truncate">{p.name}</span>
-                      <Badge tone="brand" className="!px-2 !py-0.5">{p.brand}</Badge>
-                      <span className="inline-flex items-center gap-0.5 text-[11px] text-accent-tea"><ShieldCheck className="h-3 w-3" />{REASON_LABEL[p.reasonType]}</span>
+                <li key={p.id}>
+                  <Link href={`${seller.base}/product/${p.id}`} className="flex items-center gap-3 px-5 py-3.5 hover:bg-surface transition-colors active:scale-[0.99]">
+                    <span className="h-9 w-9 rounded-xl bg-surface inline-flex items-center justify-center shrink-0"><Package className="h-4 w-4 text-cat-build" /></span>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="font-medium truncate">{p.name}</span>
+                        <Badge tone="brand" className="!px-2 !py-0.5">{p.brand}</Badge>
+                        <span className="inline-flex items-center gap-0.5 text-[11px] text-accent-tea"><ShieldCheck className="h-3 w-3" />{REASON_LABEL[p.reasonType]}</span>
+                      </div>
+                      <div className="text-[12px] text-muted-foreground mt-0.5">{p.spec ? p.spec + " · " : ""}起批 {p.moq}{p.unit} · ¥{p.memberPrice}<span className="line-through ml-1 text-[11px]">¥{p.marketPrice}</span>/{p.unit}{off > 0 && <span className="text-accent-tea ml-1.5">省{off}%</span>}</div>
+                      {(p.status === "rejected" || p.status === "off") && p.rejectReason && <div className={`text-[11px] mt-0.5 ${replaced ? "text-[#a37200]" : "text-cat-decor"}`}>{replaced ? "擂台" : p.status === "rejected" ? "驳回原因" : "下架原因"}：{p.rejectReason}</div>}
                     </div>
-                    <div className="text-[12px] text-muted-foreground mt-0.5">{p.spec ? p.spec + " · " : ""}起批 {p.moq}{p.unit} · ¥{p.memberPrice}<span className="line-through ml-1 text-[11px]">¥{p.marketPrice}</span>/{p.unit}{off > 0 && <span className="text-accent-tea ml-1.5">省{off}%</span>}</div>
-                    {(p.status === "rejected" || p.status === "off") && p.rejectReason && <div className={cn("text-[11px] mt-0.5", replaced ? "text-[#a37200]" : "text-cat-decor")}>{replaced ? "擂台" : p.status === "rejected" ? "驳回原因" : "下架原因"}：{p.rejectReason}</div>}
-                  </div>
-                  {replaced
-                    ? <Badge tone="decor" className="shrink-0 inline-flex items-center gap-1"><Swords className="h-3 w-3" />擂台被替换</Badge>
-                    : <Badge tone={st.tone} className="shrink-0 inline-flex items-center gap-1"><StIcon className="h-3 w-3" />{st.label}</Badge>}
-                  {replaced ? (
-                    <span className="shrink-0 text-[11px] text-muted-foreground max-w-[120px] leading-4">以更低价重新上架可夺回</span>
-                  ) : (p.status === "active" || p.status === "off") && (
-                    <form action={toggleMyListingAction} className="shrink-0">
-                      <input type="hidden" name="id" value={p.id} />
-                      <input type="hidden" name="status" value={p.status === "active" ? "off" : "active"} />
-                      <button className="h-8 px-3 rounded-full border border-border text-[12px] hover:bg-surface">{p.status === "active" ? "下架" : "上架"}</button>
-                    </form>
-                  )}
+                    {replaced
+                      ? <Badge tone="decor" className="shrink-0 inline-flex items-center gap-1"><Swords className="h-3 w-3" />擂台被替换</Badge>
+                      : <Badge tone={st.tone} className="shrink-0 inline-flex items-center gap-1"><StIcon className="h-3 w-3" />{st.label}</Badge>}
+                    <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0" />
+                  </Link>
                 </li>
               );
             })}
           </ul>
         )}
+        <div className="px-5 py-3 text-[12px] text-muted-foreground border-t border-border">点击任一商品进入详情页进行上架 / 下架。</div>
       </div>
 
       {/* 收到的采购单（卖家履约 + 收款对账）*/}
@@ -130,39 +121,27 @@ export async function SellerPanel({ sp }: { sp?: { ok?: string; err?: string; bp
           <div className="px-5 py-12 text-center text-[13px] text-muted-foreground">还没有买家下单。商品在架后，会员下单会出现在这里。</div>
         ) : (
           <ul className="divide-y divide-border">
-            {sold.map((o) => {
-              const nx = O_NEXT[o.status];
-              return (
-                <li key={o.id} className="px-5 py-3.5 text-[13px]">
+            {sold.map((o) => (
+              <li key={o.id}>
+                <Link href={`${seller.base}/order/${o.id}`} className="block px-5 py-3.5 text-[13px] hover:bg-surface transition-colors active:scale-[0.99]">
                   <div className="flex items-center gap-3">
                     <div className="flex-1 min-w-0">
                       <div className="font-medium truncate">{o.productName} <span className="text-muted-foreground font-normal">× {o.qty}{o.unit}</span></div>
                       <div className="text-[11px] text-muted-foreground">买家：{o.buyerName} · {fmtO(o.createdAt)}</div>
                     </div>
                     <span className="font-semibold text-cat-decor tabular-nums shrink-0">¥{o.total.toLocaleString()}</span>
+                    <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0" />
                   </div>
                   <div className="mt-2 flex items-center gap-2 flex-wrap">
                     <Badge tone={O_TONE[o.status]}>{O_LABEL[o.status]}</Badge>
                     <SettleBadge o={o} />
-                    {nx && (
-                      <form action={advanceSellerOrderAction}>
-                        <input type="hidden" name="id" value={o.id} />
-                        <input type="hidden" name="status" value={nx} />
-                        <button className="h-8 px-3 rounded-full bg-foreground text-background text-[12px] inline-flex items-center gap-1"><Truck className="h-3 w-3" /> {O_NEXT_LABEL[nx]}</button>
-                      </form>
-                    )}
-                    {o.settleStatus === "unpaid" && (
-                      <form action={markOrderPaidAction} className="ml-auto">
-                        <input type="hidden" name="id" value={o.id} />
-                        <button className="h-8 px-3 rounded-full border border-accent-tea/40 text-accent-tea text-[12px] inline-flex items-center gap-1 hover:bg-[#e6f7f1]"><Wallet className="h-3 w-3" /> 确认收款</button>
-                      </form>
-                    )}
                   </div>
-                </li>
-              );
-            })}
+                </Link>
+              </li>
+            ))}
           </ul>
         )}
+        {sold.length > 0 && <div className="px-5 py-3 text-[12px] text-muted-foreground border-t border-border">点击任一单进入详情页推进履约 / 确认收款。</div>}
       </div>
 
       {/* 我的采购单（买家跟踪 + 应付对账）*/}
@@ -178,18 +157,21 @@ export async function SellerPanel({ sp }: { sp?: { ok?: string; err?: string; bp
         ) : (
           <ul className="divide-y divide-border">
             {bought.map((o) => (
-              <li key={o.id} className="px-5 py-3.5 text-[13px]">
-                <div className="flex items-center gap-3">
-                  <div className="flex-1 min-w-0">
-                    <div className="font-medium truncate">{o.productName} <span className="text-muted-foreground font-normal">× {o.qty}{o.unit}</span></div>
-                    <div className="text-[11px] text-muted-foreground">卖家：{o.sellerName} · {fmtO(o.createdAt)}</div>
+              <li key={o.id}>
+                <Link href={`${seller.base}/order/${o.id}`} className="block px-5 py-3.5 text-[13px] hover:bg-surface transition-colors active:scale-[0.99]">
+                  <div className="flex items-center gap-3">
+                    <div className="flex-1 min-w-0">
+                      <div className="font-medium truncate">{o.productName} <span className="text-muted-foreground font-normal">× {o.qty}{o.unit}</span></div>
+                      <div className="text-[11px] text-muted-foreground">卖家：{o.sellerName} · {fmtO(o.createdAt)}</div>
+                    </div>
+                    <span className="font-semibold text-cat-decor tabular-nums shrink-0">¥{o.total.toLocaleString()}</span>
+                    <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0" />
                   </div>
-                  <span className="font-semibold text-cat-decor tabular-nums shrink-0">¥{o.total.toLocaleString()}</span>
-                </div>
-                <div className="mt-2 flex items-center gap-2 flex-wrap">
-                  <Badge tone={O_TONE[o.status]}>{O_LABEL[o.status]}</Badge>
-                  <SettleBadge o={o} />
-                </div>
+                  <div className="mt-2 flex items-center gap-2 flex-wrap">
+                    <Badge tone={O_TONE[o.status]}>{O_LABEL[o.status]}</Badge>
+                    <SettleBadge o={o} />
+                  </div>
+                </Link>
               </li>
             ))}
           </ul>

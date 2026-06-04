@@ -84,47 +84,25 @@ export default function ProjectsPage() {
             ))}
           </div>
 
-          {/* PC 表格 */}
-          <div className="hidden md:block overflow-x-auto rounded-2xl border border-border bg-background">
-            <table className="w-full text-[13px]">
-              <thead className="bg-surface text-[12px] text-muted-foreground">
-                <tr>
-                  <th className="text-left px-5 py-3 font-medium">报备号</th>
-                  <th className="text-left px-5 py-3 font-medium">项目名称</th>
-                  <th className="text-left px-5 py-3 font-medium">类型</th>
-                  <th className="text-left px-5 py-3 font-medium">企业</th>
-                  <th className="text-left px-5 py-3 font-medium">面积 / 预算</th>
-                  <th className="text-left px-5 py-3 font-medium">状态</th>
-                  <th className="text-left px-5 py-3 font-medium">进度</th>
-                  <th className="text-right px-5 py-3 font-medium">操作</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-border">
-                {PROJECTS.map((p) => (
-                  <tr key={p.id} className="hover:bg-surface/60">
-                    <td className="px-5 py-3 font-mono text-[12px]">{p.id}</td>
-                    <td className="px-5 py-3 font-medium">
-                      {p.name}
-                      {p.insured && <ShieldCheck className="h-3.5 w-3.5 inline ml-1.5 text-accent-tea" />}
-                    </td>
-                    <td className="px-5 py-3"><Badge tone={TYPE_TONE[p.type]}>{p.type}</Badge></td>
-                    <td className="px-5 py-3"><Link href={`/members/${p.enterpriseId}`} className="hover:text-brand">{p.enterprise}</Link></td>
-                    <td className="px-5 py-3 text-muted-foreground">{p.area}㎡ · {p.budget}万</td>
-                    <td className="px-5 py-3"><Badge tone={STATUS_META[p.status].tone as "brand"}>{STATUS_META[p.status].label}</Badge></td>
-                    <td className="px-5 py-3 min-w-[120px]">
-                      <div className="h-1.5 w-24 rounded-full bg-surface">
-                        <div className="h-full rounded-full bg-cat-decor" style={{ width: `${p.progress}%` }} />
-                      </div>
-                    </td>
-                    <td className="px-5 py-3 text-right">
-                      <Link href={`/projects/${p.id}`} className="inline-flex items-center gap-1 text-brand font-medium">
-                        详情 <ArrowUpRight className="h-3 w-3" />
-                      </Link>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+          {/* PC 表格：整行可点进详情页（全平台列表铁律） */}
+          <div className="hidden md:block rounded-2xl border border-border bg-background overflow-hidden">
+            <div className="grid grid-cols-[110px_1.6fr_72px_1.2fr_1fr_92px_110px_24px] gap-3 px-5 py-3 bg-surface text-[12px] text-muted-foreground">
+              <span>报备号</span><span>项目名称</span><span>类型</span><span>企业</span><span>面积 / 预算</span><span>状态</span><span>进度</span><span />
+            </div>
+            <div className="divide-y divide-border">
+              {PROJECTS.map((p) => (
+                <Link key={p.id} href={`/projects/${p.id}`} className="grid grid-cols-[110px_1.6fr_72px_1.2fr_1fr_92px_110px_24px] gap-3 items-center px-5 py-3 text-[13px] hover:bg-surface/60 transition-colors">
+                  <span className="font-mono text-[12px] text-muted-foreground truncate">{p.id}</span>
+                  <span className="font-medium truncate">{p.name}{p.insured && <ShieldCheck className="h-3.5 w-3.5 inline ml-1.5 text-accent-tea" />}</span>
+                  <span><Badge tone={TYPE_TONE[p.type]}>{p.type}</Badge></span>
+                  <span className="text-muted-foreground truncate">{p.enterprise}</span>
+                  <span className="text-muted-foreground">{p.area}㎡ · {p.budget}万</span>
+                  <span><Badge tone={STATUS_META[p.status].tone as "brand"}>{STATUS_META[p.status].label}</Badge></span>
+                  <span><span className="block h-1.5 w-24 rounded-full bg-surface"><span className="block h-full rounded-full bg-cat-decor" style={{ width: `${p.progress}%` }} /></span></span>
+                  <ArrowUpRight className="h-3.5 w-3.5 text-muted-foreground" />
+                </Link>
+              ))}
+            </div>
           </div>
         </div>
 

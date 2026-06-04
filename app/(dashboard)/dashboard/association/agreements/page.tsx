@@ -1,6 +1,6 @@
 import Link from "next/link";
 import {
-  FileText, Plus, Search, Eye, Pencil, Archive, ShieldCheck,
+  FileText, Plus, Search, ShieldCheck,
   AlertCircle, Clock, Database, ExternalLink,
 } from "lucide-react";
 import { AssociationShell } from "@/components/dashboard/shell";
@@ -96,8 +96,9 @@ export default function AssociationAgreements() {
         <input placeholder="搜索协议名 / 编号 / 分类" className="flex-1 bg-transparent outline-none text-[14px] py-1" />
       </div>
 
-      <DataTable dropActionCol
-        head={["编号 / 标题", "面向", "分类", "版本", "最少阅读", "PIPL", "更新", "操作"]}
+      {/* 列表只看+点进详情；新版/归档等操作在详情页内做（全平台列表铁律） */}
+      <DataTable
+        head={["编号 / 标题", "面向", "分类", "版本", "最少阅读", "PIPL", "更新"]}
         rows={published.map((t) => [
           <Link key="t" href={`/dashboard/association/agreements/${t.id}`} className="block hover:text-brand">
             <code className="text-[10px] font-mono text-muted-foreground">{t.code}</code>
@@ -111,11 +112,6 @@ export default function AssociationAgreements() {
             <Badge key="p" tone="decor"><ShieldCheck className="h-2.5 w-2.5 mr-1 inline" />单独同意</Badge>
           ) : <span key="p" className="text-muted-foreground text-[11px]">—</span>,
           <span key="u" className="text-[11px] text-muted-foreground">{t.approvedAt ?? "—"}</span>,
-          <div key="o" className="flex items-center gap-1">
-            <Link href={`/dashboard/association/agreements/${t.id}`} className="h-8 w-8 rounded-lg hover:bg-surface text-muted-foreground hover:text-foreground inline-flex items-center justify-center" title="详情"><Eye className="h-3.5 w-3.5" /></Link>
-            <button className="h-8 w-8 rounded-lg hover:bg-surface text-muted-foreground hover:text-foreground" title="新版"><Pencil className="h-3.5 w-3.5" /></button>
-            <button className="h-8 w-8 rounded-lg hover:bg-surface text-muted-foreground hover:text-foreground" title="归档"><Archive className="h-3.5 w-3.5" /></button>
-          </div>,
         ])}
       />
 
