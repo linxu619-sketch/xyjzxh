@@ -184,12 +184,17 @@ if (finProds.length) {
 {
   const entNames = ["信阳鼎晟建筑装饰", "豫南匠心装饰", "申城景观工程", "天筑建设集团信阳分公司", "和居整装", "锦尚设计事务所"];
   const persons = ["赵建国", "李明轩", "王守业", "陈思远", "刘海涛", "周晓梅"];
+  const legals = ["赵鼎晟", "周匠心", "孙景观", "钱天筑", "—", "—"];
+  // 演示身份证号（非真实，仅供实名核验流程演示）
+  const demoId = (s) => `41152${s % 10}${1978 + (s % 22)}${String(101 + (s % 280)).padStart(4, "0")}${String(1000 + (s % 9000))}`.slice(0, 18).padEnd(18, "0");
   const appRows = [], acctRows = [];
   for (let i = 0; i < 6; i++) {
     const isEnt = i < 4;
     const name = isEnt ? entNames[i] : persons[i];
     const phone = fakePhone();
-    const payload = isEnt ? JSON.stringify({ entType: R(["decor", "build", "design"]), region: R(DISTRICTS), subdomain: "" }) : JSON.stringify({ kind: R(KINDS), years: RI(3, 20), region: R(DISTRICTS) });
+    const payload = isEnt
+      ? JSON.stringify({ entName: name, entType: R(["decor", "build", "design"]), region: R(DISTRICTS), subdomain: "", creditCode: `91411500MA${String(1000 + i)}XY`, legalName: legals[i], legalIdcard: demoId(i * 7 + 3), contactName: legals[i], contactPhone: phone })
+      : JSON.stringify({ realName: name, kind: R(KINDS), profession: R(KINDS), years: RI(3, 20), region: R(DISTRICTS), idcard: demoId(i * 11 + 5) });
     appRows.push([isEnt ? "enterprise" : "individual", name, phone, payload, "pending", ago(15)]);
     acctRows.push([phone, isEnt ? "enterprise" : "individual", "pending", name, null, ago(15)]);
   }

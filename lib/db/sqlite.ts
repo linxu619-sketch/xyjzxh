@@ -641,7 +641,36 @@ function init(): DB {
   seedFinanceProducts(db);
   seedInsuranceProducts(db);
   seedOrders(db);
+  seedInsuranceClaims(db);
+  seedJobApplications(db);
   return db;
+}
+
+// 保险理赔（业主报案 → 受理 → 定损 → 赔付）演示数据
+function seedInsuranceClaims(db: DB) {
+  if (!isEmpty(db, "insurance_claims")) return;
+  const rows: [string, string, string, string, string, string, string, string][] = [
+    ["u-cust-1", "刘女士", "13800030001", "XYB-2026-0512", "家装质保险", "卫生间防水渗漏至楼下", "入住 3 月后主卫回填层渗漏，楼下顶面水渍，要求维修 + 赔偿。", "pending"],
+    ["u-cust-2", "陈先生", "13800030002", "XYB-2026-0498", "工程履约险", "施工方中途停工逾期", "约定 60 天工期已超 30 天仍未复工，申请履约赔付。", "reviewing"],
+    ["u-cust-3", "周女士", "13800030003", "GR-2026-0231", "工人意外险", "工人现场高处坠落受伤", "贴砖工人从脚手架跌落手腕骨折，已就医，申请意外医疗赔付。", "settled"],
+    ["u-cust-4", "王总", "13800030004", "XYB-2026-0531", "家装质保险", "墙面大面积空鼓开裂", "验收半年后客厅墙面多处空鼓，要求质保返工。", "pending"],
+  ];
+  const stmt = db.prepare("INSERT INTO insurance_claims (uid,applicant,phone,policy,product,subject,detail,status,created_at) VALUES (?,?,?,?,?,?,?,?,?)");
+  const now = Date.now();
+  rows.forEach((r, i) => stmt.run(r[0], r[1], r[2], r[3], r[4], r[5], r[6], r[7], now - i * 2 * DAY));
+}
+
+// 招聘投递（从业者报名岗位）演示数据
+function seedJobApplications(db: DB) {
+  if (!isEmpty(db, "job_applications")) return;
+  const rows: [number, string, string, string, string, string, string][] = [
+    [1, "e002", "13900020001", "张师傅", "13900020001", "十年水电改造经验，持电工证，可立即到岗。", "pending"],
+    [3, "e001", "13900020002", "李师傅", "13900020002", "8 年土建项目管理经验，带过 3 个工地。", "accepted"],
+    [2, "e002", "13900020003", "王师傅", "13900020003", "全屋定制安装熟手，可立即到岗。", "pending"],
+  ];
+  const stmt = db.prepare("INSERT INTO job_applications (job_id,enterprise_id,practitioner_phone,name,phone,note,status,created_at) VALUES (?,?,?,?,?,?,?,?)");
+  const now = Date.now();
+  rows.forEach((r, i) => stmt.run(r[0], r[1], r[2], r[3], r[4], r[5], r[6], now - i * DAY));
 }
 
 function seedOrders(db: DB) {
