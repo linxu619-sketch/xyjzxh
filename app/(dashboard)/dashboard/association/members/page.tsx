@@ -3,7 +3,7 @@ import { ChevronRight, ShieldCheck } from "lucide-react";
 import { AssociationShell } from "@/components/dashboard/shell";
 import { Badge } from "@/components/ui/badge";
 import { StatFilters } from "@/components/dashboard/stat-filters";
-import { ENTERPRISES } from "@/lib/data/enterprises";
+import { getEnterprises } from "@/lib/data/enterprises-source";
 import { listApplications, type Application, type AppStatus } from "@/lib/data/applications";
 
 export const metadata = { title: "会员审核 · 协会工作台" };
@@ -25,13 +25,14 @@ export default async function MembersAdmin({ searchParams }: { searchParams: Pro
   const active = f && FILTERABLE.includes(f as AppStatus) ? (f as AppStatus) : undefined;
   const list = active ? all.filter((a) => a.status === active) : all;
   const count = (st: AppStatus) => all.filter((a) => a.status === st).length;
+  const entCount = (await getEnterprises()).length;
   const base = "/dashboard/association/members";
   const href = (st: AppStatus) => (active === st ? base : `${base}?f=${st}`);
 
   return (
     <AssociationShell
       title="会员审核"
-      subtitle={`${count("pending")} 份待审 · 已在册企业 ${ENTERPRISES.length} 家`}
+      subtitle={`${count("pending")} 份待审 · 已在册企业 ${entCount} 家`}
     >
       {/* 可点统计筛选 */}
       <StatFilters
@@ -39,7 +40,7 @@ export default async function MembersAdmin({ searchParams }: { searchParams: Pro
           { key: "pending", label: "待审核", value: count("pending"), color: "text-cat-decor", href: href("pending"), active: active === "pending" },
           { key: "approved", label: "已通过", value: count("approved"), color: "text-accent-tea", href: href("approved"), active: active === "approved" },
           { key: "rejected", label: "已驳回", value: count("rejected"), color: "text-cat-design", href: href("rejected"), active: active === "rejected" },
-          { key: "enterprises", label: "在册企业", value: ENTERPRISES.length, color: "text-cat-build", href: "/members" },
+          { key: "enterprises", label: "在册企业", value: entCount, color: "text-cat-build", href: "/members" },
         ]}
       />
 

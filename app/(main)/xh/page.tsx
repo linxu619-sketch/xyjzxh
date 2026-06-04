@@ -19,7 +19,7 @@ import { Badge } from "@/components/ui/badge";
 import { Numbers } from "@/components/sections/numbers";
 import { AiTeam } from "@/components/sections/ai-team";
 import { SITE } from "@/lib/site";
-import { ENTERPRISES } from "@/lib/data/enterprises";
+import { getEnterprises } from "@/lib/data/enterprises-source";
 import { listPublished } from "@/lib/data/news-source";
 import { listOpenTrainings } from "@/lib/data/training";
 import { cn } from "@/lib/cn";
@@ -98,11 +98,10 @@ const BG: Record<string, string> = {
   build: "bg-cat-build", decor: "bg-cat-decor", design: "bg-cat-design",
 };
 
-const FEATURED = ENTERPRISES.filter((e) => e.featured).slice(0, 6);
-
 // 协会门户（xh.xyjzxh.com）首页 — 面向会员（企业会员 + 个人会员）的服务与交流平台
 // 内容优先排序：Hero → 办事大厅 → 资讯中心 → 活动培训 → 会员风采 → 数据墙 → 入会引导 → AI
 export default async function AssociationHome() {
+  const FEATURED = (await getEnterprises()).filter((e) => e.featured).slice(0, 6);
   const notices = listPublished().slice(0, 6);
   const trainings = listOpenTrainings().slice(0, 3);
   const session = await getSession();

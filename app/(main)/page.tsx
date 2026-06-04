@@ -8,7 +8,7 @@ import { Container } from "@/components/container";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { CATEGORIES } from "@/lib/site";
-import { ENTERPRISES } from "@/lib/data/enterprises";
+import { getEnterprises } from "@/lib/data/enterprises-source";
 import { getSession } from "@/lib/auth/session";
 import { listLeadsForCustomer } from "@/lib/data/leads";
 import { listReviewsByUid, listReviews } from "@/lib/data/reviews";
@@ -30,10 +30,9 @@ const BG: Record<string, string> = {
   build: "bg-cat-build", decor: "bg-cat-decor", design: "bg-cat-design",
 };
 
-const FEATURED = ENTERPRISES.filter((e) => e.featured).slice(0, 6);
-
 export default async function ConsumerHome() {
   const session = await getSession();
+  const FEATURED = (await getEnterprises()).filter((e) => e.featured).slice(0, 6);
   // 首页口碑：取真实评价（评分高者优先,展示企业归属,姓名脱敏）
   const rvStat = listReviews(500);
   const rvCount = rvStat.length;

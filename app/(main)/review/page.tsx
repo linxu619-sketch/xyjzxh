@@ -3,7 +3,7 @@ import { Star, Search, ShieldCheck, MessageSquareHeart, ArrowUpRight, CheckCircl
 import { Container } from "@/components/container";
 import { PageHeader } from "@/components/page-header";
 import { Badge } from "@/components/ui/badge";
-import { ENTERPRISES } from "@/lib/data/enterprises";
+import { getEnterprises } from "@/lib/data/enterprises-source";
 import { listReviews } from "@/lib/data/reviews";
 import { submitReviewAction } from "./actions";
 
@@ -23,6 +23,7 @@ function fmtDate(ts: number) {
 
 export default async function ReviewsHubPage({ searchParams }: { searchParams: Promise<{ posted?: string }> }) {
   const { posted } = await searchParams;
+  const enterprises = await getEnterprises();
   const allRv = listReviews(500);
   const total = allRv.length;
   const avg = allRv.length ? Number((allRv.reduce((a, r) => a + r.rating, 0) / allRv.length).toFixed(1)) : 4.8;
@@ -98,7 +99,7 @@ export default async function ReviewsHubPage({ searchParams }: { searchParams: P
               <input name="user" placeholder="你的称呼（如 刘女士）" className="h-11 w-full rounded-xl border border-border bg-background px-3.5 text-[14px] outline-none focus:border-foreground/30" />
               <select name="enterprise" required defaultValue="" className="h-11 w-full rounded-xl border border-border bg-background px-3.5 text-[14px] outline-none focus:border-foreground/30">
                 <option value="" disabled>选择被评价企业</option>
-                {ENTERPRISES.map((e) => <option key={e.id} value={e.name}>{e.name}</option>)}
+                {enterprises.map((e) => <option key={e.id} value={e.name}>{e.name}</option>)}
               </select>
               <input name="project" placeholder="项目（如 金茂悦府 1602）" className="h-11 w-full rounded-xl border border-border bg-background px-3.5 text-[14px] outline-none focus:border-foreground/30" />
               <select name="rating" defaultValue="5" className="h-11 w-full rounded-xl border border-border bg-background px-3.5 text-[14px] outline-none focus:border-foreground/30">
@@ -145,7 +146,7 @@ export default async function ReviewsHubPage({ searchParams }: { searchParams: P
 
         <h2 className="text-[18px] font-semibold mt-12 mb-4">五星热门企业</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-          {ENTERPRISES.filter((e) => e.rating >= 4.8).slice(0, 6).map((e) => (
+          {enterprises.filter((e) => e.rating >= 4.8).slice(0, 6).map((e) => (
             <Link key={e.id} href={`/members/${e.slug}`} className="rounded-2xl border border-border bg-background p-5 hover:shadow-md transition-shadow">
               <div className="flex items-center gap-2 mb-2">
                 <Star className="h-4 w-4 fill-[#FFB400] text-[#FFB400]" />

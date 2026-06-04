@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createReview } from "@/lib/data/reviews";
-import { ENTERPRISES } from "@/lib/data/enterprises";
+import { getEnterprises } from "@/lib/data/enterprises-source";
 import { getSession } from "@/lib/auth/session";
 
 export async function submitReviewAction(fd: FormData) {
@@ -15,7 +15,7 @@ export async function submitReviewAction(fd: FormData) {
 
   if (enterprise && content) {
     const s = await getSession();
-    const ent = ENTERPRISES.find((e) => e.name === enterprise || e.hero.brand === enterprise);
+    const ent = (await getEnterprises()).find((e) => e.name === enterprise || e.hero.brand === enterprise);
     createReview({ user, enterprise, project, rating, content, category: ent?.category ?? "decor", uid: s?.uid });
     revalidatePath("/review");
     revalidatePath("/dashboard/customer");
