@@ -34,6 +34,14 @@
 - 参考实现：注册/入会 `app/(main)/register/RegisterWizard.tsx`（填写资料 → 签署协议 → 确认提交）。
 - 必填项标 `*`（`text-cat-decor`）。
 
+## 可打印 A4 公文（协会出具单据：受理单 / 回执 / 记录）
+- 协会出具、需归档或出示的处置页统一做成 **A4 红头公文**，支持直接打印 / 另存 PDF。
+- 组件：`components/print/print-doc.tsx` —— `PrintBar`（打印按钮，`window.print()`）、`Letterhead`（协会红头：名称+联系方式+红线+标题+文号/日期）、`DocTable`（带边框 key/value 表）、`SealFooter`（签字/盖章落款）。
+- 页面结构：`<div className="no-print">`（返回 + 处置操作按钮 + `PrintBar`）+ `<div className="print-area"><div className="a4-sheet">`（Letterhead + DocTable + 意见栏 + SealFooter）。
+- 打印 CSS 在 `globals.css`：`@media print` 用 visibility 隔离只输出 `.print-area`，`.no-print` 隐藏，`.a4-sheet` 为 210mm 纸张。
+- 文号规则：`XYJZ-{业务码}-编号`（调解 TJ / 金融 JR / 理赔 LP；报备用报备号）。
+- 已落地：调解处置单、工装报备受理回执、理赔受理/定损单、金融服务申请受理单。**新增协会单据类页面照此办。**
+
 ## 列表 / 表格 —— 全平台铁律（用户重点强调，所有列表统一遵守）
 > **平台内所有列表都用表格形式：整行可点击 → 进入详情页 → 所有操作都在详情页里做。** 适用于全平台所有门面（消费者门户 / 协会门户 / 企业子站 / 各后台工作台），无一例外。
 - **行内绝不放"操作"按钮**：通过 / 驳回 / 编辑 / 删除 / 启用停用 / 上下架 / 状态流转……一律放到**详情页**内。列表只负责「看 + 点进去」。
