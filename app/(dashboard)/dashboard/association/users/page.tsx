@@ -22,11 +22,13 @@ const TABS = [
   { key: "customer", label: "业主", icon: Users2 },
 ] as const;
 
-export default async function UsersAdmin({ searchParams }: { searchParams: Promise<{ tab?: string }> }) {
-  const { tab } = await searchParams;
+export default async function UsersAdmin({ searchParams }: { searchParams: Promise<{ tab?: string; q?: string; st?: string }> }) {
+  const { tab, q, st } = await searchParams;
   const active = TABS.some((t) => t.key === tab) ? tab! : "staff";
   const counts = countAccountsByRole();
   const base = "/dashboard/association/users";
+  const kw = (q ?? "").trim();
+  const stFilter = (["active", "pending", "rejected"] as const).find((s) => s === st);
 
   return (
     <AssociationShell title="用户管理" subtitle="平台四类用户的账号总览与启用/停用">
@@ -61,13 +63,37 @@ export default async function UsersAdmin({ searchParams }: { searchParams: Promi
         </div>
       ) : (
         (() => {
-          const list = listAccounts(active as "enterprise" | "individual" | "customer");
+          const allList = listAccounts(active as "enterprise" | "individual" | "customer");
+          const list = allList.filter((a) =>
+            (!kw || (a.name || "").includes(kw) || a.phone.includes(kw))
+            && (!stFilter || a.status === stFilter));
+          const stChips: { k: string; label: string }[] = [
+            { k: "", label: "全部" }, { k: "active", label: "正常" }, { k: "pending", label: "审核中" }, { k: "rejected", label: "已停用" },
+          ];
+          const qs = (extra: Record<string, string>) => {
+            const p = new URLSearchParams({ tab: active, ...(kw ? { q: kw } : {}), ...(stFilter ? { st: stFilter } : {}), ...extra });
+            for (const [k, v] of [...p.entries()]) if (!v) p.delete(k);
+            return `${base}?${p.toString()}`;
+          };
           return (
             <div className="rounded-2xl border border-border bg-background overflow-hidden">
-              <div className="px-5 py-3 border-b border-border text-[14px] font-semibold inline-flex items-center gap-1.5"><ShieldCheck className="h-4 w-4" /> {TABS.find((t) => t.key === active)!.label} · {list.length} 个账号</div>
+              <div className="px-5 py-3 border-b border-border flex items-center justify-between gap-3 flex-wrap">
+                <div className="text-[14px] font-semibold inline-flex items-center gap-1.5"><ShieldCheck className="h-4 w-4" /> {TABS.find((t) => t.key === active)!.label} · {list.length}{kw || stFilter ? ` / ${allList.length}` : ""} 个账号</div>
+                <form action={base} className="flex items-center gap-2">
+                  <input type="hidden" name="tab" value={active} />
+                  {stFilter && <input type="hidden" name="st" value={stFilter} />}
+                  <input name="q" defaultValue={kw} placeholder="搜姓名 / 手机号" className="h-8 w-40 rounded-full border border-border bg-background px-3 text-[12px] outline-none focus:border-foreground/30" />
+                  <button className="h-8 px-3 rounded-full bg-foreground text-background text-[12px]">搜索</button>
+                </form>
+              </div>
+              <div className="px-5 py-2.5 border-b border-border flex items-center gap-1.5 flex-wrap">
+                {stChips.map((c) => (
+                  <a key={c.k} href={qs({ st: c.k })} className={`h-7 px-3 rounded-full text-[12px] inline-flex items-center border ${((stFilter ?? "") === c.k) ? "bg-foreground text-background border-foreground" : "bg-background text-muted-foreground border-border hover:bg-surface"}`}>{c.label}</a>
+                ))}
+              </div>
               {list.length === 0 ? (
                 <div className="px-5 py-12 text-center text-[13px] text-muted-foreground">
-                  {active === "customer" ? "业主为 C 端短信验证码登录,通常不预建账号;入会/下单产生绑定后在此显示。" : "暂无账号。会员入会审核通过后在此显示。"}
+                  {(kw || stFilter) ? "没有匹配的账号,换个搜索词或筛选条件试试。" : active === "customer" ? "业主为 C 端短信验证码登录,登录后在此显示;入会/下单也会绑定账号。" : "暂无账号。会员入会审核通过后在此显示。"}
                 </div>
               ) : (
                 <ul className="divide-y divide-border">
