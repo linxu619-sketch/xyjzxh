@@ -1,10 +1,10 @@
-import { Crown, Building2, UserRound, Users2, ShieldCheck, Power, Lock } from "lucide-react";
+import Link from "next/link";
+import { Crown, Building2, UserRound, Users2, ShieldCheck, Lock, ChevronRight } from "lucide-react";
 import { AssociationShell } from "@/components/dashboard/shell";
 import { StatFilters } from "@/components/dashboard/stat-filters";
 import { Badge } from "@/components/ui/badge";
 import { listAccounts, countAccountsByRole, type AccountStatus } from "@/lib/data/accounts";
 import { SEED_STAFF } from "@/lib/data/users-seed";
-import { setAccountStatusAction } from "./actions";
 
 export const metadata = { title: "用户管理 · 协会工作台" };
 
@@ -96,26 +96,32 @@ export default async function UsersAdmin({ searchParams }: { searchParams: Promi
                   {(kw || stFilter) ? "没有匹配的账号,换个搜索词或筛选条件试试。" : active === "customer" ? "业主为 C 端短信验证码登录,登录后在此显示;入会/下单也会绑定账号。" : "暂无账号。会员入会审核通过后在此显示。"}
                 </div>
               ) : (
-                <ul className="divide-y divide-border">
-                  {list.map((a) => (
-                    <li key={a.phone} className="px-5 py-3.5 flex items-center gap-3 text-[13px] flex-wrap">
-                      <span className="h-9 w-9 rounded-xl bg-surface inline-flex items-center justify-center shrink-0 font-semibold">{(a.name || "?").slice(0, 1)}</span>
-                      <div className="flex-1 min-w-0">
-                        <div className="font-medium truncate">{a.name || "(未填名称)"}</div>
-                        <div className="text-[11px] text-muted-foreground">{mask(a.phone)}{a.memberRef ? ` · 会员档案 ${a.memberRef}` : ""} · 注册 {fmt(a.createdAt)}</div>
-                      </div>
-                      <Badge tone={ST_TONE[a.status]} className="shrink-0">{ST_LABEL[a.status]}</Badge>
-                      <form action={setAccountStatusAction} className="shrink-0">
-                        <input type="hidden" name="phone" value={a.phone} />
-                        <input type="hidden" name="tab" value={active} />
-                        <input type="hidden" name="status" value={a.status === "active" ? "rejected" : "active"} />
-                        <button className="h-8 px-3 rounded-full bg-surface text-[12px] inline-flex items-center gap-1.5 hover:bg-surface-2"><Power className="h-3.5 w-3.5" /> {a.status === "active" ? "停用" : "启用"}</button>
-                      </form>
-                    </li>
-                  ))}
-                </ul>
+                <>
+                  <div className="hidden md:grid grid-cols-[1.4fr_1fr_1fr_1fr_auto] gap-3 px-5 py-2.5 border-b border-border text-[11px] text-muted-foreground tracking-wider">
+                    <span>姓名</span><span>手机号</span><span>会员档案</span><span>注册时间</span><span className="text-right">状态</span>
+                  </div>
+                  <ul className="divide-y divide-border">
+                    {list.map((a) => (
+                      <li key={a.phone}>
+                        <Link href={`/dashboard/association/users/${encodeURIComponent(a.phone)}`} className="grid grid-cols-[1fr_auto] md:grid-cols-[1.4fr_1fr_1fr_1fr_auto] gap-3 items-center px-5 py-3.5 text-[13px] hover:bg-surface transition-colors active:scale-[0.99]">
+                          <span className="font-medium truncate inline-flex items-center gap-2 min-w-0">
+                            <span className="h-8 w-8 rounded-lg bg-surface inline-flex items-center justify-center shrink-0 font-semibold md:hidden">{(a.name || "?").slice(0, 1)}</span>
+                            <span className="truncate">{a.name || "(未填名称)"}</span>
+                          </span>
+                          <span className="hidden md:block text-muted-foreground tabular-nums">{mask(a.phone)}</span>
+                          <span className="hidden md:block text-muted-foreground truncate">{a.memberRef || "—"}</span>
+                          <span className="hidden md:block text-muted-foreground">{fmt(a.createdAt)}</span>
+                          <span className="inline-flex items-center gap-2 justify-end shrink-0">
+                            <Badge tone={ST_TONE[a.status]}>{ST_LABEL[a.status]}</Badge>
+                            <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                          </span>
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                </>
               )}
-              <div className="px-5 py-3 text-[12px] text-muted-foreground border-t border-border">「停用」后该账号无法登录使用;入会申请的审核在「会员审核」处理。</div>
+              <div className="px-5 py-3 text-[12px] text-muted-foreground border-t border-border">点击任一行进入详情页进行启用 / 停用等操作;入会申请的审核在「会员审核」处理。</div>
             </div>
           );
         })()

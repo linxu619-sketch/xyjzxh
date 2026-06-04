@@ -14,5 +14,10 @@ export async function setAccountStatusAction(fd: FormData) {
     setAccountStatus(phone, status);
   }
   revalidatePath("/dashboard/association/users");
+  const to = String(fd.get("redirect") || "");
+  if (to.startsWith("/dashboard/association/users")) {
+    revalidatePath(to);
+    redirect(to);
+  }
   redirect(`/dashboard/association/users${fd.get("tab") ? `?tab=${fd.get("tab")}` : ""}`);
 }
