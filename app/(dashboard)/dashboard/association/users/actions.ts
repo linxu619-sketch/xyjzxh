@@ -108,7 +108,8 @@ export async function setStaffRolesAction(fd: FormData) {
     const roles = fd.getAll("role").map(String).filter((r) => ROLE_KEYS.includes(r) && r !== "super_admin");
     if (roles.length) setStaffRoles(id, roles);
   }
-  backToStaff(id);
+  const to = `/dashboard/association/users/staff/${id}?saved=roles`;
+  revalidatePath(to); redirect(to);
 }
 
 export async function setStaffPasswordAction(fd: FormData) {
@@ -116,7 +117,8 @@ export async function setStaffPasswordAction(fd: FormData) {
   const id = String(fd.get("id") || "").trim();
   const pwd = String(fd.get("password") || "");
   if (id && pwd.length >= 6 && getStaff(id)) setStaffPassword(id, hashPassword(pwd));
-  backToStaff(id);
+  const to = `/dashboard/association/users/staff/${id}?saved=pwd`;
+  revalidatePath(to); redirect(to);
 }
 
 export async function deleteStaffAction(fd: FormData) {

@@ -11,18 +11,21 @@ export const metadata = { title: "工作人员详情 · 协会工作台" };
 
 function mask(p: string) { return p; }  // 用户管理显示完整手机号
 
-export default async function StaffDetail({ params }: { params: Promise<{ id: string }> }) {
+export default async function StaffDetail({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ saved?: string }> }) {
   const { id } = await params;
+  const { saved } = await searchParams;
   const s = getStaff(id);
   if (!s) notFound();
   const isSuper = s.roles.includes("super_admin");
   const perms = permissionsOf(s.roles);
+  const savedMsg = saved === "roles" ? "角色已更新" : saved === "pwd" ? "登录密码已重置" : "";
 
   return (
     <AssociationShell title="工作人员详情" subtitle={`${s.name} · ${s.roles.map(roleLabel).join(" / ")}`}>
       <Link href="/dashboard/association/users?tab=staff" className="inline-flex items-center gap-1.5 text-[13px] text-muted-foreground hover:text-foreground mb-4">
         <ArrowLeft className="h-3.5 w-3.5" /> 返回工作人员列表
       </Link>
+      {savedMsg && <div className="mb-4 rounded-2xl border border-accent-tea/30 bg-[#e6f7f1] text-accent-tea px-4 py-2.5 text-[13px] inline-flex items-center gap-2"><ShieldCheck className="h-4 w-4" /> {savedMsg}</div>}
 
       <div className="rounded-2xl border border-border bg-background p-5 md:p-6 max-w-2xl">
         <div className="flex items-center gap-4 pb-5 border-b border-border">
@@ -78,7 +81,7 @@ export default async function StaffDetail({ params }: { params: Promise<{ id: st
                 {ROLE_KEYS.filter((r) => r !== "super_admin").map((r) => {
                   const on = s.roles.includes(r);
                   return (
-                    <label key={r} className={`inline-flex items-center gap-1.5 h-9 px-3.5 rounded-full text-[13px] border cursor-pointer transition-colors ${on ? "bg-foreground text-background border-foreground" : "bg-background border-border hover:bg-surface"}`}>
+                    <label key={r} className="inline-flex items-center gap-1.5 h-9 px-3.5 rounded-full text-[13px] border cursor-pointer transition-colors bg-background border-border hover:bg-surface has-[:checked]:bg-foreground has-[:checked]:text-background has-[:checked]:border-foreground">
                       <input type="checkbox" name="role" value={r} defaultChecked={on} className="accent-brand" />{roleLabel(r)}
                     </label>
                   );

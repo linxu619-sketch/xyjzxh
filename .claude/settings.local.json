@@ -176,7 +176,8 @@
       "Bash(grep -oc 'print\\\\\\\\:hidden' /tmp/c3.css)",
       "Bash(grep -oc 'print\\\\\\\\:block' /tmp/c3.css)",
       "Bash(grep -o 'print\\\\\\\\:hidden[^}]*}' /tmp/c3.css)",
-      "Bash(grep -o 'print\\\\\\\\:block[^}]*}' /tmp/c3.css)"
+      "Bash(grep -o 'print\\\\\\\\:block[^}]*}' /tmp/c3.css)",
+      "Bash(grep -oc 'ACTION_ID\\\\|\\\\$ACTION' /tmp/s.html)"
     ]
   }
 }
