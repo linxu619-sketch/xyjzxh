@@ -1,11 +1,16 @@
-import { Wallet, Landmark, Umbrella, CheckCircle2, XCircle, Banknote, Plus, Save, Power, Trash2 } from "lucide-react";
+import { Wallet, Landmark, Umbrella, CheckCircle2, XCircle, Banknote, Plus, Save, Power, Trash2, AlertCircle } from "lucide-react";
 import { AssociationShell } from "@/components/dashboard/shell";
 import { StatFilters } from "@/components/dashboard/stat-filters";
 import { Badge } from "@/components/ui/badge";
 import { listAllFinanceProducts, listAllFinanceApps, type FinAppStatus } from "@/lib/data/finance-source";
 import { listAllInsuranceProducts } from "@/lib/data/insurance-products";
 import { listInsuranceOrders } from "@/lib/data/insurance-orders";
-import { reviewFinanceAppAction, createFinanceProductAction, updateFinanceProductAction, toggleFinanceProductAction, deleteFinanceProductAction, createInsuranceProductAction, updateInsuranceProductAction, toggleInsuranceProductAction, deleteInsuranceProductAction } from "./actions";
+import { listAllClaims, type ClaimStatus } from "@/lib/data/insurance-claims";
+import { reviewFinanceAppAction, createFinanceProductAction, updateFinanceProductAction, toggleFinanceProductAction, deleteFinanceProductAction, createInsuranceProductAction, updateInsuranceProductAction, toggleInsuranceProductAction, deleteInsuranceProductAction, reviewClaimAction } from "./actions";
+
+const CLAIM_LABEL: Record<ClaimStatus, string> = { pending: "待受理", reviewing: "定损中", settled: "已赔付", rejected: "已驳回" };
+const CLAIM_TONE: Record<ClaimStatus, "yellow" | "brand" | "tea" | "decor"> = { pending: "yellow", reviewing: "brand", settled: "tea", rejected: "decor" };
+const CLAIM_NEXT: Record<ClaimStatus, { status: ClaimStatus; label: string } | null> = { pending: { status: "reviewing", label: "受理·定损" }, reviewing: { status: "settled", label: "确认赔付" }, settled: null, rejected: null };
 
 const FIN_TYPES = ["信用贷", "抵押贷", "经营贷", "保函", "供应链金融", "分期", "票据贴现", "其他"];
 const FIN_COLORS = [["brand", "深蓝"], ["build", "蓝"], ["decor", "红橙"], ["design", "紫"], ["tea", "青绿"]];
@@ -30,6 +35,7 @@ export default async function FinanceAdmin({ searchParams }: { searchParams: Pro
   const { f } = await searchParams;
   const products = listAllFinanceProducts();
   const insProducts = listAllInsuranceProducts();
+  const claims = listAllClaims();
   const allApps = listAllFinanceApps();
   const insurance = listInsuranceOrders();
   const FILTERABLE: FinAppStatus[] = ["pending", "approved", "rejected", "disbursed"];
@@ -97,6 +103,35 @@ export default async function FinanceAdmin({ searchParams }: { searchParams: Pro
                 <Badge tone={o.status === "done" ? "tea" : "yellow"} className="shrink-0">{INS_LABEL[o.status] ?? o.status}</Badge>
               </li>
             ))}
+          </ul>
+        )}
+      </div>
+
+      {/* 保险理赔受理（业主报案 → 协会受理 → 定损 → 赔付）*/}
+      <div id="claims" className="rounded-2xl border border-border bg-background overflow-hidden mb-6 scroll-mt-20">
+        <div className="px-5 py-3 border-b border-border text-[14px] font-semibold inline-flex items-center gap-1.5"><AlertCircle className="h-4 w-4" /> 保险理赔受理 <span className="text-[12px] text-muted-foreground font-normal">· 待受理 {claims.filter((c) => c.status === "pending").length}</span></div>
+        {claims.length === 0 ? (
+          <div className="px-5 py-12 text-center text-[13px] text-muted-foreground">暂无理赔申请。业主在「我的保单」报案后会出现在这里。</div>
+        ) : (
+          <ul className="divide-y divide-border">
+            {claims.map((c) => {
+              const nx = CLAIM_NEXT[c.status];
+              return (
+                <li key={c.id} className="px-5 py-3.5 flex items-center gap-3 text-[13px] flex-wrap">
+                  <div className="flex-1 min-w-0">
+                    <div className="font-medium truncate">{c.subject}</div>
+                    <div className="text-[11px] text-muted-foreground">CL-{String(c.id).padStart(4, "0")} · {c.applicant} · {c.phone} · {c.policy || c.product} · {fmt(c.createdAt)}</div>
+                  </div>
+                  <Badge tone={CLAIM_TONE[c.status]} className="shrink-0">{CLAIM_LABEL[c.status]}</Badge>
+                  {nx && (
+                    <div className="flex items-center gap-1.5 shrink-0">
+                      <form action={reviewClaimAction}><input type="hidden" name="id" value={c.id} /><input type="hidden" name="status" value={nx.status} /><button className="h-8 px-3 rounded-full bg-accent-tea text-white text-[12px] inline-flex items-center gap-1"><CheckCircle2 className="h-3 w-3" /> {nx.label}</button></form>
+                      {c.status === "pending" && <form action={reviewClaimAction}><input type="hidden" name="id" value={c.id} /><input type="hidden" name="status" value="rejected" /><button className="h-8 px-3 rounded-full border border-cat-decor/40 text-cat-decor text-[12px] inline-flex items-center gap-1"><XCircle className="h-3 w-3" /> 驳回</button></form>}
+                    </div>
+                  )}
+                </li>
+              );
+            })}
           </ul>
         )}
       </div>

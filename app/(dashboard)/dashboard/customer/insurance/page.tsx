@@ -4,6 +4,12 @@ import { CustomerShell } from "@/components/dashboard/customer-shell";
 import { Badge } from "@/components/ui/badge";
 import { getSession } from "@/lib/auth/session";
 import { listInsuranceByUid } from "@/lib/data/insurance-orders";
+import { listClaimsByUid, type ClaimStatus } from "@/lib/data/insurance-claims";
+import { submitClaimAction } from "./actions";
+
+const CLAIM_LABEL: Record<ClaimStatus, string> = { pending: "待协会受理", reviewing: "定损中", settled: "已赔付", rejected: "已驳回" };
+const CLAIM_TONE: Record<ClaimStatus, "yellow" | "brand" | "tea" | "decor"> = { pending: "yellow", reviewing: "brand", settled: "tea", rejected: "decor" };
+const CLAIM_PROGRESS: Record<ClaimStatus, number> = { pending: 20, reviewing: 60, settled: 100, rejected: 100 };
 
 export const metadata = { title: "我的保单 · 信阳市建筑装饰装修协会" };
 
@@ -25,16 +31,13 @@ const POLICIES = [
     project: "茶都商务 22F", status: "理赔申请中", color: "decor" as const },
 ];
 
-const CLAIMS = [
-  { id: "CL-2026-038", policy: "POL-2025-6644", subject: "材料以次充好",
-    submitted: "今天 14:08", status: "AI 初判中", progress: 20 },
-];
-
-export default async function CustomerInsurance() {
+export default async function CustomerInsurance({ searchParams }: { searchParams: Promise<{ claimed?: string; cerr?: string }> }) {
+  const { claimed, cerr } = await searchParams;
   const session = await getSession();
   const mine = session ? listInsuranceByUid(session.uid) : [];
+  const claims = session ? listClaimsByUid(session.uid) : [];
   return (
-    <CustomerShell title="我的保单" subtitle={`${mine.length} 笔在线投保申请 · ${POLICIES.length} 份示例保单`}>
+    <CustomerShell title="我的保单" subtitle={`${mine.length} 笔投保申请 · ${claims.length} 笔理赔 · ${POLICIES.length} 份示例保单`}>
       {/* 我提交的投保申请（实时，按登录账号） */}
       <div className="rounded-3xl border border-border bg-background p-5 mb-4">
         <div className="flex items-center justify-between mb-3">
@@ -72,31 +75,50 @@ export default async function CustomerInsurance() {
         <div className="relative mt-2 text-[12px] text-white/80">三份保单覆盖装修 · 工人 · 履约</div>
       </div>
 
-      {/* 理赔中 */}
-      {CLAIMS.length > 0 && (
-        <div className="mb-4 rounded-3xl border border-cat-decor/30 bg-cat-decor-soft p-4">
-          <div className="flex items-center gap-2 mb-2">
-            <AlertCircle className="h-4 w-4 text-cat-decor" />
-            <div className="text-[13px] font-semibold text-cat-decor">理赔进行中</div>
-          </div>
-          {CLAIMS.map((c) => (
-            <div key={c.id} className="rounded-2xl bg-background p-4">
-              <div className="flex items-center justify-between mb-1">
-                <div className="text-[14px] font-semibold">{c.subject}</div>
-                <Badge tone="decor">{c.status}</Badge>
-              </div>
-              <div className="text-[11px] text-muted-foreground">{c.id} · 关联保单 {c.policy}</div>
-              <div className="mt-3 h-1.5 rounded-full bg-surface">
-                <div className="h-full rounded-full bg-cat-decor" style={{ width: `${c.progress}%` }} />
-              </div>
-              <div className="mt-2 flex items-center justify-between text-[11px] text-muted-foreground">
-                <span>提交：{c.submitted}</span>
-                <span className="text-muted-foreground">审核中</span>
-              </div>
-            </div>
-          ))}
+      {/* 我的理赔（真实，按登录账号） */}
+      <div id="claims" className="mb-4 rounded-3xl border border-border bg-background p-5 scroll-mt-20">
+        <div className="flex items-center justify-between mb-3">
+          <div className="text-[14px] font-semibold inline-flex items-center gap-1.5"><AlertCircle className="h-4 w-4 text-cat-decor" /> 我的理赔申请</div>
+          <Badge tone={claims.length ? "decor" : "yellow"}>{claims.length} 笔</Badge>
         </div>
-      )}
+        {claimed === "1" && <div className="mb-3 rounded-xl bg-[#e6f7f1] text-accent-tea text-[12px] px-3 py-2">报案已提交,协会保险顾问会尽快受理并与你联系。</div>}
+        {claims.length === 0 ? (
+          <div className="text-center py-4 text-[13px] text-muted-foreground">还没有理赔申请。保单出险时在下方「报案」即可提交。</div>
+        ) : (
+          <div className="space-y-2.5">
+            {claims.map((c) => (
+              <div key={c.id} className="rounded-2xl bg-surface p-4">
+                <div className="flex items-center justify-between gap-2 mb-1">
+                  <div className="text-[14px] font-semibold truncate">{c.subject}</div>
+                  <Badge tone={CLAIM_TONE[c.status]} className="shrink-0">{CLAIM_LABEL[c.status]}</Badge>
+                </div>
+                <div className="text-[11px] text-muted-foreground">CL-{String(c.id).padStart(4, "0")} · {c.policy || c.product}</div>
+                <div className="mt-3 h-1.5 rounded-full bg-background overflow-hidden">
+                  <div className={`h-full rounded-full ${c.status === "rejected" ? "bg-muted-foreground/40" : "bg-cat-decor"}`} style={{ width: `${CLAIM_PROGRESS[c.status]}%` }} />
+                </div>
+                <div className="mt-2 text-[11px] text-muted-foreground inline-flex items-center gap-1"><Clock className="h-3 w-3" /> {fmt(c.createdAt)}{c.detail ? ` · ${c.detail}` : ""}</div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* 报案 / 理赔申请表单 */}
+      <div className="mb-4 rounded-3xl border border-border bg-background p-5">
+        <div className="text-[14px] font-semibold mb-1 inline-flex items-center gap-1.5"><FileText className="h-4 w-4" /> 报案 / 理赔申请</div>
+        <p className="text-[12px] text-muted-foreground mb-3">出险后在此报案,协会保险顾问受理后联系定损。</p>
+        {cerr === "1" && <div className="mb-3 rounded-xl bg-cat-decor-soft text-cat-decor text-[12px] px-3 py-2">请填写出险事由与联系电话。</div>}
+        <form action={submitClaimAction} className="space-y-2.5">
+          <select name="policy" className="w-full h-11 rounded-xl border border-border bg-background px-3.5 text-[14px] outline-none focus:border-foreground/30" defaultValue="">
+            <option value="" disabled>选择出险保单 / 险种</option>
+            {POLICIES.map((p) => <option key={p.id} value={`${p.id} · ${p.product}`}>{p.product} · {p.id}</option>)}
+          </select>
+          <input name="subject" required placeholder="出险事由(如 防水渗漏 / 材料不合规)" className="w-full h-11 rounded-xl border border-border bg-background px-3.5 text-[14px] outline-none focus:border-foreground/30" />
+          <input name="phone" required defaultValue={session?.phone ?? ""} placeholder="联系电话" type="tel" className="w-full h-11 rounded-xl border border-border bg-background px-3.5 text-[14px] outline-none focus:border-foreground/30" />
+          <textarea name="detail" rows={2} placeholder="情况说明(可选,便于协会快速定损)" className="w-full rounded-xl border border-border bg-background p-3.5 text-[13px] leading-6 outline-none focus:border-foreground/30" />
+          <button type="submit" className="h-11 px-6 rounded-full bg-cat-decor text-white text-[14px] font-medium inline-flex items-center gap-1.5"><AlertCircle className="h-4 w-4" /> 提交报案</button>
+        </form>
+      </div>
 
       {/* 保单列表 */}
       <div className="space-y-3">
@@ -126,7 +148,9 @@ export default async function CustomerInsurance() {
             </div>
 
             <div className="mt-4 flex gap-2">
-              <span className="flex-1 h-10 rounded-full border border-border text-muted-foreground text-[12px] inline-flex items-center justify-center opacity-70">报案 / 理赔 · 即将开放</span>
+              <Link href="#claims" className="flex-1 h-10 rounded-full border border-cat-decor/40 text-cat-decor text-[12px] font-medium inline-flex items-center justify-center gap-1 hover:bg-cat-decor-soft">
+                <AlertCircle className="h-3.5 w-3.5" /> 出险报案
+              </Link>
             </div>
           </div>
         ))}

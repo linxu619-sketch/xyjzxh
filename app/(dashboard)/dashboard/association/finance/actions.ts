@@ -12,6 +12,7 @@ import {
   createInsuranceProduct, updateInsuranceProduct, setInsuranceProductStatus, deleteInsuranceProduct,
   getInsuranceProduct, type InsuranceProductInput,
 } from "@/lib/data/insurance-products";
+import { getClaim, setClaimStatus, type ClaimStatus } from "@/lib/data/insurance-claims";
 
 async function requireAssoc() {
   const s = await getSession();
@@ -115,4 +116,15 @@ export async function deleteInsuranceProductAction(fd: FormData) {
   const id = Number(fd.get("id") || 0);
   if (getInsuranceProduct(id)) deleteInsuranceProduct(id);
   refresh();
+}
+
+/* ---------------- 保险理赔受理 ---------------- */
+export async function reviewClaimAction(fd: FormData) {
+  await requireAssoc();
+  const id = Number(fd.get("id") || 0);
+  const status = String(fd.get("status") || "") as ClaimStatus;
+  if (getClaim(id) && ["pending", "reviewing", "settled", "rejected"].includes(status)) setClaimStatus(id, status);
+  revalidatePath("/dashboard/association/finance");
+  revalidatePath("/dashboard/customer/insurance");
+  redirect("/dashboard/association/finance#claims");
 }

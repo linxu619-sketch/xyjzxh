@@ -114,6 +114,20 @@ CREATE TABLE IF NOT EXISTS insurance_orders (
 );
 CREATE INDEX IF NOT EXISTS idx_ins_status ON insurance_orders(status, created_at);
 
+CREATE TABLE IF NOT EXISTS insurance_claims (
+  id          INTEGER PRIMARY KEY AUTOINCREMENT,
+  uid         TEXT,    -- 报案的登录用户 id
+  applicant   TEXT,
+  phone       TEXT,
+  policy      TEXT,    -- 关联保单号/险种
+  product     TEXT,
+  subject     TEXT,    -- 出险事由
+  detail      TEXT,
+  status      TEXT DEFAULT 'pending', -- pending 待受理 | reviewing 定损中 | settled 已赔付 | rejected 已驳回
+  created_at  INTEGER
+);
+CREATE INDEX IF NOT EXISTS idx_claims_status ON insurance_claims(status, created_at);
+
 CREATE TABLE IF NOT EXISTS mediations (
   id          INTEGER PRIMARY KEY AUTOINCREMENT,
   uid         TEXT,
