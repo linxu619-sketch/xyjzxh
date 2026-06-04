@@ -153,7 +153,7 @@ export default async function AssociationHome() {
               {SITE.shortName}<span className="text-gradient-brand">会员之家</span>
             </h1>
             <p className="mt-5 md:mt-6 text-[14px] md:text-[18px] leading-7 md:leading-8 text-muted-foreground max-w-2xl">
-              {SITE.name}官方会员平台 — 为<b className="text-foreground">企业会员</b>与<b className="text-foreground">个人会员</b>提供入会、公告通知、工装报备、建材集采、金融保险、培训认证、知识库与 AI 助手等一站式服务与交流。
+              {SITE.name}官方会员平台 — 面向<b className="text-foreground">企业会员</b>与<b className="text-foreground">个人会员</b>的一站式服务与行业交流:一套账号,办事、获客、集采、金融、培训一次到位（下方办事大厅直达）。
             </p>
             <div className="mt-5 md:mt-6 flex flex-wrap items-center gap-x-4 gap-y-2 text-[12px] text-muted-foreground">
               <span className="inline-flex items-center gap-1.5"><ShieldCheck className="h-3.5 w-3.5 text-accent-tea" /> 协会认证</span>
