@@ -11,9 +11,14 @@ import { CATEGORIES } from "@/lib/site";
 import { ENTERPRISES } from "@/lib/data/enterprises";
 import { getSession } from "@/lib/auth/session";
 import { listLeadsForCustomer } from "@/lib/data/leads";
-import { listReviewsByUid } from "@/lib/data/reviews";
+import { listReviewsByUid, listReviews } from "@/lib/data/reviews";
 import { ORDER_DEMO } from "@/lib/data/orders";
 import { cn } from "@/lib/cn";
+
+function maskName(n: string) {
+  if (!n) return "业主";
+  return n.length <= 1 ? n : n.slice(0, 1) + "**";
+}
 
 export const metadata = {
   title: "找装修不踩坑 · 信阳建装 · 协会担保的装修平台",
@@ -25,16 +30,14 @@ const BG: Record<string, string> = {
   build: "bg-cat-build", decor: "bg-cat-decor", design: "bg-cat-design",
 };
 
-const C_REVIEWS = [
-  { user: "刘女士", area: "120㎡ 整装", rating: 5, content: "项目经理特别负责，水电改造的时候多次主动来工地，质量超预期。", enterprise: "名家装饰" },
-  { user: "陈先生", area: "168㎡ 整装", rating: 5, content: "设计师很懂年轻人审美，方案改了两版就定稿。", enterprise: "壹品装饰" },
-  { user: "王女士", area: "98㎡ 半包",  rating: 4, content: "整体满意，材料到场比预计晚了 3 天，沟通后补偿到位。", enterprise: "佳和苑装饰" },
-];
-
 const FEATURED = ENTERPRISES.filter((e) => e.featured).slice(0, 6);
 
 export default async function ConsumerHome() {
   const session = await getSession();
+  // 首页口碑：取真实评价（评分高者优先,展示企业归属,姓名脱敏）
+  const rvStat = listReviews(500);
+  const rvAvg = rvStat.length ? (rvStat.reduce((a, r) => a + r.rating, 0) / rvStat.length) : 4.8;
+  const homeReviews = [...rvStat].filter((r) => r.content && r.content.length > 8).sort((a, b) => b.rating - a.rating || b.createdAt - a.createdAt).slice(0, 6);
   const customer = session?.role === "customer" ? session : null;
   const myRequests = customer ? listLeadsForCustomer(customer.uid, customer.phone) : [];
   const myReviews = customer ? listReviewsByUid(customer.uid) : [];
@@ -251,20 +254,20 @@ export default async function ConsumerHome() {
           <div className="flex items-end justify-between mb-6 md:mb-10 gap-4 flex-col md:flex-row">
             <div>
               <div className="text-[12px] tracking-[0.2em] text-cat-design uppercase font-medium">REVIEWS · 真实评价</div>
-              <h2 className="mt-2 text-[28px] md:text-[44px] font-semibold tracking-tight leading-tight">12,640 位业主<br className="md:hidden" />给出 <span className="text-cat-decor">4.8 ★</span></h2>
+              <h2 className="mt-2 text-[28px] md:text-[44px] font-semibold tracking-tight leading-tight">12,640 位业主<br className="md:hidden" />给出 <span className="text-cat-decor">{rvAvg.toFixed(1)} ★</span></h2>
             </div>
             <Link href="/review" className="text-[13px] text-brand">所有评价 →</Link>
           </div>
 
           {/* 纵向网格 · 不横滑 */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4">
-            {C_REVIEWS.map((r, i) => (
-              <div key={i} className="rounded-3xl border border-border bg-background p-4 md:p-6">
+            {homeReviews.map((r) => (
+              <Link key={r.id} href="/review" className="block rounded-3xl border border-border bg-background p-4 md:p-6 hover:shadow-md transition-shadow">
                 <div className="flex items-center gap-2 mb-3">
                   <span className="h-10 w-10 rounded-full bg-surface inline-flex items-center justify-center text-[13px] font-semibold shrink-0">{r.user.slice(0, 1)}</span>
                   <div className="min-w-0">
-                    <div className="text-[13px] font-medium">{r.user}</div>
-                    <div className="text-[10px] text-muted-foreground truncate">{r.area} · {r.enterprise}</div>
+                    <div className="text-[13px] font-medium">{maskName(r.user)}</div>
+                    <div className="text-[10px] text-muted-foreground truncate">{r.project} · {r.enterprise}</div>
                   </div>
                   <div className="ml-auto flex items-center gap-0.5 shrink-0">
                     {Array.from({ length: 5 }, (_, j) => (
@@ -272,8 +275,8 @@ export default async function ConsumerHome() {
                     ))}
                   </div>
                 </div>
-                <p className="text-[13px] leading-6 text-foreground">&ldquo;{r.content}&rdquo;</p>
-              </div>
+                <p className="text-[13px] leading-6 text-foreground line-clamp-4">&ldquo;{r.content}&rdquo;</p>
+              </Link>
             ))}
           </div>
         </Container>
