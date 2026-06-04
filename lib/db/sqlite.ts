@@ -827,6 +827,8 @@ function migrate(db: DB) {
     "ALTER TABLE applications ADD COLUMN idverify_status TEXT DEFAULT 'unverified'",
     "ALTER TABLE applications ADD COLUMN idverify_by TEXT",
     "ALTER TABLE applications ADD COLUMN idverify_at INTEGER",
+    // 调解申请证据照片（JSON 数组，1-5 张）
+    "ALTER TABLE mediations ADD COLUMN photos TEXT",
   ];
   for (const sql of alters) {
     try { db.exec(sql); } catch { /* 列已存在，忽略 */ }

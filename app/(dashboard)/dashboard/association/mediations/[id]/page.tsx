@@ -4,6 +4,7 @@ import { AssociationShell } from "@/components/dashboard/shell";
 import { Badge } from "@/components/ui/badge";
 import { getMediation } from "@/lib/data/mediations";
 import { reviewMediationAction } from "../actions";
+import { Materials } from "../../members/[id]/materials";
 
 export const metadata = { title: "调解申请详情 · 协会工作台" };
 
@@ -41,6 +42,7 @@ export default async function MediationDetail({ params }: { params: Promise<{ id
           <Row k="被投诉方" v={m.respondent || "—"} />
           <Row k="纠纷经过 / 诉求" v={m.detail} />
         </dl>
+        {m.photos.length > 0 && <Materials groups={[{ label: `证据照片（${m.photos.length}）`, files: m.photos }]} />}
       </div>
 
       <div className="mt-5 flex items-center gap-3 flex-wrap">

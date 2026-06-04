@@ -1,11 +1,9 @@
-import { CheckCircle2, Scale, ShieldCheck } from "lucide-react";
+import { CheckCircle2, ShieldCheck } from "lucide-react";
 import { Container } from "@/components/container";
 import { PageHeader } from "@/components/page-header";
-import { submitMediationAction } from "./actions";
+import { MediateForm } from "./MediateForm";
 
 export const metadata = { title: "申请调解 · 信阳市建筑装饰装修协会" };
-
-const INPUT = "h-11 w-full rounded-xl border border-border bg-background px-3.5 text-[14px] outline-none focus:border-foreground/30";
 
 export default async function MediatePage({ searchParams }: { searchParams: Promise<{ submitted?: string }> }) {
   const { submitted } = await searchParams;
@@ -37,17 +35,7 @@ export default async function MediatePage({ searchParams }: { searchParams: Prom
           <ShieldCheck className="h-4 w-4 text-accent-tea mt-0.5 shrink-0" />
           建议先准备好证据（合同、聊天记录、照片、验收单）。协会保持中立、不预判责任。
         </div>
-        <form action={submitMediationAction} className="space-y-3 rounded-3xl border border-border bg-background p-5 md:p-8">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            <input name="applicant" placeholder="你的称呼" className={INPUT} />
-            <input name="phone" required type="tel" placeholder="联系电话（必填）" className={INPUT} />
-          </div>
-          <input name="respondent" placeholder="被投诉方（企业名 / 项目）" className={INPUT} />
-          <textarea name="detail" required rows={5} placeholder="请描述纠纷经过：时间、事项、诉求…（必填）" className="w-full rounded-xl border border-border bg-background p-3.5 text-[13px] leading-6 outline-none focus:border-foreground/30" />
-          <button type="submit" className="h-11 px-6 rounded-full bg-foreground text-background text-[14px] font-medium inline-flex items-center gap-1.5">
-            <Scale className="h-4 w-4" /> 提交调解申请
-          </button>
-        </form>
+        <MediateForm />
       </Container>
     </>
   );
