@@ -1,7 +1,7 @@
 import Link from "next/link";
 import {
   ExternalLink, Sparkles, AlertCircle, ChevronRight,
-  Phone, FileCheck2,
+  Phone, FileCheck2, Eye, Globe2, Pencil,
 } from "lucide-react";
 import { EnterpriseShell } from "@/components/dashboard/shell";
 import { StatCard, Panel } from "@/components/dashboard/widgets";
@@ -61,11 +61,26 @@ export default async function EnterpriseDashboard() {
             rel="noreferrer"
             className="h-9 px-4 rounded-full bg-foreground text-background text-[13px] font-medium inline-flex items-center gap-1.5 active:scale-95 transition-transform"
           >
-            打开子站 <ExternalLink className="h-3.5 w-3.5" />
+            <Eye className="h-3.5 w-3.5" /> 业主视角看子站 <ExternalLink className="h-3.5 w-3.5" />
           </a>
         </>
       }
     >
+      {/* 我的对外门面：上接协会 / 本页是后台 / 下接业主看到的子站 */}
+      <div className="mb-5 rounded-2xl border border-cat-build/30 bg-cat-build-soft/40 p-4 flex flex-col md:flex-row md:items-center gap-3 md:justify-between">
+        <div className="flex items-start gap-3 min-w-0">
+          <span className="h-10 w-10 rounded-xl bg-cat-build text-white inline-flex items-center justify-center shrink-0"><Globe2 className="h-5 w-5" /></span>
+          <div className="min-w-0">
+            <div className="text-[14px] font-semibold">这里是经营后台 · 你的对外门面是子站</div>
+            <div className="text-[12px] text-muted-foreground mt-0.5">业主在 <code className="font-mono text-foreground">{slug}.xyjzxh.com</code> 看到的就是你的子站。常以业主视角预览,体验真实感官。</div>
+          </div>
+        </div>
+        <div className="flex gap-2 shrink-0">
+          <a href={`/biz/${slug}`} target="_blank" rel="noreferrer" className="h-9 px-4 rounded-full bg-foreground text-background text-[12px] font-medium inline-flex items-center gap-1.5"><Eye className="h-3.5 w-3.5" /> 业主视角预览</a>
+          <Link href="/dashboard/enterprise/site" className="h-9 px-4 rounded-full border border-border bg-background text-[12px] font-medium inline-flex items-center gap-1.5"><Pencil className="h-3.5 w-3.5" /> 编辑子站</Link>
+        </div>
+      </div>
+
       {/* 紧急提醒条 */}
       <div className="mb-5 rounded-2xl bg-gradient-to-r from-cat-decor to-[#e6531f] text-white p-4 flex items-center gap-3 shadow-md">
         <span className="relative h-9 w-9 rounded-xl bg-white/20 inline-flex items-center justify-center shrink-0">
