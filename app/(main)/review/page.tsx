@@ -23,10 +23,11 @@ function fmtDate(ts: number) {
 
 export default async function ReviewsHubPage({ searchParams }: { searchParams: Promise<{ posted?: string }> }) {
   const { posted } = await searchParams;
-  const total = 12640;
-  const avg = 4.8;
+  const allRv = listReviews(500);
+  const total = allRv.length;
+  const avg = allRv.length ? Number((allRv.reduce((a, r) => a + r.rating, 0) / allRv.length).toFixed(1)) : 4.8;
 
-  const realItems = listReviews(20).map((r) => ({
+  const realItems = allRv.slice(0, 20).map((r) => ({
     id: `db${r.id}`,
     user: maskName(r.user),
     enterprise: r.enterprise,

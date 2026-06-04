@@ -36,6 +36,7 @@ export default async function ConsumerHome() {
   const session = await getSession();
   // 首页口碑：取真实评价（评分高者优先,展示企业归属,姓名脱敏）
   const rvStat = listReviews(500);
+  const rvCount = rvStat.length;
   const rvAvg = rvStat.length ? (rvStat.reduce((a, r) => a + r.rating, 0) / rvStat.length) : 4.8;
   const homeReviews = [...rvStat].filter((r) => r.content && r.content.length > 8).sort((a, b) => b.rating - a.rating || b.createdAt - a.createdAt).slice(0, 6);
   const customer = session?.role === "customer" ? session : null;
@@ -101,7 +102,7 @@ export default async function ConsumerHome() {
           <div className="max-w-3xl">
             <div className="inline-flex items-center gap-1.5 rounded-full bg-background border border-border px-3 py-1 text-[11px] mb-6 shadow-sm">
               <Badge tone="decor" className="!px-2 !py-0">协会担保</Badge>
-              <span className="text-muted-foreground">1,052 家认证企业 · 32.4 万业主已保护</span>
+              <span className="text-muted-foreground">协会会员单位 1,052 家 · 守护 32.4 万业主</span>
             </div>
             <h1 className="text-[36px] sm:text-[44px] md:text-[68px] font-semibold tracking-tight leading-[1.05] sm:leading-[1.02]">
               在信阳找装修<br className="hidden sm:block" />
@@ -286,7 +287,7 @@ export default async function ConsumerHome() {
           <div className="flex items-end justify-between mb-6 md:mb-10 gap-4 flex-col md:flex-row">
             <div>
               <div className="text-[12px] tracking-[0.2em] text-cat-design uppercase font-medium">REVIEWS · 真实评价</div>
-              <h2 className="mt-2 text-[28px] md:text-[44px] font-semibold tracking-tight leading-tight">12,640 位业主<br className="md:hidden" />给出 <span className="text-cat-decor">{rvAvg.toFixed(1)} ★</span></h2>
+              <h2 className="mt-2 text-[28px] md:text-[44px] font-semibold tracking-tight leading-tight">{rvCount} 条真实评价<br className="md:hidden" />平均 <span className="text-cat-decor">{rvAvg.toFixed(1)} ★</span></h2>
             </div>
             <Link href="/review" className="text-[13px] text-brand">所有评价 →</Link>
           </div>
