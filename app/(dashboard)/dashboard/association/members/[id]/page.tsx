@@ -5,8 +5,9 @@ import { Badge } from "@/components/ui/badge";
 import { getApplication } from "@/lib/data/applications";
 import { reviewApplicationAction, verifyIdentityAction } from "../actions";
 import { Materials } from "./materials";
+import { PrintBar, Letterhead, DocTable, SealFooter } from "@/components/print/print-doc";
 
-export const metadata = { title: "入会申请详情 · 协会工作台" };
+export const metadata = { title: "入会申请审批 · 协会工作台" };
 
 const TYPE_LABEL: Record<string, string> = { enterprise: "企业会员", individual: "个人会员", customer: "业主" };
 const FIELD_LABEL: Record<string, string> = {
@@ -42,6 +43,12 @@ function fmtTime(ms: number) {
   const d = new Date(ms);
   const p = (n: number) => String(n).padStart(2, "0");
   return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}`;
+}
+function fmtDay(ms: number) {
+  if (!ms) return "—";
+  const d = new Date(ms);
+  const p = (n: number) => String(n).padStart(2, "0");
+  return `${d.getFullYear()} 年 ${p(d.getMonth() + 1)} 月 ${p(d.getDate())} 日`;
 }
 
 export default async function ApplicationDetail({ params }: { params: Promise<{ id: string }> }) {
@@ -84,8 +91,11 @@ export default async function ApplicationDetail({ params }: { params: Promise<{ 
   const VIcon = vm.icon;
 
   return (
-    <AssociationShell title="入会申请详情" subtitle={`${app.applicant} · ${TYPE_LABEL[app.type] ?? app.type}`}>
+    <AssociationShell title="入会申请审批" subtitle={`${app.applicant} · ${TYPE_LABEL[app.type] ?? app.type}`}>
+      {/* 屏幕交互工作台（打印时隐藏） */}
+      <div className="no-print">
       <Link href="/dashboard/association/members" className="inline-flex items-center gap-1.5 text-[13px] text-muted-foreground hover:text-foreground mb-4"><ArrowLeft className="h-3.5 w-3.5" /> 返回列表</Link>
+      {app.type !== "customer" && <PrintBar hint="打印『入会申请审批表』A4，可直接打印或另存 PDF 存档。" />}
 
       <div className="rounded-2xl border border-border bg-background overflow-hidden">
         <div className="px-5 py-4 border-b border-border flex items-center justify-between gap-3 flex-wrap">
@@ -181,6 +191,35 @@ export default async function ApplicationDetail({ params }: { params: Promise<{ 
         </div>
       ) : (
         <div className="mt-5 inline-flex items-center gap-1.5 text-[13px] text-muted-foreground"><ShieldCheck className="h-4 w-4 text-accent-tea" /> 该申请已{statusLabel}。</div>
+      )}
+      </div>
+
+      {/* A4 入会申请审批表（仅打印 / 另存 PDF） */}
+      {app.type !== "customer" && (
+        <div className="print-area print-only">
+          <div className="a4-sheet">
+            <Letterhead title="入会申请审批表" docNo={`XYJZ-RH-${String(app.id).padStart(4, "0")}`} date={fmtDay(app.createdAt)} />
+            <DocTable
+              rows={[
+                { k: "会员类型", v: TYPE_LABEL[app.type] ?? app.type },
+                { k: "申请人", v: app.applicant },
+                { k: "联系电话", v: app.phone },
+                ...realnameRows.map(([k, v]) => ({ k, v })),
+                ...basicRows.filter(([k]) => k !== "申请编号" && k !== "申请时间").map(([k, v]) => ({ k, v })),
+                { k: "实名核验", v: `${vm.label}${app.idVerifyBy ? ` · 核验人 ${app.idVerifyBy} · ${fmtTime(app.idVerifyAt)}` : ""}` },
+                { k: "受理状态", v: statusLabel },
+                { k: "申请时间", v: fmtTime(app.createdAt) },
+              ]}
+            />
+            <div className="mt-6">
+              <div className="text-[13px] font-medium mb-2">审批意见</div>
+              <div className="border border-[#ccc] min-h-[110px] p-3 text-[13px] leading-7 text-muted-foreground">
+                {app.status === "approved" ? "（材料齐全、实名核验通过，准予入会，已入册。）" : app.status === "rejected" ? "（不符合入会条件 / 材料不齐，未予通过，已告知申请人。）" : ""}
+              </div>
+            </div>
+            <SealFooter lines={[{ label: "经办人（签字）" }, { label: "审核人（签字）" }, { label: "秘书长（签字）" }, { label: "协会（盖章）" }]} />
+          </div>
+        </div>
       )}
     </AssociationShell>
   );

@@ -195,6 +195,8 @@ html, body {
   padding: 18mm 16mm;
   box-shadow: 0 1px 3px rgba(0,0,0,.08), 0 8px 30px rgba(0,0,0,.06);
 }
+/* 仅打印显示（屏幕隐藏）——用于"屏幕交互工作台 + 打印另出公文"的页面 */
+.print-only { display: none; }
 @page { size: A4; margin: 14mm; }
 @media print {
   html, body { background: #fff !important; }
@@ -202,6 +204,7 @@ html, body {
   body * { visibility: hidden !important; }
   .print-area, .print-area * { visibility: visible !important; }
   .print-area { position: absolute; left: 0; top: 0; width: 100%; }
+  .print-only { display: block !important; }
   .no-print { display: none !important; }
   /* 打印时纸张铺满、去掉屏显的阴影与外边距 */
   .a4-sheet { width: 100%; min-height: auto; margin: 0; padding: 0; box-shadow: none; }

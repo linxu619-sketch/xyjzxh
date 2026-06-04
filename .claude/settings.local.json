@@ -172,7 +172,11 @@
       "Bash(grep -nA6 \"export const PRACTITIONER_JOBS\" lib/data/practitioners.ts)",
       "Bash(grep -nA5 \"export const WORKER_INSURANCE\" lib/data/practitioners.ts)",
       "Bash(grep -nA18 \"function seedMediations\" lib/db/sqlite.ts)",
-      "Bash(grep -o '@media print{[^@]\\\\{0,500\\\\}' /tmp/chunk.css)"
+      "Bash(grep -o '@media print{[^@]\\\\{0,500\\\\}' /tmp/chunk.css)",
+      "Bash(grep -oc 'print\\\\\\\\:hidden' /tmp/c3.css)",
+      "Bash(grep -oc 'print\\\\\\\\:block' /tmp/c3.css)",
+      "Bash(grep -o 'print\\\\\\\\:hidden[^}]*}' /tmp/c3.css)",
+      "Bash(grep -o 'print\\\\\\\\:block[^}]*}' /tmp/c3.css)"
     ]
   }
 }
