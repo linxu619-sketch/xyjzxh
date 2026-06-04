@@ -15,7 +15,7 @@ const ST_LABEL: Record<AccountStatus, string> = { active: "正常", pending: "�
 const ST_TONE: Record<AccountStatus, "tea" | "yellow" | "decor"> = { active: "tea", pending: "yellow", rejected: "decor" };
 const ROLE_LABEL: Record<string, string> = { enterprise: "企业会员", individual: "个人会员", customer: "业主" };
 const ROLE_ICON: Record<string, React.ComponentType<{ className?: string }>> = { enterprise: Building2, individual: UserRound, customer: Users2 };
-function mask(p: string) { return p && p.length === 11 ? `${p.slice(0, 3)}****${p.slice(-4)}` : p; }
+function mask(p: string) { return p; }  // 用户管理显示完整手机号
 function fmt(ms: number) { if (!ms) return "—"; const d = new Date(ms); const p = (n: number) => String(n).padStart(2, "0"); return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}`; }
 
 export const metadata = { title: "用户详情 · 协会工作台" };

@@ -9,7 +9,7 @@ import { roleLabel, roleTone, permissionsOf, PERMISSIONS, STAFF_ROLES, ROLE_KEYS
 
 export const metadata = { title: "工作人员详情 · 协会工作台" };
 
-function mask(p: string) { return p && p.length === 11 ? `${p.slice(0, 3)}****${p.slice(-4)}` : p; }
+function mask(p: string) { return p; }  // 用户管理显示完整手机号
 
 export default async function StaffDetail({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
