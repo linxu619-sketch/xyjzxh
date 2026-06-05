@@ -76,43 +76,51 @@ export default async function TenantHome({ params }: { params: Promise<{ tenant:
 function StandardTemplate({ e, tenant, cases, team, reviews }: TplProps) {
   const services = SERVICES[e.category] ?? SERVICES.decor;
   const catLabel = e.category === "build" ? "建筑企业" : e.category === "decor" ? "装修企业" : "设计企业";
+  const heroImg = cases[0]?.cover;
 
   return (
     <div className="overflow-x-hidden">
-      {/* HERO — 紧凑 */}
-      <section className={cn("relative overflow-hidden text-white py-8 md:py-12", BG[e.color])}>
-        <div className="absolute inset-0 opacity-30" style={{
-          backgroundImage: "radial-gradient(at 10% 10%, rgba(255,255,255,0.35) 0px, transparent 50%), radial-gradient(at 90% 80%, rgba(0,0,0,0.3) 0px, transparent 50%)",
-        }} />
-        <div className="absolute -right-16 -top-16 h-64 w-64 md:h-96 md:w-96 rounded-full bg-white/10 blur-2xl" />
-        <Container className="relative">
-          <div className="flex items-center gap-2 mb-3 flex-wrap text-[11px]">
-            <Badge className="!bg-white/20 !text-white !border-0">{catLabel}</Badge>
-            <span className="inline-flex items-center gap-1 rounded-full bg-accent-yellow text-foreground px-2 py-0.5 font-semibold">★ {e.rating.toFixed(1)} · {e.reviews}</span>
-            <span className="inline-flex items-center gap-1 rounded-full bg-white/15 px-2 py-0.5"><ShieldCheck className="h-3 w-3" /> 协会认证</span>
-          </div>
-          <h1 className="text-[24px] sm:text-[34px] md:text-[46px] font-semibold tracking-tight leading-[1.12] max-w-3xl break-words">
-            {e.hero.tagline}
-          </h1>
-          <p className="mt-2.5 text-[13px] sm:text-[15px] text-white/85 max-w-xl leading-6">{e.short}</p>
+      {/* HERO — 照片导向（企业最佳案例做整屏主视觉） */}
+      <section className="relative overflow-hidden text-white">
+        <div className="relative min-h-[400px] sm:min-h-[460px] md:min-h-[540px] flex items-end">
+          {heroImg ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={heroImg} alt={e.name} className="absolute inset-0 h-full w-full object-cover" />
+          ) : (
+            <div className={cn("absolute inset-0", BG[e.color])} />
+          )}
+          {/* 暗渐变压底，保证文字可读 */}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/45 to-black/20" />
 
-          <div className="mt-5 flex flex-wrap gap-2.5">
-            <Link href={`/biz/${tenant}/order`} className="inline-flex items-center justify-center gap-1.5 h-11 px-5 rounded-full bg-white text-foreground text-[14px] font-medium hover:bg-accent-yellow transition-colors active:scale-[0.99]">
-              立即下单 / 预约 <ArrowRight className="h-4 w-4" />
-            </Link>
-            <Link href={`/biz/${tenant}/inquiry`} className="inline-flex items-center justify-center gap-1.5 h-11 px-4 rounded-full border border-white/40 text-white text-[14px] hover:bg-white/10">
-              <MessageSquareText className="h-4 w-4" /> 先咨询
-            </Link>
-          </div>
+          <Container className="relative w-full pb-8 md:pb-12 pt-24">
+            <div className="flex items-center gap-2 mb-3 flex-wrap text-[11px]">
+              <span className="inline-flex items-center rounded-full bg-white/15 backdrop-blur px-2.5 py-0.5">{catLabel}</span>
+              <span className="inline-flex items-center gap-1 rounded-full bg-accent-yellow text-foreground px-2 py-0.5 font-semibold">★ {e.rating.toFixed(1)} · {e.reviews}</span>
+              <span className="inline-flex items-center gap-1 rounded-full bg-white/15 backdrop-blur px-2 py-0.5"><ShieldCheck className="h-3 w-3" /> 协会认证</span>
+            </div>
+            <h1 className="text-[28px] sm:text-[38px] md:text-[52px] font-semibold tracking-tight leading-[1.08] max-w-3xl break-words drop-shadow-sm">
+              {e.hero.tagline}
+            </h1>
+            <p className="mt-3 text-[13px] sm:text-[15px] text-white/85 max-w-xl leading-6">{e.short}</p>
 
-          {/* 指标 · 紧凑一行 */}
-          <div className="mt-6 grid grid-cols-4 gap-3 pt-5 border-t border-white/15 max-w-xl">
-            <Metric label="评分" value={e.rating.toFixed(1)} />
-            <Metric label="案例" value={`${e.cases}`} />
-            <Metric label="成立" value={`${e.founded}`} />
-            <Metric label="规模" value={e.staff.split(" ")[0]} />
-          </div>
-        </Container>
+            <div className="mt-6 flex flex-wrap gap-2.5">
+              <Link href={`/biz/${tenant}/order`} className="inline-flex items-center justify-center gap-1.5 h-11 px-5 rounded-full bg-white text-foreground text-[14px] font-medium hover:bg-accent-yellow transition-colors active:scale-[0.99]">
+                立即下单 / 预约 <ArrowRight className="h-4 w-4" />
+              </Link>
+              <Link href={`/biz/${tenant}/inquiry`} className="inline-flex items-center justify-center gap-1.5 h-11 px-4 rounded-full border border-white/50 text-white text-[14px] hover:bg-white/10 backdrop-blur">
+                <MessageSquareText className="h-4 w-4" /> 先咨询
+              </Link>
+            </div>
+
+            {/* 指标 · 紧凑一行 */}
+            <div className="mt-7 grid grid-cols-4 gap-3 pt-5 border-t border-white/20 max-w-xl">
+              <Metric label="评分" value={e.rating.toFixed(1)} />
+              <Metric label="案例" value={`${e.cases}`} />
+              <Metric label="成立" value={`${e.founded}`} />
+              <Metric label="规模" value={e.staff.split(" ")[0]} />
+            </div>
+          </Container>
+        </div>
       </section>
 
       {/* 精选案例 — 内容优先 */}
