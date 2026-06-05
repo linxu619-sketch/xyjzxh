@@ -202,6 +202,11 @@ function EnterpriseFields({ f, set, setFile }: FU) {
         <Field label="主营地区"><input className={INPUT} placeholder="如 浉河区" value={f.region ?? ""} onChange={(e) => set("region", e.target.value)} /></Field>
       </div>
 
+      <Field label="公司简介">
+        <textarea rows={3} className="w-full rounded-xl border border-border bg-background px-3.5 py-2.5 text-[14px] leading-6 outline-none focus:border-foreground/30" placeholder="如：深耕信阳家装 12 年，擅长现代极简整装，主材环保 E0、施工全程协会监管…" value={f.entIntro ?? ""} onChange={(e) => set("entIntro", e.target.value)} />
+        <div className="mt-1.5 text-[11px] text-muted-foreground">一两句到一段，介绍主营业务、优势与代表项目 —— 通过后用于企业子站展示与协会认证页。</div>
+      </Field>
+
       <div className="pt-2 space-y-4">
         <div className="text-[13px] font-semibold">资质材料</div>
         <div className="flex flex-wrap gap-4">
@@ -228,6 +233,11 @@ function PractitionerFields({ f, set, setFile }: FU) {
         <Field label="身份证号" required><input className={INPUT} placeholder="18 位" value={f.idcard ?? ""} onChange={(e) => set("idcard", e.target.value)} /></Field>
         <Field label="从业年限"><input type="number" className={INPUT} placeholder="例：8" value={f.years ?? ""} onChange={(e) => set("years", e.target.value)} /></Field>
       </div>
+
+      <Field label="个人简介">
+        <textarea rows={3} className="w-full rounded-xl border border-border bg-background px-3.5 py-2.5 text-[14px] leading-6 outline-none focus:border-foreground/30" placeholder="如：8 年室内设计经验，擅长现代极简与原木风，代表作品金茂悦府、御景湾别墅…" value={f.bio ?? ""} onChange={(e) => set("bio", e.target.value)} />
+        <div className="mt-1.5 text-[11px] text-muted-foreground">介绍专业方向、年限与代表作品 / 项目 —— 通过后用于个人主页与电子名片。</div>
+      </Field>
 
       <div className="pt-2 space-y-4">
         <div className="text-[13px] font-semibold">实名与资质材料</div>
