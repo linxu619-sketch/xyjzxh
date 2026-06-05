@@ -39,10 +39,10 @@ export default function ProjectsPage() {
       <Container className="py-10">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
           {[
-            { l: "本月报备", v: "187", c: "build" },
-            { l: "一次通过率", v: "82%", c: "tea" },
-            { l: "平均审批", v: "≤24h", c: "brand" },
-            { l: "已购履约险", v: "63%", c: "decor" },
+            { l: "报备方式", v: "省厅直连", c: "build" },
+            { l: "AI 预审", v: "查漏补缺", c: "tea" },
+            { l: "审批时效", v: "≤24h", c: "brand" },
+            { l: "资金保障", v: "可购履约险", c: "decor" },
           ].map((s) => (
             <div key={s.l} className="rounded-2xl border border-border bg-background p-5">
               <div className="text-[11px] text-muted-foreground tracking-wider uppercase">{s.l}</div>

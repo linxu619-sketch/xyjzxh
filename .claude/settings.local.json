@@ -238,7 +238,11 @@
       "Bash(xargs echo \"底栏「设置」出现:\")",
       "Bash(xargs echo \"返回首页链接:\")",
       "Bash(xargs echo 'href=\"/\" 出现次数:')",
-      "Bash(xargs echo \"advisor 估价表单元素\\(应0\\):\")"
+      "Bash(xargs echo \"advisor 估价表单元素\\(应0\\):\")",
+      "Bash(sed -n '128,136p' \"app/\\(main\\)/page.tsx\")",
+      "Bash(sed -n '38,48p' \"app/\\(main\\)/projects/page.tsx\")",
+      "Bash(sed -n '78,84p' \"app/\\(main\\)/practitioners/page.tsx\")",
+      "Bash(sed -n '174,182p' \"app/\\(main\\)/practitioners/page.tsx\")"
     ]
   }
 }

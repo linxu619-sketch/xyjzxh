@@ -76,10 +76,10 @@ export default function PractitionersLanding() {
         {/* 数字墙 */}
         <div className="mt-14 rounded-3xl bg-foreground text-background p-8 md:p-10 grid grid-cols-2 md:grid-cols-4 gap-6">
           {[
-            { l: "在册从业者", v: "4,862",  c: "text-accent-yellow" },
-            { l: "本月新增", v: "+182",    c: "text-cat-decor" },
-            { l: "本月开工伤险", v: "1.2 万人/天", c: "text-cat-design" },
-            { l: "调解结案率", v: "96%",    c: "text-accent-tea" },
+            { l: "工伤险", v: "5 元/天起",  c: "text-accent-yellow" },
+            { l: "欠薪保函", v: "先垫付",    c: "text-cat-decor" },
+            { l: "在线找活", v: "实时推送", c: "text-cat-design" },
+            { l: "纠纷调解", v: "协会兜底",    c: "text-accent-tea" },
           ].map((s) => (
             <div key={s.l}>
               <div className="text-[10px] tracking-[0.2em] text-background/60 uppercase">{s.l}</div>
@@ -172,12 +172,11 @@ export default function PractitionersLanding() {
             </div>
           </div>
           <div className="rounded-2xl bg-white/5 p-6">
-            <div className="text-[11px] tracking-wider text-background/60 uppercase">本月 AI 服务从业者</div>
-            <div className="mt-1 text-[40px] font-semibold tracking-tight text-accent-yellow">2,840 次</div>
-            <ul className="mt-3 space-y-1 text-[11px] text-background/70">
-              <li>· 找活匹配 1,420 次</li>
-              <li>· 简历优化 624 次</li>
-              <li>· 欠薪 / 工伤申诉草拟 286 次</li>
+            <div className="text-[11px] tracking-wider text-background/60 uppercase">AI 小才能帮你</div>
+            <ul className="mt-3 space-y-1.5 text-[12px] text-background/80">
+              <li>· 按工种 / 地区找活匹配</li>
+              <li>· 简历 / 个人资料优化</li>
+              <li>· 欠薪 / 工伤申诉文书草拟</li>
             </ul>
           </div>
         </div>
