@@ -1,6 +1,6 @@
 import Link from "next/link";
 import {
-  ShieldCheck, ArrowRight, Building2, Award, TrendingUp, Sparkles,
+  ShieldCheck, ArrowRight, ArrowUpRight, Building2, Award, TrendingUp, Sparkles,
   UserRound, Hammer, GraduationCap, Umbrella, IdCard, Briefcase,
 } from "lucide-react";
 import { Container } from "@/components/container";
@@ -13,12 +13,12 @@ type MemberType = "enterprise" | "individual";
 
 const ENTERPRISE = {
   benefits: [
-    { icon: Building2, title: "二级域名子站", desc: "yourbrand.xyjzxh.com 独立品牌页 + 在线接单" },
-    { icon: ShieldCheck, title: "协会认证", desc: "在册即获认证徽章，提升业主信任与转化" },
-    { icon: TrendingUp, title: "平台曝光", desc: "首页推荐位、AI 主动匹配、案例与口碑展示" },
-    { icon: Award, title: "金融保险优惠", desc: "建装贷专属费率、消费险联合品牌" },
-    { icon: Sparkles, title: "10 位 AI 员工", desc: "客服、估价、报备、调解 24h 在线" },
-    { icon: Building2, title: "工装报备直通", desc: "省厅一网通办、AI 预审、24h 反馈" },
+    { icon: Building2, title: "二级域名子站", desc: "yourbrand.xyjzxh.com 独立品牌页 + 在线接单", href: "/tenant" },
+    { icon: ShieldCheck, title: "协会认证", desc: "在册即获认证徽章，提升业主信任与转化", href: "/members" },
+    { icon: TrendingUp, title: "平台曝光", desc: "首页推荐位、AI 主动匹配、案例与口碑展示", href: "/members" },
+    { icon: Award, title: "金融保险优惠", desc: "建装贷专属费率、消费险联合品牌", href: "/finance" },
+    { icon: Sparkles, title: "10 位 AI 员工", desc: "客服、估价、报备、调解 24h 在线", href: "/ai" },
+    { icon: Building2, title: "工装报备直通", desc: "省厅一网通办、AI 预审、24h 反馈", href: "/projects" },
   ],
   steps: [
     { n: 1, t: "在线提交申请", d: "填写企业基本信息 + 上传资质文件，约 8 分钟。" },
@@ -41,12 +41,12 @@ const ENTERPRISE = {
 
 const INDIVIDUAL = {
   benefits: [
-    { icon: IdCard, title: "个人主页 / 电子名片", desc: "协会认证的专业个人主页，作品与资质一页展示" },
-    { icon: ShieldCheck, title: "专业认证徽章", desc: "经协会认定的设计师 / 监理 / 项目经理身份背书" },
-    { icon: Briefcase, title: "接单与项目对接", desc: "对接会员企业用工与项目，承接设计 / 管理委托" },
-    { icon: Umbrella, title: "工伤 / 意外保险", desc: "个人会员专属意外险与工伤保障，费率优惠" },
-    { icon: GraduationCap, title: "培训与继续教育", desc: "规范、新工艺、资格继续教育，培训报名优先" },
-    { icon: Sparkles, title: "AI 助手", desc: "小知（知识库）、小才（招聘匹配）等 24h 在线" },
+    { icon: IdCard, title: "个人主页 / 电子名片", desc: "协会认证的专业个人主页，作品与资质一页展示", href: "/talents" },
+    { icon: ShieldCheck, title: "专业认证徽章", desc: "经协会认定的设计师 / 监理 / 项目经理身份背书", href: "/talents" },
+    { icon: Briefcase, title: "接单与项目对接", desc: "对接会员企业用工与项目，承接设计 / 管理委托", href: "/practitioners" },
+    { icon: Umbrella, title: "工伤 / 意外保险", desc: "个人会员专属意外险与工伤保障，费率优惠", href: "/insurance" },
+    { icon: GraduationCap, title: "培训与继续教育", desc: "规范、新工艺、资格继续教育，培训报名优先", href: "/talents" },
+    { icon: Sparkles, title: "AI 助手", desc: "小知（知识库）、小才（招聘匹配）等 24h 在线", href: "/ai" },
   ],
   steps: [
     { n: 1, t: "在线提交申请", d: "填写实名信息、专业 / 工种、从业年限，约 5 分钟。" },
@@ -107,42 +107,43 @@ export default async function JoinPage({ searchParams }: { searchParams: Promise
           <h2 className="text-[22px] md:text-[28px] font-semibold tracking-tight">
             {isEnt ? "企业会员权益" : "个人会员权益"}
           </h2>
-          <div className="mt-5 rounded-3xl border border-border bg-background p-5 md:p-6 grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4">
+          <div className="mt-5 rounded-3xl border border-border bg-background p-3 md:p-4 grid grid-cols-1 sm:grid-cols-2 gap-1">
             {data.benefits.map((b) => {
               const Icon = b.icon;
               return (
-                <div key={b.title} className="flex items-start gap-3">
+                <Link key={b.title} href={b.href} className="group flex items-start gap-3 rounded-2xl p-2.5 hover:bg-surface/60 transition-colors">
                   <span className="inline-flex h-9 w-9 rounded-xl items-center justify-center bg-brand-50 text-brand shrink-0">
                     <Icon className="h-4 w-4" />
                   </span>
-                  <div className="min-w-0">
-                    <div className="text-[14px] font-semibold tracking-tight">{b.title}</div>
+                  <div className="min-w-0 flex-1">
+                    <div className="text-[14px] font-semibold tracking-tight inline-flex items-center gap-1 group-hover:text-brand transition-colors">
+                      {b.title}
+                      <ArrowUpRight className="h-3 w-3 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+                    </div>
                     <div className="mt-0.5 text-[12px] text-muted-foreground leading-5">{b.desc}</div>
                   </div>
-                </div>
+                </Link>
               );
             })}
           </div>
+          <p className="mt-2 px-1 text-[11px] text-muted-foreground">点任一权益可查看对应功能页。</p>
         </section>
 
-        {/* 申请流程 */}
-        <section className="mt-16">
-          <div className="text-[12px] tracking-[0.2em] text-brand uppercase font-medium">PROCESS</div>
-          <h2 className="mt-3 text-[26px] md:text-[32px] font-semibold tracking-tight">申请流程</h2>
-          <div className="mt-8 relative grid grid-cols-1 md:grid-cols-4 gap-4">
-            {data.steps.map((s, i) => (
-              <div key={s.n} className="relative">
-                <div className="rounded-3xl bg-background border border-border p-6 h-full">
-                  <div className="text-[42px] font-semibold tracking-tight text-brand leading-none">0{s.n}</div>
-                  <div className="mt-4 text-[16px] font-semibold">{s.t}</div>
-                  <div className="mt-1.5 text-[13px] text-muted-foreground leading-6">{s.d}</div>
+        {/* 申请流程 —— 紧凑两列 */}
+        <section className="mt-10 md:mt-12">
+          <h2 className="text-[22px] md:text-[28px] font-semibold tracking-tight">申请流程</h2>
+          <div className="mt-5 rounded-3xl border border-border bg-background p-3 md:p-4 grid grid-cols-1 sm:grid-cols-2 gap-1">
+            {data.steps.map((s) => (
+              <div key={s.n} className="flex items-start gap-3 p-2.5">
+                <span className="h-8 w-8 rounded-full bg-brand-50 text-brand text-[13px] font-semibold inline-flex items-center justify-center shrink-0 tabular-nums">{s.n}</span>
+                <div className="min-w-0">
+                  <div className="text-[14px] font-semibold">{s.t}</div>
+                  <div className="mt-0.5 text-[12px] text-muted-foreground leading-5">{s.d}</div>
                 </div>
-                {i < data.steps.length - 1 && (
-                  <ArrowRight className="hidden md:block absolute -right-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                )}
               </div>
             ))}
           </div>
+          <Link href={data.registerHref} className="mt-3 inline-flex items-center gap-1.5 text-[13px] text-brand hover:gap-2 transition-all">现在就提交申请 <ArrowRight className="h-3.5 w-3.5" /></Link>
         </section>
 
         {/* 所需材料 */}

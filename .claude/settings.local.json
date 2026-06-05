@@ -243,7 +243,8 @@
       "Bash(sed -n '38,48p' \"app/\\(main\\)/projects/page.tsx\")",
       "Bash(sed -n '78,84p' \"app/\\(main\\)/practitioners/page.tsx\")",
       "Bash(sed -n '174,182p' \"app/\\(main\\)/practitioners/page.tsx\")",
-      "Bash(xargs echo \"字体 preload 链接数\\(应0\\):\")"
+      "Bash(xargs echo \"字体 preload 链接数\\(应0\\):\")",
+      "Bash(xargs echo \"申请流程标题:\")"
     ]
   }
 }
