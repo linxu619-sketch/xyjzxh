@@ -237,7 +237,8 @@
       "Bash(xargs echo \"首页指向设置的链接数\\(应0\\):\")",
       "Bash(xargs echo \"底栏「设置」出现:\")",
       "Bash(xargs echo \"返回首页链接:\")",
-      "Bash(xargs echo 'href=\"/\" 出现次数:')"
+      "Bash(xargs echo 'href=\"/\" 出现次数:')",
+      "Bash(xargs echo \"advisor 估价表单元素\\(应0\\):\")"
     ]
   }
 }

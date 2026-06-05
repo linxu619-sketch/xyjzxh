@@ -73,6 +73,10 @@ export function ChatWindow({
   ]);
   const [input, setInput] = useState("");
   const [pending, setPending] = useState(false);
+  // 估价快捷表单(仅 AI 小装 / decor 冷进时)
+  const [estArea, setEstArea] = useState("");
+  const [estBudget, setEstBudget] = useState("");
+  const [estStyle, setEstStyle] = useState("现代极简");
   // 「把需求发给企业」留资
   const [leadOpen, setLeadOpen] = useState(false);
   const [leadName, setLeadName] = useState("");
@@ -327,10 +331,48 @@ export function ChatWindow({
             <div ref={endRef} />
           </div>
 
+          {/* 估价快捷表单 — 仅 AI 小装(decor)且未开聊时 */}
+          {messages.length <= 1 && aiKey === "decor" && (
+            <div className="mt-6 md:mt-8 rounded-2xl border border-border bg-background p-4 md:p-5">
+              <div className="text-[13px] font-semibold inline-flex items-center gap-1.5"><Sparkles className="h-4 w-4 text-cat-decor" /> 30 秒估价</div>
+              <p className="mt-1 text-[12px] text-muted-foreground">填几项，小装帮你粗算造价 + 匹配 2-3 家协会企业。</p>
+              <div className="mt-3 grid grid-cols-2 gap-2">
+                <input value={estArea} onChange={(e) => setEstArea(e.target.value.replace(/\D/g, "").slice(0, 4))} inputMode="numeric" placeholder="面积 ㎡" className="h-11 rounded-xl border border-border bg-background px-3 text-[14px] outline-none focus:border-foreground/30" />
+                <input value={estBudget} onChange={(e) => setEstBudget(e.target.value.replace(/\D/g, "").slice(0, 4))} inputMode="numeric" placeholder="预算 万" className="h-11 rounded-xl border border-border bg-background px-3 text-[14px] outline-none focus:border-foreground/30" />
+              </div>
+              <div className="mt-2 -mx-1 px-1 flex gap-1.5 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                {["现代极简", "新中式", "原木", "北欧", "美式", "不限"].map((s) => (
+                  <button
+                    key={s}
+                    type="button"
+                    onClick={() => setEstStyle(s)}
+                    className={cn(
+                      "shrink-0 h-9 px-3.5 rounded-full text-[13px] border transition-colors",
+                      estStyle === s ? "bg-foreground text-background border-foreground" : "border-border text-muted-foreground hover:border-foreground/30",
+                    )}
+                  >
+                    {s}
+                  </button>
+                ))}
+              </div>
+              <button
+                onClick={() => {
+                  const parts = [estArea && `${estArea}㎡`, estBudget && `预算 ${estBudget} 万`, estStyle !== "不限" && `偏好 ${estStyle}`].filter(Boolean);
+                  send(parts.length
+                    ? `我想装修：${parts.join(" · ")}。请帮我粗算造价区间，并推荐 2-3 家协会认证企业。`
+                    : "帮我做个装修估价，需要我提供哪些信息？");
+                }}
+                className="mt-3 w-full h-11 rounded-full bg-foreground text-background text-[14px] font-medium inline-flex items-center justify-center gap-1.5 hover:bg-brand transition-colors active:scale-[0.99]"
+              >
+                <Sparkles className="h-4 w-4 text-accent-yellow" /> 开始估价
+              </button>
+            </div>
+          )}
+
           {/* 建议问 — 仅未发送过任何消息时显示 */}
           {messages.length <= 1 && (
-            <div className="mt-6 md:mt-8">
-              <div className="text-[12px] text-muted-foreground mb-2.5">试试这些问题</div>
+            <div className="mt-5 md:mt-6">
+              <div className="text-[12px] text-muted-foreground mb-2.5">{aiKey === "decor" ? "或直接问我" : "试试这些问题"}</div>
               <div className="flex flex-wrap gap-2">
                 {ai.suggested.map((s) => (
                   <button
