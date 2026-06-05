@@ -24,7 +24,7 @@ export function AiDock() {
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
-        className="hidden lg:inline-flex fixed bottom-7 right-7 z-50 items-center gap-2 h-14 px-5 rounded-full bg-foreground text-background shadow-[0_20px_50px_-12px_rgba(20,86,240,0.5)] hover:bg-brand transition-colors group"
+        className="hidden lg:inline-flex fixed bottom-7 right-7 z-50 items-center gap-2 h-14 px-5 rounded-full bg-foreground text-background shadow-[0_20px_50px_-12px_rgba(38,124,124,0.45)] hover:bg-brand transition-colors group"
         aria-label="打开 AI 助手"
       >
         <span className="relative inline-flex h-7 w-7 items-center justify-center rounded-full bg-accent-yellow text-foreground">
