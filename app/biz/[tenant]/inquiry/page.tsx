@@ -7,6 +7,7 @@ import {
 import { Container } from "@/components/container";
 import { Badge } from "@/components/ui/badge";
 import { getEnterpriseBySlugOrId } from "@/lib/data/enterprises-source";
+import { listCasesByEnterprise } from "@/lib/data/cases";
 import { submitInquiryLeadAction } from "./actions";
 import { cn } from "@/lib/cn";
 
@@ -19,13 +20,37 @@ const SOFT: Record<string, string> = {
   design: "bg-cat-design-soft text-cat-design",
 };
 
-const QUICK_QUESTIONS = [
-  "我家 120㎡ 预算 30 万够吗？",
-  "699 套餐含什么？",
-  "工期一般多久？",
-  "如何对比报价是否合理？",
-  "施工质保多少年？怎么理赔？",
-];
+// 按企业品类区分的快捷问题
+const QUICK_BY_CAT: Record<string, string[]> = {
+  decor: [
+    "我家 120㎡ 预算 30 万够吗？",
+    "整装套餐都含什么？",
+    "工期一般多久？",
+    "如何对比报价是否合理？",
+    "施工质保多少年？怎么理赔？",
+  ],
+  build: [
+    "承接哪些类型的工程？资质几级？",
+    "工装报备能帮忙代办吗？",
+    "工期与履约怎么保障？",
+    "造价咨询 / 招投标能做吗？",
+    "项目案例和业绩能看吗？",
+  ],
+  design: [
+    "设计费怎么收？出几版方案？",
+    "能做户型优化吗？",
+    "软装 / 施工图深化能做吗？",
+    "擅长哪些风格？",
+    "设计 + 施工能一体吗？",
+  ],
+};
+
+// 按品类区分的演示开场白
+const OPENING: Record<string, string> = {
+  decor: "请问您是想装修自住房还是商铺？大概多大面积、预算多少？",
+  build: "请问您的项目是哪一类（市政 / 公共建筑 / 住宅 / 厂房）？大致规模和工期要求是？",
+  design: "请问您想做哪类空间设计（住宅 / 商业 / 软装 / 景观）？面积和偏好风格是？",
+};
 
 export default async function InquiryPage({
   params, searchParams,
@@ -37,6 +62,14 @@ export default async function InquiryPage({
   const { ok, err } = await searchParams;
   const e = await getEnterpriseBySlugOrId(tenant);
   if (!e) notFound();
+
+  const quick = QUICK_BY_CAT[e.category] ?? QUICK_BY_CAT.decor;
+  const opening = OPENING[e.category] ?? OPENING.decor;
+  const firstCase = listCasesByEnterprise(e.id)[0];
+  const meExample =
+    e.category === "build" ? "市政道路改造，约 2 公里，想了解资质和工期"
+    : e.category === "design" ? "三居 120㎡，想做现代极简，需要全套设计方案"
+    : "三居 120㎡，预算 30 万，想要现代极简风";
 
   return (
     <Container className="py-6 md:py-12 max-w-5xl pb-28 md:pb-12">
@@ -106,25 +139,27 @@ export default async function InquiryPage({
             <Bubble side="them" name={e.hero.brand} color={e.color}>
               您好，我是 {e.hero.brand} 客户经理。<br />
               我看到您从协会主站进来。我们是协会认证企业，签约可同步获得 <b>消费保险</b> 和 <b>14 天协会调解</b>。<br />
-              请问您是想装修自住房还是商铺？
+              {opening}
             </Bubble>
 
-            <Bubble side="me">三居 120㎡，预算 30 万，想要现代极简风</Bubble>
+            <Bubble side="me">{meExample}</Bubble>
 
             <Bubble side="them" name={e.hero.brand} color={e.color}>
-              好的，参考案例：<a href={`/biz/${tenant}#cases`} className="text-brand underline">金茂悦府 1602</a> 户型相近。<br />
-              30 万预算可做整装中端：<br />
-              · 基装 ~1080 元/㎡ ≈ 13 万<br />
-              · 主材包 ≈ 11 万<br />
-              · 软装家电 ≈ 6 万<br />
-              要不要约设计师上门量房？免费的。
+              {firstCase ? (
+                <>好的，可参考我们的案例：<a href={`/biz/${tenant}/cases/${firstCase.id}`} className="text-brand underline">{firstCase.title}</a>。<br /></>
+              ) : null}
+              {e.category === "build"
+                ? <>建议提供图纸或规模，我们先出初步报价与工期评估；工装报备可代办，全程协会监管。要不要约现场踏勘？</>
+                : e.category === "design"
+                  ? <>通常提供 2 版方案，含户型优化、风格定位与软硬装统筹。要不要先约设计师沟通需求？免费的。</>
+                  : <>这个预算可做整装中端：基装 / 主材包 / 软装家电分项报价，透明可比。要不要约设计师上门量房？免费的。</>}
             </Bubble>
           </div>
 
           {/* 真实输入框 — 提交后跳 /ai/decor 自动开聊 */}
           <div className="mt-5 pt-5 border-t border-border">
             <div className="flex flex-wrap gap-1.5 mb-3">
-              {QUICK_QUESTIONS.map((q) => (
+              {quick.map((q) => (
                 <Link
                   key={q}
                   href={`/ai/decor?q=${encodeURIComponent(q)}`}
