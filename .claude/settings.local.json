@@ -181,7 +181,8 @@
       "Bash(grep -nA6 \"export const KNOWLEDGE_CATEGORIES\" lib/data/knowledge.ts)",
       "Bash(grep -nE \"[0-9]{3,}|份|篇|下载|阅读\" \"app/\\(main\\)/knowledge/page.tsx\")",
       "Bash(grep -vE \"text-\\\\[|h-|w-|gap|px|py|rounded|className|//|slice|md:|grid-cols|max-w|0376\")",
-      "Bash(npx tsx *)"
+      "Bash(npx tsx *)",
+      "Bash(xargs echo \"rounded-none 次数:\")"
     ]
   }
 }

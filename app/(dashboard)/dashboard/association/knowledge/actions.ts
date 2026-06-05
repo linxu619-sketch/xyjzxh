@@ -17,18 +17,32 @@ function todayStr(): string {
   return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`;
 }
 
+function parseSections(raw: string): KnowledgeSection[] {
+  if (!raw.trim()) return [];
+  try {
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed)) return [];
+    return parsed
+      .map((s) => ({
+        h: String(s?.h || "内容要点").trim() || "内容要点",
+        points: Array.isArray(s?.points) ? s.points.map((p: unknown) => String(p).trim()).filter(Boolean) : [],
+      }))
+      .filter((s) => s.points.length);
+  } catch {
+    return [];
+  }
+}
+
 function readInput(fd: FormData, keepDate?: string): KnowledgeInput {
-  const points = String(fd.get("points") || "").split(/\r?\n/).map((x) => x.trim()).filter(Boolean);
-  const content: KnowledgeSection[] = points.length ? [{ h: "内容要点", points }] : [];
   return {
     title: String(fd.get("title") || "").trim(),
     category: String(fd.get("category") || "技术资料").trim(),
     tags: String(fd.get("tags") || "").split(/[\n,，、]+/).map((x) => x.trim()).filter(Boolean).slice(0, 8),
-    date: keepDate || todayStr(),
+    date: String(fd.get("date") || "").trim() || keepDate || todayStr(),
     size: String(fd.get("size") || "").trim() || undefined,
     hot: String(fd.get("hot") || "") === "1",
     excerpt: String(fd.get("excerpt") || "").trim(),
-    content,
+    content: parseSections(String(fd.get("content") || "")),
     fileUrl: String(fd.get("fileUrl") || "").trim() || undefined,
     fileName: String(fd.get("fileName") || "").trim() || undefined,
   };
