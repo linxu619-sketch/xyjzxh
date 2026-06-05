@@ -14,6 +14,15 @@
 
 ---
 
+## [0.106.9] - 2026-06-05
+
+### 可打印单据统一套用协会 VI + 加 Logo
+所有 A4 可打印公文(调解处置单 / 工装报备受理回执 / 理赔受理·定损单 / 金融服务受理单 / 入会申请审批表 / 采购单·对账单)共用 `components/print/print-doc.tsx` 的 `Letterhead`,改它即全覆盖:
+- **加官方 Logo**:抬头左侧放协会圆形徽章 `public/brand/seal.png`(VI 标志),与中英文名组成横版组合。
+- **套用 VI 标准色**:抬头协会名、英文名、抬头红线由原红头文件红 `#b91c1c` → VI 青绿 `#267C7C`;英文名改为 VI 规范 `XINYANG BUILDING DECORATION ASSOCIATION`(原 `…ASSOCIATION OF ARCHITECTURAL DECORATION`)。
+- **打印保色**:`.a4-sheet` 加 `print-color-adjust: exact`,确保青绿抬头与彩色徽章在打印/另存 PDF 时不被去色。
+- 全仓旧红 `#b91c1c` 与旧英文名 0 残留;tsc 通过、单据页 200。
+
 ## [0.106.8] - 2026-06-05
 
 ### 入会页:申请流程同款压缩 + 会员权益加跳转

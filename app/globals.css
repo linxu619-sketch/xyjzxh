@@ -195,6 +195,9 @@ html, body {
   color: #0a0a0f;
   padding: 18mm 16mm;
   box-shadow: 0 1px 3px rgba(0,0,0,.08), 0 8px 30px rgba(0,0,0,.06);
+  /* 确保 VI 青绿抬头与彩色徽章打印 / 另存 PDF 时不被去色 */
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
 }
 /* 仅打印显示（屏幕隐藏）——用于"屏幕交互工作台 + 打印另出公文"的页面 */
 .print-only { display: none; }
