@@ -177,7 +177,10 @@
       "Bash(grep -oc 'print\\\\\\\\:block' /tmp/c3.css)",
       "Bash(grep -o 'print\\\\\\\\:hidden[^}]*}' /tmp/c3.css)",
       "Bash(grep -o 'print\\\\\\\\:block[^}]*}' /tmp/c3.css)",
-      "Bash(grep -oc 'ACTION_ID\\\\|\\\\$ACTION' /tmp/s.html)"
+      "Bash(grep -oc 'ACTION_ID\\\\|\\\\$ACTION' /tmp/s.html)",
+      "Bash(grep -nA6 \"export const KNOWLEDGE_CATEGORIES\" lib/data/knowledge.ts)",
+      "Bash(grep -nE \"[0-9]{3,}|份|篇|下载|阅读\" \"app/\\(main\\)/knowledge/page.tsx\")",
+      "Bash(grep -vE \"text-\\\\[|h-|w-|gap|px|py|rounded|className|//|slice|md:|grid-cols|max-w|0376\")"
     ]
   }
 }
