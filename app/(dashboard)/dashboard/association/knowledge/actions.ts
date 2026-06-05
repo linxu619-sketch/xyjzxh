@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { getSession } from "@/lib/auth/session";
 import { createKnowledge, updateKnowledge, deleteKnowledge, setKnowledgeHot, getKnowledgeArticle, type KnowledgeInput } from "@/lib/data/knowledge-source";
-import { getDraft, setDraftStatus, deleteDraft } from "@/lib/data/knowledge-drafts-source";
+import { getDraft, listDrafts, setDraftStatus, deleteDraft } from "@/lib/data/knowledge-drafts-source";
 import { addSource, setSourceEnabled, deleteSource } from "@/lib/data/knowledge-sources-source";
 import { runKnowledgeFetch } from "@/lib/ai/knowledge-fetch";
 import type { KnowledgeSection } from "@/lib/data/knowledge";
@@ -124,6 +124,27 @@ export async function approveDraftAction(fd: FormData) {
   revalidatePath("/dashboard/association/knowledge/drafts");
   revalidatePath("/knowledge");
   redirect(`/dashboard/association/knowledge/${articleId}?saved=1`);
+}
+
+// 批量：把当前所有待审草稿一次性按原样入库（不逐条编辑）
+export async function approveAllDraftsAction() {
+  const s = await requireAssoc();
+  const by = s.name || "协会";
+  const pending = listDrafts("pending");
+  let n = 0;
+  for (const d of pending) {
+    const articleId = createKnowledge({
+      title: d.title, category: d.category, tags: d.tags, date: todayStr(),
+      hot: false, excerpt: d.excerpt, content: d.content,
+      sourceUrl: d.sourceUrl || undefined, sourceName: d.sourceName || undefined,
+    });
+    setDraftStatus(d.id, "approved", by, articleId);
+    n++;
+  }
+  revalidatePath("/dashboard/association/knowledge");
+  revalidatePath("/dashboard/association/knowledge/drafts");
+  revalidatePath("/knowledge");
+  redirect(`/dashboard/association/knowledge/drafts?approved=${n}`);
 }
 
 export async function rejectDraftAction(fd: FormData) {

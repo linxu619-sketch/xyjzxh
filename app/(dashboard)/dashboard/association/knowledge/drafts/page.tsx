@@ -1,11 +1,12 @@
 import Link from "next/link";
-import { ArrowLeft, ArrowUpRight, RefreshCw, Sparkles, Inbox } from "lucide-react";
+import { ArrowLeft, ArrowUpRight, RefreshCw, Sparkles, Inbox, CheckCheck } from "lucide-react";
 import { AssociationShell } from "@/components/dashboard/shell";
 import { DataTable } from "@/components/dashboard/section";
 import { StatFilters } from "@/components/dashboard/stat-filters";
 import { Badge } from "@/components/ui/badge";
 import { listDrafts, countDrafts, type DraftStatus } from "@/lib/data/knowledge-drafts-source";
-import { runKnowledgeFetchAction } from "../actions";
+import { runKnowledgeFetchAction, approveAllDraftsAction } from "../actions";
+import { BulkApproveButton } from "./BulkApproveButton";
 
 export const metadata = { title: "知识库草稿箱 · 协会工作台" };
 
@@ -22,10 +23,11 @@ function fmt(ts: number) {
   return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}`;
 }
 
-export default async function DraftsPage({ searchParams }: { searchParams: Promise<{ f?: string; fetched?: string; ai?: string }> }) {
-  const { f, fetched, ai } = await searchParams;
+export default async function DraftsPage({ searchParams }: { searchParams: Promise<{ f?: string; fetched?: string; ai?: string; approved?: string }> }) {
+  const { f, fetched, ai, approved } = await searchParams;
   const filter = (["pending", "approved", "rejected"].includes(String(f)) ? f : undefined) as DraftStatus | undefined;
   const drafts = listDrafts(filter);
+  const pendingCount = countDrafts("pending");
   const base = "/dashboard/association/knowledge/drafts";
 
   return (
@@ -41,6 +43,13 @@ export default async function DraftsPage({ searchParams }: { searchParams: Promi
         </div>
       )}
 
+      {approved !== undefined && (
+        <div className="mb-4 rounded-2xl border border-cat-build/30 bg-cat-build-soft text-cat-build px-4 py-3 text-[13px] flex items-center gap-2">
+          <CheckCheck className="h-4 w-4 shrink-0" />
+          <span>已将 <b>{approved}</b> 条草稿入库,前台知识库已可见。</span>
+        </div>
+      )}
+
       <StatFilters items={[
         { key: "pending", label: "待审", value: countDrafts("pending"), color: "text-cat-decor", href: filter === "pending" ? base : `${base}?f=pending`, active: filter === "pending" },
         { key: "approved", label: "已入库", value: countDrafts("approved"), color: "text-cat-build", href: filter === "approved" ? base : `${base}?f=approved`, active: filter === "approved" },
@@ -48,12 +57,14 @@ export default async function DraftsPage({ searchParams }: { searchParams: Promi
         { key: "fetch", label: "立即抓取", value: <RefreshCw className="h-5 w-5" />, color: "text-brand" },
       ]} />
 
-      <div className="mb-4">
+      <div className="mb-4 flex items-center gap-2 flex-wrap">
         <form action={runKnowledgeFetchAction}>
           <button className="h-10 px-4 rounded-full bg-foreground text-background text-[13px] font-medium inline-flex items-center gap-1.5 active:scale-[0.98]">
             <RefreshCw className="h-4 w-4" /> 立即抓取更新
           </button>
         </form>
+        <BulkApproveButton action={approveAllDraftsAction} count={pendingCount} />
+        {pendingCount > 0 && <span className="text-[12px] text-muted-foreground">批量入库前建议先抽查内容</span>}
       </div>
 
       <DataTable
