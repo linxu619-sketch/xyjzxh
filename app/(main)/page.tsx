@@ -1,18 +1,15 @@
 import Link from "next/link";
 import {
-  ArrowRight, ShieldCheck, Sparkles, Star, MessageSquareText,
-  Building2, Search, Umbrella, Hammer, CheckCircle2, Phone,
-  MessagesSquare, MessageSquareHeart, HardHat, ChevronRight, ArrowUpRight, BookOpen,
+  ArrowRight, Sparkles, Star, ShieldCheck, ChevronRight, ArrowUpRight,
+  HardHat, MessagesSquare, MessageSquareHeart, Search,
 } from "lucide-react";
 import { Container } from "@/components/container";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { CATEGORIES } from "@/lib/site";
-import { getEnterprises } from "@/lib/data/enterprises-source";
 import { getSession } from "@/lib/auth/session";
+import { getEnterprises } from "@/lib/data/enterprises-source";
 import { listLeadsForCustomer } from "@/lib/data/leads";
 import { listReviewsByUid, listReviews } from "@/lib/data/reviews";
-import { listKnowledge } from "@/lib/data/knowledge-source";
+import { listGalleryCases, listCaseTags, countCases } from "@/lib/data/cases";
 import { cn } from "@/lib/cn";
 
 function maskName(n: string) {
@@ -21,340 +18,245 @@ function maskName(n: string) {
 }
 
 export const metadata = {
-  title: "找装修不踩坑 · 信阳建装 · 协会担保的装修平台",
+  title: "你想把家装成什么样 · 信阳建装 · 看真实案例找装修",
   description:
-    "在信阳找装修公司？协会认证企业 · 实名评价 · 工装报备 · 消费保险 · AI 30 秒估价 · 14 天协会调解兜底。",
+    "看信阳本地真实业主家的装修实景，按户型挑灵感，看中了直接约这家。协会认证企业 · 实名口碑 · 14 天调解 · 跑路有保险赔付。",
 };
 
 const BG: Record<string, string> = {
   build: "bg-cat-build", decor: "bg-cat-decor", design: "bg-cat-design",
 };
 
-export default async function ConsumerHome() {
+export default async function ConsumerHome({ searchParams }: { searchParams: Promise<{ tag?: string }> }) {
+  const { tag } = await searchParams;
   const session = await getSession();
-  const allEnterprises = await getEnterprises();
-  const total = allEnterprises.length;
-  const catCounts: Record<string, number> = { build: 0, decor: 0, design: 0 };
-  for (const e of allEnterprises) if (e.category in catCounts) catCounts[e.category] += 1;
-  const FEATURED = allEnterprises.filter((e) => e.featured).slice(0, 6);
-  // 首页口碑：取真实评价（评分高者优先,展示企业归属,姓名脱敏）
+
+  // 案例灵感流（真实企业案例，带图）
+  const tags = listCaseTags();
+  const activeTag = tag && tags.some((t) => t.tag === tag) ? tag : undefined;
+  const cases = listGalleryCases({ tag: activeTag, limit: 24 });
+  const totalCases = countCases();
+
+  // 口碑（真实评价）
   const rvStat = listReviews(500);
   const rvCount = rvStat.length;
-  const rvAvg = rvStat.length ? (rvStat.reduce((a, r) => a + r.rating, 0) / rvStat.length) : 5;
-  const kbCount = listKnowledge().length;
-  const homeReviews = [...rvStat].filter((r) => r.content && r.content.length > 8).sort((a, b) => b.rating - a.rating || b.createdAt - a.createdAt).slice(0, 6);
+  const rvAvg = rvStat.length ? rvStat.reduce((a, r) => a + r.rating, 0) / rvStat.length : 5;
+  const homeReviews = [...rvStat]
+    .filter((r) => r.content && r.content.length > 8)
+    .sort((a, b) => b.rating - a.rating || b.createdAt - a.createdAt)
+    .slice(0, 3);
+
+  // 口碑企业（真实，少量）
+  const featured = (await getEnterprises()).filter((e) => e.featured).slice(0, 4);
+
+  // 登录业主个性化
   const customer = session?.role === "customer" ? session : null;
   const myRequests = customer ? listLeadsForCustomer(customer.uid, customer.phone) : [];
   const myReviews = customer ? listReviewsByUid(customer.uid) : [];
-  // 真实信号：业主有「已签约」线索才算真有装修项目
   const signedCount = myRequests.filter((l) => l.status === "signed").length;
 
   return (
     <>
-      {/* 登录业主个性化条 —— 仅业主登录可见，回首页也能一键继续 */}
+      {/* 登录业主个性化条 */}
       {customer && (
-        <section className="border-b border-border bg-surface">
-          <Container className="py-4 md:py-5">
-            <div className="flex items-center justify-between gap-3 mb-3">
-              <div className="text-[14px] md:text-[15px] font-semibold tracking-tight">
-                欢迎回来，{customer.name} 👋
-              </div>
-              <Link href="/dashboard/customer" className="text-[12px] text-brand inline-flex items-center gap-0.5 shrink-0">
+        <section className="border-b border-border bg-surface/60">
+          <Container className="py-3.5">
+            <div className="flex items-center justify-between gap-3 mb-2.5">
+              <div className="text-[14px] font-semibold tracking-tight">欢迎回来，{customer.name}</div>
+              <Link href="/dashboard/customer" className="text-[12px] text-muted-foreground hover:text-foreground inline-flex items-center gap-0.5 shrink-0">
                 进入我的 <ChevronRight className="h-3.5 w-3.5" />
               </Link>
             </div>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5">
-              {signedCount > 0 ? (
-                <PersonalTile icon={HardHat} title="我的装修项目" sub={`${signedCount} 个已签约 · 看进度`} href="/dashboard/customer/projects" tone="decor" />
-              ) : (
-                <PersonalTile icon={HardHat} title="开始装修" sub="还没开工 · AI 估价找企业" href="/ai/decor" tone="decor" />
-              )}
-              <PersonalTile icon={MessagesSquare} title="我的需求" sub={myRequests.length > 0 ? `${myRequests.length} 条 · 跟踪进度` : "发需求 · 企业来联系"} href="/dashboard/customer/requests" tone="brand" />
-              <PersonalTile icon={MessageSquareHeart} title="我的评价" sub={myReviews.length > 0 ? `${myReviews.length} 条已发布` : "完工后来打分"} href="/dashboard/customer/review" tone="design" />
-              <PersonalTile icon={Sparkles} title="AI 装修顾问" sub="小装 · 在线" href="/ai/decor" tone="decor" />
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+              {signedCount > 0
+                ? <PersonalTile icon={HardHat} title="我的装修项目" sub={`${signedCount} 个已签约`} href="/dashboard/customer/projects" />
+                : <PersonalTile icon={HardHat} title="开始装修" sub="AI 估价 · 找企业" href="/ai/decor" />}
+              <PersonalTile icon={MessagesSquare} title="我的需求" sub={myRequests.length > 0 ? `${myRequests.length} 条跟踪中` : "发需求"} href="/dashboard/customer/requests" />
+              <PersonalTile icon={MessageSquareHeart} title="我的评价" sub={myReviews.length > 0 ? `${myReviews.length} 条已发布` : "完工来打分"} href="/dashboard/customer/review" />
+              <PersonalTile icon={Sparkles} title="AI 装修顾问" sub="小装在线" href="/ai/decor" />
             </div>
           </Container>
         </section>
       )}
-      {/* HERO — 强 C 端转化 */}
-      <section className="relative overflow-hidden">
-        <div className="absolute inset-0 bg-mesh" aria-hidden />
-        <div className="absolute -top-32 -left-20 h-72 w-72 rounded-full bg-cat-decor/20 blur-3xl" aria-hidden />
-        <div className="absolute -top-20 right-0 h-80 w-80 rounded-full bg-cat-build/15 blur-3xl" aria-hidden />
 
-        <Container className="relative pt-8 md:pt-14 pb-8 md:pb-12">
+      {/* HERO —— 克制、留白、以「你」为主语 */}
+      <section>
+        <Container className="pt-14 md:pt-24 pb-8 md:pb-12">
           <div className="max-w-3xl">
-            <div className="inline-flex items-center gap-1.5 rounded-full bg-background border border-border px-3 py-1 text-[11px] mb-6 shadow-sm">
-              <Badge tone="decor" className="!px-2 !py-0">协会担保</Badge>
-              <span className="text-muted-foreground">协会认证企业 {total} 家 · 实名口碑 {rvCount} 条</span>
-            </div>
-            <h1 className="text-[36px] sm:text-[44px] md:text-[68px] font-semibold tracking-tight leading-[1.05] sm:leading-[1.02]">
-              在信阳找装修<br className="hidden sm:block" />
-              <span className="text-gradient-brand">不再踩坑</span>
+            <div className="text-[12px] tracking-[0.2em] text-muted-foreground uppercase mb-5">信阳本地 · 协会认证的装修</div>
+            <h1 className="text-[40px] sm:text-[56px] md:text-[72px] font-semibold tracking-tight leading-[1.04]">
+              你想把家，<br className="sm:hidden" />装成什么样？
             </h1>
-            <p className="mt-5 sm:mt-6 text-[14px] sm:text-[15px] md:text-[18px] leading-6 sm:leading-7 md:leading-8 text-muted-foreground max-w-xl">
-              <b className="text-foreground">协会牵头 · 实名评价 · 跑路赔付</b> — 找企业、估价、签约、施工、验收，每一步都有协会守护。
+            <p className="mt-6 text-[15px] md:text-[17px] leading-7 md:leading-8 text-muted-foreground max-w-xl">
+              {totalCases} 套信阳本地真实业主家的装修实景，按你的户型挑灵感，看中了——直接约这家做。
             </p>
 
-            {/* 估价器 — GET 把字段传到 /ai/decor */}
-            <form method="GET" action="/ai/decor" className="mt-7 md:mt-10 rounded-3xl border border-border bg-background p-4 md:p-5 shadow-[0_30px_80px_-30px_rgba(20,86,240,0.25)] max-w-xl">
-              <div className="text-[12px] text-muted-foreground mb-3 flex items-center gap-1.5">
-                <Sparkles className="h-3.5 w-3.5 text-cat-decor" />
-                AI 30 秒估价 · 免费匹配 3 家企业
-              </div>
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                <input
-                  name="area"
-                  inputMode="numeric"
-                  pattern="\d*"
-                  placeholder="面积 (㎡)"
-                  className="h-12 rounded-xl border border-border px-4 outline-none focus:border-foreground/30 text-[14px]"
-                />
-                <input
-                  name="budget"
-                  inputMode="numeric"
-                  pattern="\d*"
-                  placeholder="预算 (万)"
-                  className="h-12 rounded-xl border border-border px-4 outline-none focus:border-foreground/30 text-[14px]"
-                />
-                <select
-                  name="style"
-                  className="col-span-2 sm:col-span-1 h-12 rounded-xl border border-border px-4 text-[14px] bg-background"
-                  defaultValue=""
-                >
-                  <option value="">风格不限</option>
-                  <option>现代极简</option><option>新中式</option><option>原木</option><option>北欧</option><option>美式</option>
-                </select>
-              </div>
-              <button type="submit" className="mt-3 w-full h-12 rounded-full bg-foreground text-background text-[14px] font-medium inline-flex items-center justify-center gap-2 hover:bg-brand transition-colors active:scale-[0.98]">
-                <Sparkles className="h-4 w-4 text-accent-yellow" /> 让 AI 小装免费估价 <ArrowRight className="h-4 w-4" />
-              </button>
-              <div className="mt-3 flex items-center justify-center gap-x-4 gap-y-1 text-[11px] text-muted-foreground flex-wrap">
-                <span className="inline-flex items-center gap-1"><ShieldCheck className="h-3 w-3 text-accent-tea" /> 100% 免费</span>
-                <span className="inline-flex items-center gap-1"><CheckCircle2 className="h-3 w-3 text-accent-tea" /> 不卖电话</span>
-                <span className="inline-flex items-center gap-1"><CheckCircle2 className="h-3 w-3 text-accent-tea" /> 协会留痕</span>
-              </div>
-            </form>
-
-            <div className="mt-6 flex flex-wrap items-center gap-x-4 gap-y-2 text-[12px] text-muted-foreground">
-              <span>已为</span>
-              {["金茂悦府", "南湖一号", "万象城", "御景湾", "弦山街"].map((p) => (
-                <span key={p} className="inline-flex items-center gap-1 rounded-full bg-surface px-2.5 py-1 text-foreground">
-                  {p}
-                </span>
+            {/* 户型筛选 chips */}
+            <div className="mt-8 flex flex-wrap gap-2">
+              <TagChip label="全部" href="/" active={!activeTag} />
+              {tags.slice(0, 8).map((t) => (
+                <TagChip key={t.tag} label={t.tag} href={`/?tag=${encodeURIComponent(t.tag)}#cases`} active={activeTag === t.tag} />
               ))}
-              <span>提供过装修服务</span>
             </div>
           </div>
         </Container>
       </section>
 
-      {/* 协会认证流程 · 信任带（讲清为什么协会平台靠谱，与下方"协会守护"服务入口不重复）*/}
-      <section className="py-6 md:py-8 border-y border-border bg-surface/60">
+      {/* 案例灵感瀑布流 —— 页面主角 */}
+      <section id="cases" className="pb-10 md:pb-16">
         <Container>
-          <div className="flex items-center gap-1.5 mb-4 text-[12px] tracking-[0.2em] text-brand uppercase font-medium">
-            <ShieldCheck className="h-3.5 w-3.5" /> WHY · 每家上架企业要过的关
-          </div>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-            {[
-              { icon: ShieldCheck, t: "资质核验", d: "营业执照 · 资质证书逐项核验" },
-              { icon: Search, t: "信用评估", d: "工商 · 涉诉 · 失信记录筛查" },
-              { icon: Building2, t: "现场核查", d: "协会实地走访办公与在建工地" },
-              { icon: Star, t: "实名口碑监督", d: "业主实名评价 · 发布后不可删" },
-            ].map((s, i) => {
-              const Ic = s.icon;
-              return (
-                <div key={s.t} className="rounded-2xl border border-border bg-background p-4 flex items-start gap-3">
-                  <span className="relative h-10 w-10 rounded-xl bg-brand-50 text-brand inline-flex items-center justify-center shrink-0">
-                    <Ic className="h-5 w-5" />
-                    <span className="absolute -top-1.5 -left-1.5 h-5 w-5 rounded-full bg-foreground text-background text-[10px] font-semibold inline-flex items-center justify-center">{i + 1}</span>
-                  </span>
-                  <div className="min-w-0">
-                    <div className="text-[14px] font-semibold">{s.t}</div>
-                    <div className="text-[11px] text-muted-foreground mt-0.5 leading-4">{s.d}</div>
+          {cases.length === 0 ? (
+            <div className="rounded-3xl border border-border bg-surface/40 py-16 text-center text-muted-foreground text-[14px]">
+              该户型暂无案例，<Link href="/" className="text-foreground underline underline-offset-2">看看全部</Link>
+            </div>
+          ) : (
+            <div className="columns-2 md:columns-3 lg:columns-4 gap-3 md:gap-4">
+              {cases.map((c) => (
+                <Link
+                  key={c.id}
+                  href={c.enterpriseSlug ? `/biz/${c.enterpriseSlug}/cases/${c.id}` : "/members"}
+                  className="mb-3 md:mb-4 block break-inside-avoid group"
+                >
+                  <div className="overflow-hidden rounded-2xl bg-surface">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={c.cover}
+                      alt={c.title}
+                      loading="lazy"
+                      className="w-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.04]"
+                    />
                   </div>
-                </div>
-              );
-            })}
-          </div>
-          <p className="mt-3 text-[12px] text-muted-foreground">过关后方可在平台上架接单;不达标或出现严重投诉将被暂停或清退。</p>
-        </Container>
-      </section>
-
-      {/* 三大品类 */}
-      <section className="py-8 md:py-12">
-        <Container>
-          <div className="flex items-end justify-between mb-10 gap-4 flex-col md:flex-row">
-            <div>
-              <div className="text-[12px] tracking-[0.2em] text-brand uppercase font-medium">FIND · 找企业</div>
-              <h2 className="mt-2 text-[34px] md:text-[44px] font-semibold tracking-tight leading-tight">按需求挑企业</h2>
-            </div>
-            <p className="text-[13px] text-muted-foreground max-w-md">建筑施工 / 装饰装修 / 设计三类,均为协会认证会员,按你的需求直接挑。</p>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-5">
-            {CATEGORIES.map((cat) => (
-              <Link key={cat.key} href={`/members?cat=${cat.key}`} className={cn(
-                "group relative overflow-hidden rounded-3xl p-7 min-h-[260px] flex flex-col justify-between text-white transition-all hover:-translate-y-1 hover:shadow-xl",
-                BG[cat.color],
-              )}>
-                <div className="absolute -right-12 -bottom-12 h-56 w-56 rounded-full bg-white/10" />
-                <div className="relative">
-                  <div className="text-[11px] tracking-[0.2em] uppercase opacity-80">{cat.en}</div>
-                  <h3 className="mt-3 text-[32px] font-semibold tracking-tight">{cat.title}</h3>
-                  <p className="mt-2 text-[12px] text-white/85 max-w-xs leading-5">{cat.desc}</p>
-                </div>
-                <div className="relative flex items-end justify-between">
-                  <div className="text-[28px] font-semibold">{catCounts[cat.key] ?? 0}<span className="text-[12px] font-normal opacity-80"> 家</span></div>
-                  <span className="text-[12px] inline-flex items-center gap-1">浏览 <ArrowRight className="h-3 w-3" /></span>
-                </div>
-              </Link>
-            ))}
-          </div>
-        </Container>
-      </section>
-
-      {/* 推荐企业 · 移动横滑 / 桌面网格 */}
-      <section className="py-8 md:py-12 bg-surface">
-        <Container>
-          <div className="flex items-end justify-between mb-6 md:mb-10 gap-4 flex-col md:flex-row">
-            <div>
-              <div className="text-[12px] tracking-[0.2em] text-cat-decor uppercase font-medium">FEATURED · 推荐企业</div>
-              <h2 className="mt-2 text-[28px] md:text-[44px] font-semibold tracking-tight leading-tight">本月口碑 TOP 6</h2>
-            </div>
-            <Link href="/members" className="text-[13px] text-brand">查看全部 {total} 家 →</Link>
-          </div>
-
-          {/* 纵向网格 · 不横滑 */}
-          <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">
-            {FEATURED.map((e) => (
-              <Link key={e.id} href={`/biz/${e.slug}`} className="group rounded-3xl border border-border bg-background p-4 md:p-5 active:scale-[0.99] hover:shadow-md transition-all md:hover:-translate-y-0.5">
-                <div className="flex items-center gap-2.5 md:gap-3">
-                  <span className={cn("h-11 w-11 md:h-12 md:w-12 rounded-2xl text-white inline-flex items-center justify-center font-semibold shrink-0", BG[e.color])}>
-                    {e.hero.brand.slice(0, 1)}
-                  </span>
-                  <div className="min-w-0">
-                    <div className="text-[14px] md:text-[15px] font-semibold truncate">{e.name}</div>
-                    <div className="text-[10px] md:text-[11px] text-muted-foreground truncate">{e.district} · {e.staff}</div>
+                  <div className="mt-2.5 px-0.5">
+                    <div className="text-[13.5px] font-medium tracking-tight line-clamp-1 group-hover:text-brand transition-colors">{c.title}</div>
+                    <div className="mt-1 text-[11px] text-muted-foreground flex items-center gap-1.5 flex-wrap">
+                      {c.area && <span>{c.area}㎡</span>}
+                      {c.tag && <><span className="text-border">·</span><span>{c.tag}</span></>}
+                      {c.enterpriseName && <><span className="text-border">·</span><span className="truncate">{c.enterpriseName}</span></>}
+                    </div>
                   </div>
-                </div>
-                <div className="mt-3 text-[12px] md:text-[13px] text-muted-foreground line-clamp-2 min-h-[36px]">{e.short}</div>
-                <div className="mt-3 pt-3 border-t border-border flex items-center justify-between text-[11px] md:text-[12px]">
-                  <span className="inline-flex items-center gap-1"><Star className="h-3.5 w-3.5 fill-[#FFB400] text-[#FFB400]" /><span className="font-semibold">{e.rating.toFixed(1)}</span><span className="text-muted-foreground">({e.reviews})</span></span>
-                  <span className="text-muted-foreground">{e.cases} 案例</span>
-                </div>
-              </Link>
-            ))}
-          </div>
-        </Container>
-      </section>
-
-      {/* 业主 4 大服务 */}
-      <section className="py-8 md:py-12">
-        <Container>
-          <div className="text-center mb-12 max-w-2xl mx-auto">
-            <div className="text-[12px] tracking-[0.2em] text-brand uppercase font-medium">PROTECTION · 协会守护</div>
-            <h2 className="mt-2 text-[34px] md:text-[44px] font-semibold tracking-tight">不只是找企业</h2>
-            <p className="mt-3 text-[14px] text-muted-foreground">从签约到验收,协会为业主兜底</p>
-          </div>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
-            <ServiceTile icon={Umbrella} t="家装质保险" d="299 起 · 跑路赔付" href="/insurance" tone="decor" />
-            <ServiceTile icon={Hammer} t="14 天调解" d="纠纷免诉 · 先行赔付" href="/mediate" tone="tea" />
-            <ServiceTile icon={MessageSquareText} t="实名口碑" d="发布后企业不可删" href="/review" tone="design" />
-            <ServiceTile icon={BookOpen} t="装修知识库" d="避坑指南 · 验收规范" href="/knowledge" tone="brand" />
-          </div>
-        </Container>
-      </section>
-
-      {/* 真实评价 · 移动横滑 */}
-      <section className="py-8 md:py-12 bg-surface">
-        <Container>
-          <div className="flex items-end justify-between mb-6 md:mb-10 gap-4 flex-col md:flex-row">
-            <div>
-              <div className="text-[12px] tracking-[0.2em] text-cat-design uppercase font-medium">REVIEWS · 真实评价</div>
-              <h2 className="mt-2 text-[28px] md:text-[44px] font-semibold tracking-tight leading-tight">{rvCount} 条真实评价<br className="md:hidden" />平均 <span className="text-cat-decor">{rvAvg.toFixed(1)} ★</span></h2>
+                </Link>
+              ))}
             </div>
-            <Link href="/review" className="text-[13px] text-brand">所有评价 →</Link>
-          </div>
+          )}
 
-          {/* 纵向网格 · 不横滑 */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4">
-            {homeReviews.map((r) => (
-              <Link key={r.id} href="/review" className="block rounded-3xl border border-border bg-background p-4 md:p-6 hover:shadow-md transition-shadow">
-                <div className="flex items-center gap-2 mb-3">
-                  <span className="h-10 w-10 rounded-full bg-surface inline-flex items-center justify-center text-[13px] font-semibold shrink-0">{r.user.slice(0, 1)}</span>
-                  <div className="min-w-0">
-                    <div className="text-[13px] font-medium">{maskName(r.user)}</div>
-                    <div className="text-[10px] text-muted-foreground truncate">{r.project} · {r.enterprise}</div>
-                  </div>
-                  <div className="ml-auto flex items-center gap-0.5 shrink-0">
+          <div className="mt-8 text-center">
+            <Link href="/members" className="inline-flex items-center gap-1.5 h-11 px-6 rounded-full border border-border text-[14px] font-medium hover:bg-surface transition-colors">
+              浏览全部装修企业 <ArrowRight className="h-4 w-4" />
+            </Link>
+          </div>
+        </Container>
+      </section>
+
+      {/* 协会背书 —— 一行细带，克制 */}
+      <section className="border-y border-border bg-surface/40">
+        <Container>
+          <div className="py-4 flex flex-wrap items-center justify-center gap-x-6 gap-y-1.5 text-[12px] text-muted-foreground">
+            <span className="inline-flex items-center gap-1.5"><ShieldCheck className="h-3.5 w-3.5 text-accent-tea" /> 协会认证企业</span>
+            <span className="text-border">·</span><span>实名口碑 · 发布后不可删</span>
+            <span className="text-border">·</span><span>14 天纠纷调解兜底</span>
+            <span className="text-border">·</span><span>家装保险 · 跑路也能赔</span>
+          </div>
+        </Container>
+      </section>
+
+      {/* AI 估价 —— 次级，克制一条 */}
+      <section className="py-12 md:py-16">
+        <Container>
+          <Link href="/ai/decor" className="group flex items-center justify-between gap-4 rounded-3xl border border-border bg-background p-6 md:p-9 hover:border-foreground/20 hover:shadow-[0_24px_60px_-32px_rgba(0,0,0,0.18)] transition-all">
+            <div className="min-w-0">
+              <div className="text-[12px] tracking-[0.15em] uppercase text-muted-foreground inline-flex items-center gap-1.5"><Sparkles className="h-3.5 w-3.5 text-cat-decor" /> AI 估价</div>
+              <div className="mt-2 text-[20px] md:text-[28px] font-semibold tracking-tight leading-snug">不确定预算？30 秒算出来，免费匹配 3 家</div>
+              <div className="mt-1.5 text-[12px] text-muted-foreground">100% 免费 · 不卖电话 · 协会留痕</div>
+            </div>
+            <span className="h-12 w-12 shrink-0 rounded-full bg-foreground text-background inline-flex items-center justify-center group-hover:scale-105 transition-transform">
+              <ArrowRight className="h-5 w-5" />
+            </span>
+          </Link>
+        </Container>
+      </section>
+
+      {/* 真实口碑 —— 极简 */}
+      {homeReviews.length > 0 && (
+        <section className="pb-12 md:pb-16">
+          <Container>
+            <div className="flex items-end justify-between mb-6 gap-4">
+              <h2 className="text-[22px] md:text-[32px] font-semibold tracking-tight">
+                {rvCount} 条真实评价 · 平均 <span className="text-cat-decor">{rvAvg.toFixed(1)}</span> 分
+              </h2>
+              <Link href="/review" className="text-[13px] text-muted-foreground hover:text-foreground shrink-0">全部 →</Link>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4">
+              {homeReviews.map((r) => (
+                <Link key={r.id} href="/review" className="block rounded-2xl border border-border bg-background p-5 hover:bg-surface/50 transition-colors">
+                  <div className="flex items-center gap-0.5 mb-3">
                     {Array.from({ length: 5 }, (_, j) => (
-                      <Star key={j} className={cn("h-3 w-3", j < r.rating ? "fill-[#FFB400] text-[#FFB400]" : "text-border")} />
+                      <Star key={j} className={cn("h-3.5 w-3.5", j < r.rating ? "fill-[#FFB400] text-[#FFB400]" : "text-border")} />
                     ))}
                   </div>
-                </div>
-                <p className="text-[13px] leading-6 text-foreground line-clamp-4">&ldquo;{r.content}&rdquo;</p>
-              </Link>
-            ))}
-          </div>
-        </Container>
-      </section>
+                  <p className="text-[13px] leading-6 text-foreground line-clamp-4">&ldquo;{r.content}&rdquo;</p>
+                  <div className="mt-3 text-[11px] text-muted-foreground">{maskName(r.user)} · {r.enterprise}</div>
+                </Link>
+              ))}
+            </div>
+          </Container>
+        </section>
+      )}
+
+      {/* 口碑企业 —— 少量，次级 */}
+      {featured.length > 0 && (
+        <section className="pb-12 md:pb-16">
+          <Container>
+            <div className="flex items-end justify-between mb-6 gap-4">
+              <h2 className="text-[22px] md:text-[32px] font-semibold tracking-tight">口碑好的装修企业</h2>
+              <Link href="/members" className="text-[13px] text-muted-foreground hover:text-foreground shrink-0">全部 →</Link>
+            </div>
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
+              {featured.map((e) => (
+                <Link key={e.id} href={`/biz/${e.slug}`} className="group rounded-2xl border border-border bg-background p-4 hover:bg-surface/50 transition-colors">
+                  <div className="flex items-center gap-2.5">
+                    <span className={cn("h-10 w-10 rounded-xl text-white inline-flex items-center justify-center font-semibold shrink-0", BG[e.color] ?? "bg-foreground")}>
+                      {e.hero.brand.slice(0, 1)}
+                    </span>
+                    <div className="min-w-0">
+                      <div className="text-[14px] font-semibold truncate">{e.name}</div>
+                      <div className="text-[10px] text-muted-foreground truncate">{e.district}</div>
+                    </div>
+                  </div>
+                  <div className="mt-3 pt-3 border-t border-border flex items-center justify-between text-[11px]">
+                    <span className="inline-flex items-center gap-1"><Star className="h-3.5 w-3.5 fill-[#FFB400] text-[#FFB400]" /><span className="font-semibold">{e.rating.toFixed(1)}</span></span>
+                    <span className="text-muted-foreground">{e.cases} 案例</span>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </Container>
+        </section>
+      )}
 
       {/* CTA */}
-      <section className="py-8 md:py-12">
+      <section className="pb-12 md:pb-16">
         <Container>
-          <div className="relative overflow-hidden rounded-[28px] md:rounded-[40px] bg-foreground text-background p-7 md:p-12">
-            <div className="absolute -top-20 -right-20 h-72 w-72 rounded-full bg-cat-decor/30 blur-3xl" />
-            <div className="absolute -bottom-20 -left-20 h-72 w-72 rounded-full bg-brand/30 blur-3xl" />
-            <div className="relative grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
-              <div>
-                <Badge className="!bg-accent-yellow !text-foreground mb-4">START NOW</Badge>
-                <h2 className="text-[36px] md:text-[52px] font-semibold tracking-tight leading-[1.05]">
-                  开始你的<br />装修计划
-                </h2>
-                <p className="mt-4 text-[14px] text-background/70 max-w-md leading-7">
-                  3 分钟告诉 AI 小装你的想法 · 30 秒匹配 3 家企业 · 全程协会监管 · 不满意可调解
-                </p>
-                <div className="mt-7 flex flex-col sm:flex-row gap-3">
-                  <Button href="/ai/decor" size="lg" variant="primary" className="!bg-accent-yellow !text-foreground hover:!bg-white">
-                    AI 估价 <Sparkles className="h-4 w-4" />
-                  </Button>
-                  <Button href="/members" size="lg" variant="outline" className="!border-white/30 !text-background hover:!bg-white/10">
-                    自己浏览 <Search className="h-4 w-4" />
-                  </Button>
-                </div>
-              </div>
-              <div className="rounded-2xl bg-white/5 p-6 grid grid-cols-2 gap-3">
-                {[
-                  { l: "协会认证企业", v: `${total}` },
-                  { l: "真实评价", v: `${rvCount}` },
-                  { l: "平均评分", v: `${rvAvg.toFixed(1)} ★` },
-                  { l: "知识库资料", v: `${kbCount}` },
-                ].map((s) => (
-                  <div key={s.l} className="rounded-xl bg-foreground/30 p-3">
-                    <div className="text-[10px] text-background/60">{s.l}</div>
-                    <div className="text-[24px] font-semibold text-accent-yellow tracking-tight mt-0.5">{s.v}</div>
-                  </div>
-                ))}
-              </div>
+          <div className="rounded-[28px] md:rounded-[36px] bg-foreground text-background p-8 md:p-14 text-center">
+            <h2 className="text-[28px] md:text-[44px] font-semibold tracking-tight leading-tight">开始你的装修</h2>
+            <p className="mt-3 text-[14px] text-background/70 max-w-md mx-auto leading-7">看中案例直接约这家，或让 AI 小装按你的预算挑 3 家 · 全程协会监管 · 不满意可调解</p>
+            <div className="mt-7 flex flex-col sm:flex-row gap-3 justify-center">
+              <Link href="/ai/decor" className="h-12 px-6 rounded-full bg-accent-yellow text-foreground text-[14px] font-medium inline-flex items-center justify-center gap-2 hover:bg-white transition-colors">
+                AI 免费估价 <Sparkles className="h-4 w-4" />
+              </Link>
+              <Link href="/members" className="h-12 px-6 rounded-full border border-white/25 text-background text-[14px] font-medium inline-flex items-center justify-center gap-2 hover:bg-white/10 transition-colors">
+                浏览企业 <Search className="h-4 w-4" />
+              </Link>
             </div>
           </div>
         </Container>
       </section>
 
-      {/* footer 强调"另一个面" */}
-      <section className="pb-12 md:pb-16">
+      {/* 另一个门面 */}
+      <section className="pb-14 md:pb-20">
         <Container>
-          <div className="rounded-3xl border border-border bg-background p-7 md:p-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-            <div className="flex items-start gap-3">
-              <Building2 className="h-6 w-6 text-brand mt-0.5" />
-              <div>
-                <div className="text-[16px] font-semibold">您是企业 / 从业者？</div>
-                <div className="text-[12px] text-muted-foreground mt-1">协会门户 <code className="font-mono text-foreground">xh.xyjzxh.com</code> 提供入会、工装报备、子站、招工、培训等服务</div>
-              </div>
-            </div>
-            <Link href="/xh" className="inline-flex items-center gap-1.5 h-11 px-5 rounded-full bg-foreground text-background text-[13px] font-medium">
-              进入协会门户 <ArrowRight className="h-3.5 w-3.5" />
-            </Link>
+          <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 text-[13px] text-muted-foreground">
+            <div>您是装修企业 / 从业者？协会门户 <code className="font-mono text-foreground">xh.xyjzxh.com</code> 提供入会、工装报备、子站、招工、培训等服务。</div>
+            <Link href="/xh" className="inline-flex items-center gap-1.5 text-foreground hover:gap-2 transition-all shrink-0">进入协会门户 <ArrowRight className="h-3.5 w-3.5" /></Link>
           </div>
         </Container>
       </section>
@@ -362,41 +264,27 @@ export default async function ConsumerHome() {
   );
 }
 
-function ServiceTile({ icon: Ic, t, d, href, tone }: {
-  icon: React.ComponentType<{ className?: string }>;
-  t: string; d: string; href: string;
-  tone: "brand" | "decor" | "design" | "tea";
-}) {
-  const TONE: Record<string, string> = {
-    brand: "bg-brand-50 text-brand",
-    decor: "bg-cat-decor-soft text-cat-decor",
-    design: "bg-cat-design-soft text-cat-design",
-    tea: "bg-[#e6f7f1] text-accent-tea",
-  };
+function TagChip({ label, href, active }: { label: string; href: string; active: boolean }) {
   return (
-    <Link href={href} className="rounded-3xl border border-border bg-background p-5 hover:shadow-md hover:-translate-y-0.5 transition-all">
-      <span className={cn("inline-flex h-11 w-11 rounded-2xl items-center justify-center", TONE[tone])}>
-        <Ic className="h-5 w-5" />
-      </span>
-      <div className="mt-4 text-[15px] font-semibold">{t}</div>
-      <div className="mt-1 text-[11px] text-muted-foreground">{d}</div>
+    <Link
+      href={href}
+      className={cn(
+        "h-9 px-4 rounded-full text-[13px] font-medium inline-flex items-center transition-colors",
+        active ? "bg-foreground text-background" : "border border-border text-muted-foreground hover:text-foreground hover:border-foreground/30",
+      )}
+    >
+      {label}
     </Link>
   );
 }
 
-function PersonalTile({ icon: Icon, title, sub, href, tone }: {
+function PersonalTile({ icon: Icon, title, sub, href }: {
   icon: React.ComponentType<{ className?: string }>;
   title: string; sub: string; href: string;
-  tone: "brand" | "decor" | "design";
 }) {
-  const TONE: Record<string, string> = {
-    brand: "bg-brand-50 text-brand",
-    decor: "bg-cat-decor-soft text-cat-decor",
-    design: "bg-cat-design-soft text-cat-design",
-  };
   return (
-    <Link href={href} className="group rounded-2xl border border-border bg-background p-3.5 flex items-center gap-2.5 active:scale-[0.98] transition-transform">
-      <span className={cn("h-8 w-8 rounded-lg inline-flex items-center justify-center shrink-0", TONE[tone])}>
+    <Link href={href} className="group rounded-xl border border-border bg-background p-3 flex items-center gap-2.5 active:scale-[0.98] transition-transform">
+      <span className="h-8 w-8 rounded-lg bg-surface text-foreground inline-flex items-center justify-center shrink-0">
         <Icon className="h-4 w-4" />
       </span>
       <div className="flex-1 min-w-0">

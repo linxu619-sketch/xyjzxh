@@ -65,6 +65,31 @@ export function listCasesByEnterprise(enterpriseId: string): EnterpriseCase[] {
   return rows.map(rowTo);
 }
 
+// 跨企业案例画廊（消费者灵感流用）：带企业名称与子站 slug，便于「看中直接约这家」
+export type GalleryCase = EnterpriseCase & { enterpriseName: string; enterpriseSlug: string };
+
+export function listGalleryCases(opts?: { tag?: string; limit?: number }): GalleryCase[] {
+  const limit = opts?.limit ?? 60;
+  const base =
+    "SELECT c.*, e.name AS e_name, e.slug AS e_slug FROM enterprise_cases c " +
+    "LEFT JOIN enterprises e ON e.id = c.enterprise_id ";
+  const sql = (opts?.tag ? base + "WHERE c.tag = ? " : base) + "ORDER BY c.created_at DESC LIMIT ?";
+  const stmt = getDb().prepare(sql);
+  const rows = (opts?.tag ? stmt.all(opts.tag, limit) : stmt.all(limit)) as (Row & { e_name: string | null; e_slug: string | null })[];
+  return rows.map((r) => ({ ...rowTo(r), enterpriseName: r.e_name ?? "", enterpriseSlug: r.e_slug ?? "" }));
+}
+
+export function listCaseTags(): { tag: string; count: number }[] {
+  const rows = getDb()
+    .prepare("SELECT tag, COUNT(*) c FROM enterprise_cases WHERE tag IS NOT NULL AND tag != '' GROUP BY tag ORDER BY c DESC")
+    .all() as { tag: string; c: number }[];
+  return rows.map((r) => ({ tag: r.tag, count: r.c }));
+}
+
+export function countCases(): number {
+  return (getDb().prepare("SELECT COUNT(*) c FROM enterprise_cases").get() as { c: number }).c;
+}
+
 export function createCase(input: {
   enterpriseId: string;
   title: string;

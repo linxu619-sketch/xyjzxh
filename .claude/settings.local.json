@@ -201,7 +201,14 @@
       "Bash(grep -rnE \"结案率 94|94%|[0-9]{3,}\\\\s*\\(条|户|家|起|次\\)|[0-9],[0-9]{3}\" \"app/\\(main\\)/review/page.tsx\" \"app/\\(main\\)/mediate/page.tsx\" \"app/\\(main\\)/members/page.tsx\")",
       "Bash(xargs grep -ln \"SiteFooter\")",
       "Bash(xargs echo \"出现次数:\")",
-      "Bash(xargs echo \"次数:\")"
+      "Bash(xargs echo \"次数:\")",
+      "Bash(xargs echo \"唯一案例图:\")",
+      "Bash(xargs echo \"别墅案例图数\\(应~5\\):\")",
+      "Bash(xargs echo \"public/samples/cases 文件数:\")",
+      "Bash(xargs echo \"唯一本地案例图:\")",
+      "Bash(xargs echo \"外链残留:\")",
+      "Bash(xargs echo \"别墅案例图:\")",
+      "Bash(xargs echo \"products 图数:\")"
     ]
   }
 }
