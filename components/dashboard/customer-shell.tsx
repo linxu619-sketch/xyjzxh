@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { Settings, ChevronLeft, ShieldCheck } from "lucide-react";
+import { ChevronLeft, ShieldCheck } from "lucide-react";
 import { Container } from "@/components/container";
 import { getSession } from "@/lib/auth/session";
 import { CUSTOMER_TABS } from "@/lib/dashboard/nav";
@@ -32,8 +32,8 @@ export async function CustomerShell({
               <Link href="/dashboard/customer" className="inline-flex items-center gap-1.5 text-[12px] text-background/70 hover:text-background">
                 <ChevronLeft className="h-3.5 w-3.5" /> 返回我的
               </Link>
-              <Link href="/dashboard/customer/settings" className="h-9 w-9 rounded-full bg-white/10 inline-flex items-center justify-center hover:bg-white/20 transition-colors" aria-label="设置">
-                <Settings className="h-4 w-4" />
+              <Link href="/" className="text-[12px] text-background/70 hover:text-background">
+                信阳建装首页
               </Link>
             </div>
             <div className="mt-4">
