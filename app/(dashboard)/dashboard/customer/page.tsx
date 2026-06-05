@@ -2,7 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import {
   Umbrella, MessageSquareHeart, MessageSquareWarning, Sparkles,
-  ChevronRight, ShieldCheck, ArrowUpRight, Camera,
+  ChevronRight, ChevronLeft, ShieldCheck, ArrowUpRight, Camera,
   AlertCircle, CheckCircle2, Wallet, GitPullRequest, MessagesSquare,
 } from "lucide-react";
 import { Container } from "@/components/container";
@@ -75,6 +75,9 @@ export default async function CustomerDashboard() {
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-24 w-24 rounded-full bg-cat-design/15 blur-2xl" />
 
         <Container className="relative max-w-2xl">
+          <Link href="/" className="inline-flex items-center gap-1 text-[12px] text-background/70 hover:text-background mb-5">
+            <ChevronLeft className="h-3.5 w-3.5" /> 返回信阳建装首页
+          </Link>
           <div className="flex items-center gap-3">
             <span className="h-12 w-12 rounded-full bg-gradient-to-br from-cat-decor to-[#e6531f] text-white inline-flex items-center justify-center text-[18px] font-semibold shadow-lg">
               {session.name.slice(0, 1)}

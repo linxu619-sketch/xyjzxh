@@ -235,7 +235,9 @@
       "Bash(sed -n '1,40p' lib/data/accounts.ts)",
       "Bash(sed -n '/export async function loginCustomerAction/,/^}/p' \"app/\\(main\\)/login/actions.ts\")",
       "Bash(xargs echo \"首页指向设置的链接数\\(应0\\):\")",
-      "Bash(xargs echo \"底栏「设置」出现:\")"
+      "Bash(xargs echo \"底栏「设置」出现:\")",
+      "Bash(xargs echo \"返回首页链接:\")",
+      "Bash(xargs echo 'href=\"/\" 出现次数:')"
     ]
   }
 }
