@@ -52,23 +52,23 @@ export function CaseGallery({ images, title }: { images: string[]; title: string
 
       {/* 灯箱 */}
       {idx !== null && (
-        <div onClick={close} className="fixed inset-0 z-[90] bg-black/90 flex items-center justify-center p-4 select-none">
-          <button onClick={close} aria-label="关闭" className="absolute top-4 right-4 h-10 w-10 rounded-full bg-white/10 text-white inline-flex items-center justify-center hover:bg-white/20">
+        <div onClick={close} className="fixed inset-0 z-[90] bg-background/95 backdrop-blur-xl flex items-center justify-center p-4 select-none">
+          <button onClick={close} aria-label="关闭" className="absolute top-4 right-4 h-10 w-10 rounded-full bg-foreground/10 text-foreground inline-flex items-center justify-center hover:bg-foreground/20 transition-colors">
             <X className="h-5 w-5" />
           </button>
           {total > 1 && (
             <>
-              <button onClick={(ev) => { ev.stopPropagation(); prev(); }} aria-label="上一张" className="absolute left-3 md:left-6 h-11 w-11 rounded-full bg-white/10 text-white inline-flex items-center justify-center hover:bg-white/20">
+              <button onClick={(ev) => { ev.stopPropagation(); prev(); }} aria-label="上一张" className="absolute left-3 md:left-6 h-11 w-11 rounded-full bg-foreground/10 text-foreground inline-flex items-center justify-center hover:bg-foreground/20 transition-colors">
                 <ChevronLeft className="h-6 w-6" />
               </button>
-              <button onClick={(ev) => { ev.stopPropagation(); next(); }} aria-label="下一张" className="absolute right-3 md:right-6 h-11 w-11 rounded-full bg-white/10 text-white inline-flex items-center justify-center hover:bg-white/20">
+              <button onClick={(ev) => { ev.stopPropagation(); next(); }} aria-label="下一张" className="absolute right-3 md:right-6 h-11 w-11 rounded-full bg-foreground/10 text-foreground inline-flex items-center justify-center hover:bg-foreground/20 transition-colors">
                 <ChevronRight className="h-6 w-6" />
               </button>
             </>
           )}
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={images[idx]} alt={`${title} ${idx + 1}`} onClick={(ev) => ev.stopPropagation()} className="max-h-[88vh] max-w-[94vw] object-contain rounded-lg" />
-          <div className="absolute bottom-4 inset-x-0 text-center text-white/80 text-[12px]">{idx + 1} / {total}</div>
+          <img src={images[idx]} alt={`${title} ${idx + 1}`} onClick={(ev) => ev.stopPropagation()} className="max-h-[90vh] max-w-[94vw] object-contain rounded-xl shadow-2xl" />
+          <div className="absolute bottom-4 inset-x-0 text-center text-muted-foreground text-[12px]">{idx + 1} / {total}</div>
         </div>
       )}
     </>
