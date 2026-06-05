@@ -15,10 +15,10 @@
   --muted: #6b7180;
   --muted-foreground: #4a5060;
 
-  /* 品牌主色：琉璃蓝（信任 / 现代） */
-  --brand: #1456f0;
-  --brand-600: #0e44c9;
-  --brand-50: #eaf0ff;
+  /* 品牌主色：协会 VI 标准色 · 青绿（C80 M30 Y50 K0 / #267C7C） */
+  --brand: #267c7c;
+  --brand-600: #1f6868;
+  --brand-50: #e8f1f1;
 
   /* 三大品类色（大色块） */
   --cat-build: #1456f0;       /* 建筑 · 琉璃蓝 */
@@ -209,3 +209,5 @@ html, body {
   /* 打印时纸张铺满、去掉屏显的阴影与外边距 */
   .a4-sheet { width: 100%; min-height: auto; margin: 0; padding: 0; box-shadow: none; }
 }
+
+/* VI 标准色已接入 (#267C7C) */

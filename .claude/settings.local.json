@@ -221,7 +221,16 @@
       "Bash(xargs echo \"等比框:\")",
       "Bash(xargs echo \"角标:\")",
       "Bash(xargs echo \"团队图:\")",
-      "Bash(xargs echo)"
+      "Bash(xargs echo)",
+      "Bash(pdftotext \"cankao/信阳市建筑装饰装修协会VI\\(1\\).pdf\" /tmp/vi.txt)",
+      "Bash(command -v pdfimages)",
+      "Bash(command -v pdftoppm)",
+      "Bash(python -c \"import sys; print\\(sys.version\\)\")",
+      "Bash(python -c \"import fitz; print\\('PyMuPDF 可用'\\)\")",
+      "Bash(python -c \"import pypdf; print\\('pypdf 可用'\\)\")",
+      "Bash(python -c \"import PyPDF2; print\\('PyPDF2 可用'\\)\")",
+      "Bash(python -m pip install --quiet pymupdf)",
+      "Bash(python -c \"import fitz; print\\('PyMuPDF', fitz.__doc__[:40] if fitz.__doc__ else 'ok'\\); d=fitz.open\\('cankao/信阳市建筑装饰装修协会VI\\(1\\).pdf'\\); print\\('页数:', d.page_count\\)\")"
     ]
   }
 }

@@ -52,13 +52,12 @@ export function SiteFooter({ face = "consumer" }: { face?: "consumer" | "xh" }) 
           {/* 品牌区 */}
           <div className="col-span-2">
             <div className="flex items-center gap-2.5">
-              <span className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-foreground text-background font-bold">
-                信
-              </span>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="/brand/seal.png" alt="信阳市建筑装饰装修协会" className="h-11 w-11 object-contain shrink-0" />
               <div className="leading-tight">
                 <div className="text-[15px] font-semibold">{SITE.name}</div>
-                <div className="text-[10px] text-muted-foreground tracking-[0.18em] uppercase">
-                  {SITE.brand}
+                <div className="text-[10px] text-muted-foreground tracking-[0.16em] uppercase">
+                  XINYANG BUILDING DECORATION ASSOCIATION
                 </div>
               </div>
             </div>

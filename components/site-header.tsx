@@ -54,13 +54,8 @@ export function SiteHeader({ face = "consumer", authed = false, todo = 0 }: { fa
         <div className="flex h-16 lg:h-18 items-center justify-between">
           {/* Logo */}
           <Link href={homeHref} className="flex items-center gap-2.5 group">
-            <span className={cn(
-              "relative inline-flex h-9 w-9 items-center justify-center rounded-xl text-background text-[15px] font-bold shadow-sm",
-              isXh ? "bg-brand" : "bg-foreground",
-            )}>
-              {isXh ? "协" : "信"}
-              <span className="absolute -right-0.5 -top-0.5 h-2 w-2 rounded-full bg-cat-decor animate-pulse-glow" />
-            </span>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/brand/seal.png" alt="信阳市建筑装饰装修协会" className="h-9 w-9 object-contain shrink-0" />
             <div className="leading-tight">
               <div className="text-[15px] font-semibold tracking-tight">
                 {SITE.shortName}
