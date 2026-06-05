@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { getEnterprises } from "@/lib/data/enterprises-source";
 import { listReviews } from "@/lib/data/reviews";
 import { listGalleryCases, listCaseTags, countCases } from "@/lib/data/cases";
+import { TagFilter } from "./TagFilter";
 import { cn } from "@/lib/cn";
 
 function maskName(n: string) {
@@ -58,12 +59,9 @@ export default async function ConsumerHome({ searchParams }: { searchParams: Pro
             </p>
           </div>
 
-          {/* 户型筛选 chips —— 移动端单行横滑 */}
-          <div className="mt-4 -mx-4 px-4 flex gap-2 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-            <TagChip label="全部" href="/" active={!activeTag} />
-            {tags.slice(0, 8).map((t) => (
-              <TagChip key={t.tag} label={t.tag} href={`/?tag=${encodeURIComponent(t.tag)}#cases`} active={activeTag === t.tag} />
-            ))}
+          {/* 户型筛选 —— 方角下拉(一行、不溢出) */}
+          <div className="mt-4">
+            <TagFilter tags={tags.slice(0, 8)} active={activeTag} />
           </div>
         </Container>
       </section>
@@ -230,16 +228,3 @@ export default async function ConsumerHome({ searchParams }: { searchParams: Pro
   );
 }
 
-function TagChip({ label, href, active }: { label: string; href: string; active: boolean }) {
-  return (
-    <Link
-      href={href}
-      className={cn(
-        "shrink-0 h-9 px-4 rounded-full text-[13px] font-medium inline-flex items-center transition-colors",
-        active ? "bg-foreground text-background" : "border border-border text-muted-foreground hover:text-foreground hover:border-foreground/30",
-      )}
-    >
-      {label}
-    </Link>
-  );
-}
