@@ -182,7 +182,7 @@ function StandardTemplate({ e, tenant, cases, team, reviews }: TplProps) {
         <section id="team" className="py-7 md:py-10 bg-surface">
           <Container>
             <SectionTitle eyebrow="TEAM · 团队" title="核心团队" sub={`${team.length} 位`} />
-            <div className="mt-4 grid grid-cols-3 md:grid-cols-4 gap-2.5 md:gap-3">
+            <div className="mt-4 grid grid-cols-2 md:grid-cols-4 gap-2.5 md:gap-3">
               {team.map((m) => (
                 <Link key={m.id} href={`/biz/${tenant}/team/${m.id}`} className="rounded-2xl border border-border bg-background overflow-hidden active:scale-[0.99] hover:shadow-md md:hover:-translate-y-0.5 transition-all">
                   <div className="relative aspect-[3/4] bg-surface">
@@ -366,7 +366,7 @@ function EditorialTemplate({ e, tenant, cases, team, reviews }: TplProps) {
         <section id="team" className="py-7 md:py-10">
           <Container>
             <SectionTitle eyebrow="TEAM · 团队" title="核心团队" sub={`${team.length} 位`} />
-            <div className="mt-4 grid grid-cols-3 md:grid-cols-4 gap-2.5 md:gap-3">
+            <div className="mt-4 grid grid-cols-2 md:grid-cols-4 gap-2.5 md:gap-3">
               {team.map((m) => (
                 <Link key={m.id} href={`/biz/${tenant}/team/${m.id}`} className="rounded-2xl border border-border bg-background overflow-hidden active:scale-[0.99] hover:shadow-md md:hover:-translate-y-0.5 transition-all">
                   <div className="relative aspect-[3/4] bg-surface">
@@ -520,7 +520,7 @@ function ShowcaseTemplate({ e, tenant, cases, team, reviews }: TplProps) {
         <section id="team" className="py-6 md:py-9">
           <Container>
             <SectionTitle eyebrow="TEAM · 团队" title="核心团队" sub={`${team.length} 位`} />
-            <div className="mt-4 grid grid-cols-3 md:grid-cols-4 gap-2.5 md:gap-3">
+            <div className="mt-4 grid grid-cols-2 md:grid-cols-4 gap-2.5 md:gap-3">
               {team.map((m) => (
                 <Link key={m.id} href={`/biz/${tenant}/team/${m.id}`} className="rounded-2xl border border-border bg-background overflow-hidden active:scale-[0.99] hover:shadow-md md:hover:-translate-y-0.5 transition-all">
                   <div className="relative aspect-[3/4] bg-surface">
