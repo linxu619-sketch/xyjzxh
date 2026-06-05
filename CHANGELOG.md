@@ -14,6 +14,13 @@
 
 ---
 
+## [0.106.6] - 2026-06-05
+
+### 消除字体「preloaded but not used」控制台警告
+- 站点以中文为主、首屏多走思源黑体,而 Inter(next/font 默认 preload:true)会预加载拉丁字体 woff2,导致浏览器控制台「The resource …woff2 was preloaded but not used」警告。给 `app/layout.tsx` 的 Inter 设 `preload:false`(思源黑体早已 false),拉丁字形改为按需加载、`display:swap` 兜底。
+- 效果:页面 HTML 不再输出字体 preload 链接,警告消除;字体仍正常挂载与生效。
+- 注:控制台另一条 CSS chunk「preloaded but not used」是 Next dev/Turbopack 的良性提示,生产构建不出现,未处理。
+
 ## [0.106.5] - 2026-06-05
 
 ### 全消费者门户「假数字」地毯式排查收尾

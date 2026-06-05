@@ -6,6 +6,7 @@ const inter = Inter({
   variable: "--font-inter",
   subsets: ["latin"],
   display: "swap",
+  preload: false, // CJK 为主的站点首屏多为中文，避免「预加载但未及时使用」警告；拉丁字形按需加载
 });
 
 // 协会 VI 指定中文专用字体：思源黑体（= Source Han Sans / Noto Sans SC）
