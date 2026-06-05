@@ -124,11 +124,12 @@ export default function PractitionersLanding() {
             <div key={p.id} className="rounded-3xl border border-border bg-background p-5">
               <div className="flex items-center gap-2">
                 <span className="h-12 w-12 rounded-full bg-cat-design text-white inline-flex items-center justify-center text-[18px] font-semibold">{p.name.slice(0, 1)}</span>
-                <div>
-                  <div className="text-[14px] font-semibold">{p.name}</div>
+                <div className="min-w-0">
+                  <div className="text-[14px] font-semibold truncate">{p.name}</div>
                   <div className="text-[10px] text-muted-foreground">{p.kind} · {p.years}年</div>
                 </div>
               </div>
+              {p.bio && <p className="mt-2.5 text-[11px] leading-5 text-muted-foreground line-clamp-2">{p.bio}</p>}
               <div className="mt-3 flex items-center gap-1 text-[11px]">
                 <Star className="h-3 w-3 fill-[#FFB400] text-[#FFB400]" />
                 <span className="font-semibold">{p.rating.toFixed(1)}</span>

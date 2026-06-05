@@ -12,10 +12,11 @@ export type PractitionerCard = {
   jobs: number;
   city: string;
   insured: boolean;
+  bio: string;
 };
 
-// 完整从业者记录（含手机号 + 个人简介，用于登录绑定 / 工作台 / 个人主页）
-export type Practitioner = PractitionerCard & { phone: string; bio: string };
+// 完整从业者记录（含手机号，用于登录绑定 / 工作台 / 个人主页）
+export type Practitioner = PractitionerCard & { phone: string };
 
 type Row = {
   id: number; name: string | null; kind: string | null; years: number | null;
