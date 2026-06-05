@@ -19,7 +19,7 @@ export default function KnowledgePage() {
   return (
     <>
       <PageHeader
-        eyebrow="KNOWLEDGE · 知识库"
+        eyebrow="装修知识库"
         tone="design"
         title={<>规范 · 政策 · 案例<br className="md:hidden" /> 一键检索</>}
         description="国家标准、地方政策、技术资料、典型案例与合同范本，由协会技术委员会审核维护。"

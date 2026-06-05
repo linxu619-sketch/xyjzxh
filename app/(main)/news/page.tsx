@@ -27,7 +27,7 @@ export default async function NewsPage() {
   return (
     <>
       <PageHeader
-        eyebrow="NEWS · 新闻动态"
+        eyebrow="协会动态"
         tone="design"
         title={<>动态 · 政策 · 解读 <br className="md:hidden" /><span className="text-muted-foreground">第一时间</span></>}
       />

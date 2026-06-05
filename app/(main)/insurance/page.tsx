@@ -24,7 +24,7 @@ export default async function InsurancePage({ searchParams }: { searchParams: Pr
   return (
     <>
       <PageHeader
-        eyebrow="INSURANCE · 消费保险"
+        eyebrow="装修保障"
         tone="decor"
         title={<>买保险 <br className="md:hidden" />让装修每一步都安心</>}
         description={<>从家装质保到工程履约、工人意外，协会与人保、平安、国寿、太平洋等合作出单，为业主装修全程兜底。</>}

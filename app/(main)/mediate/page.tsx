@@ -25,7 +25,7 @@ export default async function MediatePage({ searchParams }: { searchParams: Prom
   return (
     <>
       <PageHeader
-        eyebrow="MEDIATION · 协会调解"
+        eyebrow="纠纷调解"
         tone="decor"
         title={<>装修纠纷 <br className="md:hidden" />协会帮你调解</>}
         description="提交纠纷情况，协会调解委员会中立介入、14 天先行处理。所有材料保密。"
