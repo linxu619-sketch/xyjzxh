@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
-import { Search, Star, MapPin, ShieldCheck, ChevronDown, X, SlidersHorizontal } from "lucide-react";
+import { Search, Star, MapPin, ChevronDown, X, SlidersHorizontal } from "lucide-react";
 import type { Enterprise, EnterpriseCategory } from "@/lib/data/enterprises";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/cn";
@@ -151,7 +151,7 @@ export function MembersExplorer({
           </button>
         </div>
       ) : (
-        <div className="mt-5 md:mt-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-5">
+        <div className="mt-5 md:mt-6 grid grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">
           {filtered.map((e) => {
             const cover = covers[e.id]?.[0];
             return (
@@ -160,8 +160,8 @@ export function MembersExplorer({
                 href={`/biz/${e.slug}`}
                 className="group block rounded-2xl overflow-hidden border border-border bg-background hover:shadow-[0_24px_60px_-32px_rgba(0,0,0,0.22)] active:scale-[0.99] transition-all"
               >
-                {/* 案例封面 */}
-                <div className="relative aspect-[4/3] bg-surface overflow-hidden">
+                {/* 案例封面 —— 统一 4:5 等比框 */}
+                <div className="relative aspect-[4/5] bg-surface overflow-hidden">
                   {cover ? (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img src={cover} alt={e.name} loading="lazy" className="h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.05]" />
@@ -170,29 +170,24 @@ export function MembersExplorer({
                       {e.hero.brand.slice(0, 1)}
                     </div>
                   )}
-                  <div className="absolute top-2.5 left-2.5 flex items-center gap-1.5">
+                  <div className="absolute top-2 left-2 flex items-center gap-1.5">
                     <Badge tone={TONE[e.category]} className="!px-2 !py-0.5 !text-[10px] shadow-sm">{CAT_LABEL[e.category]}</Badge>
                     {e.featured && (
                       <span className="inline-flex items-center gap-0.5 rounded-full bg-accent-yellow text-foreground px-1.5 py-0.5 text-[9px] font-semibold shadow-sm">★ 推荐</span>
                     )}
                   </div>
+                  <span className="absolute top-2 right-2 inline-flex items-center gap-1 rounded-full bg-white/90 backdrop-blur px-2 py-0.5 text-[11px] font-semibold shadow-sm">
+                    <Star className="h-3 w-3 fill-[#FFB400] text-[#FFB400]" /> {e.rating.toFixed(1)}
+                  </span>
                 </div>
 
-                {/* 信息 */}
-                <div className="p-4">
-                  <div className="flex items-center justify-between gap-2">
-                    <h3 className="text-[15px] font-semibold tracking-tight truncate group-hover:text-brand transition-colors">{e.name}</h3>
-                    {e.verified && <span className="inline-flex items-center gap-0.5 text-accent-tea text-[10px] shrink-0"><ShieldCheck className="h-3 w-3" /> 认证</span>}
-                  </div>
-                  <p className="mt-1 text-[12px] text-muted-foreground line-clamp-1 leading-5">{e.short}</p>
-                  <div className="mt-3 pt-3 border-t border-border flex items-center justify-between text-[12px] gap-2">
-                    <span className="inline-flex items-center gap-1 text-foreground shrink-0">
-                      <Star className="h-3.5 w-3.5 fill-[#FFB400] text-[#FFB400]" />
-                      <span className="font-semibold tabular-nums">{e.rating.toFixed(1)}</span>
-                      <span className="text-muted-foreground text-[11px] tabular-nums">({e.reviews})</span>
-                    </span>
-                    <span className="text-muted-foreground text-[11px] tabular-nums">{e.cases} 案例</span>
-                    <span className="inline-flex items-center gap-1 text-muted-foreground text-[11px] truncate"><MapPin className="h-3 w-3 shrink-0" /><span className="truncate">{e.district}</span></span>
+                {/* 信息 —— 精简一行，等高对齐 */}
+                <div className="p-3">
+                  <h3 className="text-[14px] font-semibold tracking-tight truncate group-hover:text-brand transition-colors">{e.name}</h3>
+                  <div className="mt-1 text-[11px] text-muted-foreground flex items-center gap-1.5 truncate">
+                    <MapPin className="h-3 w-3 shrink-0" /><span className="truncate">{e.district}</span>
+                    <span className="text-border shrink-0">·</span><span className="shrink-0">{e.cases} 案例</span>
+                    <span className="text-border shrink-0">·</span><span className="shrink-0">{e.reviews} 评</span>
                   </div>
                 </div>
               </Link>

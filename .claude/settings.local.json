@@ -217,7 +217,9 @@
       "Bash(awk '/<PageHeader/,/\\\\/>/' 'app/\\(main\\)/__TRACKED_VAR__/page.tsx')",
       "Bash(xargs echo \"等比框类:\")",
       "Bash(xargs echo \"masonry残留:\")",
-      "Bash(xargs echo \"图数:\")"
+      "Bash(xargs echo \"图数:\")",
+      "Bash(xargs echo \"等比框:\")",
+      "Bash(xargs echo \"角标:\")"
     ]
   }
 }
