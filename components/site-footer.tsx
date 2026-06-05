@@ -3,27 +3,48 @@ import { Container } from "./container";
 import { SITE, NAV } from "@/lib/site";
 import { Phone, MapPin, Mail, ArrowRight } from "lucide-react";
 
-const FOOTER_GROUPS = [
+const ABOUT_GROUP = {
+  title: "关于协会",
+  links: [
+    { label: "协会简介", href: "/about" },
+    { label: "组织架构", href: "/about/org" },
+    { label: "章程制度", href: "/about/rules" },
+    { label: "联系我们", href: "/about/contact" },
+  ],
+};
+
+// 业主门户页脚：只放与业主相关的入口
+const CONSUMER_GROUPS = [
   {
-    title: "服务",
-    links: NAV.slice(1, 6),
-  },
-  {
-    title: "信息",
-    links: NAV.slice(6),
-  },
-  {
-    title: "关于协会",
+    title: "找装修",
     links: [
-      { label: "协会简介", href: "/about" },
-      { label: "组织架构", href: "/about/org" },
-      { label: "章程制度", href: "/about/rules" },
-      { label: "联系我们", href: "/about/contact" },
+      { label: "找装企", href: "/members?cat=decor" },
+      { label: "设计 / 案例", href: "/members?cat=design" },
+      { label: "AI 估价", href: "/ai/decor" },
+      { label: "真实评价", href: "/review" },
     ],
   },
+  {
+    title: "协会守护",
+    links: [
+      { label: "消费保险", href: "/insurance" },
+      { label: "纠纷调解", href: "/mediate" },
+      { label: "装修知识库", href: "/knowledge" },
+      { label: "新闻动态", href: "/news" },
+    ],
+  },
+  ABOUT_GROUP,
 ];
 
-export function SiteFooter() {
+// 协会门户页脚：企业 / 会员相关
+const ASSOCIATION_GROUPS = [
+  { title: "服务", links: NAV.slice(1, 6) },
+  { title: "信息", links: NAV.slice(6) },
+  ABOUT_GROUP,
+];
+
+export function SiteFooter({ face = "consumer" }: { face?: "consumer" | "xh" }) {
+  const FOOTER_GROUPS = face === "xh" ? ASSOCIATION_GROUPS : CONSUMER_GROUPS;
   return (
     <footer className="mt-24 border-t border-border bg-surface">
       <Container className="py-16">
