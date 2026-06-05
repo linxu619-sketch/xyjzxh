@@ -95,6 +95,11 @@ export function updateAccountProfile(phone: string, name: string): void {
   getDb().prepare("UPDATE accounts SET name=? WHERE phone=?").run(name, phone.trim());
 }
 
+// 换绑手机号（登录身份）：把账号的 phone 从 oldPhone 改为 newPhone
+export function updateAccountPhone(oldPhone: string, newPhone: string): void {
+  getDb().prepare("UPDATE accounts SET phone=? WHERE phone=?").run(newPhone.trim(), oldPhone.trim());
+}
+
 // 超管用户管理：全部账号（可按角色筛）
 export function listAccounts(role?: AccountRole): Account[] {
   const rows = role

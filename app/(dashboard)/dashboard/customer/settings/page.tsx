@@ -8,7 +8,8 @@ import { logoutAction } from "@/app/(main)/login/actions";
 import { getSession } from "@/lib/auth/session";
 import { listReviewsByUid } from "@/lib/data/reviews";
 import { listMediationsByUid } from "@/lib/data/mediations";
-import { updateProfileAction, deleteAccountAction } from "./actions";
+import { updateProfileAction, deleteAccountAction, rebindPhoneAction } from "./actions";
+import { RebindPhone } from "./RebindPhone";
 
 export const metadata = { title: "账号与安全 · 信阳市建筑装饰装修协会" };
 
@@ -25,8 +26,13 @@ export default async function CustomerSettings({ searchParams }: { searchParams:
   return (
     <CustomerShell title="账号与安全">
       {saved === "profile" && <Banner ok>资料已更新</Banner>}
+      {saved === "phone" && <Banner ok>手机号已换绑，下次用新号登录</Banner>}
       {perr === "name" && <Banner>请填写称呼</Banner>}
       {perr === "confirm" && <Banner>手机号不匹配，账号未注销</Banner>}
+      {perr === "phone_format" && <Banner>请输入正确的 11 位新手机号</Banner>}
+      {perr === "phone_code" && <Banner>请输入短信验证码</Banner>}
+      {perr === "phone_same" && <Banner>新手机号与当前相同</Banner>}
+      {perr === "phone_taken" && <Banner>该手机号已被注册，请更换</Banner>}
 
       {/* 个人卡片 */}
       <div className="rounded-3xl bg-foreground text-background p-5 mb-4 flex items-center gap-4">
@@ -56,17 +62,19 @@ export default async function CustomerSettings({ searchParams }: { searchParams:
           </form>
         </details>
 
-        {/* 登录手机号 —— 只读 */}
-        <div className="flex items-center gap-3 px-4 py-4">
-          <Phone className="h-4 w-4 text-muted-foreground shrink-0" />
-          <div className="flex-1 min-w-0">
-            <div className="text-[14px]">登录手机号</div>
-            <div className="text-[11px] text-muted-foreground mt-0.5">{maskedPhone || "—"} · 短信验证码登录</div>
-          </div>
-        </div>
+        {/* 登录手机号 —— 可展开换绑 */}
+        <details className="group">
+          <summary className="flex items-center gap-3 px-4 py-4 cursor-pointer list-none [&::-webkit-details-marker]:hidden active:bg-surface">
+            <Phone className="h-4 w-4 text-muted-foreground shrink-0" />
+            <div className="flex-1 min-w-0">
+              <div className="text-[14px]">登录手机号</div>
+              <div className="text-[11px] text-muted-foreground mt-0.5">{maskedPhone || "—"} · 短信验证码登录</div>
+            </div>
+            <span className="text-[12px] text-brand shrink-0">换绑</span>
+          </summary>
+          <RebindPhone action={rebindPhoneAction} />
+        </details>
       </Group>
-
-      <p className="px-1 -mt-2 mb-4 text-[11px] text-muted-foreground">换绑手机号涉及身份核验，请联系协会客服办理。</p>
 
       {/* 我的 */}
       <Group title="我的">
