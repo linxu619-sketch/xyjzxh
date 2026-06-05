@@ -1,77 +1,115 @@
 import Link from "next/link";
 import {
-  UserCircle2, Lock, Bell, MapPin, FileText, HelpCircle, LogOut, ChevronRight, ShieldCheck,
+  UserCircle2, Phone, MessageSquareHeart, FileText, HelpCircle, LogOut,
+  ChevronRight, ShieldCheck, CheckCircle2, Pencil, AlertTriangle, MessageSquareWarning,
 } from "lucide-react";
 import { CustomerShell } from "@/components/dashboard/customer-shell";
 import { logoutAction } from "@/app/(main)/login/actions";
-import { Toggle } from "@/components/dashboard/section";
 import { getSession } from "@/lib/auth/session";
+import { listReviewsByUid } from "@/lib/data/reviews";
+import { listMediationsByUid } from "@/lib/data/mediations";
+import { updateProfileAction, deleteAccountAction } from "./actions";
 
-export const metadata = { title: "账号设置 · 信阳市建筑装饰装修协会" };
+export const metadata = { title: "账号与安全 · 信阳市建筑装饰装修协会" };
 
-export default async function CustomerSettings() {
+export default async function CustomerSettings({ searchParams }: { searchParams: Promise<{ saved?: string; perr?: string }> }) {
+  const { saved, perr } = await searchParams;
   const session = await getSession();
   const name = session?.name || "业主";
   const phone = session?.phone || "";
   const maskedPhone = phone.length === 11 ? `${phone.slice(0, 3)}****${phone.slice(-4)}` : phone;
   const memberId = phone ? `C${phone.slice(-6)}` : "—";
+  const reviewCount = session ? listReviewsByUid(session.uid).length : 0;
+  const medCount = session ? listMediationsByUid(session.uid).length : 0;
+
   return (
-    <CustomerShell title="账号设置">
+    <CustomerShell title="账号与安全">
+      {saved === "profile" && <Banner ok>资料已更新</Banner>}
+      {perr === "name" && <Banner>请填写称呼</Banner>}
+      {perr === "confirm" && <Banner>手机号不匹配，账号未注销</Banner>}
+
       {/* 个人卡片 */}
       <div className="rounded-3xl bg-foreground text-background p-5 mb-4 flex items-center gap-4">
-        <span className="h-16 w-16 rounded-full bg-cat-decor inline-flex items-center justify-center text-[24px] font-semibold">{name.slice(0, 1)}</span>
+        <span className="h-16 w-16 rounded-full bg-cat-decor inline-flex items-center justify-center text-[24px] font-semibold shrink-0">{name.slice(0, 1)}</span>
         <div className="flex-1 min-w-0">
-          <div className="text-[16px] font-semibold">{name}</div>
+          <div className="text-[16px] font-semibold truncate">{name}</div>
           <div className="text-[11px] text-background/70 mt-0.5">ID: {memberId}{maskedPhone ? ` · ${maskedPhone}` : ""}</div>
           <div className="text-[11px] text-background/70">协会注册业主</div>
         </div>
-        <button className="h-9 px-3.5 rounded-full bg-accent-yellow text-foreground text-[11px] font-semibold">编辑</button>
       </div>
 
-      {/* 信用 */}
-      <div className="rounded-3xl border border-border bg-background p-5 mb-4 flex items-center gap-3">
-        <ShieldCheck className="h-7 w-7 text-accent-tea" />
-        <div className="flex-1">
-          <div className="text-[12px] text-muted-foreground">业主信用</div>
-          <div className="flex items-baseline gap-1.5">
-            <span className="text-[26px] font-semibold leading-none">748</span>
-            <span className="text-[11px] text-muted-foreground">/ 850 · 优秀</span>
+      {/* 账号与安全 */}
+      <Group title="账号与安全">
+        {/* 个人资料 —— 改称呼 */}
+        <details className="group">
+          <summary className="flex items-center gap-3 px-4 py-4 cursor-pointer list-none [&::-webkit-details-marker]:hidden active:bg-surface">
+            <UserCircle2 className="h-4 w-4 text-muted-foreground shrink-0" />
+            <div className="flex-1 min-w-0">
+              <div className="text-[14px]">个人资料</div>
+              <div className="text-[11px] text-muted-foreground mt-0.5">称呼：{name}</div>
+            </div>
+            <Pencil className="h-3.5 w-3.5 text-muted-foreground" />
+          </summary>
+          <form action={updateProfileAction} className="px-4 pb-4 pt-1 flex gap-2">
+            <input name="name" defaultValue={name} maxLength={20} placeholder="你的称呼（如 刘女士）" className="flex-1 h-10 rounded-xl border border-border bg-background px-3 text-[14px] outline-none focus:border-foreground/30" />
+            <button className="h-10 px-4 rounded-xl bg-foreground text-background text-[13px] font-medium shrink-0">保存</button>
+          </form>
+        </details>
+
+        {/* 登录手机号 —— 只读 */}
+        <div className="flex items-center gap-3 px-4 py-4">
+          <Phone className="h-4 w-4 text-muted-foreground shrink-0" />
+          <div className="flex-1 min-w-0">
+            <div className="text-[14px]">登录手机号</div>
+            <div className="text-[11px] text-muted-foreground mt-0.5">{maskedPhone || "—"} · 短信验证码登录</div>
           </div>
         </div>
-      </div>
-
-      {/* 设置组 1 */}
-      <Group title="账号与安全">
-        <Row icon={UserCircle2} label="个人资料" sub="头像 · 称呼 · 城市" />
-        <Row icon={Lock} label="修改密码 / 短信验证" sub="近 90 天未修改" />
-        <Row icon={MapPin} label="收货地址" sub="3 个地址" />
       </Group>
 
-      <Group title="通知">
-        <RowToggle icon={Bell} label="项目进度提醒" defaultChecked />
-        <RowToggle icon={Bell} label="保险到期提醒" defaultChecked />
-        <RowToggle icon={Bell} label="协会活动 / 优惠" />
-        <RowToggle icon={Bell} label="夜间免打扰 (22:00-08:00)" defaultChecked />
-      </Group>
+      <p className="px-1 -mt-2 mb-4 text-[11px] text-muted-foreground">换绑手机号涉及身份核验，请联系协会客服办理。</p>
 
+      {/* 我的 */}
       <Group title="我的">
-        <Row icon={FileText} label="我的评价" sub="2 条评价" />
-        <Row icon={FileText} label="我的调解记录" sub="1 起调解中" />
-        <Row icon={HelpCircle} label="帮助中心" sub="常见问题 · 联系客服" />
+        <Row icon={MessageSquareHeart} label="我的评价" sub={reviewCount > 0 ? `${reviewCount} 条已发布` : "完工后来打分"} href="/dashboard/customer/review" />
+        <Row icon={MessageSquareWarning} label="我的调解记录" sub={medCount > 0 ? `${medCount} 起` : "暂无"} href="/dashboard/customer/requests" />
+        <Row icon={HelpCircle} label="帮助中心 / 联系客服" href="/about/contact" />
         <Row icon={ShieldCheck} label="隐私政策" href="/legal/privacy" />
         <Row icon={FileText} label="服务条款" href="/legal/terms" />
       </Group>
 
       <form action={logoutAction}>
-        <button type="submit" className="w-full mt-6 h-12 rounded-full border border-cat-decor text-cat-decor font-medium inline-flex items-center justify-center gap-2">
+        <button type="submit" className="w-full mt-2 h-12 rounded-full border border-border text-foreground font-medium inline-flex items-center justify-center gap-2 active:bg-surface">
           <LogOut className="h-4 w-4" /> 退出登录
         </button>
       </form>
 
+      {/* 注销账号 —— 危险操作 */}
+      <details className="mt-4">
+        <summary className="text-center text-[12px] text-muted-foreground cursor-pointer list-none [&::-webkit-details-marker]:hidden py-2">注销账号</summary>
+        <div className="mt-2 rounded-2xl border border-cat-decor/30 bg-cat-decor-soft/40 p-4">
+          <div className="flex items-start gap-2 text-[12px] text-cat-decor">
+            <AlertTriangle className="h-4 w-4 shrink-0 mt-0.5" />
+            <span>注销后账号与登录身份将被删除且<b>不可恢复</b>（已发布的实名评价仍保留以维护口碑真实性）。如确认，请输入你的手机号 <b>{maskedPhone}</b> 后注销。</span>
+          </div>
+          <form action={deleteAccountAction} className="mt-3 flex gap-2">
+            <input name="confirm" inputMode="numeric" placeholder="输入完整手机号确认" className="flex-1 h-10 rounded-xl border border-cat-decor/40 bg-background px-3 text-[14px] outline-none focus:border-cat-decor" />
+            <button className="h-10 px-4 rounded-xl bg-cat-decor text-white text-[13px] font-medium shrink-0">确认注销</button>
+          </form>
+        </div>
+      </details>
+
       <div className="mt-6 mb-2 text-center text-[10px] text-muted-foreground">
-        信阳市建筑装饰装修协会 · v1.0.0 · 备案号略
+        信阳市建筑装饰装修协会
       </div>
     </CustomerShell>
+  );
+}
+
+function Banner({ children, ok }: { children: React.ReactNode; ok?: boolean }) {
+  return (
+    <div className={`mb-4 rounded-2xl px-4 py-3 text-[13px] inline-flex items-center gap-2 ${ok ? "bg-[#e6f7f1] border border-accent-tea/30 text-accent-tea" : "bg-cat-decor-soft border border-cat-decor/30 text-cat-decor"}`}>
+      {ok ? <CheckCircle2 className="h-4 w-4" /> : <AlertTriangle className="h-4 w-4" />} {children}
+    </div>
   );
 }
 
@@ -88,35 +126,16 @@ function Group({ title, children }: { title: string; children: React.ReactNode }
 
 function Row({ icon: Icon, label, sub, href }: {
   icon: React.ComponentType<{ className?: string }>;
-  label: string; sub?: string; href?: string;
+  label: string; sub?: string; href: string;
 }) {
-  const inner = (
-    <>
+  return (
+    <Link href={href} className="flex items-center gap-3 px-4 py-4 active:bg-surface">
       <Icon className="h-4 w-4 text-muted-foreground shrink-0" />
       <div className="flex-1 min-w-0">
         <div className="text-[14px]">{label}</div>
         {sub && <div className="text-[11px] text-muted-foreground mt-0.5">{sub}</div>}
       </div>
-      {href && <ChevronRight className="h-4 w-4 text-muted-foreground" />}
-    </>
-  );
-  if (!href) return <div className="flex items-center gap-3 px-4 py-4">{inner}</div>;
-  return (
-    <Link href={href} className="flex items-center gap-3 px-4 py-4 active:bg-surface">
-      {inner}
+      <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0" />
     </Link>
-  );
-}
-
-function RowToggle({ icon: Icon, label, defaultChecked }: {
-  icon: React.ComponentType<{ className?: string }>;
-  label: string; defaultChecked?: boolean;
-}) {
-  return (
-    <div className="flex items-center gap-3 px-4 py-4">
-      <Icon className="h-4 w-4 text-muted-foreground shrink-0" />
-      <div className="flex-1 text-[14px]">{label}</div>
-      <Toggle defaultChecked={defaultChecked} />
-    </div>
   );
 }
