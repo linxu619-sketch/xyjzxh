@@ -4,6 +4,7 @@ import { Container } from "@/components/container";
 import { PageHeader } from "@/components/page-header";
 import { AI_EMPLOYEES, SITE } from "@/lib/site";
 import { AI_PROMPTS } from "@/lib/ai/prompts";
+import { listKnowledge } from "@/lib/data/knowledge-source";
 import { cn } from "@/lib/cn";
 
 const GRAD: Record<string, string> = {
@@ -25,20 +26,22 @@ const QUICK_ACTIONS = [
 
 export const metadata = { title: "AI 助手大厅 · 信阳市建筑装饰装修协会" };
 
-export default function AiHall() {
+export default async function AiHall() {
+  const aiCount = AI_EMPLOYEES.length;
+  const kbCount = listKnowledge().length;
   return (
     <>
       <PageHeader
-        eyebrow="AI HALL · 助手大厅"
+        eyebrow="AI 助手大厅"
         tone="yellow"
-        title={<>10 位 AI 员工<br className="md:hidden" /> 永远在线</>}
+        title={<>{aiCount} 位 AI 员工<br className="md:hidden" /> 永远在线</>}
         description="覆盖咨询、估价、报备、合规、调解、招聘等高频场景，7×24 小时随问随答；企业可在子站嵌入定制化 AI 员工。"
       />
 
       <Container className="py-8 md:py-14">
         {/* 高频快捷动作 · 纵向网格 */}
         <div className="mb-8 md:mb-10">
-          <div className="text-[12px] tracking-[0.2em] text-cat-decor uppercase font-medium mb-3">QUICK · 高频动作</div>
+          <div className="text-[12px] tracking-[0.1em] text-cat-decor font-medium mb-3">高频动作</div>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5 md:gap-3">
               {QUICK_ACTIONS.map((q) => (
                 <Link
@@ -110,13 +113,13 @@ export default function AiHall() {
           })}
         </div>
 
-        {/* 信任 + 统计 */}
+        {/* 能力一览（真实/真陈述，不放虚构指标） */}
         <div className="mt-8 md:mt-12 grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-3 text-center">
           {[
-            { l: "本月对话",       v: "12.9 万", c: "text-cat-build" },
-            { l: "平均响应",       v: "1.4 秒",  c: "text-cat-decor" },
-            { l: "满意度",         v: "4.7 / 5", c: "text-cat-design" },
-            { l: "敏感拦截率",     v: "100%",    c: "text-accent-tea" },
+            { l: "AI 助手", v: `${aiCount} 位`, c: "text-cat-build" },
+            { l: "知识库支撑", v: `${kbCount} 篇`, c: "text-cat-design" },
+            { l: "在线", v: "7×24", c: "text-cat-decor" },
+            { l: "对话", v: "实时流式", c: "text-accent-tea" },
           ].map((s) => (
             <div key={s.l} className="rounded-2xl border border-border bg-background p-3 md:p-4">
               <div className="text-[10px] text-muted-foreground tracking-wider uppercase">{s.l}</div>
