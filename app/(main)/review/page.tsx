@@ -1,15 +1,17 @@
 import Link from "next/link";
-import { Star, Search, ShieldCheck, MessageSquareHeart, ArrowUpRight, CheckCircle2, PencilLine } from "lucide-react";
+import { Star, Search, ShieldCheck, ArrowUpRight, CheckCircle2, PencilLine } from "lucide-react";
 import { Container } from "@/components/container";
-import { PageHeader } from "@/components/page-header";
 import { Badge } from "@/components/ui/badge";
 import { getEnterprises } from "@/lib/data/enterprises-source";
 import { listReviews } from "@/lib/data/reviews";
+import { listGalleryCases } from "@/lib/data/cases";
 import { submitReviewAction } from "./actions";
 
-export const metadata = { title: "口碑评价 · 信阳市建筑装饰装修协会" };
+export const metadata = {
+  title: "真实业主，真实评价 · 信阳建装",
+  description: "信阳本地业主的实名装修评价：每条关联具体项目、发布后企业不可删。看真实口碑，挑放心的装修公司。",
+};
 
-const CAT_LABEL = { build: "建筑", decor: "装修", design: "设计" } as const;
 function maskName(n: string) {
   if (!n || n === "匿名业主") return "匿名业主";
   return n.slice(0, 1) + "**";
@@ -20,15 +22,20 @@ function fmtDate(ts: number) {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 }
 
-
 export default async function ReviewsHubPage({ searchParams }: { searchParams: Promise<{ posted?: string }> }) {
   const { posted } = await searchParams;
   const enterprises = await getEnterprises();
   const allRv = listReviews(500);
   const total = allRv.length;
-  const avg = allRv.length ? Number((allRv.reduce((a, r) => a + r.rating, 0) / allRv.length).toFixed(1)) : 4.8;
+  const avg = total ? Number((allRv.reduce((a, r) => a + r.rating, 0) / total).toFixed(1)) : 5;
 
-  const realItems = allRv.slice(0, 20).map((r) => ({
+  // 企业封面（五星企业卡用）
+  const coverByEnt: Record<string, string> = {};
+  for (const c of listGalleryCases({ limit: 400 })) {
+    if (c.cover && !coverByEnt[c.enterpriseId]) coverByEnt[c.enterpriseId] = c.cover;
+  }
+
+  const feed = allRv.slice(0, 24).map((r) => ({
     id: `db${r.id}`,
     user: maskName(r.user),
     enterprise: r.enterprise,
@@ -38,49 +45,48 @@ export default async function ReviewsHubPage({ searchParams }: { searchParams: P
     date: fmtDate(r.createdAt),
     cat: (["build", "decor", "design"].includes(r.category) ? r.category : "decor") as "build" | "decor" | "design",
   }));
-  const feed = realItems;
+
+  const fiveStar = enterprises.filter((e) => e.rating >= 4.8).slice(0, 6);
+
   return (
     <>
-      <PageHeader
-        eyebrow="REVIEWS · 口碑评价"
-        tone="decor"
-        title={<>所有评价实名验证<br className="md:hidden" /> 发布后不可删改</>}
-        description={<>累计 <b>{total.toLocaleString()}</b> 条业主评价 · 平均 <b>{avg}</b> ★ · 100% 关联具体项目可追溯</>}
-      />
-
-      <Container className="py-12 max-w-5xl">
-        {/* 搜索栏 */}
-        <div className="rounded-3xl border border-border bg-background p-4 flex items-center gap-3 mb-6">
-          <Search className="h-4 w-4 text-muted-foreground ml-2" />
-          <input placeholder="搜索企业 / 项目 / 关键词…" className="flex-1 bg-transparent outline-none text-[15px] py-2" />
-        </div>
-
-        {/* 评分汇总 */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-          <div className="rounded-3xl border border-border bg-background p-6">
-            <div className="text-[11px] text-muted-foreground tracking-wider uppercase">平均评分</div>
-            <div className="mt-2 flex items-baseline gap-2">
-              <span className="text-[64px] font-semibold leading-none text-cat-decor">{avg}</span>
-              <span className="text-muted-foreground">/ 5.0</span>
-            </div>
-            <div className="mt-3 flex items-center gap-0.5">
-              {Array.from({ length: 5 }, (_, i) => (
-                <Star key={i} className={i < Math.round(avg) ? "h-4 w-4 fill-[#FFB400] text-[#FFB400]" : "h-4 w-4 text-border"} />
-              ))}
-            </div>
+      {/* 头部 —— 消费者向 */}
+      <Container className="pt-12 md:pt-20 pb-2">
+        <div className="text-[12px] tracking-[0.2em] text-muted-foreground uppercase mb-4">信阳本地 · 实名口碑</div>
+        <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-6">
+          <div>
+            <h1 className="text-[34px] sm:text-[44px] md:text-[56px] font-semibold tracking-tight leading-[1.05]">
+              真实业主，<br className="sm:hidden" />真实评价
+            </h1>
+            <p className="mt-5 text-[15px] md:text-[16px] leading-7 text-muted-foreground max-w-xl">
+              每条评价都关联具体装修项目、由协会实名业主发布，企业能回复但<b className="text-foreground">不能删</b>。你看到的，就是真实发生过的。
+            </p>
           </div>
-
-          <div className="md:col-span-2 rounded-3xl bg-foreground text-background p-6 flex items-center gap-4">
-            <ShieldCheck className="h-8 w-8 text-accent-yellow shrink-0" />
-            <div className="flex-1">
-              <div className="text-[16px] font-semibold">所有评价均经协会核验</div>
-              <p className="mt-1 text-[12px] text-background/70 max-w-md">
-                每条评价必须关联具体报备项目 + 业主实名身份 · 发布后企业可回复但不能删除 · 涉嫌刷评一票否决
-              </p>
+          {total > 0 && (
+            <div className="shrink-0 flex items-end gap-3">
+              <span className="text-[64px] md:text-[80px] font-semibold leading-none tracking-tight text-cat-decor">{avg}</span>
+              <div className="pb-2">
+                <div className="flex items-center gap-0.5">
+                  {Array.from({ length: 5 }, (_, i) => (
+                    <Star key={i} className={i < Math.round(avg) ? "h-4 w-4 fill-[#FFB400] text-[#FFB400]" : "h-4 w-4 text-border"} />
+                  ))}
+                </div>
+                <div className="mt-1 text-[12px] text-muted-foreground">{total.toLocaleString()} 条真实评价</div>
+              </div>
             </div>
-            <Link href="/ai/mediate" className="hidden md:inline-flex items-center gap-1.5 h-10 px-5 rounded-full bg-accent-yellow text-foreground text-[12px] font-medium">
-              <MessageSquareHeart className="h-3.5 w-3.5" /> 评价异议
-            </Link>
+          )}
+        </div>
+      </Container>
+
+      <Container className="py-8 md:py-12">
+        {/* 信任细带 + 搜索 */}
+        <div className="flex flex-col sm:flex-row gap-3 mb-6">
+          <div className="flex-1 rounded-2xl border border-border bg-background px-4 flex items-center gap-3">
+            <Search className="h-4 w-4 text-muted-foreground shrink-0" />
+            <input placeholder="搜企业 / 项目 / 关键词" className="flex-1 bg-transparent outline-none text-[15px] py-3" />
+          </div>
+          <div className="rounded-2xl border border-border bg-surface/50 px-4 py-3 inline-flex items-center gap-2 text-[12px] text-muted-foreground">
+            <ShieldCheck className="h-4 w-4 text-accent-tea shrink-0" /> 关联项目 · 实名核验 · 刷评一票否决
           </div>
         </div>
 
@@ -90,7 +96,7 @@ export default async function ReviewsHubPage({ searchParams }: { searchParams: P
             <CheckCircle2 className="h-4 w-4" /> 评价已发布，感谢你的反馈！
           </div>
         )}
-        <details className="rounded-3xl border border-border bg-background p-5 mb-6">
+        <details className="rounded-2xl border border-border bg-background p-5 mb-8">
           <summary className="cursor-pointer font-semibold inline-flex items-center gap-2 list-none [&::-webkit-details-marker]:hidden">
             <PencilLine className="h-4 w-4 text-cat-decor" /> 写一条评价
           </summary>
@@ -113,51 +119,55 @@ export default async function ReviewsHubPage({ searchParams }: { searchParams: P
           </form>
         </details>
 
-        {/* 评价流 */}
-        <h2 className="text-[18px] font-semibold mb-3">最新评价</h2>
-        <div className="space-y-3">
+        {/* 口碑墙 —— masonry */}
+        <h2 className="text-[18px] md:text-[22px] font-semibold tracking-tight mb-4">口碑墙</h2>
+        <div className="columns-1 sm:columns-2 lg:columns-3 gap-4">
           {feed.map((r) => (
-            <article key={r.id} className="rounded-3xl border border-border bg-background p-5">
-              <div className="flex items-start gap-3">
-                <span className="h-10 w-10 rounded-full bg-surface inline-flex items-center justify-center text-[13px] font-semibold shrink-0">
-                  {r.user.slice(0, 1)}
-                </span>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 mb-1 flex-wrap">
-                    <span className="text-[13px] font-medium">{r.user}</span>
-                    <span className="text-[11px] text-muted-foreground">· 协会实名业主</span>
-                    <Badge tone={r.cat} className="ml-auto">{r.cat === "build" ? "建筑" : r.cat === "decor" ? "装修" : "设计"}</Badge>
-                  </div>
-                  <Link href={`/members?q=${encodeURIComponent(r.enterprise)}`} className="text-[12px] text-brand hover:underline inline-flex items-center gap-1">
-                    {r.enterprise} · {r.project} <ArrowUpRight className="h-3 w-3" />
-                  </Link>
-                  <div className="mt-1 flex items-center gap-0.5">
-                    {Array.from({ length: 5 }, (_, i) => (
-                      <Star key={i} className={i < r.rating ? "h-3.5 w-3.5 fill-[#FFB400] text-[#FFB400]" : "h-3.5 w-3.5 text-border"} />
-                    ))}
-                  </div>
-                  <p className="mt-2 text-[13px] leading-6">{r.content}</p>
-                  <div className="mt-3 text-[11px] text-muted-foreground">{r.date}</div>
+            <article key={r.id} className="mb-4 break-inside-avoid rounded-2xl border border-border bg-background p-5">
+              <div className="flex items-center gap-2 mb-2.5">
+                <div className="flex items-center gap-0.5">
+                  {Array.from({ length: 5 }, (_, i) => (
+                    <Star key={i} className={i < r.rating ? "h-3.5 w-3.5 fill-[#FFB400] text-[#FFB400]" : "h-3.5 w-3.5 text-border"} />
+                  ))}
                 </div>
+                <Badge tone={r.cat} className="ml-auto !text-[10px]">{r.cat === "build" ? "建筑" : r.cat === "decor" ? "装修" : "设计"}</Badge>
               </div>
+              <p className="text-[13.5px] leading-6 text-foreground">{r.content}</p>
+              <Link href={`/members?q=${encodeURIComponent(r.enterprise)}`} className="mt-3 text-[12px] text-brand hover:underline inline-flex items-center gap-1">
+                {r.enterprise}{r.project ? ` · ${r.project}` : ""} <ArrowUpRight className="h-3 w-3 shrink-0" />
+              </Link>
+              <div className="mt-2 text-[11px] text-muted-foreground">{r.user} · 协会实名业主 · {r.date}</div>
             </article>
           ))}
         </div>
 
-        <h2 className="text-[18px] font-semibold mt-12 mb-4">五星热门企业</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-          {enterprises.filter((e) => e.rating >= 4.8).slice(0, 6).map((e) => (
-            <Link key={e.id} href={`/members/${e.slug}`} className="rounded-2xl border border-border bg-background p-5 hover:shadow-md transition-shadow">
-              <div className="flex items-center gap-2 mb-2">
-                <Star className="h-4 w-4 fill-[#FFB400] text-[#FFB400]" />
-                <span className="font-semibold">{e.rating.toFixed(1)}</span>
-                <span className="text-muted-foreground text-[12px]">({e.reviews} 条评价)</span>
-              </div>
-              <div className="text-[14px] font-medium">{e.name}</div>
-              <div className="text-[11px] text-muted-foreground mt-0.5">{e.district} · {e.tags.slice(0, 2).join(" · ")}</div>
-            </Link>
-          ))}
-        </div>
+        {/* 五星好评企业 —— 照片卡 */}
+        {fiveStar.length > 0 && (
+          <>
+            <h2 className="text-[18px] md:text-[22px] font-semibold tracking-tight mt-14 mb-4">业主公认的好口碑</h2>
+            <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
+              {fiveStar.map((e) => (
+                <Link key={e.id} href={`/biz/${e.slug}`} className="group rounded-2xl overflow-hidden border border-border bg-background hover:shadow-[0_24px_60px_-32px_rgba(0,0,0,0.22)] transition-all">
+                  <div className="relative aspect-[16/10] bg-surface overflow-hidden">
+                    {coverByEnt[e.id] ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={coverByEnt[e.id]} alt={e.name} loading="lazy" className="h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.05]" />
+                    ) : (
+                      <div className="h-full w-full flex items-center justify-center text-muted-foreground text-[12px]">暂无案例图</div>
+                    )}
+                    <span className="absolute top-2.5 left-2.5 inline-flex items-center gap-1 rounded-full bg-white/90 backdrop-blur px-2 py-0.5 text-[11px] font-semibold shadow-sm">
+                      <Star className="h-3 w-3 fill-[#FFB400] text-[#FFB400]" /> {e.rating.toFixed(1)}
+                    </span>
+                  </div>
+                  <div className="p-3.5">
+                    <div className="text-[14px] font-semibold tracking-tight truncate group-hover:text-brand transition-colors">{e.name}</div>
+                    <div className="text-[11px] text-muted-foreground mt-0.5 truncate">{e.district} · {e.reviews} 条评价</div>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </>
+        )}
       </Container>
     </>
   );

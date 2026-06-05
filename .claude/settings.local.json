@@ -210,7 +210,9 @@
       "Bash(xargs echo \"别墅案例图:\")",
       "Bash(xargs echo \"products 图数:\")",
       "Bash(xargs echo \"卡片案例封面图数:\")",
-      "Bash(xargs echo \"企业卡链接数:\")"
+      "Bash(xargs echo \"企业卡链接数:\")",
+      "Bash(xargs echo \"封面图:\")",
+      "Bash(xargs echo \"biz链接:\")"
     ]
   }
 }
