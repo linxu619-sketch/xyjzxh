@@ -2,7 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import {
   Umbrella, MessageSquareHeart, MessageSquareWarning, Sparkles,
-  Settings, ChevronRight, ShieldCheck, ArrowUpRight, Camera,
+  ChevronRight, ShieldCheck, ArrowUpRight, Camera,
   AlertCircle, CheckCircle2, Wallet, GitPullRequest, MessagesSquare,
 } from "lucide-react";
 import { Container } from "@/components/container";
@@ -75,19 +75,14 @@ export default async function CustomerDashboard() {
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-24 w-24 rounded-full bg-cat-design/15 blur-2xl" />
 
         <Container className="relative max-w-2xl">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <span className="h-12 w-12 rounded-full bg-gradient-to-br from-cat-decor to-[#e6531f] text-white inline-flex items-center justify-center text-[18px] font-semibold shadow-lg">
-                {session.name.slice(0, 1)}
-              </span>
-              <div className="leading-tight">
-                <div className="text-[15px] font-semibold">{session.name}</div>
-                <div className="text-[11px] text-background/70">协会业主{session.phone ? ` · ID C${session.phone.slice(-6)}` : ""}</div>
-              </div>
+          <div className="flex items-center gap-3">
+            <span className="h-12 w-12 rounded-full bg-gradient-to-br from-cat-decor to-[#e6531f] text-white inline-flex items-center justify-center text-[18px] font-semibold shadow-lg">
+              {session.name.slice(0, 1)}
+            </span>
+            <div className="leading-tight">
+              <div className="text-[15px] font-semibold">{session.name}</div>
+              <div className="text-[11px] text-background/70">协会业主{session.phone ? ` · ID C${session.phone.slice(-6)}` : ""}</div>
             </div>
-            <Link href="/dashboard/customer/settings" className="relative h-9 w-9 rounded-full bg-white/10 backdrop-blur inline-flex items-center justify-center hover:bg-white/20 transition-colors" aria-label="设置">
-              <Settings className="h-4 w-4" />
-            </Link>
           </div>
 
           <div className="mt-6 inline-flex items-center gap-1.5 rounded-full bg-white/10 backdrop-blur px-3 py-1.5 text-[11px]">
