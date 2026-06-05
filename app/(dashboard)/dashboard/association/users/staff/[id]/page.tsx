@@ -18,7 +18,7 @@ export default async function StaffDetail({ params, searchParams }: { params: Pr
   if (!s) notFound();
   const isSuper = s.roles.includes("super_admin");
   const perms = permissionsOf(s.roles);
-  const savedMsg = saved === "roles" ? "角色已更新" : saved === "pwd" ? "登录密码已重置" : "";
+  const savedMsg = saved === "roles" ? "角色已更新" : saved === "pwd" ? "登录密码已重置" : saved === "created" ? "工作人员已创建,登录账号已开通" : "";
 
   return (
     <AssociationShell title="工作人员详情" subtitle={`${s.name} · ${s.roles.map(roleLabel).join(" / ")}`}>
@@ -43,7 +43,7 @@ export default async function StaffDetail({ params, searchParams }: { params: Pr
           <Row k="登录手机号" v={mask(s.phone)} />
           {s.email && <Row k="邮箱" v={s.email} />}
           <Row k="账号状态" v={s.status === "active" ? "正常" : "已停用"} />
-          <Row k="登录密码" v="手机号后 6 位（演示）" />
+          <Row k="登录密码" v="已加密存储,可在下方「重置登录密码」修改" />
         </dl>
 
         {/* 有效权限（多角色并集）*/}

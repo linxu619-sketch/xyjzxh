@@ -5,7 +5,7 @@ import { redirect } from "next/navigation";
 import { getSession } from "@/lib/auth/session";
 import { getAccountByPhone, setAccountStatus, setAccountTier, setAccountPassword, deleteAccount, updateAccountProfile, type AccountStatus } from "@/lib/data/accounts";
 import { tierLadder } from "@/lib/data/member-tier";
-import { getStaff, setStaffStatus, setStaffRoles, setStaffPassword, deleteStaff, type StaffStatus } from "@/lib/data/staff-source";
+import { getStaff, getStaffAuthByPhone, setStaffStatus, setStaffRoles, setStaffPassword, deleteStaff, createStaff, type StaffStatus } from "@/lib/data/staff-source";
 import { ROLE_KEYS } from "@/lib/auth/roles";
 import { hashPassword } from "@/lib/auth/password";
 
@@ -95,6 +95,29 @@ export async function deleteAccountAction(fd: FormData) {
   if (phone) deleteAccount(phone);
   const to = `/dashboard/association/users${role ? `?tab=${role}` : ""}`;
   revalidatePath("/dashboard/association/users");
+  redirect(to);
+}
+
+// 新增协会工作人员（超管 / 有 users 权限的职员）
+export async function createStaffAction(fd: FormData) {
+  await requireAssoc();
+  const name = String(fd.get("name") || "").trim();
+  const phone = String(fd.get("phone") || "").trim();
+  const email = String(fd.get("email") || "").trim();
+  const pwd = String(fd.get("password") || "");
+  const roles = fd.getAll("role").map(String).filter((r) => ROLE_KEYS.includes(r) && r !== "super_admin");
+
+  const err = (m: string): never => redirect(`/dashboard/association/users/staff/new?err=${encodeURIComponent(m)}`);
+  if (!name) err("请填写姓名");
+  if (!/^1\d{10}$/.test(phone)) err("请输入正确的 11 位手机号");
+  if (pwd.length < 6) err("登录密码至少 6 位");
+  if (!roles.length) err("请至少选择一个角色");
+  if (getStaffAuthByPhone(phone)) err("该手机号已是协会工作人员");
+
+  const id = createStaff({ name, phone, email: email || undefined, roles, passwordHash: hashPassword(pwd) });
+  revalidatePath("/dashboard/association/users");
+  const to = `/dashboard/association/users/staff/${id}?saved=created`;
+  revalidatePath(to);
   redirect(to);
 }
 

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Crown, Building2, UserRound, Users2, ShieldCheck, ChevronRight } from "lucide-react";
+import { Crown, Building2, UserRound, Users2, ShieldCheck, ChevronRight, Plus } from "lucide-react";
 import { AssociationShell } from "@/components/dashboard/shell";
 import { StatFilters } from "@/components/dashboard/stat-filters";
 import { Badge } from "@/components/ui/badge";
@@ -46,7 +46,10 @@ export default async function UsersAdmin({ searchParams }: { searchParams: Promi
 
       {active === "staff" ? (
         <div className="rounded-2xl border border-border bg-background overflow-hidden">
-          <div className="px-5 py-3 border-b border-border text-[14px] font-semibold inline-flex items-center gap-1.5"><Crown className="h-4 w-4" /> 协会工作人员 · {staffList.length} 人 <span className="text-[12px] text-muted-foreground font-normal">· 入库可管理</span></div>
+          <div className="px-5 py-3 border-b border-border flex items-center justify-between gap-3 flex-wrap">
+            <div className="text-[14px] font-semibold inline-flex items-center gap-1.5"><Crown className="h-4 w-4" /> 协会工作人员 · {staffList.length} 人 <span className="text-[12px] text-muted-foreground font-normal">· 入库可管理</span></div>
+            <Link href={`${base}/staff/new`} className="h-8 px-3.5 rounded-full bg-foreground text-background text-[12px] font-medium inline-flex items-center gap-1.5"><Plus className="h-3.5 w-3.5" /> 新增工作人员</Link>
+          </div>
           <div className="hidden md:grid grid-cols-[1.3fr_1.1fr_1fr_auto] gap-3 px-5 py-2.5 border-b border-border text-[11px] text-muted-foreground tracking-wider">
             <span>姓名</span><span>角色</span><span>手机号</span><span className="text-right">状态</span>
           </div>
@@ -71,7 +74,7 @@ export default async function UsersAdmin({ searchParams }: { searchParams: Promi
               </li>
             ))}
           </ul>
-          <div className="px-5 py-3 text-[12px] text-muted-foreground border-t border-border">点击任一行进入详情启用 / 停用;登录密码为各自手机号后 6 位。平台超级管理员账号写死源码、不在此处管理。</div>
+          <div className="px-5 py-3 text-[12px] text-muted-foreground border-t border-border">点击任一行进入详情启用 / 停用 / 改角色 / 重置密码;新增职员请用右上角「新增工作人员」。平台超级管理员账号写死源码、不在此处管理。</div>
         </div>
       ) : (
         (() => {
