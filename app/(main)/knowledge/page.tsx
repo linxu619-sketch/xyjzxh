@@ -15,6 +15,7 @@ export const metadata = { title: "知识库 · 信阳市建筑装饰装修协会
 export default function KnowledgePage() {
   const KNOWLEDGE = listKnowledge();
   const hot = KNOWLEDGE.filter((k) => k.hot);
+  const catCount = (key: string) => KNOWLEDGE.filter((k) => k.category === key).length;
   return (
     <>
       <PageHeader
@@ -41,7 +42,7 @@ export default function KnowledgePage() {
           {KNOWLEDGE_CATEGORIES.map((c) => (
             <Link key={c.key} href={`#${c.key}`} className="rounded-2xl border border-border bg-background p-4 hover:shadow-md transition-all hover:-translate-y-0.5 group">
               <Badge tone={TONE[c.color]}>{c.key}</Badge>
-              <div className="mt-3 text-[24px] font-semibold leading-tight">{c.count}</div>
+              <div className="mt-3 text-[24px] font-semibold leading-tight">{catCount(c.key)}</div>
               <div className="text-[11px] text-muted-foreground">份资料</div>
               <ArrowUpRight className="mt-3 h-4 w-4 text-muted-foreground group-hover:text-foreground transition-colors" />
             </Link>
