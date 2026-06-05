@@ -194,7 +194,8 @@
       "Bash(CRON_SECRET=testsecret SITE_URL=http://localhost:3000 bash scripts/cron/knowledge-fetch.sh)",
       "Bash(echo \"退出码=$?\")",
       "Bash(ENV_FILE=/tmp/fake.env bash scripts/cron/knowledge-fetch.sh)",
-      "Bash(bash -n scripts/cron/knowledge-fetch.sh)"
+      "Bash(bash -n scripts/cron/knowledge-fetch.sh)",
+      "Bash(LIMIT=1 node scripts/seed-knowledge-ai.mjs)"
     ]
   }
 }
