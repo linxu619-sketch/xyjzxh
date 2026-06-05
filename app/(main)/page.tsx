@@ -1,14 +1,9 @@
 import Link from "next/link";
-import {
-  ArrowRight, Sparkles, Star, ShieldCheck, ChevronRight, ArrowUpRight,
-  HardHat, MessagesSquare, MessageSquareHeart, Search,
-} from "lucide-react";
+import { ArrowRight, Sparkles, Star, ShieldCheck, Search } from "lucide-react";
 import { Container } from "@/components/container";
 import { Badge } from "@/components/ui/badge";
-import { getSession } from "@/lib/auth/session";
 import { getEnterprises } from "@/lib/data/enterprises-source";
-import { listLeadsForCustomer } from "@/lib/data/leads";
-import { listReviewsByUid, listReviews } from "@/lib/data/reviews";
+import { listReviews } from "@/lib/data/reviews";
 import { listGalleryCases, listCaseTags, countCases } from "@/lib/data/cases";
 import { cn } from "@/lib/cn";
 
@@ -29,7 +24,6 @@ const BG: Record<string, string> = {
 
 export default async function ConsumerHome({ searchParams }: { searchParams: Promise<{ tag?: string }> }) {
   const { tag } = await searchParams;
-  const session = await getSession();
 
   // 案例灵感流（真实企业案例，带图）
   const tags = listCaseTags();
@@ -49,68 +43,40 @@ export default async function ConsumerHome({ searchParams }: { searchParams: Pro
   // 口碑企业（真实，少量）
   const featured = (await getEnterprises()).filter((e) => e.featured).slice(0, 4);
 
-  // 登录业主个性化
-  const customer = session?.role === "customer" ? session : null;
-  const myRequests = customer ? listLeadsForCustomer(customer.uid, customer.phone) : [];
-  const myReviews = customer ? listReviewsByUid(customer.uid) : [];
-  const signedCount = myRequests.filter((l) => l.status === "signed").length;
-
   return (
     <>
-      {/* 登录业主个性化条 */}
-      {customer && (
-        <section className="border-b border-border bg-surface/60">
-          <Container className="py-3.5">
-            <div className="flex items-center justify-between gap-3 mb-2.5">
-              <div className="text-[14px] font-semibold tracking-tight">欢迎回来，{customer.name}</div>
-              <Link href="/dashboard/customer" className="text-[12px] text-muted-foreground hover:text-foreground inline-flex items-center gap-0.5 shrink-0">
-                进入我的 <ChevronRight className="h-3.5 w-3.5" />
-              </Link>
-            </div>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-              {signedCount > 0
-                ? <PersonalTile icon={HardHat} title="我的装修项目" sub={`${signedCount} 个已签约`} href="/dashboard/customer/projects" />
-                : <PersonalTile icon={HardHat} title="开始装修" sub="AI 估价 · 找企业" href="/ai/decor" />}
-              <PersonalTile icon={MessagesSquare} title="我的需求" sub={myRequests.length > 0 ? `${myRequests.length} 条跟踪中` : "发需求"} href="/dashboard/customer/requests" />
-              <PersonalTile icon={MessageSquareHeart} title="我的评价" sub={myReviews.length > 0 ? `${myReviews.length} 条已发布` : "完工来打分"} href="/dashboard/customer/review" />
-              <PersonalTile icon={Sparkles} title="AI 装修顾问" sub="小装在线" href="/ai/decor" />
-            </div>
-          </Container>
-        </section>
-      )}
-
-      {/* HERO —— 克制、留白、以「你」为主语 */}
+      {/* HERO —— 克制、紧凑、以「你」为主语 */}
       <section>
-        <Container className="pt-14 md:pt-24 pb-8 md:pb-12">
+        <Container className="pt-8 md:pt-12 pb-4 md:pb-6">
           <div className="max-w-3xl">
-            <div className="text-[12px] tracking-[0.2em] text-muted-foreground uppercase mb-5">信阳本地 · 协会认证的装修</div>
-            <h1 className="text-[40px] sm:text-[56px] md:text-[72px] font-semibold tracking-tight leading-[1.04]">
+            <div className="text-[12px] tracking-[0.2em] text-muted-foreground uppercase mb-3">信阳本地 · 协会认证的装修</div>
+            <h1 className="text-[32px] sm:text-[46px] md:text-[60px] font-semibold tracking-tight leading-[1.05]">
               你想把家，<br className="sm:hidden" />装成什么样？
             </h1>
-            <p className="mt-6 text-[15px] md:text-[17px] leading-7 md:leading-8 text-muted-foreground max-w-xl">
+            <p className="mt-3 text-[14px] md:text-[16px] leading-6 md:leading-7 text-muted-foreground max-w-xl">
               {totalCases} 套信阳本地真实业主家的装修实景，按你的户型挑灵感，看中了——直接约这家做。
             </p>
+          </div>
 
-            {/* 户型筛选 chips */}
-            <div className="mt-8 flex flex-wrap gap-2">
-              <TagChip label="全部" href="/" active={!activeTag} />
-              {tags.slice(0, 8).map((t) => (
-                <TagChip key={t.tag} label={t.tag} href={`/?tag=${encodeURIComponent(t.tag)}#cases`} active={activeTag === t.tag} />
-              ))}
-            </div>
+          {/* 户型筛选 chips —— 移动端单行横滑 */}
+          <div className="mt-4 -mx-4 px-4 flex gap-2 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+            <TagChip label="全部" href="/" active={!activeTag} />
+            {tags.slice(0, 8).map((t) => (
+              <TagChip key={t.tag} label={t.tag} href={`/?tag=${encodeURIComponent(t.tag)}#cases`} active={activeTag === t.tag} />
+            ))}
           </div>
         </Container>
       </section>
 
-      {/* 案例灵感瀑布流 —— 页面主角 */}
-      <section id="cases" className="pb-10 md:pb-16">
+      {/* 案例灵感流 —— 页面主角 */}
+      <section id="cases" className="pt-4 pb-10 md:pb-16">
         <Container>
           {cases.length === 0 ? (
             <div className="rounded-3xl border border-border bg-surface/40 py-16 text-center text-muted-foreground text-[14px]">
               该户型暂无案例，<Link href="/" className="text-foreground underline underline-offset-2">看看全部</Link>
             </div>
           ) : (
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4">
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2.5 md:gap-3">
               {cases.map((c) => (
                 <Link
                   key={c.id}
@@ -269,29 +235,11 @@ function TagChip({ label, href, active }: { label: string; href: string; active:
     <Link
       href={href}
       className={cn(
-        "h-9 px-4 rounded-full text-[13px] font-medium inline-flex items-center transition-colors",
+        "shrink-0 h-9 px-4 rounded-full text-[13px] font-medium inline-flex items-center transition-colors",
         active ? "bg-foreground text-background" : "border border-border text-muted-foreground hover:text-foreground hover:border-foreground/30",
       )}
     >
       {label}
-    </Link>
-  );
-}
-
-function PersonalTile({ icon: Icon, title, sub, href }: {
-  icon: React.ComponentType<{ className?: string }>;
-  title: string; sub: string; href: string;
-}) {
-  return (
-    <Link href={href} className="group rounded-xl border border-border bg-background p-3 flex items-center gap-2.5 active:scale-[0.98] transition-transform">
-      <span className="h-8 w-8 rounded-lg bg-surface text-foreground inline-flex items-center justify-center shrink-0">
-        <Icon className="h-4 w-4" />
-      </span>
-      <div className="flex-1 min-w-0">
-        <div className="text-[13px] font-semibold truncate">{title}</div>
-        <div className="text-[11px] text-muted-foreground truncate">{sub}</div>
-      </div>
-      <ArrowUpRight className="h-3.5 w-3.5 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity shrink-0" />
     </Link>
   );
 }
