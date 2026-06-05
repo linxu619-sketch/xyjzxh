@@ -15,7 +15,7 @@ const ENTERPRISE = {
   benefits: [
     { icon: Building2, title: "二级域名子站", desc: "yourbrand.xyjzxh.com 独立品牌页 + 在线接单" },
     { icon: ShieldCheck, title: "协会认证", desc: "在册即获认证徽章，提升业主信任与转化" },
-    { icon: TrendingUp, title: "流量分发", desc: "首页推荐、AI 主动匹配、搜索优先排序" },
+    { icon: TrendingUp, title: "平台曝光", desc: "首页推荐位、AI 主动匹配、案例与口碑展示" },
     { icon: Award, title: "金融保险优惠", desc: "建装贷专属费率、消费险联合品牌" },
     { icon: Sparkles, title: "10 位 AI 员工", desc: "客服、估价、报备、调解 24h 在线" },
     { icon: Building2, title: "工装报备直通", desc: "省厅一网通办、AI 预审、24h 反馈" },
@@ -102,21 +102,23 @@ export default async function JoinPage({ searchParams }: { searchParams: Promise
           </Link>
         </div>
 
-        {/* 会员权益 */}
+        {/* 会员权益 —— 紧凑两列清单 */}
         <section>
-          <h2 className="text-[26px] md:text-[32px] font-semibold tracking-tight">
+          <h2 className="text-[22px] md:text-[28px] font-semibold tracking-tight">
             {isEnt ? "企业会员权益" : "个人会员权益"}
           </h2>
-          <div className="mt-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="mt-5 rounded-3xl border border-border bg-background p-5 md:p-6 grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4">
             {data.benefits.map((b) => {
               const Icon = b.icon;
               return (
-                <div key={b.title} className="rounded-3xl border border-border bg-background p-6 hover:shadow-md transition-shadow">
-                  <span className="inline-flex h-11 w-11 rounded-2xl items-center justify-center bg-brand-50 text-brand">
-                    <Icon className="h-5 w-5" />
+                <div key={b.title} className="flex items-start gap-3">
+                  <span className="inline-flex h-9 w-9 rounded-xl items-center justify-center bg-brand-50 text-brand shrink-0">
+                    <Icon className="h-4 w-4" />
                   </span>
-                  <h3 className="mt-5 text-[17px] font-semibold tracking-tight">{b.title}</h3>
-                  <p className="mt-2 text-[13px] text-muted-foreground leading-6">{b.desc}</p>
+                  <div className="min-w-0">
+                    <div className="text-[14px] font-semibold tracking-tight">{b.title}</div>
+                    <div className="mt-0.5 text-[12px] text-muted-foreground leading-5">{b.desc}</div>
+                  </div>
                 </div>
               );
             })}
