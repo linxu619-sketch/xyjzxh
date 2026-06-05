@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft, Library, FileText, Sparkles, ShieldCheck, CalendarDays, ArrowUpRight } from "lucide-react";
+import { ArrowLeft, Library, FileText, Sparkles, ShieldCheck, CalendarDays, ArrowUpRight, ExternalLink } from "lucide-react";
 import { Container } from "@/components/container";
 import { Badge } from "@/components/ui/badge";
 import { listKnowledge, getKnowledgeArticle } from "@/lib/data/knowledge-source";
@@ -85,6 +85,14 @@ export default async function KnowledgeDetail({ params }: { params: Promise<{ id
       <div className="mt-4 text-[12px] text-muted-foreground inline-flex items-center gap-1.5">
         <ShieldCheck className="h-3.5 w-3.5 text-accent-tea" /> 协会技术委员会审核 · 持续更新
       </div>
+
+      {k.sourceName && (
+        <div className="mt-2 text-[12px] text-muted-foreground">
+          来源：{k.sourceUrl && /^https?:\/\//.test(k.sourceUrl)
+            ? <a href={k.sourceUrl} target="_blank" rel="noreferrer" className="text-brand hover:underline inline-flex items-center gap-1">{k.sourceName} <ExternalLink className="h-3 w-3" /></a>
+            : <span>{k.sourceName}</span>}
+        </div>
+      )}
 
       {/* 相关 */}
       {related.length > 0 && (

@@ -4,11 +4,16 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { getSession } from "@/lib/auth/session";
 import { createKnowledge, updateKnowledge, deleteKnowledge, setKnowledgeHot, getKnowledgeArticle, type KnowledgeInput } from "@/lib/data/knowledge-source";
+import { getDraft, setDraftStatus, deleteDraft } from "@/lib/data/knowledge-drafts-source";
+import { addSource, setSourceEnabled, deleteSource } from "@/lib/data/knowledge-sources-source";
+import { runKnowledgeFetch } from "@/lib/ai/knowledge-fetch";
 import type { KnowledgeSection } from "@/lib/data/knowledge";
+import type { SourceKind } from "@/lib/data/knowledge-sources";
 
 async function requireAssoc() {
   const s = await getSession();
   if (!s || (s.role !== "association" && s.role !== "system_admin")) throw new Error("无权限：仅协会工作人员可管理知识库");
+  return s;
 }
 
 function todayStr(): string {
@@ -88,4 +93,81 @@ export async function deleteKnowledgeAction(fd: FormData) {
   revalidatePath("/dashboard/association/knowledge");
   revalidatePath("/knowledge");
   redirect("/dashboard/association/knowledge");
+}
+
+/* ============================================================
+   AI 自动抓取 + 草稿箱审核入库
+   ============================================================ */
+
+export async function runKnowledgeFetchAction() {
+  await requireAssoc();
+  const summary = await runKnowledgeFetch();
+  revalidatePath("/dashboard/association/knowledge/drafts");
+  revalidatePath("/dashboard/association/knowledge");
+  redirect(`/dashboard/association/knowledge/drafts?fetched=${summary.totalNew}&ai=${summary.usedAI ? 1 : 0}`);
+}
+
+// 草稿「通过并入库」：用（可人工编辑后的）表单字段创建正式文章，并标记草稿已通过
+export async function approveDraftAction(fd: FormData) {
+  const s = await requireAssoc();
+  const draftId = String(fd.get("draftId") || "").trim();
+  const d = draftId ? getDraft(draftId) : undefined;
+  if (!d) redirect("/dashboard/association/knowledge/drafts");
+  if (d!.status !== "pending") redirect(`/dashboard/association/knowledge/drafts/${draftId}`);
+  const input = readInput(fd);
+  if (!input.title) redirect(`/dashboard/association/knowledge/drafts/${draftId}?kerr=1`);
+  input.sourceUrl = d!.sourceUrl || undefined;
+  input.sourceName = d!.sourceName || undefined;
+  const articleId = createKnowledge(input);
+  setDraftStatus(draftId, "approved", s.name || "协会", articleId);
+  revalidatePath("/dashboard/association/knowledge");
+  revalidatePath("/dashboard/association/knowledge/drafts");
+  revalidatePath("/knowledge");
+  redirect(`/dashboard/association/knowledge/${articleId}?saved=1`);
+}
+
+export async function rejectDraftAction(fd: FormData) {
+  const s = await requireAssoc();
+  const draftId = String(fd.get("draftId") || "").trim();
+  if (draftId && getDraft(draftId)) setDraftStatus(draftId, "rejected", s.name || "协会");
+  revalidatePath("/dashboard/association/knowledge/drafts");
+  redirect(`/dashboard/association/knowledge/drafts/${draftId}`);
+}
+
+export async function deleteDraftAction(fd: FormData) {
+  await requireAssoc();
+  const draftId = String(fd.get("draftId") || "").trim();
+  if (draftId) deleteDraft(draftId);
+  revalidatePath("/dashboard/association/knowledge/drafts");
+  redirect("/dashboard/association/knowledge/drafts");
+}
+
+/* ---------- 抓取来源管理 ---------- */
+
+export async function addSourceAction(fd: FormData) {
+  await requireAssoc();
+  const name = String(fd.get("name") || "").trim();
+  const url = String(fd.get("url") || "").trim();
+  const kind = (["sample", "rss", "html"].includes(String(fd.get("kind"))) ? String(fd.get("kind")) : "html") as SourceKind;
+  const category = String(fd.get("category") || "地方政策").trim();
+  if (name && url) addSource({ name, url, kind, category });
+  revalidatePath("/dashboard/association/knowledge/sources");
+  redirect("/dashboard/association/knowledge/sources");
+}
+
+export async function toggleSourceAction(fd: FormData) {
+  await requireAssoc();
+  const id = String(fd.get("id") || "").trim();
+  const enabled = String(fd.get("enabled") || "") === "1";
+  if (id) setSourceEnabled(id, enabled);
+  revalidatePath("/dashboard/association/knowledge/sources");
+  redirect(`/dashboard/association/knowledge/sources/${id}`);
+}
+
+export async function deleteSourceAction(fd: FormData) {
+  await requireAssoc();
+  const id = String(fd.get("id") || "").trim();
+  if (id) deleteSource(id);
+  revalidatePath("/dashboard/association/knowledge/sources");
+  redirect("/dashboard/association/knowledge/sources");
 }

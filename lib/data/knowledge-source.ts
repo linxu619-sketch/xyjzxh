@@ -4,7 +4,7 @@ import { KNOWLEDGE, type KnowledgeItem, type KnowledgeSection } from "@/lib/data
 
 /* 知识库数据源：本地 SQLite（失败回退静态）。静态 KNOWLEDGE 仅作种子源。 */
 
-type Row = { id: string; title: string | null; category: string | null; tags: string | null; date: string | null; size: string | null; hot: number | null; excerpt: string | null; content: string | null; file_url: string | null; file_name: string | null };
+type Row = { id: string; title: string | null; category: string | null; tags: string | null; date: string | null; size: string | null; hot: number | null; excerpt: string | null; content: string | null; file_url: string | null; file_name: string | null; source_url: string | null; source_name: string | null };
 
 function rowTo(r: Row): KnowledgeItem {
   let tags: string[] = []; let content: KnowledgeSection[] = [];
@@ -14,6 +14,7 @@ function rowTo(r: Row): KnowledgeItem {
     id: r.id, title: r.title ?? "", category: (r.category as KnowledgeItem["category"]) ?? "技术资料",
     tags, date: r.date ?? "", size: r.size ?? undefined, hot: !!r.hot, excerpt: r.excerpt ?? "", content,
     fileUrl: r.file_url ?? undefined, fileName: r.file_name ?? undefined,
+    sourceUrl: r.source_url ?? undefined, sourceName: r.source_name ?? undefined,
   };
 }
 
@@ -34,13 +35,14 @@ export function getKnowledgeArticle(id: string): KnowledgeItem | undefined {
 export type KnowledgeInput = {
   title: string; category: string; tags: string[]; date: string; size?: string;
   hot: boolean; excerpt: string; content: KnowledgeSection[]; fileUrl?: string; fileName?: string;
+  sourceUrl?: string; sourceName?: string;
 };
 
 export function createKnowledge(input: KnowledgeInput): string {
   const id = `K-${Date.now().toString(36)}`;
   getDb().prepare(
-    "INSERT INTO knowledge_articles (id,title,category,tags,date,size,hot,excerpt,content,file_url,file_name,created_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)",
-  ).run(id, input.title, input.category, JSON.stringify(input.tags), input.date, input.size ?? "", input.hot ? 1 : 0, input.excerpt, JSON.stringify(input.content), input.fileUrl ?? null, input.fileName ?? null, Date.now());
+    "INSERT INTO knowledge_articles (id,title,category,tags,date,size,hot,excerpt,content,file_url,file_name,source_url,source_name,created_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
+  ).run(id, input.title, input.category, JSON.stringify(input.tags), input.date, input.size ?? "", input.hot ? 1 : 0, input.excerpt, JSON.stringify(input.content), input.fileUrl ?? null, input.fileName ?? null, input.sourceUrl ?? null, input.sourceName ?? null, Date.now());
   return id;
 }
 

@@ -1,12 +1,14 @@
 import Link from "next/link";
-import { Library, Sparkles, ArrowUpRight, Plus, FileText } from "lucide-react";
+import { Library, Sparkles, ArrowUpRight, Plus, FileText, RefreshCw, Inbox, Rss, ChevronRight } from "lucide-react";
 import { AssociationShell } from "@/components/dashboard/shell";
 import { DataTable } from "@/components/dashboard/section";
 import { Badge } from "@/components/ui/badge";
 import { KNOWLEDGE_CATEGORIES } from "@/lib/data/knowledge";
 import { listKnowledge } from "@/lib/data/knowledge-source";
+import { countDrafts } from "@/lib/data/knowledge-drafts-source";
+import { listSources } from "@/lib/data/knowledge-sources-source";
 import { KnowledgeForm } from "./KnowledgeForm";
-import { createKnowledgeAction } from "./actions";
+import { createKnowledgeAction, runKnowledgeFetchAction } from "./actions";
 
 export const metadata = { title: "知识库管理 · 协会工作台" };
 
@@ -16,6 +18,9 @@ export default async function KnowledgeAdmin({ searchParams }: { searchParams: P
   const hotCount = KNOWLEDGE.filter((k) => k.hot).length;
   const catCount = (key: string) => KNOWLEDGE.filter((k) => k.category === key).length;
   const base = "/dashboard/association/knowledge";
+  const pendingDrafts = countDrafts("pending");
+  const enabledSources = listSources(true).length;
+  const totalSources = listSources().length;
 
   return (
     <AssociationShell title="知识库管理" subtitle={`共 ${KNOWLEDGE.length} 篇资料 · 热门 ${hotCount} 篇 · 点行可编辑`}>
@@ -40,6 +45,39 @@ export default async function KnowledgeAdmin({ searchParams }: { searchParams: P
           <KnowledgeForm action={createKnowledgeAction} submitLabel="新增资料" />
         </div>
       </details>
+
+      {/* AI 自动更新：立即抓取 + 草稿箱 + 来源管理 */}
+      <div className="rounded-2xl border border-border bg-background p-5 mb-6">
+        <div className="flex items-start justify-between gap-3 flex-wrap">
+          <div>
+            <div className="text-[14px] font-semibold inline-flex items-center gap-2"><Sparkles className="h-4 w-4 text-brand" /> AI 自动更新知识库</div>
+            <p className="mt-1 text-[12px] text-muted-foreground max-w-lg leading-5">从配置的政府 / 行业来源抓取最新政策资讯,AI 整理成草稿进「草稿箱」<b>待人工审核</b>后入库,不会自动直接发布。当前 {enabledSources}/{totalSources} 个来源启用。</p>
+          </div>
+          <form action={runKnowledgeFetchAction}>
+            <button className="h-10 px-4 rounded-full bg-foreground text-background text-[13px] font-medium inline-flex items-center gap-1.5 active:scale-[0.98]">
+              <RefreshCw className="h-4 w-4" /> 立即抓取更新
+            </button>
+          </form>
+        </div>
+        <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <Link href={`${base}/drafts`} className="flex items-center gap-3 rounded-xl border border-border bg-surface/40 p-3.5 hover:bg-surface transition-colors">
+            <span className="h-9 w-9 rounded-xl bg-brand-50 text-brand inline-flex items-center justify-center shrink-0"><Inbox className="h-4 w-4" /></span>
+            <div className="flex-1 min-w-0">
+              <div className="text-[13px] font-medium">草稿箱{pendingDrafts > 0 && <span className="ml-1.5 text-[11px] text-cat-decor font-semibold">{pendingDrafts} 条待审</span>}</div>
+              <div className="text-[11px] text-muted-foreground">审核 AI 抓取的待审资料</div>
+            </div>
+            <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0" />
+          </Link>
+          <Link href={`${base}/sources`} className="flex items-center gap-3 rounded-xl border border-border bg-surface/40 p-3.5 hover:bg-surface transition-colors">
+            <span className="h-9 w-9 rounded-xl bg-cat-design-soft text-cat-design inline-flex items-center justify-center shrink-0"><Rss className="h-4 w-4" /></span>
+            <div className="flex-1 min-w-0">
+              <div className="text-[13px] font-medium">抓取来源管理</div>
+              <div className="text-[11px] text-muted-foreground">增删 / 启停政府·行业来源({totalSources})</div>
+            </div>
+            <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0" />
+          </Link>
+        </div>
+      </div>
 
       <div className="rounded-2xl bg-foreground text-background p-6 relative overflow-hidden mb-6">
         <div className="absolute -right-10 -top-10 h-40 w-40 rounded-full bg-cat-design/30 blur-2xl" />

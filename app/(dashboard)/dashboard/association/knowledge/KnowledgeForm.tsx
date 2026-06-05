@@ -25,10 +25,11 @@ type Initial = {
 
 type SectionDraft = { h: string; pointsText: string };
 
-export function KnowledgeForm({ action, initial, submitLabel }: {
+export function KnowledgeForm({ action, initial, submitLabel, hiddenFields }: {
   action: (fd: FormData) => void | Promise<void>;
   initial?: Initial;
   submitLabel: string;
+  hiddenFields?: Record<string, string>;
 }) {
   const [file, setFile] = useState<{ url: string; name: string; size: string } | null>(
     initial?.fileUrl ? { url: initial.fileUrl, name: initial.fileName ?? "原文", size: initial.size ?? "" } : null,
@@ -71,6 +72,7 @@ export function KnowledgeForm({ action, initial, submitLabel }: {
   return (
     <form action={action} className="space-y-5">
       {initial?.id && <input type="hidden" name="id" value={initial.id} />}
+      {hiddenFields && Object.entries(hiddenFields).map(([k, v]) => <input key={k} type="hidden" name={k} value={v} />)}
       <input type="hidden" name="fileUrl" value={file?.url ?? ""} />
       <input type="hidden" name="fileName" value={file?.name ?? ""} />
       <input type="hidden" name="size" value={file?.size ?? ""} />

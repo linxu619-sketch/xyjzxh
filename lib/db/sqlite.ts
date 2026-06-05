@@ -10,6 +10,7 @@ import { PRACTITIONER_JOBS, WORKER_INSURANCE } from "@/lib/data/practitioners";
 import { KNOWLEDGE as KB_ARTICLES } from "@/lib/data/knowledge";
 import { AGREEMENT_TEMPLATES, AGREEMENT_SIGNATURES } from "@/lib/data/agreements";
 import { SEED_STAFF } from "@/lib/data/users-seed";
+import { DEFAULT_KNOWLEDGE_SOURCES } from "@/lib/data/knowledge-sources";
 
 /* ============================================================
    本地 SQLite 数据库（Node 24 内置 node:sqlite，零依赖、零云端）
@@ -209,6 +210,35 @@ CREATE TABLE IF NOT EXISTS knowledge_articles (
   content     TEXT,    -- JSON: [{h, points[]}]
   file_url    TEXT,    -- 上传的 PDF/DOCX 原文 URL
   file_name   TEXT,    -- 原文件名
+  created_at  INTEGER
+);
+
+-- AI 知识库自动更新：抓取来源
+CREATE TABLE IF NOT EXISTS knowledge_sources (
+  id          TEXT PRIMARY KEY,
+  name        TEXT,
+  url         TEXT,
+  kind        TEXT,    -- sample | rss | html
+  category    TEXT,    -- 默认归类
+  enabled     INTEGER DEFAULT 1,
+  last_run_at INTEGER,
+  created_at  INTEGER
+);
+
+-- AI 知识库自动更新：AI 起草的待审草稿
+CREATE TABLE IF NOT EXISTS knowledge_drafts (
+  id          TEXT PRIMARY KEY,
+  title       TEXT,
+  category    TEXT,
+  tags        TEXT,    -- JSON
+  excerpt     TEXT,
+  content     TEXT,    -- JSON: [{h, points[]}]
+  source_name TEXT,
+  source_url  TEXT,    -- 原文链接（同时用于去重）
+  status      TEXT DEFAULT 'pending',  -- pending | approved | rejected
+  reviewed_by TEXT,
+  reviewed_at INTEGER,
+  article_id  TEXT,    -- 通过后生成的正式文章 id
   created_at  INTEGER
 );
 
@@ -805,6 +835,7 @@ function init(): DB {
   seedPractitionerJobs(db);
   seedWorkerInsurance(db);
   seedKnowledgeArticles(db);
+  seedKnowledgeSources(db);
   seedAgreements(db);
   seedAssociationStaff(db);
   seedDemoCustomers(db);
@@ -859,6 +890,16 @@ function seedKnowledgeArticles(db: DB) {
   for (const k of KB_ARTICLES) {
     db.prepare("INSERT INTO knowledge_articles (id,title,category,tags,date,size,hot,excerpt,content,created_at) VALUES (?,?,?,?,?,?,?,?,?,?)")
       .run(k.id, k.title, k.category, JSON.stringify(k.tags ?? []), k.date ?? "", k.size ?? "", k.hot ? 1 : 0, k.excerpt ?? "", JSON.stringify(k.content ?? []), Date.parse(k.date ?? "") || Date.now());
+  }
+}
+
+// AI 知识库抓取来源（DEFAULT_KNOWLEDGE_SOURCES 作种子源）
+function seedKnowledgeSources(db: DB) {
+  if (!isEmpty(db, "knowledge_sources")) return;
+  const now = Date.now();
+  for (const s of DEFAULT_KNOWLEDGE_SOURCES) {
+    db.prepare("INSERT INTO knowledge_sources (id,name,url,kind,category,enabled,last_run_at,created_at) VALUES (?,?,?,?,?,?,?,?)")
+      .run(s.id, s.name, s.url, s.kind, s.category, s.enabled ? 1 : 0, null, now);
   }
 }
 
@@ -1140,6 +1181,9 @@ function migrate(db: DB) {
     // 知识库文章上传原文
     "ALTER TABLE knowledge_articles ADD COLUMN file_url TEXT",
     "ALTER TABLE knowledge_articles ADD COLUMN file_name TEXT",
+    // 知识库文章溯源（AI 自动抓取入库时记录来源，便于去重与标注）
+    "ALTER TABLE knowledge_articles ADD COLUMN source_url TEXT",
+    "ALTER TABLE knowledge_articles ADD COLUMN source_name TEXT",
   ];
   for (const sql of alters) {
     try { db.exec(sql); } catch { /* 列已存在，忽略 */ }
