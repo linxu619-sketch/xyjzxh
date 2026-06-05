@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import {
-  ShieldCheck, ArrowLeft, Phone, Sparkles, CheckCircle2,
+  ShieldCheck, ArrowLeft, Phone, Sparkles, CheckCircle2, Check,
   Clock, Mail, MapPin, Send, MessageSquareText, AlertCircle,
 } from "lucide-react";
 import { Container } from "@/components/container";
@@ -352,7 +352,7 @@ export default async function OrderPage({
         .form-input:focus {
           outline: none;
           border-color: var(--brand);
-          box-shadow: 0 0 0 4px rgba(20, 86, 240, 0.1);
+          box-shadow: 0 0 0 4px rgba(38, 124, 124, 0.14);
         }
       `}</style>
     </Container>
@@ -402,10 +402,10 @@ function SegmentChips({ name, options }: { name: string; options: string[] }) {
 function CheckRow({ name, title, desc, defaultChecked }: { name: string; title: string; desc: string; defaultChecked?: boolean }) {
   return (
     <label className="block cursor-pointer">
-      <input type="checkbox" name={name} defaultChecked={defaultChecked} className="sr-only peer" />
-      <div className="rounded-2xl border border-border p-4 flex items-start gap-3 peer-checked:border-foreground peer-checked:bg-surface transition-colors">
-        <span className="h-5 w-5 rounded-md border-2 border-border peer-checked:[parent]:bg-foreground inline-flex items-center justify-center mt-0.5 shrink-0 transition-colors">
-          <CheckCircle2 className="h-3.5 w-3.5 text-foreground opacity-0 peer-checked:[parent]:opacity-100" />
+      <div className="group rounded-2xl border border-border p-4 flex items-start gap-3 transition-colors has-[:checked]:border-foreground has-[:checked]:bg-surface">
+        <input type="checkbox" name={name} defaultChecked={defaultChecked} className="sr-only" />
+        <span className="h-5 w-5 rounded-md border-2 border-border inline-flex items-center justify-center mt-0.5 shrink-0 transition-colors group-has-[:checked]:bg-foreground group-has-[:checked]:border-foreground">
+          <Check className="h-3.5 w-3.5 text-background opacity-0 group-has-[:checked]:opacity-100" />
         </span>
         <div className="flex-1 min-w-0">
           <div className="text-[13px] font-semibold">{title}</div>

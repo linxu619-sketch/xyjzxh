@@ -20,6 +20,18 @@ export async function submitLeadAction(fd: FormData) {
   const s = await getSession();
   const uid = s?.role === "customer" ? s.uid : undefined;
 
+  // 把表单里没有独立字段的信息(开工时间 + 增值勾选)并入备注，避免丢失
+  const extras: string[] = [];
+  if (fd.get("insurance")) extras.push("家装质保险");
+  if (fd.get("supervisor")) extras.push("协会监理介入");
+  if (fd.get("escrow")) extras.push("资金监管托管");
+  const startMonth = String(fd.get("startMonth") || "").trim();
+  const note = [
+    String(fd.get("note") || "").trim(),
+    startMonth && `期望开工：${startMonth}`,
+    extras.length ? `增值需求：${extras.join("、")}` : "",
+  ].filter(Boolean).join("\n");
+
   createLead({
     enterpriseId,
     uid,
@@ -30,7 +42,7 @@ export async function submitLeadAction(fd: FormData) {
     area: String(fd.get("area") || ""),
     budget: String(fd.get("budget") || ""),
     address: String(fd.get("address") || ""),
-    note: String(fd.get("note") || ""),
+    note,
     source: "子站表单",
   });
 
