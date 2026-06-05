@@ -22,7 +22,7 @@ const CONSUMER_TABS: Tab[] = [
   { href: "/members",   label: "找装企", icon: Search,      match: (p) => p.startsWith("/members") },
   { href: "/ai/decor",  label: "AI",     icon: Sparkles,    match: (p) => p.startsWith("/ai") },
   { href: "/review",    label: "评价",   icon: Star,        match: (p) => p.startsWith("/review") },
-  { href: "/dashboard", label: "我的",   icon: UserRound,   match: (p) => p.startsWith("/dashboard") || p.startsWith("/login") },
+  { href: "/dashboard/customer", label: "我的", icon: UserRound, match: (p) => p.startsWith("/dashboard") || p.startsWith("/login") },
 ];
 
 const XH_TABS: Tab[] = [

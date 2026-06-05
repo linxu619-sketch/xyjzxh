@@ -127,7 +127,7 @@ export function SiteHeader({ face = "consumer", authed = false, todo = 0 }: { fa
                   </Link>
                 )}
                 <Button
-                  href={authed ? "/dashboard" : "/login?role=customer"}
+                  href={authed ? "/dashboard/customer" : "/login?role=customer"}
                   size="sm"
                   variant="secondary"
                 >
