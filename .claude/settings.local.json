@@ -208,7 +208,9 @@
       "Bash(xargs echo \"唯一本地案例图:\")",
       "Bash(xargs echo \"外链残留:\")",
       "Bash(xargs echo \"别墅案例图:\")",
-      "Bash(xargs echo \"products 图数:\")"
+      "Bash(xargs echo \"products 图数:\")",
+      "Bash(xargs echo \"卡片案例封面图数:\")",
+      "Bash(xargs echo \"企业卡链接数:\")"
     ]
   }
 }

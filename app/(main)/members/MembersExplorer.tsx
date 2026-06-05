@@ -1,49 +1,37 @@
 "use client";
 
-import { use, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import Link from "next/link";
-import { Search, Star, MapPin, ShieldCheck, ArrowUpRight, ChevronDown, X, SlidersHorizontal } from "lucide-react";
+import { Search, Star, MapPin, ShieldCheck, ChevronDown, X, SlidersHorizontal } from "lucide-react";
 import type { Enterprise, EnterpriseCategory } from "@/lib/data/enterprises";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/cn";
 
-const CATS: { key: "all" | EnterpriseCategory; label: string; tone: "neutral" | "build" | "decor" | "design" }[] = [
-  { key: "all", label: "全部", tone: "neutral" },
-  { key: "build", label: "建筑", tone: "build" },
-  { key: "decor", label: "装修", tone: "decor" },
-  { key: "design", label: "设计", tone: "design" },
+const CATS: { key: "all" | EnterpriseCategory; label: string }[] = [
+  { key: "all", label: "全部" },
+  { key: "build", label: "建筑" },
+  { key: "decor", label: "装修" },
+  { key: "design", label: "设计" },
 ];
 
-const TONE: Record<string, "build" | "decor" | "design"> = {
-  build: "build", decor: "decor", design: "design",
-};
-
-const ACCENT_BAR: Record<string, string> = {
-  build: "bg-cat-build",
-  decor: "bg-cat-decor",
-  design: "bg-cat-design",
-};
+const TONE: Record<string, "build" | "decor" | "design"> = { build: "build", decor: "decor", design: "design" };
+const BG: Record<string, string> = { build: "bg-cat-build", decor: "bg-cat-decor", design: "bg-cat-design" };
+const CAT_LABEL: Record<string, string> = { build: "建筑", decor: "装修", design: "设计" };
 
 export function MembersExplorer({
-  all, initial,
+  all, covers, initial,
 }: {
   all: Enterprise[];
-  initial: Promise<{ cat?: string; q?: string }>;
+  covers: Record<string, string[]>;
+  initial: { cat?: string; q?: string };
 }) {
-  const params = use(initial);
-  const [cat, setCat] = useState<typeof CATS[number]["key"]>(
-    (params.cat as EnterpriseCategory) || "all",
-  );
-  const [q, setQ] = useState(params.q || "");
+  const [cat, setCat] = useState<typeof CATS[number]["key"]>((initial.cat as EnterpriseCategory) || "all");
+  const [q, setQ] = useState(initial.q || "");
   const [sort, setSort] = useState<"rating" | "cases" | "reviews">("rating");
   const [district, setDistrict] = useState<string>("全部");
 
-  const districts = useMemo(
-    () => ["全部", ...Array.from(new Set(all.map((e) => e.district)))],
-    [all],
-  );
+  const districts = useMemo(() => ["全部", ...Array.from(new Set(all.map((e) => e.district)))], [all]);
 
-  // 各品类数量（用于 chip 上的小角标）
   const catCounts = useMemo(() => {
     const c = { all: all.length, build: 0, decor: 0, design: 0 };
     for (const e of all) c[e.category]++;
@@ -71,115 +59,88 @@ export function MembersExplorer({
   }, [all, cat, q, sort, district]);
 
   const hasFilter = q.trim() || cat !== "all" || district !== "全部" || sort !== "rating";
-
-  function reset() {
-    setQ(""); setCat("all"); setDistrict("全部"); setSort("rating");
-  }
+  function reset() { setQ(""); setCat("all"); setDistrict("全部"); setSort("rating"); }
 
   return (
     <div>
-      {/* 筛选条：随页面滚动（不吸顶，避免移动端盖住下方卡片） */}
-      <div className="relative">
-        <div className="rounded-3xl border border-border bg-background p-3 md:p-4 shadow-sm">
-          <div className="flex items-center gap-2">
-            <Search className="h-4 w-4 text-muted-foreground ml-2 shrink-0" />
-            <input
-              value={q}
-              onChange={(e) => setQ(e.target.value)}
-              placeholder="搜索企业名 / 标签 / 资质"
-              className="flex-1 bg-transparent outline-none text-[15px] py-2"
-            />
-            {q && (
-              <button onClick={() => setQ("")} className="inline-flex h-7 w-7 items-center justify-center rounded-full hover:bg-surface text-muted-foreground" aria-label="清除搜索">
-                <X className="h-3.5 w-3.5" />
-              </button>
-            )}
-          </div>
+      {/* 筛选条 */}
+      <div className="rounded-2xl border border-border bg-background p-3 md:p-3.5">
+        <div className="flex items-center gap-2">
+          <Search className="h-4 w-4 text-muted-foreground ml-2 shrink-0" />
+          <input
+            value={q}
+            onChange={(e) => setQ(e.target.value)}
+            placeholder="搜企业名 / 风格 / 资质"
+            className="flex-1 bg-transparent outline-none text-[15px] py-2"
+          />
+          {q && (
+            <button onClick={() => setQ("")} className="inline-flex h-7 w-7 items-center justify-center rounded-full hover:bg-surface text-muted-foreground" aria-label="清除搜索">
+              <X className="h-3.5 w-3.5" />
+            </button>
+          )}
+        </div>
 
-          {/* 品类 chips · 移动横滑 */}
-          <div className="mt-3 -mx-1 px-1 flex items-center gap-1.5 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-            {CATS.map((c) => {
-              const active = cat === c.key;
-              return (
-                <button
-                  key={c.key}
-                  onClick={() => setCat(c.key)}
-                  className={cn(
-                    "shrink-0 h-9 px-4 rounded-full text-[13px] font-medium border transition-colors inline-flex items-center gap-1.5",
-                    active
-                      ? "bg-foreground text-background border-foreground"
-                      : "bg-background text-muted-foreground border-border active:bg-surface",
-                  )}
-                >
-                  {c.label}
-                  <span className={cn("text-[10px] tabular-nums", active ? "text-background/70" : "text-muted-foreground")}>
-                    {catCounts[c.key]}
-                  </span>
-                </button>
-              );
-            })}
-
-            <span className="h-5 w-px bg-border mx-1 shrink-0" />
-
-            {/* 区域 */}
-            <div className="relative shrink-0">
-              <select
-                value={district}
-                onChange={(e) => setDistrict(e.target.value)}
+        <div className="mt-3 -mx-1 px-1 flex items-center gap-1.5 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          {CATS.map((c) => {
+            const active = cat === c.key;
+            return (
+              <button
+                key={c.key}
+                onClick={() => setCat(c.key)}
                 className={cn(
-                  "h-9 pl-3 pr-7 rounded-full text-[13px] appearance-none cursor-pointer border transition-colors",
-                  district !== "全部"
-                    ? "bg-foreground text-background border-foreground"
-                    : "bg-surface text-foreground border-transparent",
+                  "shrink-0 h-9 px-4 rounded-full text-[13px] font-medium border transition-colors inline-flex items-center gap-1.5",
+                  active ? "bg-foreground text-background border-foreground" : "bg-background text-muted-foreground border-border active:bg-surface",
                 )}
               >
-                {districts.map((d) => (
-                  <option key={d} value={d} className="bg-background text-foreground">{d === "全部" ? "全区域" : d}</option>
-                ))}
-              </select>
-              <ChevronDown className={cn(
-                "h-3.5 w-3.5 absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none",
-                district !== "全部" ? "text-background/70" : "text-muted-foreground",
-              )} />
-            </div>
-
-            {/* 排序 */}
-            <div className="relative shrink-0">
-              <select
-                value={sort}
-                onChange={(e) => setSort(e.target.value as typeof sort)}
-                className="h-9 pl-7 pr-7 rounded-full bg-surface text-[13px] text-foreground border border-transparent appearance-none cursor-pointer"
-              >
-                <option value="rating">按评分</option>
-                <option value="cases">按案例</option>
-                <option value="reviews">按评价</option>
-              </select>
-              <SlidersHorizontal className="h-3 w-3 absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" />
-              <ChevronDown className="h-3.5 w-3.5 absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" />
-            </div>
-
-            {hasFilter && (
-              <button
-                onClick={reset}
-                className="shrink-0 inline-flex items-center gap-1 h-9 px-3 rounded-full text-[12px] text-cat-decor hover:bg-cat-decor-soft"
-              >
-                <X className="h-3 w-3" /> 重置
+                {c.label}
+                <span className={cn("text-[10px] tabular-nums", active ? "text-background/70" : "text-muted-foreground")}>{catCounts[c.key]}</span>
               </button>
-            )}
+            );
+          })}
+
+          <span className="h-5 w-px bg-border mx-1 shrink-0" />
+
+          <div className="relative shrink-0">
+            <select
+              value={district}
+              onChange={(e) => setDistrict(e.target.value)}
+              className={cn(
+                "h-9 pl-3 pr-7 rounded-full text-[13px] appearance-none cursor-pointer border transition-colors",
+                district !== "全部" ? "bg-foreground text-background border-foreground" : "bg-surface text-foreground border-transparent",
+              )}
+            >
+              {districts.map((d) => <option key={d} value={d} className="bg-background text-foreground">{d === "全部" ? "全区域" : d}</option>)}
+            </select>
+            <ChevronDown className={cn("h-3.5 w-3.5 absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none", district !== "全部" ? "text-background/70" : "text-muted-foreground")} />
           </div>
 
-          {/* 计数 */}
-          <div className="mt-2.5 text-[12px] text-muted-foreground flex items-center justify-between">
-            <span>
-              共 <span className="text-foreground font-semibold tabular-nums">{filtered.length}</span> 家
-              {hasFilter && <span className="ml-1 text-cat-decor">（已筛选）</span>}
-            </span>
-            <span className="hidden sm:inline">← 滑动横向筛选条 →</span>
+          <div className="relative shrink-0">
+            <select
+              value={sort}
+              onChange={(e) => setSort(e.target.value as typeof sort)}
+              className="h-9 pl-7 pr-7 rounded-full bg-surface text-[13px] text-foreground border border-transparent appearance-none cursor-pointer"
+            >
+              <option value="rating">按评分</option>
+              <option value="cases">按案例</option>
+              <option value="reviews">按评价</option>
+            </select>
+            <SlidersHorizontal className="h-3 w-3 absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" />
+            <ChevronDown className="h-3.5 w-3.5 absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" />
           </div>
+
+          {hasFilter && (
+            <button onClick={reset} className="shrink-0 inline-flex items-center gap-1 h-9 px-3 rounded-full text-[12px] text-cat-decor hover:bg-cat-decor-soft">
+              <X className="h-3 w-3" /> 重置
+            </button>
+          )}
+        </div>
+
+        <div className="mt-2.5 text-[12px] text-muted-foreground">
+          共 <span className="text-foreground font-semibold tabular-nums">{filtered.length}</span> 家{hasFilter && <span className="ml-1 text-cat-decor">（已筛选）</span>}
         </div>
       </div>
 
-      {/* 结果 */}
+      {/* 结果 —— 照片优先卡片 */}
       {filtered.length === 0 ? (
         <div className="mt-10 rounded-3xl border border-dashed border-border p-10 md:p-16 text-center">
           <Search className="h-8 w-8 mx-auto text-muted-foreground/40 mb-3" />
@@ -190,68 +151,53 @@ export function MembersExplorer({
           </button>
         </div>
       ) : (
-        <div className="mt-5 md:mt-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">
-          {filtered.map((e) => (
-            <Link
-              key={e.id}
-              href={`/biz/${e.slug}`}
-              className="group relative overflow-hidden rounded-3xl border border-border bg-background p-5 active:scale-[0.99] hover:shadow-md md:hover:-translate-y-0.5 transition-all min-h-[180px] flex flex-col"
-            >
-              <span className={cn("absolute left-0 top-0 h-1 w-full", ACCENT_BAR[e.color])} />
-              <div className="flex items-start gap-3 flex-1">
-                <div className={cn(
-                  "h-12 w-12 rounded-2xl flex items-center justify-center text-white text-base font-semibold shrink-0",
-                  e.color === "build" && "bg-cat-build",
-                  e.color === "decor" && "bg-cat-decor",
-                  e.color === "design" && "bg-cat-design",
-                )}>
-                  {e.hero.brand.slice(0, 2)}
-                </div>
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-center gap-1.5 text-[12px] text-muted-foreground flex-wrap">
-                    <Badge tone={TONE[e.category]} className="!px-2 !py-0.5 !text-[10px]">
-                      {e.category === "build" ? "建筑" : e.category === "decor" ? "装修" : "设计"}
-                    </Badge>
-                    {e.verified && (
-                      <span className="inline-flex items-center gap-0.5 text-accent-tea text-[10px]">
-                        <ShieldCheck className="h-3 w-3" /> 认证
-                      </span>
-                    )}
+        <div className="mt-5 md:mt-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-5">
+          {filtered.map((e) => {
+            const cover = covers[e.id]?.[0];
+            return (
+              <Link
+                key={e.id}
+                href={`/biz/${e.slug}`}
+                className="group block rounded-2xl overflow-hidden border border-border bg-background hover:shadow-[0_24px_60px_-32px_rgba(0,0,0,0.22)] active:scale-[0.99] transition-all"
+              >
+                {/* 案例封面 */}
+                <div className="relative aspect-[4/3] bg-surface overflow-hidden">
+                  {cover ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={cover} alt={e.name} loading="lazy" className="h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.05]" />
+                  ) : (
+                    <div className={cn("h-full w-full flex items-center justify-center text-white text-[28px] font-semibold", BG[e.color] ?? "bg-foreground")}>
+                      {e.hero.brand.slice(0, 1)}
+                    </div>
+                  )}
+                  <div className="absolute top-2.5 left-2.5 flex items-center gap-1.5">
+                    <Badge tone={TONE[e.category]} className="!px-2 !py-0.5 !text-[10px] shadow-sm">{CAT_LABEL[e.category]}</Badge>
                     {e.featured && (
-                      <span className="inline-flex items-center gap-0.5 rounded-full bg-accent-yellow text-foreground px-1.5 py-0.5 text-[9px] font-semibold">
-                        ★ 推荐
-                      </span>
+                      <span className="inline-flex items-center gap-0.5 rounded-full bg-accent-yellow text-foreground px-1.5 py-0.5 text-[9px] font-semibold shadow-sm">★ 推荐</span>
                     )}
                   </div>
-                  <h3 className="mt-1.5 text-[15px] font-semibold tracking-tight leading-5 truncate group-hover:text-brand transition-colors">
-                    {e.name}
-                  </h3>
-                  <p className="mt-1 text-[12px] text-muted-foreground line-clamp-2 leading-5">{e.short}</p>
                 </div>
-                <ArrowUpRight className="h-4 w-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity shrink-0" />
-              </div>
 
-              <div className="mt-3 flex flex-wrap items-center gap-1">
-                {e.tags.slice(0, 3).map((t) => (
-                  <span key={t} className="rounded-full bg-surface px-2 py-0.5 text-[10px] text-muted-foreground">
-                    {t}
-                  </span>
-                ))}
-              </div>
-
-              <div className="mt-3 pt-3 border-t border-border flex items-center justify-between text-[12px] gap-3">
-                <div className="inline-flex items-center gap-1 text-foreground shrink-0">
-                  <Star className="h-3.5 w-3.5 fill-[#FFB400] text-[#FFB400]" />
-                  <span className="font-semibold tabular-nums">{e.rating.toFixed(1)}</span>
-                  <span className="text-muted-foreground text-[11px] tabular-nums">({e.reviews})</span>
+                {/* 信息 */}
+                <div className="p-4">
+                  <div className="flex items-center justify-between gap-2">
+                    <h3 className="text-[15px] font-semibold tracking-tight truncate group-hover:text-brand transition-colors">{e.name}</h3>
+                    {e.verified && <span className="inline-flex items-center gap-0.5 text-accent-tea text-[10px] shrink-0"><ShieldCheck className="h-3 w-3" /> 认证</span>}
+                  </div>
+                  <p className="mt-1 text-[12px] text-muted-foreground line-clamp-1 leading-5">{e.short}</p>
+                  <div className="mt-3 pt-3 border-t border-border flex items-center justify-between text-[12px] gap-2">
+                    <span className="inline-flex items-center gap-1 text-foreground shrink-0">
+                      <Star className="h-3.5 w-3.5 fill-[#FFB400] text-[#FFB400]" />
+                      <span className="font-semibold tabular-nums">{e.rating.toFixed(1)}</span>
+                      <span className="text-muted-foreground text-[11px] tabular-nums">({e.reviews})</span>
+                    </span>
+                    <span className="text-muted-foreground text-[11px] tabular-nums">{e.cases} 案例</span>
+                    <span className="inline-flex items-center gap-1 text-muted-foreground text-[11px] truncate"><MapPin className="h-3 w-3 shrink-0" /><span className="truncate">{e.district}</span></span>
+                  </div>
                 </div>
-                <div className="text-muted-foreground text-[11px] tabular-nums">{e.cases} 案例</div>
-                <div className="inline-flex items-center gap-1 text-muted-foreground text-[11px] truncate">
-                  <MapPin className="h-3 w-3 shrink-0" /> <span className="truncate">{e.district}</span>
-                </div>
-              </div>
-            </Link>
-          ))}
+              </Link>
+            );
+          })}
         </div>
       )}
     </div>

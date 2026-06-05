@@ -1,11 +1,12 @@
 import { Container } from "@/components/container";
-import { PageHeader } from "@/components/page-header";
-import { Badge } from "@/components/ui/badge";
-import { Database } from "lucide-react";
-import { getEnterprises, lastDataSource } from "@/lib/data/enterprises-source";
+import { getEnterprises } from "@/lib/data/enterprises-source";
+import { listGalleryCases } from "@/lib/data/cases";
 import { MembersExplorer } from "./MembersExplorer";
 
-export const metadata = { title: "会员目录 · 信阳市建筑装饰装修协会" };
+export const metadata = {
+  title: "挑一家靠谱的装修公司 · 信阳建装",
+  description: "信阳本地通过协会资质核验、信用评估与现场核查的装修 / 建筑 / 设计企业，看真实案例、按口碑挑，点进去直接约。",
+};
 
 export default async function MembersPage({
   searchParams,
@@ -13,23 +14,29 @@ export default async function MembersPage({
   searchParams: Promise<{ cat?: string; q?: string }>;
 }) {
   const enterprises = await getEnterprises();
-  const source = lastDataSource();
+  const params = await searchParams;
+
+  // 每家企业取最多 3 张案例封面作为卡片主视觉
+  const coverByEnt: Record<string, string[]> = {};
+  for (const c of listGalleryCases({ limit: 400 })) {
+    if (!c.cover) continue;
+    (coverByEnt[c.enterpriseId] ||= []);
+    if (coverByEnt[c.enterpriseId].length < 3) coverByEnt[c.enterpriseId].push(c.cover);
+  }
+
   return (
     <>
-      <PageHeader
-        eyebrow="MEMBERS · 会员目录"
-        tone="brand"
-        title={<>{enterprises.length.toLocaleString()} 家协会认证企业<br className="md:hidden" /> 一处直达</>}
-        description="所有入驻企业均经资质核验、信用评估与现场核查，按品类、区域、口碑自由筛选。点击企业可访问其专属子站。"
-        actions={
-          <Badge tone={source === "sqlite" ? "tea" : "yellow"} className="!inline-flex !items-center !gap-1">
-            <Database className="h-3 w-3" />
-            {source === "sqlite" ? "数据来自 SQLite" : "数据来自 Mock"}
-          </Badge>
-        }
-      />
-      <Container className="py-10 md:py-14">
-        <MembersExplorer all={enterprises} initial={searchParams} />
+      <Container className="pt-12 md:pt-20 pb-2">
+        <div className="text-[12px] tracking-[0.2em] text-muted-foreground uppercase mb-4">信阳本地 · 协会认证</div>
+        <h1 className="text-[34px] sm:text-[44px] md:text-[56px] font-semibold tracking-tight leading-[1.05]">
+          挑一家靠谱的<br className="sm:hidden" />装修公司
+        </h1>
+        <p className="mt-5 text-[15px] md:text-[16px] leading-7 text-muted-foreground max-w-xl">
+          {enterprises.length} 家通过资质核验、信用评估与现场核查的本地企业。看他们的真实案例，按品类、区域、口碑挑，点进去直接约。
+        </p>
+      </Container>
+      <Container className="py-8 md:py-12">
+        <MembersExplorer all={enterprises} covers={coverByEnt} initial={params} />
       </Container>
     </>
   );
