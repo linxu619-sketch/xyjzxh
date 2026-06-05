@@ -8,7 +8,7 @@ import { getEnterprises } from "@/lib/data/enterprises-source";
 import { listReviews } from "@/lib/data/reviews";
 
 const TIMELINE = [
-  { year: "1998", t: "信阳市建筑装饰装修协会成立", d: "由 28 家本地建筑装修企业联合发起" },
+  { year: "2005", t: "信阳市建筑装饰装修协会成立", d: "由 28 家本地建筑装修企业联合发起" },
   { year: "2008", t: "首届信阳建博会", d: "走向年度行业盛会，规模 200+ 家" },
   { year: "2015", t: "推出工装报备数字化系统", d: "本地首套数字化报备解决方案" },
   { year: "2020", t: "上线消费保险联合品牌", d: "与人保、平安联合推出安心家装险" },
@@ -36,14 +36,14 @@ export default async function AboutPage() {
         eyebrow="ABOUT · 关于协会"
         tone="brand"
         title={<>{SITE.name} <br className="md:hidden" /><span className="text-muted-foreground">扎根本地 · 服务行业</span></>}
-        description="自 1998 年成立至今，协会始终坚持「营造 · 守护 · 共生」的初心，服务本地建筑装修与设计企业。"
+        description="自 2005 年成立至今，协会始终坚持「营造 · 守护 · 共生」的初心，服务本地建筑装修与设计企业。"
       />
 
       <Container className="py-12 md:py-16">
         {/* 数字 */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
           {[
-            { l: "成立年份", v: "1998", c: "text-brand" },
+            { l: "成立年份", v: "2005", c: "text-brand" },
             { l: "认证企业", v: `${total}`, c: "text-cat-build" },
             { l: "真实评价", v: `${rvCount}`, c: "text-cat-decor" },
             { l: "AI 员工", v: "10", c: "text-cat-design" },
@@ -65,7 +65,7 @@ export default async function AboutPage() {
           </div>
           <div className="lg:col-span-3 text-[15px] leading-8 text-muted-foreground">
             <p>
-              {SITE.name}成立于 1998 年，是经信阳市民政局批准、住建局指导，由本地建筑、装修与设计行业企业自愿组成的非营利性行业组织。协会下设秘书处、技术委员会、调解委员会、金融保险委员会等机构。
+              {SITE.name}成立于 2005 年，是经信阳市民政局批准、住建局指导，由本地建筑、装修与设计行业企业自愿组成的非营利性行业组织。协会下设秘书处、技术委员会、调解委员会、金融保险委员会等机构。
             </p>
             <p className="mt-4">
               协会从最初的 28 家发起单位发展至今，覆盖建筑总承包、装饰装修、室内设计、景观园林、机电安装等多个细分领域，并扩展至光山、罗山、息县等县域。

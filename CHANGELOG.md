@@ -14,6 +14,13 @@
 
 ---
 
+## [0.103.1] - 2026-06-05
+
+### VI 收尾:创立年统一 2005 + 引入思源黑体
+- **创立年**:以 VI 徽章「·2005·」为准,协会创立年由 1998 全站统一为 **2005**(关于页时间轴/统计/简介、组织架构页)。注:`lib/data/enterprises.ts` 某企业的 `founded:1998` 是该公司自身成立年,非协会,保留。
+- **中文字体**:按 VI 指定引入**思源黑体**(= Source Han Sans / Noto Sans SC),经 `next/font/google` 自托管加载(weight 400/500/700,unicode-range 自动切片按需加载);`--font-sans` 改为 `var(--font-inter), var(--font-noto-sc), …系统回退`——英文 Inter、中文思源黑体,修正了原先 `--font-sans` 用字面量 "Inter" 未真正生效的问题。`<html>` 同时挂载两字体变量。
+- 已验证:tsc 通过、首页 200、about 无 1998、字体子集 woff2 已生成、html 含 inter+noto 变量类。
+
 ## [0.103.0] - 2026-06-05
 
 ### 接入协会 VI 视觉识别系统(cankao/VI 手册)

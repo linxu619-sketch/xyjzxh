@@ -45,7 +45,7 @@ export default function OrgPage() {
         eyebrow="ABOUT · 组织架构"
         tone="brand"
         title={<>协会组织架构</>}
-        description="自 1998 年成立以来，协会逐步形成「会员大会 — 理事会 — 秘书处 + 4 大委员会」的治理体系。"
+        description="自 2005 年成立以来，协会逐步形成「会员大会 — 理事会 — 秘书处 + 4 大委员会」的治理体系。"
       />
       <Container className="py-12 max-w-4xl">
         {ORG.map((node) => (
