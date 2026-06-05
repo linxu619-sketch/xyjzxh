@@ -30,38 +30,84 @@ curl -H "Authorization: Bearer 你的密钥" https://xyjzxh.com/api/cron/knowled
 
 ---
 
-## 1. Linux 服务器（crontab，最简单）
+## 1. Linux 服务器（完整流程，可直接照抄）
+
+> 下面命令把项目根设为 `/opt/xyjzxh`、本机端口 `3000`。**如果你的路径/端口不同，只改第 1 步这两行**，后面整段照抄即可。
+> `knowledge-fetch.sh` 会自动从项目根的 `.env.local` 读取 `CRON_SECRET`，所以密钥只在一处维护（第 2 步），crontab 行里不用再写。
+
+### 第 1 步 · 设变量（按需改这两行）
 
 ```bash
-chmod +x /opt/xyjzxh/scripts/cron/knowledge-fetch.sh
-crontab -e
+APP_DIR=/opt/xyjzxh          # ← 改成你的项目根目录
+SITE_URL=http://127.0.0.1:3000   # ← 改成本机服务地址（端口对上即可）
 ```
 
-加入一行（每天 06:00 跑；用本机直连 127.0.0.1 免走公网）：
+### 第 2 步 · 生成并写入密钥（只做一次）
 
-```cron
-0 6 * * * CRON_SECRET=你的密钥 SITE_URL=http://127.0.0.1:3000 /opt/xyjzxh/scripts/cron/knowledge-fetch.sh
+```bash
+# 若 .env.local 里已有 CRON_SECRET 就跳过；没有则生成一条并追加
+grep -q '^CRON_SECRET=' "$APP_DIR/.env.local" 2>/dev/null \
+  || echo "CRON_SECRET=$(node -e "console.log(require('crypto').randomBytes(24).toString('hex'))")" >> "$APP_DIR/.env.local"
+
+# 看一眼写进去没（会打印密钥）
+grep '^CRON_SECRET=' "$APP_DIR/.env.local"
 ```
 
-日志在 `scripts/cron/logs/knowledge-cron.log`。
+### 第 3 步 · 重启服务让密钥生效
 
-### 可选：用 systemd timer（比 crontab 更好管理）
+按你的进程管理方式任选其一：
 
-`/etc/systemd/system/xyjzxh-knowledge.service`：
+```bash
+pm2 restart xyjzxh          # 用 pm2 的
+# 或： sudo systemctl restart xyjzxh     # 用 systemd 跑 next start 的
+# 或： docker compose restart            # 用 docker 的
+```
 
-```ini
+### 第 4 步 · 手动验证接口通了（应返回 {"ok":true,...}）
+
+```bash
+SECRET=$(grep '^CRON_SECRET=' "$APP_DIR/.env.local" | cut -d= -f2-)
+curl -sS -H "Authorization: Bearer $SECRET" "$SITE_URL/api/cron/knowledge-fetch"; echo
+```
+
+> 返回 `{"ok":true,"totalNew":N,...}` 即成功（这一次会真实调用 DeepSeek 起草，最多 6 条草稿进草稿箱）。
+> 返回 `503` = 密钥没生效（多半服务没重启）；`401` = 密钥不一致。
+
+### 第 5 步 · 加每日定时（每天 06:00）
+
+```bash
+chmod +x "$APP_DIR/scripts/cron/knowledge-fetch.sh"
+( crontab -l 2>/dev/null | grep -v 'knowledge-fetch.sh' ; \
+  echo "0 6 * * * SITE_URL=$SITE_URL $APP_DIR/scripts/cron/knowledge-fetch.sh" ) | crontab -
+crontab -l        # 确认已写入
+```
+
+完成。日志在 `$APP_DIR/scripts/cron/logs/knowledge-cron.log`，每天看一眼即可。改时间就改开头的 `0 6`（分 时）。
+
+### 第 6 步（可选）· 立刻手动跑一次脚本验证
+
+```bash
+SITE_URL=$SITE_URL "$APP_DIR/scripts/cron/knowledge-fetch.sh"; echo "exit=$?"
+tail -n 3 "$APP_DIR/scripts/cron/logs/knowledge-cron.log"
+```
+
+---
+
+### 备选：用 systemd timer 代替 crontab（更好管理，二选一）
+
+```bash
+# 1) service（注意把 /opt/xyjzxh 换成你的 APP_DIR）
+sudo tee /etc/systemd/system/xyjzxh-knowledge.service >/dev/null <<'EOF'
 [Unit]
 Description=XYJZXH 每日知识库抓取
 [Service]
 Type=oneshot
-Environment=CRON_SECRET=你的密钥
 Environment=SITE_URL=http://127.0.0.1:3000
 ExecStart=/opt/xyjzxh/scripts/cron/knowledge-fetch.sh
-```
+EOF
 
-`/etc/systemd/system/xyjzxh-knowledge.timer`：
-
-```ini
+# 2) timer
+sudo tee /etc/systemd/system/xyjzxh-knowledge.timer >/dev/null <<'EOF'
 [Unit]
 Description=每天 06:00 触发知识库抓取
 [Timer]
@@ -69,14 +115,13 @@ OnCalendar=*-*-* 06:00:00
 Persistent=true
 [Install]
 WantedBy=timers.target
-```
+EOF
 
-启用：
-
-```bash
+# 3) 启用并查看下次触发
 sudo systemctl daemon-reload
 sudo systemctl enable --now xyjzxh-knowledge.timer
-systemctl list-timers | grep xyjzxh      # 查看下次触发
+systemctl list-timers | grep xyjzxh
+sudo systemctl start xyjzxh-knowledge.service   # 立刻手动跑一次测试
 ```
 
 ---

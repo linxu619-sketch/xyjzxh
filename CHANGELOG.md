@@ -14,6 +14,13 @@
 
 ---
 
+## [0.99.1] - 2026-06-05
+
+### Linux cron 部署细化为可直接照抄
+- `knowledge-fetch.sh` 增强:未给环境变量时**自动从项目根 `.env.local` 读取 `CRON_SECRET` / `SITE_URL`**(容忍引号/空格),密钥单一来源,crontab 行不必重复写。
+- `scripts/cron/README.md` 的 Linux 部分改写为 6 步可直接照抄的完整命令(设变量 → 生成写入密钥 → 重启 → 验证接口 → 装每日 crontab → 手动跑一次),附 systemd timer 备选(用 `tee` heredoc 一键落盘)。
+- 已实测:`.sh` 经 env 变量与 `.env.local` 两条路径均能正确取密钥并打通接口(503 守卫符合预期)、去引号正确;`bash -n` 语法通过。
+
 ## [0.99.0] - 2026-06-05
 
 ### 知识库每日自动抓取 · cron 部署脚本就绪
