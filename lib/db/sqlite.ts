@@ -207,6 +207,8 @@ CREATE TABLE IF NOT EXISTS knowledge_articles (
   hot         INTEGER,
   excerpt     TEXT,
   content     TEXT,    -- JSON: [{h, points[]}]
+  file_url    TEXT,    -- 上传的 PDF/DOCX 原文 URL
+  file_name   TEXT,    -- 原文件名
   created_at  INTEGER
 );
 
@@ -1135,6 +1137,9 @@ function migrate(db: DB) {
     "ALTER TABLE mediations ADD COLUMN handled_at INTEGER",
     // 协会员工多角色
     "ALTER TABLE association_staff ADD COLUMN roles TEXT",
+    // 知识库文章上传原文
+    "ALTER TABLE knowledge_articles ADD COLUMN file_url TEXT",
+    "ALTER TABLE knowledge_articles ADD COLUMN file_name TEXT",
   ];
   for (const sql of alters) {
     try { db.exec(sql); } catch { /* 列已存在，忽略 */ }

@@ -4,7 +4,7 @@ import { KNOWLEDGE, type KnowledgeItem, type KnowledgeSection } from "@/lib/data
 
 /* 知识库数据源：本地 SQLite（失败回退静态）。静态 KNOWLEDGE 仅作种子源。 */
 
-type Row = { id: string; title: string | null; category: string | null; tags: string | null; date: string | null; size: string | null; hot: number | null; excerpt: string | null; content: string | null };
+type Row = { id: string; title: string | null; category: string | null; tags: string | null; date: string | null; size: string | null; hot: number | null; excerpt: string | null; content: string | null; file_url: string | null; file_name: string | null };
 
 function rowTo(r: Row): KnowledgeItem {
   let tags: string[] = []; let content: KnowledgeSection[] = [];
@@ -13,12 +13,13 @@ function rowTo(r: Row): KnowledgeItem {
   return {
     id: r.id, title: r.title ?? "", category: (r.category as KnowledgeItem["category"]) ?? "技术资料",
     tags, date: r.date ?? "", size: r.size ?? undefined, hot: !!r.hot, excerpt: r.excerpt ?? "", content,
+    fileUrl: r.file_url ?? undefined, fileName: r.file_name ?? undefined,
   };
 }
 
 export function listKnowledge(): KnowledgeItem[] {
   try {
-    const rows = getDb().prepare("SELECT * FROM knowledge_articles ORDER BY date DESC").all() as Row[];
+    const rows = getDb().prepare("SELECT * FROM knowledge_articles ORDER BY date DESC, created_at DESC").all() as Row[];
     return rows.length ? rows.map(rowTo) : KNOWLEDGE;
   } catch { return KNOWLEDGE; }
 }
@@ -28,4 +29,31 @@ export function getKnowledgeArticle(id: string): KnowledgeItem | undefined {
     const r = getDb().prepare("SELECT * FROM knowledge_articles WHERE id = ?").get(id) as Row | undefined;
     return r ? rowTo(r) : KNOWLEDGE.find((k) => k.id === id);
   } catch { return KNOWLEDGE.find((k) => k.id === id); }
+}
+
+export type KnowledgeInput = {
+  title: string; category: string; tags: string[]; date: string; size?: string;
+  hot: boolean; excerpt: string; content: KnowledgeSection[]; fileUrl?: string; fileName?: string;
+};
+
+export function createKnowledge(input: KnowledgeInput): string {
+  const id = `K-${Date.now().toString(36)}`;
+  getDb().prepare(
+    "INSERT INTO knowledge_articles (id,title,category,tags,date,size,hot,excerpt,content,file_url,file_name,created_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)",
+  ).run(id, input.title, input.category, JSON.stringify(input.tags), input.date, input.size ?? "", input.hot ? 1 : 0, input.excerpt, JSON.stringify(input.content), input.fileUrl ?? null, input.fileName ?? null, Date.now());
+  return id;
+}
+
+export function updateKnowledge(id: string, input: KnowledgeInput): void {
+  getDb().prepare(
+    "UPDATE knowledge_articles SET title=?,category=?,tags=?,date=?,size=?,hot=?,excerpt=?,content=?,file_url=?,file_name=? WHERE id=?",
+  ).run(input.title, input.category, JSON.stringify(input.tags), input.date, input.size ?? "", input.hot ? 1 : 0, input.excerpt, JSON.stringify(input.content), input.fileUrl ?? null, input.fileName ?? null, id);
+}
+
+export function setKnowledgeHot(id: string, hot: boolean): void {
+  getDb().prepare("UPDATE knowledge_articles SET hot=? WHERE id=?").run(hot ? 1 : 0, id);
+}
+
+export function deleteKnowledge(id: string): void {
+  getDb().prepare("DELETE FROM knowledge_articles WHERE id=?").run(id);
 }

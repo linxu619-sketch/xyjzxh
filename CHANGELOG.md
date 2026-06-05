@@ -14,6 +14,17 @@
 
 ---
 
+## [0.97.0] - 2026-06-05
+
+### 知识库:后台上传 PDF 入库 + 文章 CRUD 完整闭环
+- 此前知识库只有写死的种子文章、原文下载是「即将开放」占位。本次打通从后台录入到前台阅读/下载的完整链路。
+- **数据层**:`knowledge_articles` 表新增 `file_url` / `file_name` 列(CREATE TABLE + migrate ALTER,并对运行库补列);`KnowledgeItem` 类型加 `fileUrl` / `fileName`。`knowledge-source.ts` 新增 `createKnowledge` / `updateKnowledge` / `setKnowledgeHot` / `deleteKnowledge` 与 `KnowledgeInput`(DB 写入 + 静态兜底读)。
+- **上传端点**:新增 `POST /api/upload-doc`,接收 PDF / DOC / DOCX,上限 30MB,白名单校验扩展名/类型,返回 `{url, name, size}`(图片仍走原 `/api/upload`)。
+- **录入表单**:新增可复用客户端组件 `KnowledgeForm`(标题/分类/标签/摘要/要点/热门 + 上传原文,异步传至 `/api/upload-doc` 并回填隐藏域),新增与编辑共用。
+- **后台页**:知识库管理页加「新增资料」折叠表单;列表整行可点进编辑详细页(符合列表→表格→详情页规约),新增「原文」列显示附件状态。新增 `knowledge/[id]` 编辑页(改稿/设为热门/删除/前台预览)与 4 个 Server Action。
+- **前台阅读页**:`/knowledge/[id]` 原文区改为——有附件时渲染真实「查看 / 下载原文」链接(新标签打开),无附件显示「暂无原文附件」。
+- 已端到端验证:上传端点(合法通过/非法类型拒绝)、新增/编辑页渲染、数据层读回 `fileUrl`、前台阅读页下载链接均正常;`tsc --noEmit` 通过。
+
 ## [0.96.5] - 2026-06-05
 
 ### 知识库管理页:去假数字 + 资料可点进阅读

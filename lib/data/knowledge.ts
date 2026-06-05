@@ -10,6 +10,8 @@ export type KnowledgeItem = {
   hot?: boolean;
   excerpt: string;
   content?: KnowledgeSection[]; // 在线阅读正文要点（协会技术委员会整理，非官方全文照搬）
+  fileUrl?: string;            // 上传的 PDF/DOCX 原文
+  fileName?: string;
 };
 
 export const KNOWLEDGE: KnowledgeItem[] = [

@@ -71,9 +71,15 @@ export default async function KnowledgeDetail({ params }: { params: Promise<{ id
         <Link href="/ai/know" className="inline-flex items-center gap-1.5 h-11 px-5 rounded-full bg-foreground text-background text-[14px] font-medium hover:bg-brand transition-colors">
           <Sparkles className="h-4 w-4 text-accent-yellow" /> 问 AI 小知
         </Link>
-        <span className="inline-flex items-center gap-1.5 h-11 px-4 rounded-full border border-border text-[14px] text-muted-foreground opacity-70">
-          <FileText className="h-4 w-4" /> 下载 PDF 原文 · 即将开放
-        </span>
+        {k.fileUrl ? (
+          <a href={k.fileUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1.5 h-11 px-5 rounded-full border border-border text-[14px] font-medium hover:bg-surface transition-colors">
+            <FileText className="h-4 w-4 text-cat-decor" /> 查看 / 下载原文{k.size ? ` · ${k.size}` : ""}
+          </a>
+        ) : (
+          <span className="inline-flex items-center gap-1.5 h-11 px-4 rounded-full border border-border text-[14px] text-muted-foreground opacity-70">
+            <FileText className="h-4 w-4" /> 暂无原文附件
+          </span>
+        )}
       </div>
 
       <div className="mt-4 text-[12px] text-muted-foreground inline-flex items-center gap-1.5">
