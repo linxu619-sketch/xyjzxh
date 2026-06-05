@@ -55,3 +55,6 @@ server.log
 
 # 用户上传的图片（运行时写入，不入仓）
 /public/uploads/
+
+# cron 运行日志
+scripts/cron/logs/

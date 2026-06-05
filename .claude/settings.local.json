@@ -182,7 +182,15 @@
       "Bash(grep -nE \"[0-9]{3,}|份|篇|下载|阅读\" \"app/\\(main\\)/knowledge/page.tsx\")",
       "Bash(grep -vE \"text-\\\\[|h-|w-|gap|px|py|rounded|className|//|slice|md:|grid-cols|max-w|0376\")",
       "Bash(npx tsx *)",
-      "Bash(xargs echo \"rounded-none 次数:\")"
+      "Bash(xargs echo \"rounded-none 次数:\")",
+      "PowerShell($p = \"D:\\\\xyjzxh\\\\scripts\\\\cron\\\\knowledge-fetch.bat\"; $txt = Get-Content -Raw -Encoding UTF8 $p; $gbk = [System.Text.Encoding]::GetEncoding\\(936\\); [System.IO.File]::WriteAllText\\($p, $txt, $gbk\\); $bytes = [System.IO.File]::ReadAllBytes\\($p\\); \"字节数: $\\($bytes.Length\\)  前两字节: $\\($bytes[0]\\) $\\($bytes[1]\\)  \\(@=64,空格不应是BOM 239/187/191\\)\")",
+      "PowerShell($p = \"D:\\\\xyjzxh\\\\scripts\\\\cron\\\\register-windows-task.ps1\"; $txt = Get-Content -Raw -Encoding UTF8 $p; $enc = New-Object System.Text.UTF8Encoding\\($true\\); [System.IO.File]::WriteAllText\\($p, $txt, $enc\\); $b = [System.IO.File]::ReadAllBytes\\($p\\); \"前三字节\\(应为 239 187 191 = UTF-8 BOM\\): $\\($b[0]\\) $\\($b[1]\\) $\\($b[2]\\)\")",
+      "PowerShell(cd D:\\\\xyjzxh\\\\scripts\\\\cron; cmd /c \".\\\\knowledge-fetch.bat\" \"testsecret\" \"http://127.0.0.1:3000\"; \"exit code: $LASTEXITCODE\"; \"--- 日志 ---\"; if \\(Test-Path .\\\\logs\\\\knowledge-cron.log\\) { Get-Content .\\\\logs\\\\knowledge-cron.log -Tail 5 } else { \"无日志\" })",
+      "PowerShell(Remove-Item *)",
+      "PowerShell(Out-Null *)",
+      "Bash(cd /d/xyjzxh)",
+      "Bash(rm -rf scripts/cron/logs)",
+      "Bash(printf \"\\\\n# cron 运行日志\\\\nscripts/cron/logs/\\\\n\")"
     ]
   }
 }

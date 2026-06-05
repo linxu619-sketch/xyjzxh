@@ -14,6 +14,19 @@
 
 ---
 
+## [0.99.0] - 2026-06-05
+
+### 知识库每日自动抓取 · cron 部署脚本就绪
+- 为「每天自动抓取知识库更新」补上定时触发能力(部署到常驻服务器后即可启用;本地 dev 仍用手动按钮)。
+- **定时接口** `app/api/cron/knowledge-fetch/route.ts`:不依赖登录会话,用 `CRON_SECRET` 密钥保护(请求头 `Authorization: Bearer` 或 `?key=`,`timingSafeEqual` 常量时间比较),GET/POST 均可,返回抓取结果 JSON。**未配置 `CRON_SECRET` 时返回 503 拒绝执行**(防滥用)。行为与后台「立即抓取」一致——进草稿箱待审,不自动发布。
+- **部署脚本** `scripts/cron/`:
+  - `knowledge-fetch.sh`(Linux/macOS,curl + 日志 + 失败非零退出)
+  - `knowledge-fetch.bat`(Windows,纯 ASCII 注释规避编码问题,支持参数/环境变量传密钥)
+  - `register-windows-task.ps1`(一键注册 Windows 每日计划任务,默认 06:00)
+  - `README.md`(crontab / systemd timer / Windows 任务计划 三种部署方式 + 密钥配置 + 成本说明)
+- `.env.example` 增补 `CRON_SECRET` 说明;`scripts/cron/logs/` 加入 gitignore。
+- 已验证:接口未配密钥时正确返回 503(不触发抓取/计费);.bat 实跑打通接口并写日志;PS1 语法校验通过、cmd 传参拼接正确;`tsc` 通过。为避免计费未触发真实 DeepSeek 抓取。
+
 ## [0.98.0] - 2026-06-05
 
 ### 知识库 AI 自动更新（抓取 → AI 起草 → 草稿箱待人工审核入库）
