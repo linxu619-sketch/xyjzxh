@@ -14,13 +14,13 @@ export type PractitionerCard = {
   insured: boolean;
 };
 
-// 完整从业者记录（含手机号，用于登录绑定 / 工作台）
-export type Practitioner = PractitionerCard & { phone: string };
+// 完整从业者记录（含手机号 + 个人简介，用于登录绑定 / 工作台 / 个人主页）
+export type Practitioner = PractitionerCard & { phone: string; bio: string };
 
 type Row = {
   id: number; name: string | null; kind: string | null; years: number | null;
   rating: number | null; jobs: number | null; city: string | null; insured: number | null;
-  phone: string | null;
+  phone: string | null; bio: string | null;
 };
 
 function rowTo(r: Row): Practitioner {
@@ -34,6 +34,7 @@ function rowTo(r: Row): Practitioner {
     city: r.city ?? "信阳",
     insured: !!r.insured,
     phone: r.phone ?? "",
+    bio: r.bio ?? "",
   };
 }
 
@@ -112,9 +113,9 @@ export function createPractitionerFromApplication(app: {
   if (db.prepare("SELECT 1 FROM practitioners WHERE app_id = ?").get(app.id)) return; // 防重复
   const p = app.payload as Record<string, string>;
   db.prepare(
-    "INSERT INTO practitioners (app_id, name, kind, years, rating, jobs, city, insured, phone, created_at) VALUES (?,?,?,?,?,?,?,?,?,?)",
+    "INSERT INTO practitioners (app_id, name, kind, years, rating, jobs, city, insured, phone, bio, created_at) VALUES (?,?,?,?,?,?,?,?,?,?,?)",
   ).run(
     app.id, app.applicant, p.profession || "个人会员", Number(p.years) || 0,
-    5.0, 0, "信阳", 0, app.phone || "", Date.now(),
+    5.0, 0, "信阳", 0, app.phone || "", (p.bio ?? "").trim(), Date.now(),
   );
 }

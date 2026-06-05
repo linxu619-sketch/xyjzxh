@@ -107,6 +107,8 @@ export function createEnterpriseFromApplication(app: {
   const category = ENT_TYPE_TO_CAT[p.entType ?? ""] ?? "build";
   const base = (p.subdomain || `member-${app.id}`).toLowerCase().replace(/[^a-z0-9-]/g, "") || `member-${app.id}`;
   const slug = db.prepare("SELECT 1 FROM enterprises WHERE slug = ?").get(base) ? `${base}-${app.id}` : base;
+  // 用申请时填写的「公司简介」初始化子站简介；未填则给默认占位（企业后续可在「我的子站」修改）
+  const short = (p.entIntro ?? "").trim() || "协会新入会会员企业";
 
   db.prepare(
     `INSERT INTO enterprises
@@ -114,7 +116,7 @@ export function createEnterpriseFromApplication(app: {
      VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?, 'active')`,
   ).run(
     id, slug, app.applicant, category, p.region ?? "", null, "—",
-    JSON.stringify([]), JSON.stringify([]), "协会新入会会员企业",
+    JSON.stringify([]), JSON.stringify([]), short,
     JSON.stringify({ brand: app.applicant, tagline: "" }),
     JSON.stringify({ tel: app.phone ?? "", addr: p.region ?? "" }),
     0, 0, 0, 1, 0,

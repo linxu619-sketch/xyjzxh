@@ -13,8 +13,8 @@ const TYPE_LABEL: Record<string, string> = { enterprise: "企业会员", individ
 const FIELD_LABEL: Record<string, string> = {
   entName: "企业全称", creditCode: "统一社会信用代码", entType: "企业类型", subdomain: "期望子域名",
   legalName: "法定代表人", legalIdcard: "法人身份证号",
-  contactName: "联系人", contactPhone: "联系电话", region: "主营地区",
-  realName: "姓名", profession: "专业 / 工种", phone: "手机号", idcard: "身份证号", years: "从业年限", kind: "工种",
+  contactName: "联系人", contactPhone: "联系电话", region: "主营地区", entIntro: "公司简介",
+  realName: "姓名", profession: "专业 / 工种", phone: "手机号", idcard: "身份证号", years: "从业年限", kind: "工种", bio: "个人简介",
   nickname: "称呼", city: "城市", intents: "意向",
 };
 const HIDE = new Set(["smsCode", "password"]);

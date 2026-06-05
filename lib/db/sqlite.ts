@@ -314,6 +314,7 @@ CREATE TABLE IF NOT EXISTS practitioners (
   city        TEXT,
   insured     INTEGER,
   phone       TEXT,
+  bio         TEXT,            -- 个人简介（入会申请时填写）
   created_at  INTEGER
 );
 
@@ -1184,6 +1185,8 @@ function migrate(db: DB) {
     // 知识库文章溯源（AI 自动抓取入库时记录来源，便于去重与标注）
     "ALTER TABLE knowledge_articles ADD COLUMN source_url TEXT",
     "ALTER TABLE knowledge_articles ADD COLUMN source_name TEXT",
+    // 个人会员简介（入会申请填写，通过后落到从业者档案）
+    "ALTER TABLE practitioners ADD COLUMN bio TEXT",
   ];
   for (const sql of alters) {
     try { db.exec(sql); } catch { /* 列已存在，忽略 */ }
