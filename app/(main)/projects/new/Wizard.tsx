@@ -137,7 +137,7 @@ export function NewProjectWizard() {
           background: var(--background); font-size: 14px;
         }
         textarea.form-input { height: auto; padding: 12px 14px; line-height: 22px; }
-        .form-input:focus { outline: none; border-color: var(--brand); box-shadow: 0 0 0 4px rgba(20,86,240,0.1); }
+        .form-input:focus { outline: none; border-color: var(--brand); box-shadow: 0 0 0 4px rgba(38,124,124,0.14); }
       `}</style>
     </>
   );

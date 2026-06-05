@@ -10,13 +10,13 @@ import { ENTERPRISE_TIERS, PRACTITIONER_TIERS } from "@/lib/data/member-tier";
 
 const SERVICES = [
   { key: "join", title: "入会申请", desc: "建筑 / 装修 / 设计三大类会籍，秘书处 1-3 日审核。", icon: Users2, color: "build" as const, href: "/join" },
-  { key: "qual", title: "资质核验", desc: "对接住建系统，自动核查企业资质有效期、变更记录。", icon: ShieldCheck, color: "tea" as const, href: "#" },
+  { key: "qual", title: "资质核验", desc: "对接住建系统，自动核查企业资质有效期、变更记录。", icon: ShieldCheck, color: "tea" as const, href: "/about/contact" },
   { key: "train", title: "培训认证", desc: "二建、室内设计师、BIM、安全员等培训与认证。", icon: GraduationCap, color: "design" as const, href: "/talents" },
   { key: "mediate", title: "纠纷调解", desc: "14 天内协会调解委员会介入，结案率 94%。", icon: MessageSquareWarning, color: "decor" as const, href: "/ai/mediate" },
   { key: "report", title: "工装报备协助", desc: "一次填报同步省厅，AI 预审一次通过率 +35%。", icon: FileCheck2, color: "brand" as const, href: "/projects" },
-  { key: "award", title: "荣誉申报", desc: "鲁班奖、中州杯等行业奖项申报代办。", icon: Award, color: "yellow" as const, href: "#" },
-  { key: "stamp", title: "印章 / 签章", desc: "协会指导用印、电子签章、合同存证。", icon: Stamp, color: "brand" as const, href: "#" },
-  { key: "annual", title: "年检 · 年报", desc: "年度数据上报、信用评级更新。", icon: FileCheck2, color: "build" as const, href: "#" },
+  { key: "award", title: "荣誉申报", desc: "鲁班奖、中州杯等行业奖项申报代办。", icon: Award, color: "yellow" as const, href: "/about/contact" },
+  { key: "stamp", title: "印章 / 签章", desc: "协会指导用印、电子签章、合同存证。", icon: Stamp, color: "brand" as const, href: "/about/contact" },
+  { key: "annual", title: "年检 · 年报", desc: "年度数据上报、信用评级更新。", icon: FileCheck2, color: "build" as const, href: "/about/contact" },
 ];
 
 const TONE: Record<string, string> = {
