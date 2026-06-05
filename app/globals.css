@@ -201,7 +201,9 @@ html, body {
 }
 /* 仅打印显示（屏幕隐藏）——用于"屏幕交互工作台 + 打印另出公文"的页面 */
 .print-only { display: none; }
-@page { size: A4; margin: 14mm; }
+/* margin:0 让浏览器不再渲染自带页眉/页脚（URL、日期、网页标题如「…·协会工作台」）；
+   纸张内边距改由 .a4-sheet 自己提供。 */
+@page { size: A4; margin: 0; }
 @media print {
   html, body { background: #fff !important; }
   /* 只显示打印区，其余（后台外壳、工具栏、导航）全部隐藏 */
@@ -210,8 +212,8 @@ html, body {
   .print-area { position: absolute; left: 0; top: 0; width: 100%; }
   .print-only { display: block !important; }
   .no-print { display: none !important; }
-  /* 打印时纸张铺满、去掉屏显的阴影与外边距 */
-  .a4-sheet { width: 100%; min-height: auto; margin: 0; padding: 0; box-shadow: none; }
+  /* 打印时纸张铺满、自带 14mm 内边距（替代原 @page 边距）、去屏显阴影 */
+  .a4-sheet { width: 100%; min-height: auto; margin: 0; padding: 14mm; box-shadow: none; }
 }
 
 /* VI 标准色已接入 (#267C7C) */

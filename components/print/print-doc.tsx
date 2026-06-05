@@ -21,7 +21,7 @@ export function PrintBar({ hint }: { hint?: string }) {
 /* 协会信笺抬头（套用协会 VI：青绿 #267C7C + 官方圆形徽章 Logo） */
 export function Letterhead({ title, docNo, date }: { title: string; docNo?: string; date?: string }) {
   return (
-    <header className="mb-6">
+    <header className="mb-4">
       <div className="flex items-center justify-between gap-4">
         <div className="flex items-center gap-3 min-w-0">
           {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -36,7 +36,7 @@ export function Letterhead({ title, docNo, date }: { title: string; docNo?: stri
         </div>
       </div>
       <div className="mt-2 border-t-[3px] border-[#267c7c]" />
-      <h1 className="mt-7 text-center text-[20px] font-semibold tracking-tight">{title}</h1>
+      <h1 className="mt-5 text-center text-[20px] font-semibold tracking-tight">{title}</h1>
       {(docNo || date) && (
         <div className="mt-4 flex items-center justify-between text-[12px] text-muted-foreground">
           <span>编号：{docNo ?? "—"}</span>
@@ -54,8 +54,8 @@ export function DocTable({ rows }: { rows: { k: string; v: React.ReactNode }[] }
       <tbody>
         {rows.map((r, i) => (
           <tr key={i}>
-            <th className="border border-[#ccc] bg-[#f5f5f5] px-3 py-2.5 text-left font-medium align-top w-[120px] whitespace-nowrap">{r.k}</th>
-            <td className="border border-[#ccc] px-3 py-2.5 align-top leading-6">{r.v || "—"}</td>
+            <th className="border border-[#ccc] bg-[#f5f5f5] px-3 py-1.5 text-left font-medium align-top w-[120px] whitespace-nowrap">{r.k}</th>
+            <td className="border border-[#ccc] px-3 py-1.5 align-top leading-6">{r.v || "—"}</td>
           </tr>
         ))}
       </tbody>
@@ -74,8 +74,8 @@ export function SealFooter({ lines, date }: { lines?: { label: string; value?: s
     { label: "协会（盖章）" },
   ];
   return (
-    <div className="mt-12">
-      <div className="grid grid-cols-2 gap-x-10 gap-y-8 text-[13px]">
+    <div className="mt-8">
+      <div className="grid grid-cols-2 gap-x-10 gap-y-5 text-[13px]">
         {items.map((it, i) => (
           <div key={i} className="flex items-end gap-2">
             <span className="text-muted-foreground whitespace-nowrap">{it.label}：</span>
@@ -85,7 +85,7 @@ export function SealFooter({ lines, date }: { lines?: { label: string; value?: s
           </div>
         ))}
       </div>
-      <div className="mt-10 text-right text-[12px] text-muted-foreground">{date ? `出具日期：${date}` : "　　　　年　　月　　日"}</div>
+      <div className="mt-6 text-right text-[12px] text-muted-foreground">{date ? `出具日期：${date}` : "　　　　年　　月　　日"}</div>
     </div>
   );
 }

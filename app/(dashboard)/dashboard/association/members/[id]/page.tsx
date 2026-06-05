@@ -211,9 +211,9 @@ export default async function ApplicationDetail({ params }: { params: Promise<{ 
                 { k: "申请时间", v: fmtTime(app.createdAt) },
               ]}
             />
-            <div className="mt-6">
-              <div className="text-[13px] font-medium mb-2">审批意见</div>
-              <div className="border border-[#ccc] min-h-[110px] p-3 text-[13px] leading-7 text-muted-foreground">
+            <div className="mt-4">
+              <div className="text-[13px] font-medium mb-1.5">审批意见</div>
+              <div className="border border-[#ccc] min-h-[64px] p-3 text-[13px] leading-7 text-muted-foreground">
                 {app.status === "approved" ? "（材料齐全、实名核验通过，准予入会，已入册。）" : app.status === "rejected" ? "（不符合入会条件 / 材料不齐，未予通过，已告知申请人。）" : ""}
               </div>
             </div>
