@@ -12,7 +12,7 @@ import { getEnterprises } from "@/lib/data/enterprises-source";
 import { getSession } from "@/lib/auth/session";
 import { listLeadsForCustomer } from "@/lib/data/leads";
 import { listReviewsByUid, listReviews } from "@/lib/data/reviews";
-import { ORDER_DEMO } from "@/lib/data/orders";
+import { listKnowledge } from "@/lib/data/knowledge-source";
 import { cn } from "@/lib/cn";
 
 function maskName(n: string) {
@@ -23,7 +23,7 @@ function maskName(n: string) {
 export const metadata = {
   title: "找装修不踩坑 · 信阳建装 · 协会担保的装修平台",
   description:
-    "在信阳找装修公司？1,052 家协会认证企业 · 实名评价 · 工装报备 · 消费保险 · AI 30 秒估价 · 14 天协会调解兜底。",
+    "在信阳找装修公司？协会认证企业 · 实名评价 · 工装报备 · 消费保险 · AI 30 秒估价 · 14 天协会调解兜底。",
 };
 
 const BG: Record<string, string> = {
@@ -32,22 +32,22 @@ const BG: Record<string, string> = {
 
 export default async function ConsumerHome() {
   const session = await getSession();
-  const FEATURED = (await getEnterprises()).filter((e) => e.featured).slice(0, 6);
+  const allEnterprises = await getEnterprises();
+  const total = allEnterprises.length;
+  const catCounts: Record<string, number> = { build: 0, decor: 0, design: 0 };
+  for (const e of allEnterprises) if (e.category in catCounts) catCounts[e.category] += 1;
+  const FEATURED = allEnterprises.filter((e) => e.featured).slice(0, 6);
   // 首页口碑：取真实评价（评分高者优先,展示企业归属,姓名脱敏）
   const rvStat = listReviews(500);
   const rvCount = rvStat.length;
-  const rvAvg = rvStat.length ? (rvStat.reduce((a, r) => a + r.rating, 0) / rvStat.length) : 4.8;
+  const rvAvg = rvStat.length ? (rvStat.reduce((a, r) => a + r.rating, 0) / rvStat.length) : 5;
+  const kbCount = listKnowledge().length;
   const homeReviews = [...rvStat].filter((r) => r.content && r.content.length > 8).sort((a, b) => b.rating - a.rating || b.createdAt - a.createdAt).slice(0, 6);
   const customer = session?.role === "customer" ? session : null;
   const myRequests = customer ? listLeadsForCustomer(customer.uid, customer.phone) : [];
   const myReviews = customer ? listReviewsByUid(customer.uid) : [];
-  const proj = ORDER_DEMO;
-  const projProgress = Math.round(proj.schedule.reduce((a, t) => a + t.progress, 0) / proj.schedule.length);
-  const projPending = customer
-    ? proj.acceptance.filter((a) => a.status === "ready").length
-      + proj.changeOrders.filter((c) => c.status === "pending" && c.approverChain.find((x) => x.role === "业主" && !x.result)).length
-      + proj.payments.filter((p) => !p.paidAt && new Date(p.due) <= new Date("2026-06-30")).length
-    : 0;
+  // 真实信号：业主有「已签约」线索才算真有装修项目
+  const signedCount = myRequests.filter((l) => l.status === "signed").length;
 
   return (
     <>
@@ -64,27 +64,12 @@ export default async function ConsumerHome() {
               </Link>
             </div>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5">
-              <Link href={`/dashboard/customer/projects/${proj.id}`} className="group rounded-2xl border border-border bg-background p-3.5 active:scale-[0.98] transition-transform">
-                <div className="flex items-center gap-2">
-                  <span className="relative h-8 w-8 rounded-lg bg-cat-decor-soft text-cat-decor inline-flex items-center justify-center shrink-0">
-                    <HardHat className="h-4 w-4" />
-                    {projPending > 0 && (
-                      <span className="absolute -top-1.5 -right-1.5 min-w-[16px] h-[16px] px-1 rounded-full bg-cat-decor text-white text-[10px] font-semibold inline-flex items-center justify-center ring-2 ring-background">
-                        {projPending}
-                      </span>
-                    )}
-                  </span>
-                  <span className="text-[13px] font-semibold">当前项目</span>
-                  {projPending > 0 && <span className="text-[11px] text-cat-decor font-medium">· {projPending} 待办</span>}
-                </div>
-                <div className="mt-2 flex items-center gap-2">
-                  <div className="h-1.5 flex-1 rounded-full bg-surface overflow-hidden">
-                    <div className="h-full rounded-full bg-gradient-to-r from-cat-decor to-[#ff7a45]" style={{ width: `${projProgress}%` }} />
-                  </div>
-                  <span className="text-[11px] font-semibold tabular-nums text-muted-foreground">{projProgress}%</span>
-                </div>
-              </Link>
-              <PersonalTile icon={MessagesSquare} title="我的需求" sub={`${myRequests.length} 条 · 跟踪进度`} href="/dashboard/customer/requests" tone="brand" />
+              {signedCount > 0 ? (
+                <PersonalTile icon={HardHat} title="我的装修项目" sub={`${signedCount} 个已签约 · 看进度`} href="/dashboard/customer/projects" tone="decor" />
+              ) : (
+                <PersonalTile icon={HardHat} title="开始装修" sub="还没开工 · AI 估价找企业" href="/ai/decor" tone="decor" />
+              )}
+              <PersonalTile icon={MessagesSquare} title="我的需求" sub={myRequests.length > 0 ? `${myRequests.length} 条 · 跟踪进度` : "发需求 · 企业来联系"} href="/dashboard/customer/requests" tone="brand" />
               <PersonalTile icon={MessageSquareHeart} title="我的评价" sub={myReviews.length > 0 ? `${myReviews.length} 条已发布` : "完工后来打分"} href="/dashboard/customer/review" tone="design" />
               <PersonalTile icon={Sparkles} title="AI 装修顾问" sub="小装 · 在线" href="/ai/decor" tone="decor" />
             </div>
@@ -101,7 +86,7 @@ export default async function ConsumerHome() {
           <div className="max-w-3xl">
             <div className="inline-flex items-center gap-1.5 rounded-full bg-background border border-border px-3 py-1 text-[11px] mb-6 shadow-sm">
               <Badge tone="decor" className="!px-2 !py-0">协会担保</Badge>
-              <span className="text-muted-foreground">协会会员单位 1,052 家 · 守护 32.4 万业主</span>
+              <span className="text-muted-foreground">协会认证企业 {total} 家 · 实名口碑 {rvCount} 条</span>
             </div>
             <h1 className="text-[36px] sm:text-[44px] md:text-[68px] font-semibold tracking-tight leading-[1.05] sm:leading-[1.02]">
               在信阳找装修<br className="hidden sm:block" />
@@ -219,7 +204,7 @@ export default async function ConsumerHome() {
                   <p className="mt-2 text-[12px] text-white/85 max-w-xs leading-5">{cat.desc}</p>
                 </div>
                 <div className="relative flex items-end justify-between">
-                  <div className="text-[28px] font-semibold">{cat.count}<span className="text-[12px] font-normal opacity-80"> 家</span></div>
+                  <div className="text-[28px] font-semibold">{catCounts[cat.key] ?? 0}<span className="text-[12px] font-normal opacity-80"> 家</span></div>
                   <span className="text-[12px] inline-flex items-center gap-1">浏览 <ArrowRight className="h-3 w-3" /></span>
                 </div>
               </Link>
@@ -236,7 +221,7 @@ export default async function ConsumerHome() {
               <div className="text-[12px] tracking-[0.2em] text-cat-decor uppercase font-medium">FEATURED · 推荐企业</div>
               <h2 className="mt-2 text-[28px] md:text-[44px] font-semibold tracking-tight leading-tight">本月口碑 TOP 6</h2>
             </div>
-            <Link href="/members" className="text-[13px] text-brand">查看全部 1,052 家 →</Link>
+            <Link href="/members" className="text-[13px] text-brand">查看全部 {total} 家 →</Link>
           </div>
 
           {/* 纵向网格 · 不横滑 */}
@@ -340,10 +325,10 @@ export default async function ConsumerHome() {
               </div>
               <div className="rounded-2xl bg-white/5 p-6 grid grid-cols-2 gap-3">
                 {[
-                  { l: "今日新业主", v: "286" },
-                  { l: "本月装修开工", v: "187" },
-                  { l: "调解满意度", v: "96%" },
-                  { l: "保险出单", v: "1,284" },
+                  { l: "协会认证企业", v: `${total}` },
+                  { l: "真实评价", v: `${rvCount}` },
+                  { l: "平均评分", v: `${rvAvg.toFixed(1)} ★` },
+                  { l: "知识库资料", v: `${kbCount}` },
                 ].map((s) => (
                   <div key={s.l} className="rounded-xl bg-foreground/30 p-3">
                     <div className="text-[10px] text-background/60">{s.l}</div>

@@ -4,6 +4,8 @@ import { PageHeader } from "@/components/page-header";
 import { Button } from "@/components/ui/button";
 import { Building2, Users2, Award, Sparkles, Phone, Mail, MapPin, HelpCircle } from "lucide-react";
 import { SITE } from "@/lib/site";
+import { getEnterprises } from "@/lib/data/enterprises-source";
+import { listReviews } from "@/lib/data/reviews";
 
 const TIMELINE = [
   { year: "1998", t: "信阳市建筑装饰装修协会成立", d: "由 28 家本地建筑装修企业联合发起" },
@@ -25,7 +27,9 @@ const LEADERSHIP = [
 
 export const metadata = { title: `关于协会 · ${SITE.name}` };
 
-export default function AboutPage() {
+export default async function AboutPage() {
+  const total = (await getEnterprises()).length;
+  const rvCount = listReviews(1000).length;
   return (
     <>
       <PageHeader
@@ -40,8 +44,8 @@ export default function AboutPage() {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
           {[
             { l: "成立年份", v: "1998", c: "text-brand" },
-            { l: "会员企业", v: "1,052", c: "text-cat-build" },
-            { l: "服务业主", v: "32.4万+", c: "text-cat-decor" },
+            { l: "认证企业", v: `${total}`, c: "text-cat-build" },
+            { l: "真实评价", v: `${rvCount}`, c: "text-cat-decor" },
             { l: "AI 员工", v: "10", c: "text-cat-design" },
           ].map((s) => (
             <div key={s.l} className="rounded-2xl border border-border bg-background p-5">
@@ -64,7 +68,7 @@ export default function AboutPage() {
               {SITE.name}成立于 1998 年，是经信阳市民政局批准、住建局指导，由本地建筑、装修与设计行业企业自愿组成的非营利性行业组织。协会下设秘书处、技术委员会、调解委员会、金融保险委员会等机构。
             </p>
             <p className="mt-4">
-              过去 28 年，协会从最初的 28 家发起单位，发展为今天的 1,052 家会员，覆盖建筑总承包、装饰装修、室内设计、景观园林、机电安装等多个细分领域，并扩展至光山、罗山、息县等县域。
+              协会从最初的 28 家发起单位发展至今，覆盖建筑总承包、装饰装修、室内设计、景观园林、机电安装等多个细分领域，并扩展至光山、罗山、息县等县域。
             </p>
             <p className="mt-4">
               2024 年起，协会启动数字化与 AI 化升级，自主开发本平台与 10 位 AI 员工，让每一家会员企业、每一位本地业主，都能享受到透明、高效、可信的协会服务。

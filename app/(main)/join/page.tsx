@@ -77,7 +77,7 @@ export default async function JoinPage({ searchParams }: { searchParams: Promise
         eyebrow="JOIN · 申请入会"
         tone="brand"
         title={isEnt
-          ? <>加入 1,052 家会员企业 <br className="md:hidden" />共建本地行业生态</>
+          ? <>加入协会会员企业 <br className="md:hidden" />共建本地行业生态</>
           : <>以专业个人身份 <br className="md:hidden" />加入协会会员</>}
         description={isEnt
           ? "面向本地建筑、装修与设计企业。无论是大型总包、品牌装饰，还是返乡创业的县域企业，都欢迎入会。"

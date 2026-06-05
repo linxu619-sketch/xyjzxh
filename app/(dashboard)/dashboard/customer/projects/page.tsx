@@ -1,9 +1,13 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import {
-  ChevronRight, ShieldCheck, Search, Sparkles, AlertCircle, Camera, Wallet,
+  ChevronRight, ShieldCheck, Search, Sparkles, AlertCircle, Camera, Wallet, ArrowUpRight,
 } from "lucide-react";
 import { CustomerShell } from "@/components/dashboard/customer-shell";
 import { Badge } from "@/components/ui/badge";
+import { getSession } from "@/lib/auth/session";
+import { listLeadsForCustomer } from "@/lib/data/leads";
+import { ORDER_DEMO } from "@/lib/data/orders";
 
 export const metadata = { title: "我的项目 · 信阳市建筑装饰装修协会" };
 
@@ -36,10 +40,35 @@ const TABS = [
   { key: "dispute", label: "调解" },
 ];
 
-export default function CustomerProjects() {
+export default async function CustomerProjects() {
+  const session = await getSession();
+  if (!session || session.role !== "customer") redirect("/login?role=customer");
+  const hasProject = listLeadsForCustomer(session.uid, session.phone).some((l) => l.status === "signed");
+
+  // 无进行中项目：引导开始装修（不展示不属于本人的项目）
+  if (!hasProject) {
+    return (
+      <CustomerShell title="我的项目" subtitle="还没有进行中的装修项目">
+        <div className="rounded-3xl border border-border bg-background p-6 text-center">
+          <div className="text-[16px] font-semibold tracking-tight">还没有进行中的装修项目</div>
+          <p className="text-[13px] text-muted-foreground mt-1.5 leading-6 max-w-sm mx-auto">发布需求或用 AI 估价匹配协会认证企业，签约后这里会显示施工进度、验收与付款。</p>
+          <div className="mt-5 flex flex-wrap gap-2 justify-center">
+            <Link href="/ai/decor" className="h-10 px-4 rounded-full bg-foreground text-background text-[13px] font-medium inline-flex items-center gap-1.5"><Sparkles className="h-4 w-4 text-accent-yellow" /> AI 估价</Link>
+            <Link href="/members" className="h-10 px-4 rounded-full border border-border text-[13px] font-medium inline-flex items-center gap-1.5 hover:bg-surface">找企业</Link>
+            <Link href={`/dashboard/customer/projects/${ORDER_DEMO.id}`} className="h-10 px-3 rounded-full text-[12px] text-muted-foreground inline-flex items-center gap-1 hover:text-foreground">查看装修管理演示 <ArrowUpRight className="h-3.5 w-3.5" /></Link>
+          </div>
+        </div>
+      </CustomerShell>
+    );
+  }
+
   const totalPending = PROJECTS.reduce((a, p) => a + (p.pending ?? 0), 0);
   return (
     <CustomerShell title="我的项目" subtitle={`${PROJECTS.length} 个项目 · ${totalPending} 项待办`}>
+      {/* 演示数据提示 —— 真实排期系统接入前，以下项目为演示 */}
+      <div className="rounded-2xl border border-cat-build/30 bg-cat-build-soft text-cat-build px-4 py-2.5 text-[12px] mb-4 flex items-center gap-2">
+        <AlertCircle className="h-4 w-4 shrink-0" /> 以下为施工管理演示数据，真实项目进度同步功能即将接入。
+      </div>
       {/* 待办横幅 */}
       {totalPending > 0 && (
         <Link href="/dashboard/customer/projects/ORD-2026-0512" className="block rounded-3xl bg-gradient-to-br from-cat-decor to-[#e6531f] text-white p-4 mb-4 shadow-md active:scale-[0.99] transition-transform">

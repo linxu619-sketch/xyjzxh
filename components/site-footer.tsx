@@ -42,7 +42,7 @@ export function SiteFooter() {
               </div>
             </div>
             <p className="mt-4 text-[13px] leading-6 text-muted-foreground max-w-sm">
-              {SITE.slogan} · 1998 年成立 · 1,052 家会员单位。
+              {SITE.slogan} · 协会认证的本地装修企业平台。
             </p>
             <Link href="/about" className="mt-2 inline-flex items-center gap-1 text-[13px] text-brand hover:gap-1.5 transition-all">
               了解协会 <ArrowRight className="h-3.5 w-3.5" />

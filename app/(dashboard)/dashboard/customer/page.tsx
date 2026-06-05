@@ -39,6 +39,16 @@ export default async function CustomerDashboard() {
   const myReviews = listReviewsByUid(session.uid);
   const myMediations = listMediationsByUid(session.uid);
   const myRequests = listLeadsForCustomer(session.uid, session.phone);
+  // 真实信号：有「已签约」线索才视为有进行中的装修项目（真实排期系统接入前，详情仍用演示数据并明确标注）
+  const hasProject = myRequests.some((l) => l.status === "signed");
+
+  // 最近活动：由真实评价 / 调解 / 需求生成（无则隐藏）
+  const fmtDay = (ts: number) => { const d = new Date(ts); return `${d.getMonth() + 1} 月 ${d.getDate()} 日`; };
+  const activity = [
+    ...myReviews.map((r) => ({ t: `评价了「${r.enterprise || "装修企业"}」 ${r.rating}★`, ts: r.createdAt, tag: "评价", color: "design" as const })),
+    ...myMediations.map((m) => ({ t: `发起调解 · ${m.respondent || "纠纷"}（${MED_STATUS[m.status] ?? "处理中"}）`, ts: m.createdAt, tag: "调解", color: "decor" as const })),
+    ...myRequests.map((l) => ({ t: `提交装修需求${l.type ? ` · ${l.type}` : ""}`, ts: l.createdAt, tag: "需求", color: "brand" as const })),
+  ].sort((a, b) => b.ts - a.ts).slice(0, 5);
 
   const o = ORDER_DEMO;
   const progress = Math.round(o.schedule.reduce((a, t) => a + t.progress, 0) / o.schedule.length);
@@ -90,8 +100,8 @@ export default async function CustomerDashboard() {
         {/* 协议待重签横幅（PIPL · 优先级最高）*/}
         <ResignBanner pending={DEMO_RESIGNS} href="/dashboard/resign" />
 
-        {/* 待办横幅 */}
-        {pending > 0 && (
+        {/* 待办横幅（仅有进行中项目时）*/}
+        {hasProject && pending > 0 && (
           <Link
             href={`/dashboard/customer/projects/${o.id}`}
             className="block rounded-3xl bg-gradient-to-br from-cat-decor to-[#e6531f] text-white p-4 shadow-lg active:scale-[0.99] transition-transform"
@@ -115,14 +125,29 @@ export default async function CustomerDashboard() {
           </Link>
         )}
 
-        {/* 当前项目卡 */}
+        {/* 当前项目卡 —— 有进行中项目才显示；否则引导开始装修 */}
+        {!hasProject ? (
+          <div className="rounded-3xl bg-background border border-border p-5 shadow-sm">
+            <div className="text-[11px] tracking-widest text-muted-foreground uppercase mb-2">MY PROJECT</div>
+            <div className="text-[16px] font-semibold tracking-tight">还没有进行中的装修项目</div>
+            <p className="text-[12px] text-muted-foreground mt-1 leading-5">发布需求或用 AI 估价匹配协会认证企业，签约后这里会显示施工进度、验收与付款。</p>
+            <div className="mt-4 flex flex-wrap gap-2">
+              <Link href="/ai/decor" className="h-10 px-4 rounded-full bg-foreground text-background text-[13px] font-medium inline-flex items-center gap-1.5 active:scale-[0.98]"><Sparkles className="h-4 w-4 text-accent-yellow" /> AI 估价</Link>
+              <Link href="/members" className="h-10 px-4 rounded-full border border-border text-[13px] font-medium inline-flex items-center gap-1.5 hover:bg-surface">找企业</Link>
+              <Link href={`/dashboard/customer/projects/${o.id}`} className="h-10 px-3 rounded-full text-[12px] text-muted-foreground inline-flex items-center gap-1 hover:text-foreground">查看装修管理演示 <ArrowUpRight className="h-3.5 w-3.5" /></Link>
+            </div>
+          </div>
+        ) : (
         <Link
           href={`/dashboard/customer/projects/${o.id}`}
           className="block rounded-3xl bg-background border border-border p-5 shadow-sm active:scale-[0.99] transition-transform"
         >
           <div className="flex items-center justify-between mb-3">
             <div className="text-[11px] tracking-widest text-muted-foreground uppercase">CURRENT PROJECT</div>
-            <Badge tone="decor">施工中</Badge>
+            <div className="flex items-center gap-1.5">
+              <Badge tone="build">演示数据</Badge>
+              <Badge tone="decor">施工中</Badge>
+            </div>
           </div>
           <div className="text-[18px] font-semibold tracking-tight">{o.inquiry.address}</div>
           <div className="text-[12px] text-muted-foreground mt-1">{o.enterpriseName} · {o.id}</div>
@@ -168,6 +193,7 @@ export default async function CustomerDashboard() {
             </div>
           )}
         </Link>
+        )}
 
         {/* 4 tile 快捷 */}
         {/* 我的需求 */}
@@ -183,14 +209,14 @@ export default async function CustomerDashboard() {
         </Link>
 
         <div className="grid grid-cols-2 gap-3">
-          <Tile icon={Umbrella}              title="我的保单" sub="1 份在保 · ¥162 万" href="/dashboard/customer/insurance" tone="decor" />
-          <Tile icon={MessageSquareHeart}    title="写评价"   sub={`待评 ${o.acceptance.filter((a) => a.status === "approved").length > 0 ? "1" : "0"}`} href="/dashboard/customer/review" tone="design" badge={pendingAcc > 0 ? String(pendingAcc) : undefined} />
+          <Tile icon={Umbrella}              title="我的保单" sub="查看 / 投保" href="/dashboard/customer/insurance" tone="decor" />
+          <Tile icon={MessageSquareHeart}    title="写评价"   sub={myReviews.length > 0 ? `${myReviews.length} 条已发布` : "完工后来打分"} href="/dashboard/customer/review" tone="design" badge={hasProject && pendingAcc > 0 ? String(pendingAcc) : undefined} />
           <Tile icon={MessageSquareWarning}  title="发起调解" sub="14 天内介入" href="/ai/mediate" tone="yellow" />
           <Tile icon={Sparkles}              title="AI 装修顾问" sub="小装 · 在线" href="/ai/decor" tone="brand" />
         </div>
 
-        {/* 项目待办分项卡片（横滑） */}
-        {pending > 0 && (
+        {/* 项目待办分项卡片（仅有进行中项目时）*/}
+        {hasProject && pending > 0 && (
           <div>
             <div className="flex items-center justify-between mb-2 px-1">
               <h3 className="text-[13px] font-semibold">待您处理</h3>
@@ -232,29 +258,26 @@ export default async function CustomerDashboard() {
           </div>
         )}
 
-        {/* 最近活动 */}
-        <div className="rounded-3xl bg-background border border-border">
-          <div className="px-5 pt-5 pb-3 flex items-center justify-between">
-            <h3 className="text-[15px] font-semibold">最近活动</h3>
+        {/* 最近活动（真实数据，无则不显示）*/}
+        {activity.length > 0 && (
+          <div className="rounded-3xl bg-background border border-border">
+            <div className="px-5 pt-5 pb-3 flex items-center justify-between">
+              <h3 className="text-[15px] font-semibold">最近活动</h3>
+            </div>
+            <ul className="divide-y divide-border">
+              {activity.map((a, i) => (
+                <li key={i} className="px-5 py-3.5 flex items-center gap-3 active:bg-surface/60 transition-colors">
+                  <Badge tone={a.color} className="!text-[10px] shrink-0">{a.tag}</Badge>
+                  <div className="flex-1 min-w-0">
+                    <div className="text-[13px] truncate">{a.t}</div>
+                    <div className="text-[11px] text-muted-foreground">{fmtDay(a.ts)}</div>
+                  </div>
+                  <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0" />
+                </li>
+              ))}
+            </ul>
           </div>
-          <ul className="divide-y divide-border">
-            {[
-              { t: "项目「金茂悦府」水电验收已通过", d: "今天 09:24", tag: "项目", color: "build" as const },
-              { t: "AI 小装为您匹配了 3 家心仪企业", d: "昨天 21:08", tag: "AI", color: "brand" as const },
-              { t: "「安心家装险」保单已生效", d: "5 月 22 日", tag: "保险", color: "decor" as const },
-              { t: "您写的评价已被「名家装饰」感谢", d: "5 月 18 日", tag: "评价", color: "design" as const },
-            ].map((a, i) => (
-              <li key={i} className="px-5 py-3.5 flex items-center gap-3 active:bg-surface/60 transition-colors">
-                <Badge tone={a.color} className="!text-[10px] shrink-0">{a.tag}</Badge>
-                <div className="flex-1 min-w-0">
-                  <div className="text-[13px] truncate">{a.t}</div>
-                  <div className="text-[11px] text-muted-foreground">{a.d}</div>
-                </div>
-                <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0" />
-              </li>
-            ))}
-          </ul>
-        </div>
+        )}
 
         {/* 推荐 */}
         <Link href="/insurance" className="block rounded-3xl bg-gradient-to-br from-foreground via-brand-600 to-brand text-white p-5 shadow-lg active:scale-[0.99] transition-transform">
