@@ -110,20 +110,20 @@ export default async function ConsumerHome({ searchParams }: { searchParams: Pro
               该户型暂无案例，<Link href="/" className="text-foreground underline underline-offset-2">看看全部</Link>
             </div>
           ) : (
-            <div className="columns-2 md:columns-3 lg:columns-4 gap-3 md:gap-4">
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4">
               {cases.map((c) => (
                 <Link
                   key={c.id}
                   href={c.enterpriseSlug ? `/biz/${c.enterpriseSlug}/cases/${c.id}` : "/members"}
-                  className="mb-3 md:mb-4 block break-inside-avoid group"
+                  className="block group"
                 >
-                  <div className="overflow-hidden rounded-2xl bg-surface">
+                  <div className="aspect-[4/5] overflow-hidden rounded-2xl bg-surface">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
                       src={c.cover}
                       alt={c.title}
                       loading="lazy"
-                      className="w-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.04]"
+                      className="h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.04]"
                     />
                   </div>
                   <div className="mt-2.5 px-0.5">
