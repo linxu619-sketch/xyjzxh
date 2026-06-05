@@ -61,7 +61,7 @@ export default async function TeamMemberDetail({ params }: { params: Promise<{ t
         {others.length > 0 && (
           <div className="mt-10">
             <h2 className="text-[18px] md:text-[22px] font-semibold tracking-tight mb-4">团队其他成员</h2>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            <div className="grid grid-cols-3 gap-3">
               {others.map((o) => (
                 <Link key={o.id} href={`/biz/${tenant}/team/${o.id}`} className="rounded-2xl border border-border bg-background overflow-hidden hover:shadow-md transition-all hover:-translate-y-0.5">
                   <div className="relative aspect-[3/4] bg-surface">
