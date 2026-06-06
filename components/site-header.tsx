@@ -44,7 +44,7 @@ export function SiteHeader({ face = "consumer", authed = false, todo = 0 }: { fa
                 <Building2 className="h-3 w-3 text-accent-yellow shrink-0" />
                 <span className="truncate">您在 <b>协会门户</b> · 面向企业 / 从业者 / 合作机构</span>
               </span>
-              <Link href="/" className="text-background/70 hover:text-background whitespace-nowrap shrink-0">
+              <Link href="/?face=consumer" className="text-background/70 hover:text-background whitespace-nowrap shrink-0">
                 返回业主门户 →
               </Link>
             </div>

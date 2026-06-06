@@ -9,8 +9,12 @@ import { NextRequest, NextResponse } from "next/server";
    ------------------------------------------------------------
    开发环境同样规则：
    localhost           → consumer
-   xh.localhost        → xh
-   mingjia.localhost   → tenant=mingjia
+   xh.lvh.me           → xh
+   mingjia.lvh.me      → tenant=mingjia
+   ------------------------------------------------------------
+   裸 host（IP 直连 / localhost）没有子域名可分流：门面靠 cookie 维持，
+   从 /xh 进入协会门户后，点击共用页面（/members 等）不会被判回业主门户；
+   `?face=consumer|xh` 提供显式切换出口（协会页「返回业主门户」即用此）。
    ============================================================ */
 
 const ROOT_DOMAIN = "xyjzxh.com";
@@ -45,6 +49,11 @@ function parseHost(host: string): { face: Face; tenant?: string } {
 
   // 兜底（IP 直连等）按 consumer
   return { face: "consumer" };
+}
+
+// 裸 host：IP 地址 / localhost / 127.0.0.1 —— 没有子域名分流能力，门面靠 cookie 维持
+function isBareHost(bare: string): boolean {
+  return bare === "localhost" || bare === "127.0.0.1" || /^\d{1,3}(\.\d{1,3}){3}$/.test(bare);
 }
 
 export function middleware(req: NextRequest) {
@@ -91,7 +100,36 @@ export function middleware(req: NextRequest) {
     return res;
   }
 
-  // 消费者 / bare host
+  // —— 裸 host（IP 直连 / localhost）：无子域名分流，门面靠 cookie 维持 ——
+  // 解决「协会门户点共用页面被判回业主门户」：从 /xh 进入后 cookie=xh，
+  // 后续共用页面（/members 等）跟随 cookie 保持协会门面；
+  // `?face=consumer|xh` 显式切换并落 cookie（「返回业主门户」按钮带 ?face=consumer）。
+  const bareHost = host.replace(/:\d+$/, "");
+  if (isBareHost(bareHost)) {
+    const faceParam = url.searchParams.get("face");
+    const cookieFace = req.cookies.get(COOKIE_FACE)?.value;
+
+    let sticky: Face = "consumer";
+    if (faceParam === "xh") sticky = "xh";
+    else if (faceParam === "consumer") sticky = "consumer";
+    else if (cookieFace === "xh") sticky = "xh";
+
+    if (sticky === "xh") {
+      const rewritten = url.clone();
+      if (url.pathname === "/") rewritten.pathname = "/xh"; // 裸 host 下首页跟随协会门面
+      const res = NextResponse.rewrite(rewritten);
+      res.cookies.set(COOKIE_FACE, "xh", { path: "/", sameSite: "lax" });
+      res.headers.set("x-face", "xh");
+      return res;
+    }
+
+    const res = NextResponse.next();
+    res.cookies.set(COOKIE_FACE, "consumer", { path: "/", sameSite: "lax" });
+    res.headers.set("x-face", "consumer");
+    return res;
+  }
+
+  // 明确的 consumer host（xyjzxh.com / www / lvh.me 根域等）
   const res = NextResponse.next();
   res.cookies.set(COOKIE_FACE, "consumer", { path: "/", sameSite: "lax" });
   res.headers.set("x-face", "consumer");
