@@ -7,6 +7,7 @@ import {
   loginCustomerWithSms,
   loginPractitionerWithSms,
   loginEnterpriseWithPassword,
+  loginEnterpriseWithSms,
 } from "@/lib/auth/login";
 
 export type ActionResult = { ok: boolean; error?: string };
@@ -30,6 +31,18 @@ export async function loginEnterpriseAction(
   const phone = String(formData.get("phone") || "");
   const password = String(formData.get("password") || "");
   const res = await loginEnterpriseWithPassword(phone, password);
+  if (!res.ok) return { ok: false, error: res.error };
+  await setSession(res.session);
+  redirect(res.pending ? "/dashboard/pending" : "/dashboard/enterprise");
+}
+
+export async function loginEnterpriseSmsAction(
+  _prev: ActionResult,
+  formData: FormData,
+): Promise<ActionResult> {
+  const phone = String(formData.get("phone") || "");
+  const code = String(formData.get("code") || "");
+  const res = await loginEnterpriseWithSms(phone, code);
   if (!res.ok) return { ok: false, error: res.error };
   await setSession(res.session);
   redirect(res.pending ? "/dashboard/pending" : "/dashboard/enterprise");

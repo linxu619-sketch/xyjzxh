@@ -12,6 +12,20 @@ export type LoginResult =
   | { ok: false; error: string };
 
 /* ------------------------------------------------------------
+   演示短信验证码 —— 短信网关尚未接入前的临时固定码。
+   接入真实网关后：改为下发随机码并按手机号校验，删除此常量。
+   ------------------------------------------------------------ */
+export const DEMO_SMS_CODE = "123456";
+
+/** 演示阶段校验短信验证码：必须等于固定码 123456 */
+function checkSmsCode(code: string): { ok: true } | { ok: false; error: string } {
+  const c = code.trim();
+  if (!c) return { ok: false, error: "请输入短信验证码" };
+  if (c !== DEMO_SMS_CODE) return { ok: false, error: `验证码错误（演示请输入 ${DEMO_SMS_CODE}）` };
+  return { ok: true };
+}
+
+/* ------------------------------------------------------------
    密码登录防爆破 —— 进程内限流(单实例够用;多实例上线后换 Redis/库)
    规则:同一手机号 10 分钟内密码错误满 5 次 → 锁定 10 分钟。
    成功登录即清零。仅作用于真实密码路径(系统管理员 / 协会职员)。
@@ -117,9 +131,8 @@ export async function loginCustomerWithSms(
   if (!/^1\d{10}$/.test(phone.trim())) {
     return { ok: false, error: "请输入正确的 11 位手机号" };
   }
-  if (!/^\d{4,6}$/.test(code)) {
-    return { ok: false, error: "请输入验证码" };
-  }
+  const sms = checkSmsCode(code);
+  if (!sms.ok) return sms;
   const clean = phone.trim();
   // 尊重协会「用户管理」的停用：被停用的业主账号拒绝登录
   const existing = getAccountByPhone(clean);
@@ -151,9 +164,8 @@ export async function loginPractitionerWithSms(
   if (!/^1\d{10}$/.test(phone.trim())) {
     return { ok: false, error: "请输入正确的 11 位手机号" };
   }
-  if (!/^\d{4,6}$/.test(code)) {
-    return { ok: false, error: "请输入验证码" };
-  }
+  const sms = checkSmsCode(code);
+  if (!sms.ok) return sms;
   const cleanPhone = phone.trim();
 
   // —— 账号体系：个人会员账号 ——
@@ -239,6 +251,65 @@ export async function loginEnterpriseWithPassword(
   }
 
   // —— 演示回退：未注册账号 → 绑定到演示企业「名家装饰」(e002)，方便本地试用 ——
+  return {
+    ok: true,
+    isSystemAdmin: false,
+    session: {
+      uid: `ent-${cleanPhone.slice(-4)}`,
+      role: "enterprise",
+      name: `企业用户 ${cleanPhone.slice(-4)}`,
+      phone: cleanPhone,
+      enterpriseId: "e002",
+    },
+  };
+}
+
+/**
+ * 演示用：企业短信验证码登录
+ * 账号解析与密码登录完全一致，仅把「密码校验」换成「短信验证码校验」(演示固定 123456)。
+ * 接入数据库 + 短信网关后替换。
+ */
+export async function loginEnterpriseWithSms(
+  phone: string,
+  code: string,
+): Promise<LoginResult> {
+  if (!/^1\d{10}$/.test(phone.trim())) {
+    return { ok: false, error: "请输入正确的 11 位手机号" };
+  }
+  const sms = checkSmsCode(code);
+  if (!sms.ok) return sms;
+  const cleanPhone = phone.trim();
+
+  // —— 账号体系：企业会员账号（短信登录不校验密码）——
+  const acct = getAccountByPhone(cleanPhone);
+  if (acct && acct.role === "enterprise") {
+    if (acct.status === "active") {
+      return {
+        ok: true,
+        isSystemAdmin: false,
+        session: { uid: `ent-${acct.memberRef ?? cleanPhone}`, role: "enterprise", name: acct.name || "企业会员", phone: cleanPhone, enterpriseId: acct.memberRef ?? undefined },
+      };
+    }
+    // pending / rejected → 审核进度页
+    return {
+      ok: true,
+      isSystemAdmin: false,
+      pending: true,
+      session: { uid: `ent-pending-${cleanPhone.slice(-4)}`, role: "enterprise", name: acct.name || "申请企业", phone: cleanPhone, pending: true },
+    };
+  }
+
+  // —— 真实绑定回退：手机号匹配到正式会员企业 ——
+  const ent = findEnterpriseByContactPhone(cleanPhone);
+  if (ent) {
+    return {
+      ok: true,
+      isSystemAdmin: false,
+      session: { uid: `ent-${ent.id}`, role: "enterprise", name: ent.name, phone: cleanPhone, enterpriseId: ent.id },
+    };
+  }
+
+  // —— 演示回退：未注册账号 → 绑定到演示企业「名家装饰」(e002) ——
   return {
     ok: true,
     isSystemAdmin: false,
