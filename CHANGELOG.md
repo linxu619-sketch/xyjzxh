@@ -14,6 +14,16 @@
 
 ---
 
+## [0.109.1] - 2026-06-06
+
+### 完善 `CLAUDE.md`：从单行 `@AGENTS.md` 扩为完整上手指南
+`/init` 勘察全仓后改进根目录 `CLAUDE.md`（此前仅一行 `@AGENTS.md`）。在**不重复** `CONVENTIONS.md` 既有内容的前提下，补齐对新会话最有用的速查信息：
+- **保留** `@AGENTS.md` / `@CONVENTIONS.md` 导入，确保既有中文约定文档照常自动加载，未搬运其正文。
+- **新增**命令速查（`dev`/`build`/`lint`/`clean`）、`.bat` 须存 GBK 的提醒、`@/*` 路径别名，以及一张需读多文件才能看清的架构图：`middleware.ts` 的 host→三门面分流、`app/` 路由分组、`*-source.ts` 的「SQLite 读取+失败回退 mock」数据模式、`lib/auth` 角色/防爆破、`lib/ai` 数字员工/RAG、`next.config.ts` 安全响应头。
+- **置顶**强制工作流（每次改动 → CHANGELOG + `package.json` 版本 + commit）与「写 Next 代码前先读 `node_modules/next/dist/docs/`」两条高代价易漏项。
+
+纯文档改动，未动源码 / 依赖 / 构建。
+
 ## [0.109.0] - 2026-06-06
 
 ### 平台文件清理 + 安全升级
