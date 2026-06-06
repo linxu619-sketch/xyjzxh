@@ -14,6 +14,15 @@
 
 ---
 
+## [0.110.2] - 2026-06-07
+
+### 修复：HTTP 生产环境登录 500 + 登录态丢失
+公网 IP（HTTP）生产模式下点登录报 500，根因两处：
+- **`SESSION_SECRET` 未配**：`session.ts` 在生产环境强制要求该环境变量(未配 fail-fast)，`setSession` 抛错导致 server action 500。已在 `.env.local`(gitignore) 配置随机密钥；`.env.example` 补生成命令说明。注意 `next start` 不会自动加载 `.env.local`，生产启动需显式注入环境变量。
+- **session cookie 强制 `Secure`**：原 `secure: NODE_ENV==="production"` 在 HTTP 下会让浏览器丢弃登录态 cookie。新增环境开关 `COOKIE_INSECURE=1` 可关闭 Secure（默认仍按生产 HTTPS 下发 Secure，不降默认安全）。HTTP/IP 直连演示场景启用，上 HTTPS 后删除即可。
+
+⚠️ HTTP 下关闭 Secure 意味着 session cookie 明文传输，仅演示/测试可接受；正式对外应上 HTTPS。
+
 ## [0.110.1] - 2026-06-07
 
 ### 修复：公网 IP 直连时协会门户点导航被判回业主门户

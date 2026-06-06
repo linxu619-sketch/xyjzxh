@@ -66,7 +66,9 @@ export async function setSession(s: Omit<Session, "exp">) {
   const jar = await cookies();
   jar.set(COOKIE, sign({ ...s, exp }), {
     httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
+    // 默认生产下发 Secure（仅 HTTPS）。若经 HTTP 对外（如 IP 直连演示），
+    // 设 COOKIE_INSECURE=1 关闭 Secure，否则浏览器不保存 cookie、登录态会丢失。
+    secure: process.env.NODE_ENV === "production" && process.env.COOKIE_INSECURE !== "1",
     sameSite: "lax",
     path: "/",
     expires: new Date(exp),
