@@ -14,6 +14,24 @@
 
 ---
 
+## [0.109.0] - 2026-06-06
+
+### 平台文件清理 + 安全升级
+全仓勘察后做一轮清理与安全加固。
+
+**安全升级**
+- **全站安全响应头**(`next.config.ts` `headers()`):`X-Content-Type-Options: nosniff`、`X-Frame-Options: SAMEORIGIN`、`Referrer-Policy: strict-origin-when-cross-origin`、`X-DNS-Prefetch-Control: off`、`Permissions-Policy`(禁用摄像头/麦克风/定位/topics)、`Content-Security-Policy`(仅 `frame-ancestors 'self'; object-src 'none'; base-uri 'self'; form-action 'self'`——刻意不限制 script/style/connect,不破坏 Next 内联引导与 dev HMR)、生产下发 `HSTS`。已实测响应头全站生效、页面全部 200。
+- **密码登录防爆破**(`lib/auth/login.ts`):同一手机号 10 分钟内密码错满 5 次锁 10 分钟,成功即清零;进程内限流,仅作用于真实密码路径(系统管理员/协会职员),短信登录不受影响。
+
+**文件清理**
+- **移除死代码 Supabase**:早已改用本地 SQLite,但 `lib/supabase/{server,config}.ts`、`@supabase/supabase-js` 依赖、`runtime-config` 的 `supabase` 类型、settings 的 `testSupabaseAction` 全为无人引用的死代码——整套删除并卸载依赖(全项目已无 supabase import 残留)。
+- **合并重复 env 模板**:`.env.example`(较新较全)设为唯一模板并入仓,删除旧的 `.env.local.example`,`.gitignore` 例外同步;模板内已废弃的 `SUPABASE_*` 行改为通用 `DATABASE_URL` 迁移说明。
+- **隐私政策订正**:云服务商列表去掉 Supabase,AI 服务商补 DeepSeek(与现状一致)。
+
+**勘察未改项(记录)**:`npm audit` 的 `postcss` 中危是 Next 自带构建期副本,`audit fix --force` 会把 Next 降到 9.x(灾难),且非运行时可利用,暂不动;`scripts/` 各脚本无人引用但是有用的种子/重置工具,保留。
+
+tsc / eslint 均通过,dev 自重启后页面全部 200。
+
 ## [0.108.0] - 2026-06-05
 
 ### 协会后台用户管理:补「新增工作人员」入口 + 修密码文案

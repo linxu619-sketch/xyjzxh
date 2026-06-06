@@ -84,19 +84,6 @@ export async function saveSettingsAction(
   }
 }
 
-export async function testSupabaseAction(): Promise<{
-  ok: boolean;
-  latencyMs?: number;
-  error?: string;
-}> {
-  const session = await getSession();
-  if (!session || (session.role !== "association" && session.role !== "system_admin")) {
-    return { ok: false, error: "无权限" };
-  }
-  const { pingSupabase } = await import("@/lib/supabase/server");
-  return pingSupabase();
-}
-
 export async function testRegulatorAction(
   target: "provincial" | "city",
 ): Promise<{ ok: boolean; latencyMs?: number; error?: string }> {

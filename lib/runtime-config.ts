@@ -19,11 +19,6 @@ export type RuntimeSettings = {
     anthropicApiKey?: string;
     anthropicModel?: string;
   };
-  supabase?: {
-    url?: string;
-    anonKey?: string;
-    serviceRoleKey?: string;
-  };
   platform?: {
     name?: string;
     shortName?: string;

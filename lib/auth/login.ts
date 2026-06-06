@@ -11,6 +11,36 @@ export type LoginResult =
   | { ok: true; session: Omit<Session, "exp">; isSystemAdmin: boolean; pending?: boolean }
   | { ok: false; error: string };
 
+/* ------------------------------------------------------------
+   密码登录防爆破 —— 进程内限流(单实例够用;多实例上线后换 Redis/库)
+   规则:同一手机号 10 分钟内密码错误满 5 次 → 锁定 10 分钟。
+   成功登录即清零。仅作用于真实密码路径(系统管理员 / 协会职员)。
+   ------------------------------------------------------------ */
+const MAX_FAILS = 5;
+const WINDOW_MS = 10 * 60 * 1000;
+const failStore = new Map<string, { fails: number; first: number; until: number }>();
+
+function isLocked(phone: string): number {
+  const e = failStore.get(phone);
+  if (!e) return 0;
+  const now = Date.now();
+  if (e.until > now) return Math.ceil((e.until - now) / 60000); // 剩余锁定分钟
+  return 0;
+}
+function recordFail(phone: string): void {
+  const now = Date.now();
+  const e = failStore.get(phone);
+  if (!e || now - e.first > WINDOW_MS) {
+    failStore.set(phone, { fails: 1, first: now, until: 0 });
+    return;
+  }
+  e.fails += 1;
+  if (e.fails >= MAX_FAILS) e.until = now + WINDOW_MS;
+}
+function clearFail(phone: string): void {
+  failStore.delete(phone);
+}
+
 /**
  * 统一密码登录
  * 1. 先比对系统管理员（写死，不入库）
@@ -26,9 +56,16 @@ export async function loginWithPassword(
   }
   if (!password) return { ok: false, error: "请输入密码" };
 
+  // 防爆破:锁定中直接拒绝
+  const lockMin = isLocked(cleanPhone);
+  if (lockMin > 0) {
+    return { ok: false, error: `密码错误次数过多,请 ${lockMin} 分钟后再试` };
+  }
+
   // —— 系统管理员 ——
   if (cleanPhone === SYSTEM_ADMIN.phone) {
     if (verifyPassword(password, SYSTEM_ADMIN.passwordHash)) {
+      clearFail(cleanPhone);
       return {
         ok: true,
         isSystemAdmin: true,
@@ -41,6 +78,7 @@ export async function loginWithPassword(
         },
       };
     }
+    recordFail(cleanPhone);
     return { ok: false, error: "密码错误" };
   }
 
@@ -50,6 +88,7 @@ export async function loginWithPassword(
     return { ok: false, error: "该工作人员账号已被停用,请联系秘书处" };
   }
   if (staff && verifyPassword(password, staff.passwordHash)) {
+    clearFail(cleanPhone);
     return {
       ok: true,
       isSystemAdmin: false,
@@ -63,12 +102,13 @@ export async function loginWithPassword(
     };
   }
 
+  recordFail(cleanPhone);
   return { ok: false, error: "手机号或密码不正确" };
 }
 
 /**
  * 演示用：业主短信码登录（任意 11 位手机号 + 任意 6 位码即通过）
- * 接入 Supabase Auth + 短信网关后替换
+ * 接入短信网关后替换
  */
 export async function loginCustomerWithSms(
   phone: string,

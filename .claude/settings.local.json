@@ -244,7 +244,13 @@
       "Bash(sed -n '78,84p' \"app/\\(main\\)/practitioners/page.tsx\")",
       "Bash(sed -n '174,182p' \"app/\\(main\\)/practitioners/page.tsx\")",
       "Bash(xargs echo \"字体 preload 链接数\\(应0\\):\")",
-      "Bash(xargs echo \"申请流程标题:\")"
+      "Bash(xargs echo \"申请流程标题:\")",
+      "Bash(grep -vE '^\\\\s*$')",
+      "Bash(awk '$1 !~ /^d/ {print $5\"\\\\t\"$9}')",
+      "Bash(grep -ioE \"scripts[/\\\\\\\\\\\\\\\\][a-z0-9-]+\\\\.mjs|reset-demo|seed-bulk\" 启动.bat 停止.bat)",
+      "Bash(grep -vi \"smlopenapi\\\\|//.*supabase\")",
+      "Bash(echo \"exit-grep=$? \\(1=无匹配=干净\\)\")",
+      "Bash(echo \"tsc-exit=$?\")"
     ]
   }
 }

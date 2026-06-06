@@ -28,8 +28,8 @@ export default function PrivacyPage() {
         <ul className="list-disc pl-6 space-y-1.5 text-muted-foreground">
           <li>河南省建设行业监管平台：仅工装报备字段，依《建筑法》第 X 条；</li>
           <li>合作金融 / 保险机构：仅经您单独授权后；</li>
-          <li>云服务商：阿里云 / Vercel / Supabase（签订 DPA）；</li>
-          <li>Anthropic：AI 对话内容（已对手机号等做脱敏）。</li>
+          <li>云服务商：阿里云 / Vercel（签订 DPA）；</li>
+          <li>AI 服务商：DeepSeek / Anthropic — 仅 AI 对话内容（已对手机号等做脱敏）。</li>
         </ul>
         <h2 className="text-[22px] font-semibold mt-10">四、您的权利</h2>
         <p>您可随时通过「我的 → 设置」查询、更正、导出、删除自己的信息；如对处理结果有异议，可联系协会秘书处 0376-000-0000。</p>
