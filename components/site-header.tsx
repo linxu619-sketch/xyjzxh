@@ -27,10 +27,12 @@ export function SiteHeader({ face = "consumer", authed = false, todo = 0 }: { fa
   return (
     <header
       className={cn(
-        "sticky top-0 z-50 w-full transition-all duration-300",
+        // 表头恒为不透明实底，确保滚动内容绝不透上来与 logo/导航重叠；
+        // 滚动后再加下边框+阴影做分隔（未滚动时边框透明，融入首页浅色 hero）。
+        "sticky top-0 z-50 w-full bg-background transition-all duration-300",
         scrolled
-          ? "bg-background/85 backdrop-blur-xl border-b border-border"
-          : "bg-background/0",
+          ? "border-b border-border shadow-sm"
+          : "border-b border-transparent",
       )}
     >
       {/* 协会门户顶部条 — 提示用户在哪个门面 */}

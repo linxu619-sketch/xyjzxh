@@ -29,7 +29,7 @@ const nextConfig: NextConfig = {
   devIndicators: false,
   // 允许局域网设备访问 dev 资源 / 热更新(HMR)，消除跨源 WebSocket 握手失败
   // 局域网 IP 变了就改这里（可加多个）
-  allowedDevOrigins: ["192.168.31.74"],
+  allowedDevOrigins: ["192.168.31.74", "47.103.147.2"],
   // 全站安全响应头
   async headers() {
     return [{ source: "/:path*", headers: securityHeaders }];
