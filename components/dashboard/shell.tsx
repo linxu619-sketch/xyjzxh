@@ -98,7 +98,6 @@ export async function AssociationShell({ title, subtitle, actions, tone = "brand
                   roleLabel={isSys ? "系统管理员 · 最高权限" : roleLabel(session.staffRole ?? "")}
                   phone={maskPhone(session.phone)}
                   isSys={isSys}
-                  onBrand={tone === "brand"}
                   settingsHref="/dashboard/association/settings"
                   usersHref="/dashboard/association/users"
                 />

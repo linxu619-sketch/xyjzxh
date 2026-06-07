@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { ChevronRight } from "lucide-react";
+import { SITE } from "@/lib/site";
 import { cn } from "@/lib/cn";
 
 export function StatCard({
@@ -68,16 +69,29 @@ export function Panel({
 }
 
 export function TopBar({ title, subtitle, actions, trailing, tone }: { title: string; subtitle?: string; actions?: React.ReactNode; trailing?: React.ReactNode; tone?: "brand" }) {
-  // 套色页头：品牌渐变底、白字
+  // 工作台顶栏 —— 与主页顶栏同款：白底 + 左侧 logo + 右侧账号；页面标题置于其下。
   if (tone === "brand") {
     return (
-      <div className="mb-5 rounded-xl bg-gradient-to-r from-brand to-brand-600 text-white px-4 md:px-5 py-3 shadow-sm">
-        <div className="flex items-center justify-between gap-3 flex-col md:flex-row md:items-center">
-          <div className="min-w-0">
-            <h1 className="text-[17px] md:text-[19px] font-semibold tracking-tight">{title}</h1>
-            {subtitle && <div className="text-[11px] text-white/80 mt-0.5">{subtitle}</div>}
-          </div>
-          <div className="flex items-center gap-2 shrink-0 self-end md:self-auto">{actions}{trailing}</div>
+      <div>
+        <div className="mb-5 flex h-14 items-center justify-between gap-3 border-b border-border">
+          <Link href="/xh" className="flex items-center gap-2.5 group shrink-0">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/brand/seal.png" alt="信阳市建筑装饰装修协会" className="h-8 w-8 object-contain shrink-0" />
+            <div className="leading-tight">
+              <div className="text-[14px] font-semibold tracking-tight">
+                {SITE.shortName}
+                <span className="ml-1 text-muted-foreground font-normal hidden sm:inline">协会工作台</span>
+              </div>
+              <div className="text-[9px] text-muted-foreground tracking-[0.18em] uppercase font-medium hidden sm:block">
+                {`xh.${SITE.domain}`}
+              </div>
+            </div>
+          </Link>
+          <div className="flex items-center gap-2 shrink-0">{actions}{trailing}</div>
+        </div>
+        <div className="mb-6 min-w-0">
+          <h1 className="text-[20px] md:text-[24px] font-semibold tracking-tight">{title}</h1>
+          {subtitle && <div className="text-[13px] text-muted-foreground mt-1">{subtitle}</div>}
         </div>
       </div>
     );
