@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { getMediation } from "@/lib/data/mediations";
 import { reviewMediationAction } from "../actions";
 import { PrintBar, Letterhead, DocTable, SealFooter } from "@/components/print/print-doc";
+import { getPlatformInfo } from "@/lib/runtime-config";
 
 export const metadata = { title: "调解处置 · 协会工作台" };
 
@@ -25,6 +26,7 @@ export default async function MediationDetail({ params }: { params: Promise<{ id
 
   const statusTone = m.status === "closed" ? "tea" : m.status === "rejected" ? "decor" : m.status === "accepted" ? "brand" : "yellow";
   const docNo = `XYJZ-TJ-${String(m.id).padStart(4, "0")}`;
+  const org = await getPlatformInfo();
   const img = (s: string) => /^(https?:)?\//.test(s);
 
   return (
@@ -62,7 +64,7 @@ export default async function MediationDetail({ params }: { params: Promise<{ id
       {/* A4 公文（打印区） */}
       <div className="print-area">
         <div className="a4-sheet">
-          <Letterhead title="纠纷调解受理 / 处置记录单" docNo={docNo} date={fmtDay(m.createdAt)} />
+          <Letterhead title="纠纷调解受理 / 处置记录单" docNo={docNo} date={fmtDay(m.createdAt)} org={org} />
 
           <DocTable
             rows={[

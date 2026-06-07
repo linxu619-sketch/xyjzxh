@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { getFinanceApplication, type FinAppStatus } from "@/lib/data/finance-source";
 import { reviewFinanceAppAction } from "../../actions";
 import { PrintBar, Letterhead, DocTable, SealFooter } from "@/components/print/print-doc";
+import { getPlatformInfo } from "@/lib/runtime-config";
 
 export const metadata = { title: "金融申请处置 · 协会工作台" };
 
@@ -22,6 +23,7 @@ export default async function FinanceAppDetail({ params }: { params: Promise<{ i
   if (!a) notFound();
   const self = `/dashboard/association/finance/app/${a!.id}`;
   const docNo = `XYJZ-JR-${String(a!.id).padStart(4, "0")}`;
+  const org = await getPlatformInfo();
 
   return (
     <AssociationShell title="金融申请处置" subtitle={`${a!.enterpriseName} · ${a!.productName}`}>
@@ -45,7 +47,7 @@ export default async function FinanceAppDetail({ params }: { params: Promise<{ i
 
       <div className="print-area">
         <div className="a4-sheet">
-          <Letterhead title="金融服务申请受理单" docNo={docNo} date={fmtDay(a!.createdAt)} />
+          <Letterhead title="金融服务申请受理单" docNo={docNo} date={fmtDay(a!.createdAt)} org={org} />
           <DocTable
             rows={[
               { k: "申请企业", v: a!.enterpriseName },

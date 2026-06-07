@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { getClaim, type ClaimStatus } from "@/lib/data/insurance-claims";
 import { reviewClaimAction } from "../../actions";
 import { PrintBar, Letterhead, DocTable, SealFooter } from "@/components/print/print-doc";
+import { getPlatformInfo } from "@/lib/runtime-config";
 
 export const metadata = { title: "理赔处置 · 协会工作台" };
 
@@ -24,6 +25,7 @@ export default async function ClaimDetail({ params }: { params: Promise<{ id: st
   const nx = CLAIM_NEXT[c!.status];
   const self = `/dashboard/association/finance/claim/${c!.id}`;
   const docNo = `XYJZ-LP-${String(c!.id).padStart(4, "0")}`;
+  const org = await getPlatformInfo();
 
   return (
     <AssociationShell title="理赔处置" subtitle={`${docNo} · ${c!.applicant}`}>
@@ -43,7 +45,7 @@ export default async function ClaimDetail({ params }: { params: Promise<{ id: st
 
       <div className="print-area">
         <div className="a4-sheet">
-          <Letterhead title="保险理赔受理 / 定损单" docNo={docNo} date={fmtDay(c!.createdAt)} />
+          <Letterhead title="保险理赔受理 / 定损单" docNo={docNo} date={fmtDay(c!.createdAt)} org={org} />
           <DocTable
             rows={[
               { k: "报案人", v: c!.applicant },

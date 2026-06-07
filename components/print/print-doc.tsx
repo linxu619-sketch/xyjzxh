@@ -19,7 +19,11 @@ export function PrintBar({ hint }: { hint?: string }) {
 }
 
 /* 协会信笺抬头（套用协会 VI：青绿 #267C7C + 官方圆形徽章 Logo） */
-export function Letterhead({ title, docNo, date }: { title: string; docNo?: string; date?: string }) {
+export function Letterhead({ title, docNo, date, org }: { title: string; docNo?: string; date?: string; org?: { name?: string; tel?: string; address?: string } }) {
+  // 协会名称/电话/地址优先用系统设置(org)，未传则回退内置 SITE
+  const name = org?.name || SITE.name;
+  const tel = org?.tel || SITE.tel;
+  const address = org?.address || SITE.address;
   return (
     <header className="mb-4">
       <div className="flex items-center justify-between gap-4">
@@ -27,12 +31,12 @@ export function Letterhead({ title, docNo, date }: { title: string; docNo?: stri
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src="/brand/seal.png" alt="信阳市建筑装饰装修协会" className="h-14 w-14 object-contain shrink-0" />
           <div className="min-w-0">
-            <div className="text-[22px] font-bold tracking-tight text-[#267c7c] leading-tight">{SITE.name}</div>
+            <div className="text-[22px] font-bold tracking-tight text-[#267c7c] leading-tight">{name}</div>
             <div className="text-[9px] tracking-[0.18em] text-[#267c7c]/70 mt-0.5">XINYANG BUILDING DECORATION ASSOCIATION</div>
           </div>
         </div>
         <div className="text-[11px] text-muted-foreground text-right leading-5 shrink-0">
-          电话：{SITE.tel}<br />{SITE.address}
+          电话：{tel}<br />{address}
         </div>
       </div>
       <div className="mt-2 border-t-[3px] border-[#267c7c]" />

@@ -1,6 +1,7 @@
 import "server-only";
 import fs from "node:fs/promises";
 import path from "node:path";
+import { SITE } from "@/lib/site";
 
 /* ============================================================
    运行时设置 — 由系统设置 UI 写入，敏感字段不入仓
@@ -98,6 +99,25 @@ function mergeDeep<T>(a: T, b: Partial<T>): T {
     else if (bv !== undefined) out[k] = bv;
   }
   return out as T;
+}
+
+/**
+ * 有效平台信息 = 系统设置(runtime-settings) 覆盖 > 内置 SITE 默认。
+ * 供页头、页脚、打印公文抬头等统一取用，确保系统设置改了即时生效。
+ */
+export async function getPlatformInfo() {
+  const p = (await readRuntimeSettings()).platform ?? {};
+  return {
+    name: p.name || SITE.name,
+    shortName: p.shortName || SITE.shortName,
+    domain: p.domain || SITE.domain,
+    tel: p.tel || SITE.tel,
+    email: p.email || SITE.email,
+    address: p.address || SITE.address,
+    slogan: p.slogan || SITE.slogan,
+    subSlogan: p.subSlogan || SITE.subSlogan,
+    icp: p.icp || "",
+  };
 }
 
 // 工具：脱敏展示 sk-xxx

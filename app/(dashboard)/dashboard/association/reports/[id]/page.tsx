@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { getReport } from "@/lib/data/reports";
 import { reviewReportAction } from "../actions";
 import { PrintBar, Letterhead, DocTable, SealFooter } from "@/components/print/print-doc";
+import { getPlatformInfo } from "@/lib/runtime-config";
 
 export const metadata = { title: "工装报备处置 · 协会工作台" };
 
@@ -27,6 +28,7 @@ export default async function ReportDetail({ params }: { params: Promise<{ id: s
   const extras = Object.entries(p).filter(([k, v]) => !SHOWN.includes(k) && String(v).trim());
   const statusTone = r.status === "approved" ? "tea" : r.status === "rejected" ? "decor" : "yellow";
   const statusLabel = r.status === "approved" ? "已通过" : r.status === "rejected" ? "已驳回" : "待审核";
+  const org = await getPlatformInfo();
 
   return (
     <AssociationShell title="工装报备处置" subtitle={`${r.code} · ${r.project}`}>
@@ -54,7 +56,7 @@ export default async function ReportDetail({ params }: { params: Promise<{ id: s
 
       <div className="print-area">
         <div className="a4-sheet">
-          <Letterhead title="工装报备受理回执" docNo={r.code} date={fmtDay(r.createdAt)} />
+          <Letterhead title="工装报备受理回执" docNo={r.code} date={fmtDay(r.createdAt)} org={org} />
           <DocTable
             rows={[
               { k: "报备编号", v: r.code },

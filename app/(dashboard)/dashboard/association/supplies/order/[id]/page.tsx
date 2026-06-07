@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { getSupplyOrder, isOverdue, SUPPLY_TERM_DAYS, type OrderStatus } from "@/lib/data/supplies-source";
 import { advanceOrderAction } from "../../actions";
 import { PrintBar, Letterhead, DocTable, SealFooter } from "@/components/print/print-doc";
+import { getPlatformInfo } from "@/lib/runtime-config";
 
 export const metadata = { title: "采购单处置 · 建材集采" };
 
@@ -24,6 +25,7 @@ export default async function SupplyOrderDetail({ params }: { params: Promise<{ 
   const id = Number(idStr);
   const o = id ? getSupplyOrder(id) : undefined;
   if (!o) notFound();
+  const org = await getPlatformInfo();
 
   const nx = NEXT[o!.status];
   const selfHref = `/dashboard/association/supplies/order/${o!.id}`;
@@ -49,7 +51,7 @@ export default async function SupplyOrderDetail({ params }: { params: Promise<{ 
 
       <div className="print-area">
         <div className="a4-sheet">
-          <Letterhead title="建材集采采购单 / 结算单" docNo={docNo} date={fmtCN(o!.createdAt)} />
+          <Letterhead title="建材集采采购单 / 结算单" docNo={docNo} date={fmtCN(o!.createdAt)} org={org} />
           <DocTable
             rows={[
               { k: "采购单号", v: docNo },

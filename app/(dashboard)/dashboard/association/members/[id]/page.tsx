@@ -6,6 +6,7 @@ import { getApplication } from "@/lib/data/applications";
 import { reviewApplicationAction, verifyIdentityAction } from "../actions";
 import { Materials } from "./materials";
 import { PrintBar, Letterhead, DocTable, SealFooter } from "@/components/print/print-doc";
+import { getPlatformInfo } from "@/lib/runtime-config";
 
 export const metadata = { title: "入会申请审批 · 协会工作台" };
 
@@ -94,6 +95,7 @@ export default async function ApplicationDetail({ params, searchParams }: { para
   // 业主(customer)无需实名核验；企业 / 个人会员必须「实名核验通过」后才能入册
   const needVerify = app.type !== "customer";
   const canApprove = !needVerify || app.idVerifyStatus === "verified";
+  const org = await getPlatformInfo();
 
   return (
     <AssociationShell title="入会申请审批" subtitle={`${app.applicant} · ${TYPE_LABEL[app.type] ?? app.type}`}>
@@ -222,7 +224,7 @@ export default async function ApplicationDetail({ params, searchParams }: { para
       {app.type !== "customer" && (
         <div className="print-area print-only">
           <div className="a4-sheet">
-            <Letterhead title="入会申请审批表" docNo={`XYJZ-RH-${String(app.id).padStart(4, "0")}`} date={fmtDay(app.createdAt)} />
+            <Letterhead title="入会申请审批表" docNo={`XYJZ-RH-${String(app.id).padStart(4, "0")}`} date={fmtDay(app.createdAt)} org={org} />
             <DocTable
               rows={[
                 { k: "会员类型", v: TYPE_LABEL[app.type] ?? app.type },
