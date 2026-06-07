@@ -8,8 +8,8 @@ export const metadata = { title: "登录 · 信阳市建筑装饰装修协会" }
 const MEMBER_ROLES: Role[] = ["association", "enterprise", "practitioner"];
 const ALL_ROLES: Role[] = ["association", "enterprise", "practitioner", "customer"];
 
-export default async function LoginPage({ searchParams }: { searchParams: Promise<{ role?: string }> }) {
-  const { role } = await searchParams;
+export default async function LoginPage({ searchParams }: { searchParams: Promise<{ role?: string; next?: string }> }) {
+  const { role, next } = await searchParams;
   // 优先读 middleware 注入的 x-face（含 /login?role= 跟随门面）；回退 cookie
   const face = (await headers()).get("x-face") ?? (await cookies()).get("xy_face")?.value;
 
@@ -26,7 +26,7 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
 
   return (
     <Container className="py-12 md:py-20 max-w-5xl">
-      <LoginForm roles={roles} initialRole={role} />
+      <LoginForm roles={roles} initialRole={role} next={next} />
     </Container>
   );
 }

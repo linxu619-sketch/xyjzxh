@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { requireLogin } from "@/lib/auth/guard";
 import { ArrowLeft, MapPin, ShieldCheck, Briefcase, GraduationCap, Building2, ArrowUpRight, Sparkles } from "lucide-react";
 import { Container } from "@/components/container";
 import { Badge } from "@/components/ui/badge";
@@ -12,6 +13,7 @@ export const metadata = { title: "职位详情 · 人才中心 · 信阳市建�
 const TONE: Record<string, "build" | "decor" | "design"> = { build: "build", decor: "decor", design: "design" };
 
 export default async function JobDetail({ params }: { params: Promise<{ id: string }> }) {
+  await requireLogin();
   const { id } = await params;
   const j = getRecruitmentJob(id);
   if (!j) notFound();

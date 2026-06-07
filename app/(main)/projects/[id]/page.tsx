@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { requireLogin } from "@/lib/auth/guard";
 import { ArrowLeft, ShieldCheck, MapPin, Calendar, Wallet, CheckCircle2, Clock } from "lucide-react";
 import { Container } from "@/components/container";
 import { Badge } from "@/components/ui/badge";
@@ -23,6 +24,7 @@ const TIMELINE = [
 ];
 
 export default async function ProjectDetail({ params }: { params: Promise<{ id: string }> }) {
+  await requireLogin();
   const { id } = await params;
   const p = getShowcaseProject(id);
   if (!p) notFound();

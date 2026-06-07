@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { requireLogin } from "@/lib/auth/guard";
 import { ArrowLeft, Library, FileText, Sparkles, ShieldCheck, CalendarDays, ArrowUpRight, ExternalLink } from "lucide-react";
 import { Container } from "@/components/container";
 import { Badge } from "@/components/ui/badge";
@@ -8,6 +9,7 @@ import { listKnowledge, getKnowledgeArticle } from "@/lib/data/knowledge-source"
 export const metadata = { title: "资料详情 · 知识库 · 信阳市建筑装饰装修协会" };
 
 export default async function KnowledgeDetail({ params }: { params: Promise<{ id: string }> }) {
+  await requireLogin();
   const { id } = await params;
   const k = getKnowledgeArticle(id);
   if (!k) notFound();

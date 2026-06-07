@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { requireLogin } from "@/lib/auth/guard";
 import { Briefcase, ArrowUpRight, GraduationCap, ShieldCheck, MapPin, Sparkles } from "lucide-react";
 import { Container } from "@/components/container";
 import { PageHeader } from "@/components/page-header";
@@ -13,7 +14,8 @@ const TONE: Record<string, "build" | "decor" | "design"> = {
 
 export const metadata = { title: "人才中心 · 信阳市建筑装饰装修协会" };
 
-export default function TalentsPage() {
+export default async function TalentsPage() {
+  await requireLogin();
   const JOBS = listRecruitmentJobs();
   const CERTIFICATES = listCertificates();
   const TRAININGS = listOpenTrainings().slice(0, 4).map((t) => ({

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { requireLogin } from "@/lib/auth/guard";
 import { FileCheck2, ArrowRight, ArrowUpRight, ShieldCheck } from "lucide-react";
 import { Container } from "@/components/container";
 import { PageHeader } from "@/components/page-header";
@@ -13,7 +14,8 @@ const TYPE_TONE: Record<string, "build" | "decor" | "design" | "tea"> = {
   家装: "decor", 工装: "build", 公装: "design", 市政: "tea",
 };
 
-export default function ProjectsPage() {
+export default async function ProjectsPage() {
+  await requireLogin();
   const PROJECTS = listShowcaseProjects();
   return (
     <>

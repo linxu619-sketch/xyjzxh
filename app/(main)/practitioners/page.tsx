@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { requireLogin } from "@/lib/auth/guard";
 import {
   ShieldCheck, Briefcase, GraduationCap, HeartHandshake, Receipt, Users2,
   ArrowRight, Star, Sparkles, BadgeCheck, ArrowUpRight, Phone,
@@ -36,7 +37,8 @@ const TONE: Record<string, string> = {
   yellow: "bg-[#fff6d6] text-[#a37200]",
 };
 
-export default function PractitionersLanding() {
+export default async function PractitionersLanding() {
+  await requireLogin();
   const list = listPractitioners();
   const PRACTITIONER_JOBS = listPractitionerJobs();
   return (

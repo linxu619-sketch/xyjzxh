@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { requireLogin } from "@/lib/auth/guard";
 import {
   ArrowLeft, ShieldCheck, Truck, BadgeCheck, ShoppingCart,
   Sparkles, Award,
@@ -26,6 +27,7 @@ function colorFor(s: string) {
 }
 
 export default async function ProductDetail({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ err?: string }> }) {
+  await requireLogin();
   const { id } = await params;
   const { err } = await searchParams;
   const p = getProduct(Number(id));

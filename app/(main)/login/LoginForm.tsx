@@ -35,7 +35,8 @@ function methodsFor(role: Role): Method[] {
 
 const INITIAL: ActionResult = { ok: false };
 
-export function LoginForm({ roles, initialRole }: { roles: Role[]; initialRole?: string }) {
+export function LoginForm({ roles, initialRole, next }: { roles: Role[]; initialRole?: string; next?: string }) {
+  const safeNext = next && next.startsWith("/") && !next.startsWith("//") ? next : "";
   const [role, setRole] = useState<Role>(
     initialRole && roles.includes(initialRole as Role) ? (initialRole as Role) : roles[0],
   );
@@ -187,6 +188,7 @@ export function LoginForm({ roles, initialRole }: { roles: Role[]; initialRole?:
           action={formAction}
           className="lg:col-span-3 rounded-3xl border border-border bg-background p-5 md:p-10 flex flex-col"
         >
+          {safeNext && <input type="hidden" name="next" value={safeNext} />}
           <div className="flex items-center gap-3 mb-6">
             <span className={cn(
               "h-10 w-10 rounded-xl flex items-center justify-center text-white",

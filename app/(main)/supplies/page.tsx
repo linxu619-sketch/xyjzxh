@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { requireLogin } from "@/lib/auth/guard";
 import {
   Search, ShieldCheck, Truck, Store, ShoppingCart,
   ArrowRight, Package, TrendingDown, Award,
@@ -30,6 +31,7 @@ function colorFor(s: string) {
 }
 
 export default async function SuppliesHome({ searchParams }: { searchParams: Promise<{ cat?: string; q?: string }> }) {
+  await requireLogin();
   const { cat, q } = await searchParams;
   const all = listProducts(); // 仅在架(active)
   const cats = Array.from(new Set(all.map((p) => p.category).filter(Boolean)));
