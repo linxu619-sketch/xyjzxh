@@ -254,6 +254,11 @@ export async function loginEnterpriseWithPassword(
     };
   }
 
+  // 已注册为业主 / 个人会员的手机号：不要被演示兜底绑成企业(名家)，提示用对应身份登录
+  if (acct && (acct.role === "individual" || acct.role === "customer")) {
+    return { ok: false, error: `该手机号已注册为${acct.role === "individual" ? "个人会员" : "业主"}，请用对应身份登录` };
+  }
+
   // —— 真实绑定回退：手机号匹配到正式会员企业（兼容入会建档但无账号的情况）——
   const ent = findEnterpriseByContactPhone(cleanPhone);
   if (ent) {
@@ -312,6 +317,11 @@ export async function loginEnterpriseWithSms(
       pending: true,
       session: { uid: `ent-pending-${cleanPhone.slice(-4)}`, role: "enterprise", name: acct.name || "申请企业", phone: cleanPhone, pending: true },
     };
+  }
+
+  // 已注册为业主 / 个人会员的手机号：不要被演示兜底绑成企业(名家)，提示用对应身份登录
+  if (acct && (acct.role === "individual" || acct.role === "customer")) {
+    return { ok: false, error: `该手机号已注册为${acct.role === "individual" ? "个人会员" : "业主"}，请用对应身份登录` };
   }
 
   // —— 真实绑定回退：手机号匹配到正式会员企业 ——

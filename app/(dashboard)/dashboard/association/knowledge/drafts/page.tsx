@@ -25,7 +25,8 @@ function fmt(ts: number) {
 
 export default async function DraftsPage({ searchParams }: { searchParams: Promise<{ f?: string; fetched?: string; ai?: string; approved?: string }> }) {
   const { f, fetched, ai, approved } = await searchParams;
-  const filter = (["pending", "approved", "rejected"].includes(String(f)) ? f : undefined) as DraftStatus | undefined;
+  // 默认落在「待审」（草稿箱本质是待审收件箱，避免漏审）；显式 ?f=all 看全部
+  const filter = (String(f) === "all" ? undefined : ["pending", "approved", "rejected"].includes(String(f)) ? f : "pending") as DraftStatus | undefined;
   const drafts = listDrafts(filter);
   const pendingCount = countDrafts("pending");
   const base = "/dashboard/association/knowledge/drafts";

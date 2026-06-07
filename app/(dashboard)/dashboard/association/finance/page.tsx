@@ -39,10 +39,11 @@ export default async function FinanceAdmin({ searchParams }: { searchParams: Pro
   const allApps = listAllFinanceApps();
   const insurance = listInsuranceOrders();
   const FILTERABLE: FinAppStatus[] = ["pending", "approved", "rejected", "disbursed"];
-  const active = f && FILTERABLE.includes(f as FinAppStatus) ? (f as FinAppStatus) : undefined;
+  // 默认落在「待审」；显式 ?f=all 才看全部
+  const active = f === "all" ? undefined : f && FILTERABLE.includes(f as FinAppStatus) ? (f as FinAppStatus) : "pending";
   const apps = active ? allApps.filter((a) => a.status === active) : allApps;
   const base = "/dashboard/association/finance";
-  const href = (st: FinAppStatus) => (active === st ? base : `${base}?f=${st}`);
+  const href = (st: FinAppStatus) => `${base}?f=${st}`;
   const pending = allApps.filter((a) => a.status === "pending").length;
 
   return (
@@ -52,7 +53,7 @@ export default async function FinanceAdmin({ searchParams }: { searchParams: Pro
           { key: "pending", label: "待审金融", value: pending, color: "text-accent-yellow", href: href("pending"), active: active === "pending" },
           { key: "disbursed", label: "已放款/出函", value: allApps.filter((a) => a.status === "disbursed").length, color: "text-accent-tea", href: href("disbursed"), active: active === "disbursed" },
           { key: "ins", label: "保险投保单", value: insurance.length, color: "text-cat-decor" },
-          { key: "all", label: "全部金融申请", value: allApps.length, color: "text-cat-build", href: base, active: !active },
+          { key: "all", label: "全部金融申请", value: allApps.length, color: "text-cat-build", href: `${base}?f=all`, active: !active },
         ]}
       />
 

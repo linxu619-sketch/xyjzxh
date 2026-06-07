@@ -1,4 +1,4 @@
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
 import { Container } from "@/components/container";
 import { LoginForm } from "./LoginForm";
 import type { Role } from "@/lib/auth";
@@ -10,7 +10,8 @@ const ALL_ROLES: Role[] = ["association", "enterprise", "practitioner", "custome
 
 export default async function LoginPage({ searchParams }: { searchParams: Promise<{ role?: string }> }) {
   const { role } = await searchParams;
-  const face = (await cookies()).get("xy_face")?.value;
+  // 优先读 middleware 注入的 x-face（含 /login?role= 跟随门面）；回退 cookie
+  const face = (await headers()).get("x-face") ?? (await cookies()).get("xy_face")?.value;
 
   // 身份范围：
   // - 显式 ?role=customer  → 只业主（消费者门户登录入口）
