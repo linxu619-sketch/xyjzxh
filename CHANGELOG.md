@@ -14,6 +14,11 @@
 
 ---
 
+## [0.116.1] - 2026-06-07
+
+### 修复：工作台路径门面跟随所属端，杜绝离开工作台后表头跳变
+IP 裸 host 无子域名时，访问 `/dashboard/*` 会按 cookie 兜底把门面 cookie 落成业主门面；离开工作台到公开页（/members 等）表头就错乱。`middleware.ts` 对工作台路径按所属端固定门面：`/dashboard/customer*` → 业主门面，`/dashboard/{association,enterprise,practitioner,pending}*` → 协会门面，覆盖 host/cookie。工作台自身用独立 shell 不读门面，此改仅为后续公开页导航维持正确门面 cookie。curl 实测四类工作台 x-face 均正确。
+
 ## [0.116.0] - 2026-06-07
 
 ### 全面体检：身份登录 + 列表默认筛选 + 登录页门面 一次查全并修复

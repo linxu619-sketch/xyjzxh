@@ -97,6 +97,19 @@ export function middleware(req: NextRequest) {
     // 无 role：沿用下方 host / cookie 逻辑
   }
 
+  // 工作台路径：门面跟随所属端，避免在工作台里把 cookie 落成业主门面，
+  // 离开工作台回公开页(/members 等)时表头错乱（IP 裸 host 无子域名时尤甚）。
+  // 工作台自身用独立 shell、不读门面，此处仅为后续公开页导航维持正确门面 cookie。
+  if (url.pathname.startsWith("/dashboard/customer")) return respond("consumer");
+  if (
+    url.pathname.startsWith("/dashboard/association") ||
+    url.pathname.startsWith("/dashboard/enterprise") ||
+    url.pathname.startsWith("/dashboard/practitioner") ||
+    url.pathname.startsWith("/dashboard/pending")
+  ) {
+    return respond("xh");
+  }
+
   // 协会 host —— 主页 / 重写到 /xh
   if (face === "xh") {
     const rewritten = url.clone();
