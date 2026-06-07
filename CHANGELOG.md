@@ -14,6 +14,11 @@
 
 ---
 
+## [0.114.5] - 2026-06-07
+
+### 修复：协会登录页点「我的/登录」错跳业主端
+IP 裸 host 上 `/login?role=association` 没有子域名分流，middleware 按 cookie 兜底成业主门面，导致登录页顶部显示业主门户、点账号按钮跳到业主登录。修复：`middleware.ts` 对 `/login` 路径让门面跟随 `role` 参数——`association`/`enterprise`/`practitioner` → 协会门面(xh)，`customer` → 消费者门面，无 role 时沿用原 host/cookie 逻辑。
+
 ## [0.114.4] - 2026-06-07
 
 ### 优化：协会门户头部登录前后一致

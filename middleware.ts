@@ -87,6 +87,16 @@ export function middleware(req: NextRequest) {
     return respond("tenant");
   }
 
+  // 登录页：门面跟随「要登录的角色」——协会/企业/从业者 → 协会门面，业主 → 消费者门面。
+  // 否则 IP 裸 host 上 /login?role=association 会按 cookie 兜底成业主门面，
+  // 头部错误地显示业主门户、点「我的/登录」跳到业主端。
+  if (url.pathname === "/login") {
+    const role = url.searchParams.get("role");
+    if (role === "customer") return respond("consumer");
+    if (role === "association" || role === "enterprise" || role === "practitioner") return respond("xh");
+    // 无 role：沿用下方 host / cookie 逻辑
+  }
+
   // 协会 host —— 主页 / 重写到 /xh
   if (face === "xh") {
     const rewritten = url.clone();
