@@ -9,6 +9,8 @@ import { countByStatus } from "@/lib/data/applications";
 import { listReports, listReportsByUid } from "@/lib/data/reports";
 import { listMediations } from "@/lib/data/mediations";
 import { getEnterpriseBySlugOrId } from "@/lib/data/enterprises-source";
+import { getStaff } from "@/lib/data/staff-source";
+import { getEffectivePermissionsForRoles } from "@/lib/runtime-config";
 import { isEnterprisePreview, effectiveEnterpriseId } from "@/lib/dashboard/preview";
 import Link from "next/link";
 import { Eye } from "lucide-react";
@@ -39,7 +41,15 @@ export async function AssociationShell({ title, subtitle, actions, tone = "brand
   }
   const isSys = session.role === "system_admin";
 
-  const items = withBadges(ASSOC_NAV, {
+  // 按员工有效权限过滤侧栏导航（系统超管恒全显）；随系统设置「角色权限表」即时变化。
+  let nav = ASSOC_NAV;
+  if (!isSys) {
+    const staff = getStaff(session.uid);
+    const roles = staff?.roles?.length ? staff.roles : (session.staffRole ? [session.staffRole] : []);
+    const perms = await getEffectivePermissionsForRoles(roles);
+    nav = ASSOC_NAV.filter((it) => !it.perm || perms.has(it.perm));
+  }
+  const items = withBadges(nav, {
     "/dashboard/association/members": countByStatus().pending,
     "/dashboard/association/reports": listReports("pending").length,
     "/dashboard/association/mediations": listMediations("pending").length,

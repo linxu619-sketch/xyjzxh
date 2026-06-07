@@ -5,7 +5,8 @@ import { AssociationShell } from "@/components/dashboard/shell";
 import { Badge } from "@/components/ui/badge";
 import { getStaff } from "@/lib/data/staff-source";
 import { setStaffStatusAction, setStaffRolesAction, setStaffPasswordAction, deleteStaffAction } from "../../actions";
-import { roleLabel, roleTone, permissionsOf, PERMISSIONS, STAFF_ROLES, ROLE_KEYS } from "@/lib/auth/roles";
+import { roleLabel, roleTone, PERMISSIONS, ALL_PERMISSIONS, ROLE_KEYS } from "@/lib/auth/roles";
+import { getEffectiveRolePermissions } from "@/lib/runtime-config";
 
 export const metadata = { title: "工作人员详情 · 协会工作台" };
 
@@ -17,7 +18,8 @@ export default async function StaffDetail({ params, searchParams }: { params: Pr
   const s = getStaff(id);
   if (!s) notFound();
   const isSuper = s.roles.includes("super_admin");
-  const perms = permissionsOf(s.roles);
+  const effRole = await getEffectiveRolePermissions();
+  const perms = ALL_PERMISSIONS.filter((p) => s.roles.some((r) => effRole[r]?.includes(p)));
   const savedMsg = saved === "roles" ? "角色已更新" : saved === "pwd" ? "登录密码已重置" : saved === "created" ? "工作人员已创建,登录账号已开通" : "";
 
   return (
@@ -123,7 +125,7 @@ export default async function StaffDetail({ params, searchParams }: { params: Pr
           {ROLE_KEYS.map((rk) => (
             <li key={rk} className="grid grid-cols-1 md:grid-cols-[1fr_2.4fr] gap-2 md:gap-3 px-5 py-3 text-[13px]">
               <span><Badge tone={roleTone(rk)}>{roleLabel(rk)}</Badge></span>
-              <span className="text-muted-foreground leading-6">{rk === "super_admin" ? "全部权限" : STAFF_ROLES[rk].permissions.map((p) => PERMISSIONS[p]).join("、")}</span>
+              <span className="text-muted-foreground leading-6">{rk === "super_admin" ? "全部权限" : ((effRole[rk] ?? []).map((p) => PERMISSIONS[p]).join("、") || "—")}</span>
             </li>
           ))}
         </ul>

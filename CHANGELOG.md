@@ -14,6 +14,18 @@
 
 ---
 
+## [0.117.0] - 2026-06-08
+
+### 新增：系统设置「角色权限表」+ 导航按权限生效（RBAC 落地）
+此前 `STAFF_ROLES`/`PERMISSIONS` 只定义、无任何拦截。现做成可编辑、且后台导航即时生效的一套：
+- **可编辑矩阵**（`settings/page.tsx` 新增「角色权限」卡片）：角色×权限 勾选表，超级管理员恒全权（固定行）；其余角色逐权限勾选，保存即落 `.runtime-settings.json`。
+- **存储 / 取值**（`lib/runtime-config.ts`）：新增 `rolePermissions` 覆盖 + `getEffectiveRolePermissions()`（覆盖 > STAFF_ROLES 内置）/ `getEffectivePermissionsForRoles()`。
+- **保存动作**（`settings/actions.ts`）：解析 `perm.<role>` 勾选 + 隐藏的 `perm.roles` 全量角色列表，写入覆盖（支持清空成「无权限」）。
+- **导航生效**（`lib/dashboard/nav.tsx` 每项加 `perm` + `shell.tsx` 过滤）：协会工作台左侧导航按当前员工各角色的有效权限并集显隐（系统超管恒全显）；改表 → 下次进入即时生效。
+- **展示一致**（员工详情 `users/staff/[id]`）：权限对照表与员工权限 chips 改用有效权限，与可编辑表一致。
+
+范围＝「可编辑 + 导航生效」（本次约定）。页面级强拦截（无权限直接挡回 URL）为后续可选增强；当前未授权角色看不到入口，但直访 URL 不拦。
+
 ## [0.116.3] - 2026-06-08
 
 ### 移除：源码里「密码=手机后6位」的内置账号约定

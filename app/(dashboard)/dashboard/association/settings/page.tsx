@@ -7,7 +7,8 @@ import { AssociationShell } from "@/components/dashboard/shell";
 import { SettingsCard, FormRow, Toggle, Input, Textarea } from "@/components/dashboard/section";
 import { Badge } from "@/components/ui/badge";
 import { SITE } from "@/lib/site";
-import { readRuntimeSettings, maskSecret } from "@/lib/runtime-config";
+import { readRuntimeSettings, maskSecret, getEffectiveRolePermissions } from "@/lib/runtime-config";
+import { ROLE_KEYS, PERMISSIONS, ALL_PERMISSIONS, roleLabel, roleTone } from "@/lib/auth/roles";
 import { activeProvider } from "@/lib/ai/chat";
 import { SettingsForm } from "./SettingsForm";
 import { TestRegulator, TestEqianbao } from "./IntegrationTests";
@@ -23,6 +24,8 @@ export default async function SystemSettings() {
   const reg = settings.regulator ?? {};
   const esign = settings.esign ?? {};
   const provider = await activeProvider();
+  const effPerms = await getEffectiveRolePermissions();
+  const editableRoles = ROLE_KEYS.filter((r) => r !== "super_admin");
 
   const hasDsKey = !!ai.deepseekApiKey;
   const hasEqKey  = !!eq.appKey;
@@ -44,6 +47,7 @@ export default async function SystemSettings() {
             {[
               { h: "#platform", l: "平台信息", icon: Building2 },
               { h: "#security", l: "账号与安全", icon: Lock },
+              { h: "#roles", l: "角色权限", icon: ShieldCheck },
               { h: "#notify",   l: "通知 / 短信", icon: Bell },
               { h: "#integration", l: "对外集成", icon: Plug },
               { h: "#data",     l: "数据 / 备份", icon: Database },
@@ -116,6 +120,54 @@ export default async function SystemSettings() {
               <FormRow label="IP 白名单" hint="为空表示不限制">
                 <Textarea name="security.ipWhitelist" defaultValue={sec.ipWhitelist} placeholder="一行一个，支持 CIDR，如 192.168.1.0/24" rows={3} />
               </FormRow>
+            </SettingsCard>
+
+            {/* 角色权限矩阵 */}
+            <SettingsCard
+              title="角色权限"
+              desc="勾选每个角色可用的职能模块；保存后该角色员工的后台导航 / 入口按此显隐。超级管理员恒为全部权限。"
+              action={<Badge tone="brand">协会超管可改</Badge>}
+            >
+              <div id="roles" />
+              <input type="hidden" name="perm.roles" value={editableRoles.join(",")} />
+              <div className="overflow-x-auto">
+                <table className="min-w-full text-[12px] border-collapse">
+                  <thead>
+                    <tr className="text-muted-foreground">
+                      <th className="text-left font-normal py-2 pr-3 sticky left-0 bg-background z-10">角色＼权限</th>
+                      {ALL_PERMISSIONS.map((p) => (
+                        <th key={p} className="font-normal px-2 py-2 text-center whitespace-nowrap align-bottom">{PERMISSIONS[p]}</th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr className="border-t border-border bg-surface/40">
+                      <td className="py-2.5 pr-3 sticky left-0 bg-background z-10"><Badge tone="brand">超级管理员</Badge></td>
+                      {ALL_PERMISSIONS.map((p) => (
+                        <td key={p} className="text-center"><ShieldCheck className="h-3.5 w-3.5 text-accent-tea inline" /></td>
+                      ))}
+                    </tr>
+                    {editableRoles.map((rk) => (
+                      <tr key={rk} className="border-t border-border">
+                        <td className="py-2.5 pr-3 sticky left-0 bg-background z-10"><Badge tone={roleTone(rk)}>{roleLabel(rk)}</Badge></td>
+                        {ALL_PERMISSIONS.map((p) => (
+                          <td key={p} className="text-center">
+                            <input
+                              type="checkbox"
+                              name={`perm.${rk}`}
+                              value={p}
+                              defaultChecked={effPerms[rk]?.includes(p) ?? false}
+                              className="accent-brand h-3.5 w-3.5 align-middle"
+                              aria-label={`${roleLabel(rk)} · ${PERMISSIONS[p]}`}
+                            />
+                          </td>
+                        ))}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              <p className="mt-3 text-[11px] text-muted-foreground">员工可被赋予多个角色，其权限为各角色之并集；保存后侧栏导航即时随权限显隐。变更高敏权限请谨慎。</p>
             </SettingsCard>
 
             {/* 通知 */}

@@ -4,23 +4,28 @@ import {
   Briefcase, MessageSquareHeart, Home, FileText, Umbrella,
   Hammer, ShoppingBag, Truck, FileSignature, GraduationCap, Store, UserCog,
 } from "lucide-react";
+import type { ReactNode } from "react";
+import type { Permission } from "@/lib/auth/roles";
 
 const I = "h-4 w-4";
 
-export const ASSOC_NAV = [
+// perm: 该模块所需权限点（无则恒显示，如总览/AI配置）。后台侧栏按员工有效权限显隐。
+type AssocNavItem = { href: string; label: string; icon: ReactNode; perm?: Permission };
+
+export const ASSOC_NAV: AssocNavItem[] = [
   { href: "/dashboard/association",            label: "总览",     icon: <LayoutDashboard className={I} /> },
-  { href: "/dashboard/association/members",    label: "会员审核", icon: <Users2 className={I} /> },
-  { href: "/dashboard/association/users",      label: "用户管理", icon: <UserCog className={I} /> },
-  { href: "/dashboard/association/reports",    label: "工装报备", icon: <FileCheck2 className={I} /> },
-  { href: "/dashboard/association/mediations", label: "调解纠纷", icon: <MessageSquareWarning className={I} /> },
-  { href: "/dashboard/association/training",   label: "培训管理", icon: <GraduationCap className={I} /> },
-  { href: "/dashboard/association/supplies",   label: "建材超市", icon: <ShoppingBag className={I} /> },
-  { href: "/dashboard/association/knowledge",  label: "知识库",   icon: <Library className={I} /> },
-  { href: "/dashboard/association/news",       label: "新闻",     icon: <Newspaper className={I} /> },
-  { href: "/dashboard/association/finance",    label: "金融保险", icon: <Wallet className={I} /> },
-  { href: "/dashboard/association/agreements", label: "协议管理", icon: <FileSignature className={I} /> },
+  { href: "/dashboard/association/members",    label: "会员审核", icon: <Users2 className={I} />,               perm: "members" },
+  { href: "/dashboard/association/users",      label: "用户管理", icon: <UserCog className={I} />,              perm: "users" },
+  { href: "/dashboard/association/reports",    label: "工装报备", icon: <FileCheck2 className={I} />,           perm: "reports" },
+  { href: "/dashboard/association/mediations", label: "调解纠纷", icon: <MessageSquareWarning className={I} />, perm: "mediation" },
+  { href: "/dashboard/association/training",   label: "培训管理", icon: <GraduationCap className={I} />,        perm: "training" },
+  { href: "/dashboard/association/supplies",   label: "建材超市", icon: <ShoppingBag className={I} />,          perm: "supplies" },
+  { href: "/dashboard/association/knowledge",  label: "知识库",   icon: <Library className={I} />,              perm: "knowledge" },
+  { href: "/dashboard/association/news",       label: "新闻",     icon: <Newspaper className={I} />,            perm: "news" },
+  { href: "/dashboard/association/finance",    label: "金融保险", icon: <Wallet className={I} />,               perm: "finance" },
+  { href: "/dashboard/association/agreements", label: "协议管理", icon: <FileSignature className={I} />,        perm: "agreements" },
   { href: "/dashboard/association/ai",         label: "AI 配置",  icon: <Sparkles className={I} /> },
-  { href: "/dashboard/association/settings",   label: "系统设置", icon: <Settings className={I} /> },
+  { href: "/dashboard/association/settings",   label: "系统设置", icon: <Settings className={I} />,             perm: "users" },
 ];
 
 export const ENT_NAV = [

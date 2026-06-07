@@ -71,6 +71,14 @@ export async function saveSettingsAction(
     const cityKey = String(fd.get("regulator.cityApiKey") || "").trim();
     if (cityKey) patch.regulator = { ...patch.regulator, cityApiKey: cityKey };
 
+    // 角色权限矩阵：perm.roles 列出本次提交的全部可编辑角色；每角色的勾选项来自 perm.<role>
+    const permRoleKeys = String(fd.get("perm.roles") || "").split(",").map((s) => s.trim()).filter(Boolean);
+    if (permRoleKeys.length) {
+      const rp: Record<string, string[]> = {};
+      for (const rk of permRoleKeys) rp[rk] = fd.getAll(`perm.${rk}`).map(String);
+      patch.rolePermissions = rp;
+    }
+
     await writeRuntimeSettings(patch);
     revalidatePath("/dashboard/association/settings");
     revalidatePath("/members");

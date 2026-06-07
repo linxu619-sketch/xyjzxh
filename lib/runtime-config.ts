@@ -2,6 +2,7 @@ import "server-only";
 import fs from "node:fs/promises";
 import path from "node:path";
 import { SITE } from "@/lib/site";
+import { ROLE_KEYS, STAFF_ROLES, ALL_PERMISSIONS, type Permission } from "@/lib/auth/roles";
 
 /* ============================================================
    运行时设置 — 由系统设置 UI 写入，敏感字段不入仓
@@ -57,6 +58,8 @@ export type RuntimeSettings = {
     cityEndpoint?: string;
     cityApiKey?: string;
   };
+  /** 角色权限覆盖（系统设置「角色权限表」编辑后写入；某角色缺省时用 STAFF_ROLES 内置） */
+  rolePermissions?: Record<string, string[]>;
 };
 
 let cache: RuntimeSettings | null = null;
@@ -118,6 +121,31 @@ export async function getPlatformInfo() {
     subSlogan: p.subSlogan || SITE.subSlogan,
     icp: p.icp || "",
   };
+}
+
+/**
+ * 有效角色权限 = 系统设置覆盖(rolePermissions) > STAFF_ROLES 内置。
+ * super_admin 恒为全部权限，不受覆盖影响。供「角色权限表」展示与后台导航/拦截统一取用。
+ */
+export async function getEffectiveRolePermissions(): Promise<Record<string, Permission[]>> {
+  const override = (await readRuntimeSettings()).rolePermissions ?? {};
+  const out: Record<string, Permission[]> = {};
+  for (const key of ROLE_KEYS) {
+    if (key === "super_admin") { out[key] = [...ALL_PERMISSIONS]; continue; }
+    const ov = override[key];
+    out[key] = ov
+      ? ov.filter((p): p is Permission => (ALL_PERMISSIONS as string[]).includes(p))
+      : STAFF_ROLES[key].permissions;
+  }
+  return out;
+}
+
+/** 一组角色的有效权限并集（含系统设置覆盖） */
+export async function getEffectivePermissionsForRoles(roles: string[]): Promise<Set<Permission>> {
+  const eff = await getEffectiveRolePermissions();
+  const set = new Set<Permission>();
+  for (const r of roles) for (const p of eff[r] ?? []) set.add(p);
+  return set;
 }
 
 // 工具：脱敏展示 sk-xxx
