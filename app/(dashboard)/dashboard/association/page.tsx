@@ -20,12 +20,6 @@ export const metadata = { title: "协会工作台 · 信阳市建筑装饰装修
 
 const TYPE_LABEL: Record<string, string> = { enterprise: "企业会员", individual: "个人会员", customer: "业主" };
 
-function fmtToday() {
-  const d = new Date();
-  const wk = ["周日", "周一", "周二", "周三", "周四", "周五", "周六"][d.getDay()];
-  const p = (n: number) => String(n).padStart(2, "0");
-  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())} · ${wk}`;
-}
 function fmtDate(ms: number) {
   if (!ms) return "—";
   const d = new Date(ms);
@@ -59,7 +53,6 @@ export default async function AssociationDashboard() {
   return (
     <AssociationShell
       title="协会工作台 · 总览"
-      subtitle={`今天 · ${fmtToday()}`}
       tone="brand"
     >
       {/* 门面预览 · 一键跳各端首页（公开页新开标签；工作台为协会只读预览样板账号） */}

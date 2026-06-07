@@ -71,11 +71,11 @@ export function TopBar({ title, subtitle, actions, trailing, tone }: { title: st
   // 套色页头：品牌渐变底、白字
   if (tone === "brand") {
     return (
-      <div className="mb-6 rounded-2xl bg-gradient-to-r from-brand to-brand-600 text-white p-5 shadow-md">
-        <div className="flex items-start md:items-center justify-between gap-4 flex-col md:flex-row">
+      <div className="mb-5 rounded-xl bg-gradient-to-r from-brand to-brand-600 text-white px-4 md:px-5 py-3 shadow-sm">
+        <div className="flex items-center justify-between gap-3 flex-col md:flex-row md:items-center">
           <div className="min-w-0">
-            <h1 className="text-[22px] md:text-[26px] font-semibold tracking-tight">{title}</h1>
-            {subtitle && <div className="text-[12px] text-white/80 mt-1">{subtitle}</div>}
+            <h1 className="text-[17px] md:text-[19px] font-semibold tracking-tight">{title}</h1>
+            {subtitle && <div className="text-[11px] text-white/80 mt-0.5">{subtitle}</div>}
           </div>
           <div className="flex items-center gap-2 shrink-0 self-end md:self-auto">{actions}{trailing}</div>
         </div>
