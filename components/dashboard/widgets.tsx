@@ -67,7 +67,22 @@ export function Panel({
   );
 }
 
-export function TopBar({ title, subtitle, actions, trailing }: { title: string; subtitle?: string; actions?: React.ReactNode; trailing?: React.ReactNode }) {
+export function TopBar({ title, subtitle, actions, trailing, tone, extra }: { title: string; subtitle?: string; actions?: React.ReactNode; trailing?: React.ReactNode; tone?: "brand"; extra?: React.ReactNode }) {
+  // 套色页头：品牌渐变底、白字；可在分隔线下合并展示额外内容（如待办条）
+  if (tone === "brand") {
+    return (
+      <div className="mb-6 rounded-2xl bg-gradient-to-r from-brand to-brand-600 text-white p-5 shadow-md">
+        <div className="flex items-start md:items-center justify-between gap-4 flex-col md:flex-row">
+          <div className="min-w-0">
+            <h1 className="text-[22px] md:text-[26px] font-semibold tracking-tight">{title}</h1>
+            {subtitle && <div className="text-[12px] text-white/80 mt-1">{subtitle}</div>}
+          </div>
+          <div className="flex items-center gap-2 shrink-0 self-end md:self-auto">{actions}{trailing}</div>
+        </div>
+        {extra && <div className="mt-4 pt-4 border-t border-white/15">{extra}</div>}
+      </div>
+    );
+  }
   return (
     <div className="flex items-start md:items-center justify-between gap-4 flex-col md:flex-row mb-6">
       <div className="min-w-0">

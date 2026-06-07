@@ -57,40 +57,44 @@ export default async function AssociationDashboard() {
   const aiName: Record<string, string> = Object.fromEntries(AI_EMPLOYEES.map((e) => [e.key, e.name]));
   const topAi = Object.entries(aiUsage.byKey).sort((a, b) => b[1] - a[1]).slice(0, 5);
 
+  // 待办条 —— 合并进套色页头（不再单独占一条）
+  const todoBar = (
+    <div className="flex items-center gap-3">
+      <span className="relative h-9 w-9 rounded-xl bg-white/20 inline-flex items-center justify-center shrink-0">
+        <AlertCircle className="h-5 w-5" />
+        {totalTodo > 0 && <span className="absolute inset-0 rounded-xl bg-white/20 animate-ping opacity-40" />}
+      </span>
+      <div className="flex-1 min-w-0">
+        <div className="text-[13px] font-semibold">{totalTodo} 项待办</div>
+        <div className="text-[11px] text-white/85 mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-0.5">
+          {totalTodo > 0 ? (
+            <>
+              <Link href="/dashboard/association/members" className="underline-offset-2 hover:underline">{pendingApps.length} 会员审核</Link>
+              <span className="text-white/40">·</span>
+              <Link href="/dashboard/association/reports?f=pending" className="underline-offset-2 hover:underline">{pendingReports.length} 报备</Link>
+              <span className="text-white/40">·</span>
+              <Link href="/dashboard/association/mediations" className="underline-offset-2 hover:underline">{pendingMeds.length} 调解</Link>
+            </>
+          ) : (
+            <span>暂无待办，一切就绪 ✓</span>
+          )}
+        </div>
+      </div>
+      {totalTodo > 0 && (
+        <Link href="/dashboard/association/members" className="hidden md:inline-flex items-center gap-1 text-[12px] font-medium bg-accent-yellow text-foreground h-9 px-4 rounded-full shrink-0">
+          立即处理 <ChevronRight className="h-3 w-3" />
+        </Link>
+      )}
+    </div>
+  );
+
   return (
     <AssociationShell
       title="协会工作台 · 总览"
       subtitle={`今天 · ${fmtToday()}`}
+      tone="brand"
+      headerExtra={todoBar}
     >
-      {/* 紧急提醒条（真实） */}
-      <div className="mb-5 rounded-2xl bg-gradient-to-r from-brand to-brand-600 text-white p-4 flex items-center gap-3 shadow-md">
-        <span className="relative h-9 w-9 rounded-xl bg-white/20 inline-flex items-center justify-center shrink-0">
-          <AlertCircle className="h-5 w-5" />
-          {totalTodo > 0 && <span className="absolute inset-0 rounded-xl bg-white/20 animate-ping opacity-40" />}
-        </span>
-        <div className="flex-1 min-w-0">
-          <div className="text-[13px] font-semibold">{totalTodo} 项待办</div>
-          <div className="text-[11px] text-white/85 mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-0.5">
-            {totalTodo > 0 ? (
-              <>
-                <Link href="/dashboard/association/members" className="underline-offset-2 hover:underline">{pendingApps.length} 会员审核</Link>
-                <span className="text-white/40">·</span>
-                <Link href="/dashboard/association/reports?f=pending" className="underline-offset-2 hover:underline">{pendingReports.length} 报备</Link>
-                <span className="text-white/40">·</span>
-                <Link href="/dashboard/association/mediations" className="underline-offset-2 hover:underline">{pendingMeds.length} 调解</Link>
-              </>
-            ) : (
-              <span>暂无待办，一切就绪 ✓</span>
-            )}
-          </div>
-        </div>
-        {totalTodo > 0 && (
-          <Link href="/dashboard/association/members" className="hidden md:inline-flex items-center gap-1 text-[12px] font-medium bg-accent-yellow text-foreground h-9 px-4 rounded-full">
-            立即处理 <ChevronRight className="h-3 w-3" />
-          </Link>
-        )}
-      </div>
-
       {/* 门面预览 · 一键跳各端首页（公开页新开标签；工作台为协会只读预览样板账号） */}
       <div className="mb-5 rounded-2xl border border-border bg-background p-4">
         <div className="text-[13px] font-semibold mb-1 inline-flex items-center gap-1.5"><Eye className="h-4 w-4" /> 门面预览 · 一键体验各端首页</div>

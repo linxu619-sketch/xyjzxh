@@ -16,6 +16,7 @@ export function AccountMenu({
   roleLabel,
   phone,
   isSys = false,
+  onBrand = false,
   settingsHref,
   usersHref,
 }: {
@@ -23,6 +24,7 @@ export function AccountMenu({
   roleLabel: string;
   phone?: string;
   isSys?: boolean;
+  onBrand?: boolean;
   settingsHref: string;
   usersHref?: string;
 }) {
@@ -54,14 +56,19 @@ export function AccountMenu({
         aria-expanded={open}
         className={cn(
           "inline-flex items-center gap-2 h-9 pl-1 pr-2.5 rounded-full border transition-colors",
-          open ? "border-foreground bg-surface" : "border-border bg-background hover:bg-surface",
+          onBrand
+            ? open ? "border-white/40 bg-white/25 text-white" : "border-white/25 bg-white/15 text-white hover:bg-white/25"
+            : open ? "border-foreground bg-surface" : "border-border bg-background hover:bg-surface",
         )}
       >
-        <span className="h-7 w-7 rounded-full bg-foreground text-background inline-flex items-center justify-center text-[12px] font-semibold shrink-0">
+        <span className={cn(
+          "h-7 w-7 rounded-full inline-flex items-center justify-center text-[12px] font-semibold shrink-0",
+          onBrand ? "bg-white/25 text-white" : "bg-foreground text-background",
+        )}>
           {name.slice(0, 1)}
         </span>
         <span className="text-[13px] font-medium max-w-[100px] sm:max-w-[140px] truncate">{name}</span>
-        <ChevronDown className={cn("h-3.5 w-3.5 text-muted-foreground transition-transform shrink-0", open && "rotate-180")} />
+        <ChevronDown className={cn("h-3.5 w-3.5 transition-transform shrink-0", onBrand ? "text-white/80" : "text-muted-foreground", open && "rotate-180")} />
       </button>
 
       {open && (
