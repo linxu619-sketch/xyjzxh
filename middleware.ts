@@ -61,49 +61,51 @@ export function middleware(req: NextRequest) {
   const url = req.nextUrl;
   const { face, tenant } = parseHost(host);
 
+  // 统一出口：把「生效门面」注入【请求头 x-face】，让 RSC（(main)/layout）首跳就能读到正确门面，
+  // 不再依赖入站 cookie（cookie 仅由响应写、本次请求读不到，导致 ?face=xh 首跳失效）。
+  // 同时仍写 cookie（后续导航维持）与响应头（调试 / 下游）。
+  const respond = (effFace: Face, opts?: { rewrite?: URL; tenant?: string }): NextResponse => {
+    const reqHeaders = new Headers(req.headers);
+    reqHeaders.set("x-face", effFace);
+    if (opts?.tenant) reqHeaders.set("x-tenant", opts.tenant);
+    const init = { request: { headers: reqHeaders } };
+    const res = opts?.rewrite
+      ? NextResponse.rewrite(opts.rewrite, init)
+      : NextResponse.next(init);
+    res.cookies.set(COOKIE_FACE, effFace, { path: "/", sameSite: "lax" });
+    res.headers.set("x-face", effFace);
+    if (opts?.tenant) res.headers.set("x-tenant", opts.tenant);
+    return res;
+  };
+
   // 按路径强制识别门面（localhost / 局域网 IP 没有子域名，仅靠 host 识别不到 xh / tenant，
   // 所以只要落在 /xh* 或 /biz/* 路径上，就以路径为准设置 face）
   if (url.pathname === "/xh" || url.pathname.startsWith("/xh/")) {
-    const res = NextResponse.next();
-    res.cookies.set(COOKIE_FACE, "xh", { path: "/", sameSite: "lax" });
-    res.headers.set("x-face", "xh");
-    return res;
+    return respond("xh");
   }
   if (url.pathname.startsWith("/biz/")) {
-    const res = NextResponse.next();
-    res.cookies.set(COOKIE_FACE, "tenant", { path: "/", sameSite: "lax" });
-    res.headers.set("x-face", "tenant");
-    return res;
+    return respond("tenant");
   }
 
   // 协会 host —— 主页 / 重写到 /xh
   if (face === "xh") {
     const rewritten = url.clone();
-    if (url.pathname === "/") {
-      rewritten.pathname = "/xh";
-    }
-    // 其他路径不动；header / 通过 cookie 知道当前 face
-    const res = NextResponse.rewrite(rewritten);
-    res.cookies.set(COOKIE_FACE, "xh", { path: "/", sameSite: "lax" });
-    res.headers.set("x-face", "xh");
-    return res;
+    if (url.pathname === "/") rewritten.pathname = "/xh";
+    return respond("xh", { rewrite: rewritten });
   }
 
   // 企业子站
   if (face === "tenant" && tenant) {
     const rewritten = url.clone();
     rewritten.pathname = `/biz/${tenant}${url.pathname === "/" ? "" : url.pathname}`;
-    const res = NextResponse.rewrite(rewritten);
-    res.cookies.set(COOKIE_FACE, "tenant", { path: "/", sameSite: "lax" });
-    res.headers.set("x-tenant", tenant);
-    res.headers.set("x-face", "tenant");
-    return res;
+    return respond("tenant", { rewrite: rewritten, tenant });
   }
 
   // —— 裸 host（IP 直连 / localhost）：无子域名分流，门面靠 cookie 维持 ——
   // 解决「协会门户点共用页面被判回业主门户」：从 /xh 进入后 cookie=xh，
   // 后续共用页面（/members 等）跟随 cookie 保持协会门面；
-  // `?face=consumer|xh` 显式切换并落 cookie（「返回业主门户」按钮带 ?face=consumer）。
+  // `?face=consumer|xh` 显式切换并落 cookie（「返回业主门户」按钮带 ?face=consumer，
+  // 协会工作台「在册企业」卡片带 ?face=xh，确保从后台进 /members 留在协会门户）。
   const bareHost = host.replace(/:\d+$/, "");
   if (isBareHost(bareHost)) {
     const faceParam = url.searchParams.get("face");
@@ -117,23 +119,13 @@ export function middleware(req: NextRequest) {
     if (sticky === "xh") {
       const rewritten = url.clone();
       if (url.pathname === "/") rewritten.pathname = "/xh"; // 裸 host 下首页跟随协会门面
-      const res = NextResponse.rewrite(rewritten);
-      res.cookies.set(COOKIE_FACE, "xh", { path: "/", sameSite: "lax" });
-      res.headers.set("x-face", "xh");
-      return res;
+      return respond("xh", { rewrite: rewritten });
     }
-
-    const res = NextResponse.next();
-    res.cookies.set(COOKIE_FACE, "consumer", { path: "/", sameSite: "lax" });
-    res.headers.set("x-face", "consumer");
-    return res;
+    return respond("consumer");
   }
 
   // 明确的 consumer host（xyjzxh.com / www / lvh.me 根域等）
-  const res = NextResponse.next();
-  res.cookies.set(COOKIE_FACE, "consumer", { path: "/", sameSite: "lax" });
-  res.headers.set("x-face", "consumer");
-  return res;
+  return respond("consumer");
 }
 
 export const config = {

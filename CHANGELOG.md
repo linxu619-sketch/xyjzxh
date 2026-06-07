@@ -14,6 +14,16 @@
 
 ---
 
+## [0.112.3] - 2026-06-07
+
+### 修复：会员审核页点「在册企业」跳到业主门户
+后台（IP 裸 host）下 `/dashboard/*` 会把 `xy_face` cookie 落成 `consumer`，导致会员审核页「在册企业」卡片链到 `/members` 时按消费者门面渲染，跳进业主门户。三处修复：
+- `members/page.tsx`：「在册企业」卡片 href 改为 `/members?face=xh`，显式指定协会门面。
+- `middleware.ts`：把「生效门面」注入【请求头 `x-face`】（`NextResponse.next/rewrite({ request: { headers } })`），让 RSC 首跳就能读到正确门面——此前 cookie 仅由响应写、本次请求读的是入站 cookie，故 `?face=xh` 首跳失效。统一出口 `respond()` 重构，行为不变。
+- `(main)/layout.tsx`：门面判定优先读请求头 `x-face`，回退 cookie。
+
+效果：从协会工作台点「在册企业」进入 `/members` 保持在协会门户（显示协会头部 / 返回业主门户入口），不再跳业主门户。
+
 ## [0.112.2] - 2026-06-07
 
 ### 优化：用户管理保存角色后跳回用户管理列表

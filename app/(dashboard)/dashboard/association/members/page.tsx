@@ -41,7 +41,7 @@ export default async function MembersAdmin({ searchParams }: { searchParams: Pro
           { key: "pending", label: "待审核", value: count("pending"), color: "text-cat-decor", href: href("pending"), active: active === "pending" },
           { key: "approved", label: "已通过", value: count("approved"), color: "text-accent-tea", href: href("approved"), active: active === "approved" },
           { key: "rejected", label: "已驳回", value: count("rejected"), color: "text-cat-design", href: href("rejected"), active: active === "rejected" },
-          { key: "enterprises", label: "在册企业", value: entCount, color: "text-cat-build", href: "/members" },
+          { key: "enterprises", label: "在册企业", value: entCount, color: "text-cat-build", href: "/members?face=xh" },
         ]}
       />
 
