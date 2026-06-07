@@ -59,10 +59,10 @@ export default async function AssociationDashboard() {
       <div className="mb-5 rounded-2xl border border-border bg-background p-4">
         <div className="text-[13px] font-semibold mb-1 inline-flex items-center gap-1.5"><Eye className="h-4 w-4" /> 门面预览 · 一键体验各端首页</div>
         <p className="text-[11px] text-muted-foreground mb-3">业主/协会门户与企业子站为公开页;企业、从业者工作台以协会身份只读预览样板账号,便于测试。</p>
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-2.5">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5">
           {[
-            { icon: Home, t: "业主门户首页", d: "xyjzxh.com 主页", href: "/", tone: "decor" },
-            { icon: ShieldCheck, t: "协会门户首页", d: "会员之家 /xh", href: "/xh", tone: "brand" },
+            // 强制业主门面：否则在协会工作台(cookie=xh)下 "/" 会被重写成 /xh，与协会首页一样
+            { icon: Home, t: "业主门户首页", d: "xyjzxh.com 主页", href: "/?face=consumer", tone: "decor" },
             { icon: Building2, t: "企业工作台", d: "经营后台(预览)", href: "/dashboard/enterprise", tone: "build" },
             { icon: Store, t: "企业子站(样板)", d: "面向业主的品牌页", href: "/biz/mingjia", tone: "tea" },
             { icon: UserRound, t: "从业者门户", d: "个人工作台(预览)", href: "/dashboard/practitioner", tone: "design" },
