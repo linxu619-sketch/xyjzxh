@@ -14,11 +14,12 @@ const FILTERABLE: MediationStatus[] = ["pending", "accepted", "closed"];
 export default async function MediationsAdmin({ searchParams }: { searchParams: Promise<{ f?: string }> }) {
   const { f } = await searchParams;
   const all = listMediations();
-  const active = f && FILTERABLE.includes(f as MediationStatus) ? (f as MediationStatus) : undefined;
+  // 默认落在「待受理」；显式 ?f=all 才看全部
+  const active = f === "all" ? undefined : f && FILTERABLE.includes(f as MediationStatus) ? (f as MediationStatus) : "pending";
   const list = active ? all.filter((m) => m.status === active) : all;
   const count = (st: MediationStatus) => all.filter((m) => m.status === st).length;
   const base = "/dashboard/association/mediations";
-  const href = (st: MediationStatus) => (active === st ? base : `${base}?f=${st}`);
+  const href = (st: MediationStatus) => `${base}?f=${st}`;
 
   return (
     <AssociationShell
@@ -35,14 +36,16 @@ export default async function MediationsAdmin({ searchParams }: { searchParams: 
           { key: "pending", label: "待受理", value: count("pending"), color: "text-cat-decor", href: href("pending"), active: active === "pending" },
           { key: "accepted", label: "受理中", value: count("accepted"), color: "text-brand", href: href("accepted"), active: active === "accepted" },
           { key: "closed", label: "已结案", value: count("closed"), color: "text-accent-tea", href: href("closed"), active: active === "closed" },
-          { key: "all", label: "累计", value: all.length, color: "text-cat-design", href: base, active: !active },
+          { key: "all", label: "全部", value: all.length, color: "text-cat-design", href: `${base}?f=all`, active: !active },
         ]}
       />
 
       <div className="rounded-2xl border border-border bg-background overflow-hidden">
         <div className="px-5 py-3 border-b border-border text-[14px] font-semibold flex items-center justify-between">
-          <span>调解申请 · 点击查看并处理</span>
-          {active && <Link href={base} className="text-[12px] text-brand font-normal">清除筛选（{STATUS_LABEL[active]}）✕</Link>}
+          <span>调解申请 · {active ? STATUS_LABEL[active] : "全部"}（{list.length}）</span>
+          {active
+            ? <Link href={`${base}?f=all`} className="text-[12px] text-brand font-normal">查看全部 →</Link>
+            : <Link href={base} className="text-[12px] text-brand font-normal">回到待受理 →</Link>}
         </div>
         {list.length === 0 ? (
           <div className="px-5 py-16 text-center text-[13px] text-muted-foreground">{active ? `没有「${STATUS_LABEL[active]}」的调解。` : "暂无调解申请。用户在 /mediate 提交后会出现在这里。"}</div>

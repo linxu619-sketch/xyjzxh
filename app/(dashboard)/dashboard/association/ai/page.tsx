@@ -44,7 +44,7 @@ export default async function AiAdmin() {
           <Link href="/dashboard/association/ai/knowledge" className="h-9 px-4 rounded-full bg-foreground text-background text-[13px] font-medium inline-flex items-center gap-1.5">
             <BookOpen className="h-3.5 w-3.5" /> 知识库维护
           </Link>
-          <button className="h-9 px-4 rounded-full bg-surface text-[13px] font-medium inline-flex items-center gap-1.5">
+          <button className="h-9 px-4 rounded-full bg-white/15 border border-white/25 text-white text-[13px] font-medium inline-flex items-center gap-1.5 hover:bg-white/25 transition-colors">
             <Activity className="h-3.5 w-3.5" /> 使用分析
           </button>
         </div>

@@ -34,7 +34,7 @@ function withBadges(nav: readonly NavItem[], counts: Record<string, number>): Na
   });
 }
 
-export async function AssociationShell({ title, subtitle, actions, tone, headerExtra, children }: ShellProps) {
+export async function AssociationShell({ title, subtitle, actions, tone = "brand", headerExtra, children }: ShellProps) {
   const session = await getSession();
   if (!session || (session.role !== "association" && session.role !== "system_admin")) {
     redirect("/login?role=association");
