@@ -25,6 +25,17 @@ function checkSmsCode(code: string): { ok: true } | { ok: false; error: string }
   return { ok: true };
 }
 
+/**
+ * 该手机号是否属于「协会工作人员 / 系统管理员」。
+ * 企业 / 从业者 / 业主登录路径用它把这些号码挡掉，避免协会会长等被演示兜底
+ * 误绑成企业(名家 e002)或其它身份——协会职员必须走「协会」密码登录。
+ */
+function isAssociationPhone(phone: string): boolean {
+  const p = phone.trim();
+  return p === SYSTEM_ADMIN.phone || !!getStaffAuthByPhone(p);
+}
+const ASSOC_PHONE_ERR = "该手机号是协会工作人员账号，请选择「协会」用密码登录";
+
 /* ------------------------------------------------------------
    密码登录防爆破 —— 进程内限流(单实例够用;多实例上线后换 Redis/库)
    规则:同一手机号 10 分钟内密码错误满 5 次 → 锁定 10 分钟。
@@ -134,6 +145,7 @@ export async function loginCustomerWithSms(
   const sms = checkSmsCode(code);
   if (!sms.ok) return sms;
   const clean = phone.trim();
+  if (isAssociationPhone(clean)) return { ok: false, error: ASSOC_PHONE_ERR };
   // 尊重协会「用户管理」的停用：被停用的业主账号拒绝登录
   const existing = getAccountByPhone(clean);
   if (existing && existing.role === "customer" && existing.status === "rejected") {
@@ -167,6 +179,7 @@ export async function loginPractitionerWithSms(
   const sms = checkSmsCode(code);
   if (!sms.ok) return sms;
   const cleanPhone = phone.trim();
+  if (isAssociationPhone(cleanPhone)) return { ok: false, error: ASSOC_PHONE_ERR };
 
   // —— 账号体系：个人会员账号 ——
   const acct = getAccountByPhone(cleanPhone);
@@ -216,6 +229,7 @@ export async function loginEnterpriseWithPassword(
     return { ok: false, error: "密码长度不能少于 6 位" };
   }
   const cleanPhone = phone.trim();
+  if (isAssociationPhone(cleanPhone)) return { ok: false, error: ASSOC_PHONE_ERR };
 
   // —— 账号体系：企业会员账号 ——
   const acct = getAccountByPhone(cleanPhone);
@@ -279,6 +293,7 @@ export async function loginEnterpriseWithSms(
   const sms = checkSmsCode(code);
   if (!sms.ok) return sms;
   const cleanPhone = phone.trim();
+  if (isAssociationPhone(cleanPhone)) return { ok: false, error: ASSOC_PHONE_ERR };
 
   // —— 账号体系：企业会员账号（短信登录不校验密码）——
   const acct = getAccountByPhone(cleanPhone);
