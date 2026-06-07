@@ -29,9 +29,16 @@ export type RoleDef = { label: string; tone: "brand" | "build" | "design" | "dec
 
 export const STAFF_ROLES: Record<string, RoleDef> = {
   super_admin: { label: "超级管理员", tone: "brand", permissions: [...ALL_PERMISSIONS] },
+  // —— 党组织 ——
+  party_secretary: { label: "党支部书记", tone: "decor", permissions: ["news", "training", "knowledge"] },
+  // —— 执行机构 · 理事会领导层 ——
   president: { label: "会长", tone: "decor", permissions: [...ALL_PERMISSIONS] },
   vice_president: { label: "副会长", tone: "yellow", permissions: ["members", "reports", "mediation", "finance", "claims", "supplies", "news", "training", "knowledge", "agreements"] },
   secretary: { label: "秘书长", tone: "build", permissions: ["members", "reports", "mediation", "news", "training", "agreements", "users"] },
+  // —— 执行机构 · 秘书处 / 综合办公室 ——
+  exec_secretary: { label: "常务秘书长", tone: "build", permissions: ["members", "reports", "mediation", "supplies", "news", "training", "agreements", "users"] },
+  office_director: { label: "办公室主任", tone: "yellow", permissions: ["news", "training", "agreements", "users"] },
+  // —— 职能岗位 ——
   reviewer: { label: "审核员", tone: "design", permissions: ["members", "reports", "supplies"] },
   finance: { label: "金融保险专员", tone: "tea", permissions: ["finance", "claims", "finance_products"] },
   content: { label: "内容编辑", tone: "yellow", permissions: ["news", "knowledge", "training"] },
