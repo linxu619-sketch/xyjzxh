@@ -19,8 +19,6 @@ type ShellProps = {
   actions?: React.ReactNode;
   /** 套色页头（"brand" 时表头为品牌渐变底，白字）*/
   tone?: "brand";
-  /** 页头内合并展示的额外内容（如总览页的待办条），随表头一起套色 */
-  headerExtra?: React.ReactNode;
   children: React.ReactNode;
 };
 
@@ -34,7 +32,7 @@ function withBadges(nav: readonly NavItem[], counts: Record<string, number>): Na
   });
 }
 
-export async function AssociationShell({ title, subtitle, actions, tone = "brand", headerExtra, children }: ShellProps) {
+export async function AssociationShell({ title, subtitle, actions, tone = "brand", children }: ShellProps) {
   const session = await getSession();
   if (!session || (session.role !== "association" && session.role !== "system_admin")) {
     redirect("/login?role=association");
@@ -71,7 +69,6 @@ export async function AssociationShell({ title, subtitle, actions, tone = "brand
               subtitle={subtitle}
               actions={actions}
               tone={tone}
-              extra={headerExtra}
               trailing={
                 <AccountMenu
                   name={session.name}
