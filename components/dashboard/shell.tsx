@@ -1,8 +1,9 @@
 import { redirect } from "next/navigation";
+import { headers } from "next/headers";
 import { Sidebar } from "./sidebar";
 import { TopBar } from "./widgets";
 import { AccountMenu } from "./account-menu";
-import { roleLabel } from "@/lib/auth/roles";
+import { roleLabel, PERMISSIONS, type Permission } from "@/lib/auth/roles";
 import { getSession } from "@/lib/auth/session";
 import { ASSOC_NAV, ENT_NAV } from "@/lib/dashboard/nav";
 import { countByStatus } from "@/lib/data/applications";
@@ -13,7 +14,7 @@ import { getStaff } from "@/lib/data/staff-source";
 import { getEffectivePermissionsForRoles } from "@/lib/runtime-config";
 import { isEnterprisePreview, effectiveEnterpriseId } from "@/lib/dashboard/preview";
 import Link from "next/link";
-import { Eye } from "lucide-react";
+import { Eye, Lock } from "lucide-react";
 
 type ShellProps = {
   title: string;
@@ -41,14 +42,26 @@ export async function AssociationShell({ title, subtitle, actions, tone = "brand
   }
   const isSys = session.role === "system_admin";
 
-  // 按员工有效权限过滤侧栏导航（系统超管恒全显）；随系统设置「角色权限表」即时变化。
-  let nav = ASSOC_NAV;
+  // 员工有效权限（系统超管恒全权 = null）；同时用于侧栏过滤与页面级强拦截。
+  let perms: Set<Permission> | null = null;
   if (!isSys) {
     const staff = getStaff(session.uid);
     const roles = staff?.roles?.length ? staff.roles : (session.staffRole ? [session.staffRole] : []);
-    const perms = await getEffectivePermissionsForRoles(roles);
-    nav = ASSOC_NAV.filter((it) => !it.perm || perms.has(it.perm));
+    perms = await getEffectivePermissionsForRoles(roles);
   }
+
+  // 页面级强拦截：当前路径所属模块所需权限（最长前缀匹配 ASSOC_NAV）；无权限 → 渲染「无权限」页。
+  const path = (await headers()).get("x-pathname") ?? "";
+  let need: Permission | undefined;
+  let bestLen = -1;
+  for (const it of ASSOC_NAV) {
+    if (it.perm && (path === it.href || path.startsWith(it.href + "/")) && it.href.length > bestLen) {
+      need = it.perm; bestLen = it.href.length;
+    }
+  }
+  const denied = !!perms && !!need && !perms.has(need);
+
+  const nav = perms ? ASSOC_NAV.filter((it) => !it.perm || perms!.has(it.perm)) : ASSOC_NAV;
   const items = withBadges(nav, {
     "/dashboard/association/members": countByStatus().pending,
     "/dashboard/association/reports": listReports("pending").length,
@@ -92,9 +105,27 @@ export async function AssociationShell({ title, subtitle, actions, tone = "brand
               }
             />
           </div>
-          {children}
+          {denied && need ? <NoAccess need={need} /> : children}
         </div>
       </div>
+    </div>
+  );
+}
+
+function NoAccess({ need }: { need: Permission }) {
+  return (
+    <div className="no-print rounded-2xl border border-border bg-background p-10 md:p-14 text-center max-w-2xl">
+      <span className="inline-flex h-12 w-12 rounded-2xl bg-cat-decor-soft text-cat-decor items-center justify-center mb-4">
+        <Lock className="h-6 w-6" />
+      </span>
+      <div className="text-[16px] font-semibold">无访问权限</div>
+      <p className="text-[13px] text-muted-foreground mt-2 leading-6">
+        你的角色没有「<b className="text-foreground">{PERMISSIONS[need]}</b>」模块的权限。<br />
+        如需开通，请联系协会超级管理员在「系统设置 → 角色权限」中调整。
+      </p>
+      <Link href="/dashboard/association" className="mt-5 inline-flex h-10 px-5 rounded-full bg-foreground text-background text-[13px] font-medium items-center gap-1.5">
+        返回总览
+      </Link>
     </div>
   );
 }

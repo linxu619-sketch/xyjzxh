@@ -67,6 +67,7 @@ export function middleware(req: NextRequest) {
   const respond = (effFace: Face, opts?: { rewrite?: URL; tenant?: string }): NextResponse => {
     const reqHeaders = new Headers(req.headers);
     reqHeaders.set("x-face", effFace);
+    reqHeaders.set("x-pathname", url.pathname);  // 供 RSC（后台 shell 权限拦截）识别当前路径
     if (opts?.tenant) reqHeaders.set("x-tenant", opts.tenant);
     const init = { request: { headers: reqHeaders } };
     const res = opts?.rewrite

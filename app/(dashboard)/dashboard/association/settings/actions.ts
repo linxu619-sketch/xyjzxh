@@ -3,8 +3,10 @@
 import { revalidatePath } from "next/cache";
 import {
   writeRuntimeSettings,
+  getEffectivePermissionsForRoles,
   type RuntimeSettings,
 } from "@/lib/runtime-config";
+import { getStaff } from "@/lib/data/staff-source";
 import { getSession } from "@/lib/auth/session";
 
 export type SaveResult =
@@ -71,9 +73,20 @@ export async function saveSettingsAction(
     const cityKey = String(fd.get("regulator.cityApiKey") || "").trim();
     if (cityKey) patch.regulator = { ...patch.regulator, cityApiKey: cityKey };
 
-    // 角色权限矩阵：perm.roles 列出本次提交的全部可编辑角色；每角色的勾选项来自 perm.<role>
+    // 角色权限矩阵：perm.roles 列出本次提交的全部可编辑角色；每角色的勾选项来自 perm.<role>。
+    // 防御纵深：仅系统超管或具「用户与员工管理(users)」权限者可改权限表（防绕过页面直接 POST）。
     const permRoleKeys = String(fd.get("perm.roles") || "").split(",").map((s) => s.trim()).filter(Boolean);
     if (permRoleKeys.length) {
+      let canEditRoles = session.role === "system_admin";
+      if (!canEditRoles) {
+        const staff = getStaff(session.uid);
+        const roles = staff?.roles?.length ? staff.roles : (session.staffRole ? [session.staffRole] : []);
+        const operPerms = await getEffectivePermissionsForRoles(roles);
+        canEditRoles = operPerms.has("users");
+      }
+      if (!canEditRoles) {
+        return { ok: false, error: "无权限：仅协会超管 / 具『用户与员工管理』权限者可修改角色权限表" };
+      }
       const rp: Record<string, string[]> = {};
       for (const rk of permRoleKeys) rp[rk] = fd.getAll(`perm.${rk}`).map(String);
       patch.rolePermissions = rp;
