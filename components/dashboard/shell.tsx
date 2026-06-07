@@ -85,7 +85,7 @@ export async function AssociationShell({ title, subtitle, actions, tone = "brand
         />
       </div>
       <div className="flex-1 bg-surface min-h-screen">
-        <div className="px-5 pb-8 pt-[72px] md:p-10 max-w-7xl">
+        <div className="px-5 md:px-10 pb-8 md:pb-10 pt-[72px] md:pt-10 max-w-7xl">
           <div className="no-print">
             <TopBar
               title={title}
@@ -155,7 +155,7 @@ export async function EnterpriseShell({ title, subtitle, actions, children }: Sh
         back={preview ? { href: "/dashboard/association", label: "返回协会工作台" } : { href: ent?.slug ? `/biz/${ent.slug}` : "/", label: "查看我的子站" }}
       />
       <div className="flex-1 bg-surface min-h-screen">
-        <div className="px-5 pb-8 pt-[72px] md:p-10 max-w-7xl">
+        <div className="px-5 md:px-10 pb-8 md:pb-10 pt-[72px] md:pt-10 max-w-7xl">
           {preview && <PreviewBanner back="返回协会工作台" portal={`企业工作台预览 · ${ent?.name ?? ""}`} />}
           <TopBar title={title} subtitle={subtitle} actions={actions} />
           {children}
