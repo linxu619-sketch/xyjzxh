@@ -14,6 +14,16 @@
 
 ---
 
+## [0.112.0] - 2026-06-07
+
+### 新增：协会工作台右上角「账号菜单」（姓名 + 我的信息 + 退出）
+后台原本右上角只有不可点的「SUPER ADMIN」装饰徽章，登录者找不到退出/账号入口（退出只藏在左侧栏底部小图标）。新增 `components/dashboard/account-menu.tsx`，挂到 `AssociationShell` 内容区右上角，对所有协会/系统管理员可见：
+
+- **显示登录者姓名 + 头像**，点击展开下拉菜单（点外部 / Esc 关闭）。
+- 下拉顶部即「我的信息」：姓名、角色（系统管理员或 `roleLabel(staffRole)`）、打码手机号；系统管理员附「此账号永不入库」提示。
+- 菜单项：**账号与系统设置**（→ `/dashboard/association/settings`）、**用户与员工管理**（→ `/dashboard/association/users`）、**退出登录**（`logoutAction`）。
+- `SuperAdminBanner` 的「SUPER ADMIN」徽章保留为视图态说明，不再是唯一的右上角元素。
+
 ## [0.111.0] - 2026-06-07
 
 ### 新增：协会门户头部「退出登录」入口 + 会员审核默认看「待审核」

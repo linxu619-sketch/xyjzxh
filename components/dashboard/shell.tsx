@@ -2,7 +2,9 @@ import { redirect } from "next/navigation";
 import { Crown } from "lucide-react";
 import { Sidebar } from "./sidebar";
 import { TopBar } from "./widgets";
+import { AccountMenu } from "./account-menu";
 import { Badge } from "@/components/ui/badge";
+import { roleLabel } from "@/lib/auth/roles";
 import { getSession, type Session } from "@/lib/auth/session";
 import { ASSOC_NAV, ENT_NAV } from "@/lib/dashboard/nav";
 import { countByStatus } from "@/lib/data/applications";
@@ -61,6 +63,16 @@ export async function AssociationShell({ title, subtitle, actions, children }: S
       </div>
       <div className="flex-1 bg-surface min-h-screen">
         <div className="px-5 pb-8 pt-[72px] md:p-10 max-w-7xl">
+          <div className="no-print flex justify-end mb-4 md:-mt-2">
+            <AccountMenu
+              name={session.name}
+              roleLabel={isSys ? "系统管理员 · 最高权限" : roleLabel(session.staffRole ?? "")}
+              phone={maskPhone(session.phone)}
+              isSys={isSys}
+              settingsHref="/dashboard/association/settings"
+              usersHref="/dashboard/association/users"
+            />
+          </div>
           {isSys && <div className="no-print"><SuperAdminBanner session={session} /></div>}
           <div className="no-print"><TopBar title={title} subtitle={subtitle} actions={actions} /></div>
           {children}
