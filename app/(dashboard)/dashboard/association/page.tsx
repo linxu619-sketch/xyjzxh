@@ -1,7 +1,7 @@
 import Link from "next/link";
 import {
-  ShieldCheck, CheckCircle2, AlertCircle, ChevronRight,
-  Users2, FileCheck2, MessageSquareWarning, Newspaper, Sparkles,
+  ShieldCheck, AlertCircle, ChevronRight,
+  Users2, FileCheck2, Newspaper, Sparkles,
   Download, BookOpen, Eye, ExternalLink, Home, Building2, UserRound, Store,
 } from "lucide-react";
 import { AssociationShell } from "@/components/dashboard/shell";
@@ -61,11 +61,6 @@ export default async function AssociationDashboard() {
     <AssociationShell
       title="协会工作台 · 总览"
       subtitle={`今天 · ${fmtToday()}`}
-      actions={
-        <Link href="/dashboard/association/reports?f=pending" className="h-9 px-4 rounded-full bg-foreground text-background text-[13px] font-medium inline-flex items-center gap-1.5 active:scale-95 transition-transform">
-          <CheckCircle2 className="h-3.5 w-3.5" /> 待审报备 {pendingReports.length}
-        </Link>
-      }
     >
       {/* 紧急提醒条（真实） */}
       <div className="mb-5 rounded-2xl bg-gradient-to-r from-brand to-brand-600 text-white p-4 flex items-center gap-3 shadow-md">
@@ -74,12 +69,26 @@ export default async function AssociationDashboard() {
           {totalTodo > 0 && <span className="absolute inset-0 rounded-xl bg-white/20 animate-ping opacity-40" />}
         </span>
         <div className="flex-1 min-w-0">
-          <div className="text-[13px] font-semibold">{totalTodo} 项待办 · {pendingApps.length} 会员审核 · {pendingReports.length} 报备 · {pendingMeds.length} 调解</div>
-          <div className="text-[11px] text-white/85 mt-0.5">{totalTodo > 0 ? "点右侧逐项处理" : "暂无待办，一切就绪 ✓"}</div>
+          <div className="text-[13px] font-semibold">{totalTodo} 项待办</div>
+          <div className="text-[11px] text-white/85 mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-0.5">
+            {totalTodo > 0 ? (
+              <>
+                <Link href="/dashboard/association/members" className="underline-offset-2 hover:underline">{pendingApps.length} 会员审核</Link>
+                <span className="text-white/40">·</span>
+                <Link href="/dashboard/association/reports?f=pending" className="underline-offset-2 hover:underline">{pendingReports.length} 报备</Link>
+                <span className="text-white/40">·</span>
+                <Link href="/dashboard/association/mediations" className="underline-offset-2 hover:underline">{pendingMeds.length} 调解</Link>
+              </>
+            ) : (
+              <span>暂无待办，一切就绪 ✓</span>
+            )}
+          </div>
         </div>
-        <Link href="/dashboard/association/members" className="hidden md:inline-flex items-center gap-1 text-[12px] font-medium bg-accent-yellow text-foreground h-9 px-4 rounded-full">
-          立即处理 <ChevronRight className="h-3 w-3" />
-        </Link>
+        {totalTodo > 0 && (
+          <Link href="/dashboard/association/members" className="hidden md:inline-flex items-center gap-1 text-[12px] font-medium bg-accent-yellow text-foreground h-9 px-4 rounded-full">
+            立即处理 <ChevronRight className="h-3 w-3" />
+          </Link>
+        )}
       </div>
 
       {/* 门面预览 · 一键跳各端首页（公开页新开标签；工作台为协会只读预览样板账号） */}
@@ -110,12 +119,12 @@ export default async function AssociationDashboard() {
         </div>
       </div>
 
-      {/* KPI（真实） */}
+      {/* KPI（真实，点卡片直达对应列表）*/}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
-        <StatCard label="待审会员" value={appCounts.pending} sub={`已通过 ${appCounts.approved}`} color="brand" />
-        <StatCard label="待审报备" value={pendingReports.length} sub="工装报备" color="build" />
-        <StatCard label="待处理调解" value={pendingMeds.length} sub="纠纷调解" color="decor" />
-        <StatCard label="在册会员" value={memberCount} sub={`企业 ${enterprises.length} · 个人 ${pracs.length}`} color="design" />
+        <StatCard label="待审会员" value={appCounts.pending} sub={`已通过 ${appCounts.approved}`} color="brand" href="/dashboard/association/members" />
+        <StatCard label="待审报备" value={pendingReports.length} sub="工装报备" color="build" href="/dashboard/association/reports?f=pending" />
+        <StatCard label="待处理调解" value={pendingMeds.length} sub="纠纷调解" color="decor" href="/dashboard/association/mediations" />
+        <StatCard label="在册会员" value={memberCount} sub={`企业 ${enterprises.length} · 个人 ${pracs.length}`} color="design" href="/dashboard/association/users" />
       </div>
 
       <div className="mt-6 grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-5">
@@ -226,27 +235,6 @@ export default async function AssociationDashboard() {
           </div>
         </Panel>
 
-        {/* 本月概览（真实计数） */}
-        <Panel title="本月概览" className="lg:col-span-3">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {[
-              { label: "已通过会员", icon: Users2, value: appCounts.approved, color: "text-brand" },
-              { label: "待审报备", icon: FileCheck2, value: pendingReports.length, color: "text-cat-build" },
-              { label: "待处理调解", icon: MessageSquareWarning, value: pendingMeds.length, color: "text-cat-design" },
-              { label: "已发布新闻", icon: Newspaper, value: news.length, color: "text-cat-decor" },
-            ].map((s) => {
-              const Ic = s.icon;
-              return (
-                <div key={s.label} className="rounded-2xl bg-surface p-4">
-                  <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground tracking-wider uppercase">
-                    <Ic className="h-3 w-3" /> {s.label}
-                  </div>
-                  <div className={`mt-2 text-[28px] font-semibold tracking-tight tabular-nums ${s.color}`}>{s.value.toLocaleString()}</div>
-                </div>
-              );
-            })}
-          </div>
-        </Panel>
       </div>
     </AssociationShell>
   );

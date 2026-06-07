@@ -61,17 +61,23 @@ export async function AssociationShell({ title, subtitle, actions, children }: S
       </div>
       <div className="flex-1 bg-surface min-h-screen">
         <div className="px-5 pb-8 pt-[72px] md:p-10 max-w-7xl">
-          <div className="no-print flex justify-end mb-4 md:-mt-2">
-            <AccountMenu
-              name={session.name}
-              roleLabel={isSys ? "系统管理员 · 最高权限" : roleLabel(session.staffRole ?? "")}
-              phone={maskPhone(session.phone)}
-              isSys={isSys}
-              settingsHref="/dashboard/association/settings"
-              usersHref="/dashboard/association/users"
+          <div className="no-print">
+            <TopBar
+              title={title}
+              subtitle={subtitle}
+              actions={actions}
+              trailing={
+                <AccountMenu
+                  name={session.name}
+                  roleLabel={isSys ? "系统管理员 · 最高权限" : roleLabel(session.staffRole ?? "")}
+                  phone={maskPhone(session.phone)}
+                  isSys={isSys}
+                  settingsHref="/dashboard/association/settings"
+                  usersHref="/dashboard/association/users"
+                />
+              }
             />
           </div>
-          <div className="no-print"><TopBar title={title} subtitle={subtitle} actions={actions} /></div>
           {children}
         </div>
       </div>
