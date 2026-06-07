@@ -1,11 +1,9 @@
 import { redirect } from "next/navigation";
-import { Crown } from "lucide-react";
 import { Sidebar } from "./sidebar";
 import { TopBar } from "./widgets";
 import { AccountMenu } from "./account-menu";
-import { Badge } from "@/components/ui/badge";
 import { roleLabel } from "@/lib/auth/roles";
-import { getSession, type Session } from "@/lib/auth/session";
+import { getSession } from "@/lib/auth/session";
 import { ASSOC_NAV, ENT_NAV } from "@/lib/dashboard/nav";
 import { countByStatus } from "@/lib/data/applications";
 import { listReports, listReportsByUid } from "@/lib/data/reports";
@@ -73,7 +71,6 @@ export async function AssociationShell({ title, subtitle, actions, children }: S
               usersHref="/dashboard/association/users"
             />
           </div>
-          {isSys && <div className="no-print"><SuperAdminBanner session={session} /></div>}
           <div className="no-print"><TopBar title={title} subtitle={subtitle} actions={actions} /></div>
           {children}
         </div>
@@ -124,19 +121,6 @@ function PreviewBanner({ portal, back }: { portal: string; back: string }) {
       <Eye className="h-4 w-4 shrink-0" />
       <div className="flex-1 min-w-0 text-[13px]"><b>{portal}</b> · 你正以协会身份只读预览该端体验,操作仅用于测试。</div>
       <Link href="/dashboard/association" className="shrink-0 h-8 px-3.5 rounded-full bg-foreground text-background text-[12px] font-medium inline-flex items-center">{back}</Link>
-    </div>
-  );
-}
-
-function SuperAdminBanner({ session }: { session: Session }) {
-  return (
-    <div className="mb-6 rounded-2xl bg-foreground text-background px-5 py-4 flex items-center gap-3">
-      <Crown className="h-5 w-5 text-accent-yellow" />
-      <div className="flex-1 min-w-0">
-        <div className="text-[13px] font-semibold">系统管理员视图 · {session.name}</div>
-        <div className="text-[11px] text-background/70">此账号永不入库，仅平台运维持有人可登录</div>
-      </div>
-      <Badge tone="yellow">SUPER ADMIN</Badge>
     </div>
   );
 }
