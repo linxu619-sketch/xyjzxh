@@ -24,6 +24,7 @@ export type RuntimeSettings = {
     shortName?: string;
     domain?: string;
     tel?: string;
+    email?: string;
     address?: string;
     slogan?: string;
     subSlogan?: string;

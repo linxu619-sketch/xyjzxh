@@ -33,6 +33,7 @@ export async function saveSettingsAction(
         shortName: pickString(fd, "platform.shortName"),
         domain:    pickString(fd, "platform.domain"),
         tel:       pickString(fd, "platform.tel"),
+        email:     pickString(fd, "platform.email"),
         address:   pickString(fd, "platform.address"),
         slogan:    pickString(fd, "platform.slogan"),
         subSlogan: pickString(fd, "platform.subSlogan"),

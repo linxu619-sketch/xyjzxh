@@ -70,6 +70,7 @@ export default async function SystemSettings() {
               <FormRow label="平台简称"><Input name="platform.shortName" defaultValue={platform.shortName ?? SITE.shortName} /></FormRow>
               <FormRow label="主域名"><Input name="platform.domain" defaultValue={platform.domain ?? SITE.domain} /></FormRow>
               <FormRow label="协会电话"><Input name="platform.tel" defaultValue={platform.tel ?? SITE.tel} /></FormRow>
+              <FormRow label="协会邮箱" hint="对外公示与系统通知发件显示用"><Input name="platform.email" type="email" defaultValue={platform.email ?? SITE.email} placeholder="例：xysjzzsxh2025@163.com" /></FormRow>
               <FormRow label="协会地址"><Input name="platform.address" defaultValue={platform.address ?? SITE.address} /></FormRow>
               <FormRow label="标语"><Input name="platform.slogan" defaultValue={platform.slogan ?? SITE.slogan} /></FormRow>
               <FormRow label="副标语"><Textarea name="platform.subSlogan" defaultValue={platform.subSlogan ?? SITE.subSlogan} rows={2} /></FormRow>

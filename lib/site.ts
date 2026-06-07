@@ -10,6 +10,7 @@ export const SITE = {
   domain: "xyjzxh.com",         // 消费者主域：xyjzxh.com
   associationHost: "xh",        // 协会门户：xh.xyjzxh.com
   tel: "0376-000-0000",
+  email: "xysjzzsxh2025@163.com",
   address: "河南省信阳市浉河区行政中心",
   copyrightFrom: 2025,
 };
