@@ -22,12 +22,13 @@ function summarize(a: Application): string {
 export default async function MembersAdmin({ searchParams }: { searchParams: Promise<{ f?: string }> }) {
   const { f } = await searchParams;
   const all = listApplications();
-  const active = f && FILTERABLE.includes(f as AppStatus) ? (f as AppStatus) : undefined;
+  // 默认落在「待审核」（协会职员进来最该先处理待审）；显式 ?f=all 才看全部
+  const active = f === "all" ? undefined : f && FILTERABLE.includes(f as AppStatus) ? (f as AppStatus) : "pending";
   const list = active ? all.filter((a) => a.status === active) : all;
   const count = (st: AppStatus) => all.filter((a) => a.status === st).length;
   const entCount = (await getEnterprises()).length;
   const base = "/dashboard/association/members";
-  const href = (st: AppStatus) => (active === st ? base : `${base}?f=${st}`);
+  const href = (st: AppStatus) => `${base}?f=${st}`;
 
   return (
     <AssociationShell
@@ -47,8 +48,10 @@ export default async function MembersAdmin({ searchParams }: { searchParams: Pro
       {/* 入会申请（点整行进入详情处理）*/}
       <div className="rounded-2xl border border-border bg-background overflow-hidden">
         <div className="px-5 py-3 border-b border-border text-[14px] font-semibold flex items-center justify-between">
-          <span>入会申请 · 点击查看并处理</span>
-          {active && <Link href={base} className="text-[12px] text-brand font-normal">清除筛选（{STATUS_LABEL[active]}）✕</Link>}
+          <span>入会申请 · {active ? STATUS_LABEL[active] : "全部"}（{list.length}）</span>
+          {active
+            ? <Link href={`${base}?f=all`} className="text-[12px] text-brand font-normal">查看全部 →</Link>
+            : <Link href={base} className="text-[12px] text-brand font-normal">回到待审核 →</Link>}
         </div>
         {list.length === 0 ? (
           <div className="px-5 py-16 text-center text-[13px] text-muted-foreground">{active ? `没有「${STATUS_LABEL[active]}」的申请。` : "暂无入会申请。用户在 /join → /register 提交后会出现在这里。"}</div>
