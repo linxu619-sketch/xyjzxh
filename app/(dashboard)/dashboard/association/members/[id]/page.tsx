@@ -51,8 +51,9 @@ function fmtDay(ms: number) {
   return `${d.getFullYear()} 年 ${p(d.getMonth() + 1)} 月 ${p(d.getDate())} 日`;
 }
 
-export default async function ApplicationDetail({ params }: { params: Promise<{ id: string }> }) {
+export default async function ApplicationDetail({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ err?: string }> }) {
   const { id } = await params;
+  const { err } = await searchParams;
   const app = getApplication(Number(id));
 
   if (!app) {
@@ -89,6 +90,10 @@ export default async function ApplicationDetail({ params }: { params: Promise<{ 
   const statusLabel = app.status === "approved" ? "已通过" : app.status === "rejected" ? "已驳回" : "待审核";
   const vm = VERIFY_META[app.idVerifyStatus] ?? VERIFY_META.unverified;
   const VIcon = vm.icon;
+
+  // 业主(customer)无需实名核验；企业 / 个人会员必须「实名核验通过」后才能入册
+  const needVerify = app.type !== "customer";
+  const canApprove = !needVerify || app.idVerifyStatus === "verified";
 
   return (
     <AssociationShell title="入会申请审批" subtitle={`${app.applicant} · ${TYPE_LABEL[app.type] ?? app.type}`}>
@@ -173,15 +178,34 @@ export default async function ApplicationDetail({ params }: { params: Promise<{ 
       {/* 入会审批 */}
       {app.status === "pending" ? (
         <div className="mt-5">
-          {app.idVerifyStatus !== "verified" && (
-            <div className="mb-3 text-[12px] text-[#a37200] inline-flex items-center gap-1.5"><ShieldAlert className="h-3.5 w-3.5" /> 建议先完成「实名核验通过」再入会审批。</div>
+          {!canApprove && (
+            <div className="mb-3 text-[12px] text-cat-decor inline-flex items-center gap-1.5">
+              <ShieldAlert className="h-3.5 w-3.5 shrink-0" />
+              {app.idVerifyStatus === "failed"
+                ? "实名核验未通过，不能通过并入册——请核实证照后改判「实名核验通过」，或驳回该申请。"
+                : "请先完成「实名核验通过」，才能通过并入册。"}
+            </div>
+          )}
+          {err === "verify" && (
+            <div className="mb-3 text-[12px] text-cat-decor inline-flex items-center gap-1.5"><ShieldAlert className="h-3.5 w-3.5 shrink-0" /> 该申请尚未实名核验通过，已拦截入册操作。</div>
           )}
           <div className="flex items-center gap-3">
-            <form action={reviewApplicationAction}>
-              <input type="hidden" name="id" value={app.id} />
-              <input type="hidden" name="act" value="approve" />
-              <button className="h-11 px-6 rounded-full bg-accent-tea text-white text-[14px] font-medium inline-flex items-center gap-1.5"><CheckCircle2 className="h-4 w-4" /> 通过并入册</button>
-            </form>
+            {canApprove ? (
+              <form action={reviewApplicationAction}>
+                <input type="hidden" name="id" value={app.id} />
+                <input type="hidden" name="act" value="approve" />
+                <button className="h-11 px-6 rounded-full bg-accent-tea text-white text-[14px] font-medium inline-flex items-center gap-1.5"><CheckCircle2 className="h-4 w-4" /> 通过并入册</button>
+              </form>
+            ) : (
+              <button
+                type="button"
+                disabled
+                title="实名核验通过后才能入册"
+                className="h-11 px-6 rounded-full bg-accent-tea/40 text-white/80 text-[14px] font-medium inline-flex items-center gap-1.5 cursor-not-allowed"
+              >
+                <CheckCircle2 className="h-4 w-4" /> 通过并入册
+              </button>
+            )}
             <form action={reviewApplicationAction}>
               <input type="hidden" name="id" value={app.id} />
               <input type="hidden" name="act" value="reject" />

@@ -19,6 +19,12 @@ export async function reviewApplicationAction(fd: FormData) {
   if (!id) return;
 
   const app = getApplication(id);
+
+  // 实名核验未通过的（非业主）申请，禁止「通过并入册」——UI 已禁用按钮，这里是服务端兜底
+  if (act === "approve" && app && app.type !== "customer" && app.idVerifyStatus !== "verified") {
+    redirect(`/dashboard/association/members/${id}?err=verify`);
+  }
+
   setApplicationStatus(id, act === "approve" ? "approved" : "rejected", operatorName(s));
 
   // 企业申请通过 → 自动成为正式会员，出现在 /members；账号激活并绑定
