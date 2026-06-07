@@ -3,7 +3,6 @@ import { ChevronRight, ShieldCheck } from "lucide-react";
 import { AssociationShell } from "@/components/dashboard/shell";
 import { Badge } from "@/components/ui/badge";
 import { StatFilters } from "@/components/dashboard/stat-filters";
-import { getEnterprises } from "@/lib/data/enterprises-source";
 import { listApplications, type Application, type AppStatus } from "@/lib/data/applications";
 
 export const metadata = { title: "会员审核 · 协会工作台" };
@@ -26,14 +25,13 @@ export default async function MembersAdmin({ searchParams }: { searchParams: Pro
   const active = f === "all" ? undefined : f && FILTERABLE.includes(f as AppStatus) ? (f as AppStatus) : "pending";
   const list = active ? all.filter((a) => a.status === active) : all;
   const count = (st: AppStatus) => all.filter((a) => a.status === st).length;
-  const entCount = (await getEnterprises()).length;
   const base = "/dashboard/association/members";
   const href = (st: AppStatus) => `${base}?f=${st}`;
 
   return (
     <AssociationShell
       title="会员审核"
-      subtitle={`${count("pending")} 份待审 · 已在册企业 ${entCount} 家`}
+      subtitle={`${count("pending")} 份待审 · 累计通过 ${count("approved")} · 共 ${all.length} 份入会申请`}
     >
       {/* 可点统计筛选 */}
       <StatFilters
@@ -41,7 +39,6 @@ export default async function MembersAdmin({ searchParams }: { searchParams: Pro
           { key: "pending", label: "待审核", value: count("pending"), color: "text-cat-decor", href: href("pending"), active: active === "pending" },
           { key: "approved", label: "已通过", value: count("approved"), color: "text-accent-tea", href: href("approved"), active: active === "approved" },
           { key: "rejected", label: "已驳回", value: count("rejected"), color: "text-cat-design", href: href("rejected"), active: active === "rejected" },
-          { key: "enterprises", label: "在册企业", value: entCount, color: "text-cat-build", href: "/members?face=xh" },
         ]}
       />
 
