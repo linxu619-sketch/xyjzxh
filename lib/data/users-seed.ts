@@ -1,10 +1,15 @@
 import "server-only";
 
 /* ============================================================
-   协会工作人员 mock 数据（替代真正数据库 association_staff 表）
+   协会工作人员「初始化引导」种子
    ------------------------------------------------------------
-   接入 Supabase 后，本文件可删除；用 db/seed.sql 把这里的
-   记录写入 association_staff 即可。密码均为 scrypt 哈希。
+   仅在 association_staff 表为空（全新部署）时灌入，用于第一位
+   协会管理员（会长）能登录后台、再去「用户管理」开通其余员工。
+   一旦库里已有真实员工，本种子不再生效（见 sqlite.ts seed 守卫）。
+
+   ⚠️ 真实部署的员工数据以 data/app.db 的 association_staff 表为准，
+   不要用本文件推断真实账号/密码；改密码/查状态直连该表。
+   ⚠️ 生产请尽快改掉下面的初始密码。
    ============================================================ */
 
 export type SeedStaff = {
@@ -13,8 +18,9 @@ export type SeedStaff = {
   phone: string;
   email?: string;
   staffRole:
-    | "super_admin" | "president" | "vice_president" | "secretary" | "reviewer"
-    | "finance" | "content" | "support" | "mediator";
+    | "super_admin" | "president" | "vice_president" | "secretary"
+    | "exec_secretary" | "office_director" | "party_secretary"
+    | "reviewer" | "finance" | "content" | "support" | "mediator";
   roles?: string[];  // 多角色（不填则默认 [staffRole]）
   passwordHash: string;
   status: "active" | "locked";
@@ -27,21 +33,11 @@ export const SEED_STAFF: SeedStaff[] = [
     phone: "13507610059",
     staffRole: "president",  // 协会会长（平台超管是写死源码的林旭，不在此表）
     roles: ["president"],
-    // scrypt of "610059"
+    // 初始密码 = 手机号后 6 位「610059」（scrypt 哈希）；生产请尽快改掉
     passwordHash:
       "scrypt$ae75965c57b123e58c1323210f3c4ee4$758562605edb30d3e3e39e208bdbd525d35222aeaeb9775ff76701146e60d19f61a5fba6f048d9351558f3a84eca9292ae5a58a8d987c1a3a3cb173da3c1d813",
     status: "active",
   },
-  // 协会秘书处虚拟工作人员（演示）；登录密码 = 手机号后 6 位
-  { id: "as-002", name: "王建国", phone: "13803760012", staffRole: "secretary", roles: ["secretary", "reviewer"], passwordHash: "scrypt$cf8099a96658fc423394941b338d692b$cce195798e00dec8068c2e395fa2425112fad988f9086936e6c2f4d0fba820c28c0c8cc6d38f7f5fcde47caa3825c67c5f08e5e86a1c1dae1df7e893c0e1ae34", status: "active" },
-  { id: "as-003", name: "李文博", phone: "13803760023", staffRole: "reviewer", roles: ["reviewer", "content"], passwordHash: "scrypt$e2097b2167b1a61325a9268188816139$7c61ba078e7ed63953d8e0a646734c2124603644887bdaff4a044075ccf5383858c5c56908a01265926ae2b69537668d71dfbed9a606439e124516c7da5629bb", status: "active" },
-  { id: "as-004", name: "张慧敏", phone: "13803760034", staffRole: "finance", roles: ["finance", "support"], passwordHash: "scrypt$75e9606064f65f4b84045320d93282b7$5005d0047f23f2442b99f8aca55a54938bc6b618dbfd842dd7c1fc4099b543f2240c75d1c615fe4046ad4be60f2284ebe715f4f4631328630368224ca062f40a", status: "active" },
-  { id: "as-005", name: "陈思远", phone: "13803760045", staffRole: "content", passwordHash: "scrypt$64152bbca8bbbcaa24dad062d81dc23d$42f46302571da628997a69b99113892989c7fb69cf33ce9fd3828555954d07518876a855ae8a4f05905974027f17e961bfdb6ecb1a0151104adc7da382f7be0b", status: "active" },
-  { id: "as-006", name: "刘海涛", phone: "13803760056", staffRole: "support", passwordHash: "scrypt$fcc6c4345c5f1b1a99f484bc0ba66dd6$eb3ccff24da44f8773bb0e94583c43a90ac58083ef682609502050eeb05243a828541b300fedd70b3064076d9fc184c8f1944c2955ec0fd5b142b89d870a666a", status: "active" },
-  { id: "as-007", name: "周晓梅", phone: "13803760067", staffRole: "reviewer", passwordHash: "scrypt$770aff0785597187809b05f71d14654b$9aa01a763ae734252d53db7032330a0976eecad1a89ee6f7e48d4c45d0f057d81cc1d9786319f6f8de2d570d3a7ea2ea88d57da496dd32385086d78319315115", status: "active" },
-  // 协会治理领导岗
-  { id: "as-008", name: "郑国华", phone: "13803760078", staffRole: "president", passwordHash: "scrypt$6fb2a8eb508e6ec75fd8f05cfa113e24$454990a56c8eb2c9da5961d183609ca834cd6b6013897dab8803e6bf8ad3a00cb525084b28a3ef4144e737d1bbcb304ba61f23a4811d1d121b720167d4ee2014", status: "active" },
-  { id: "as-009", name: "孙建华", phone: "13803760089", staffRole: "vice_president", passwordHash: "scrypt$c2ca53ed53b1bd0dc65e28b2c3800a87$74590d91b61e6ac0af9ce3e1f1e89f7beaa6a7610d4eda67eca9caa7fdb43d48a077873186e522a62aca365a53ed13185d6fc33c9b2f269bf2fef398c27f1517", status: "active" },
 ];
 
 export function findStaffByPhone(phone: string): SeedStaff | undefined {
