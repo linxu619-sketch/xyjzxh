@@ -14,6 +14,11 @@
 
 ---
 
+## [0.112.2] - 2026-06-07
+
+### 优化：用户管理保存角色后跳回用户管理列表
+`setStaffRolesAction` 原本保存后停留在该员工详情页（`?saved=roles`），改为 `redirect("/dashboard/association/users?tab=staff")` 跳回用户管理（员工 tab），并同时 revalidate 详情页与列表，符合「编辑完点保存就回列表」的直觉。
+
 ## [0.112.1] - 2026-06-07
 
 ### 新增：系统设置「协会邮箱」字段

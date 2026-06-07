@@ -131,8 +131,10 @@ export async function setStaffRolesAction(fd: FormData) {
     const roles = fd.getAll("role").map(String).filter((r) => ROLE_KEYS.includes(r) && r !== "super_admin");
     if (roles.length) setStaffRoles(id, roles);
   }
-  const to = `/dashboard/association/users/staff/${id}?saved=roles`;
-  revalidatePath(to); redirect(to);
+  // 保存角色后回到用户管理列表（员工 tab），而不是停留在详情页
+  revalidatePath(`/dashboard/association/users/staff/${id}`);
+  revalidatePath("/dashboard/association/users");
+  redirect("/dashboard/association/users?tab=staff");
 }
 
 export async function setStaffPasswordAction(fd: FormData) {
