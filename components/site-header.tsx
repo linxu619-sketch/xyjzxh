@@ -2,9 +2,8 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { Sparkles, ChevronRight, Building2, LogOut } from "lucide-react";
+import { Sparkles, ChevronRight, Building2 } from "lucide-react";
 import { SITE, ASSOCIATION_NAV, CONSUMER_NAV } from "@/lib/site";
-import { logoutAction } from "@/app/(main)/login/actions";
 import { Container } from "./container";
 import { Button } from "./ui/button";
 import { cn } from "@/lib/cn";
@@ -45,21 +44,9 @@ export function SiteHeader({ face = "consumer", authed = false, todo = 0 }: { fa
                 <Building2 className="h-3 w-3 text-accent-yellow shrink-0" />
                 <span className="truncate">您在 <b>协会门户</b> · 面向企业 / 从业者 / 合作机构</span>
               </span>
-              <span className="inline-flex items-center gap-3 shrink-0">
-                {authed && (
-                  <form action={logoutAction} className="inline-flex">
-                    <button
-                      type="submit"
-                      className="inline-flex items-center gap-1 text-background/70 hover:text-background whitespace-nowrap"
-                    >
-                      <LogOut className="h-3 w-3" /> 退出登录
-                    </button>
-                  </form>
-                )}
-                <Link href="/?face=consumer" className="text-background/70 hover:text-background whitespace-nowrap">
-                  返回业主门户 →
-                </Link>
-              </span>
+              <Link href="/?face=consumer" className="text-background/70 hover:text-background whitespace-nowrap shrink-0">
+                返回业主门户 →
+              </Link>
             </div>
           </Container>
         </div>
