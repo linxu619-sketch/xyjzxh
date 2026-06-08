@@ -1,21 +1,18 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, Truck, Coins } from "lucide-react";
+import { ArrowLeft, Coins } from "lucide-react";
 import { AssociationShell } from "@/components/dashboard/shell";
 import { Badge } from "@/components/ui/badge";
 import { getSupplyOrder, isOverdue, SUPPLY_TERM_DAYS, type OrderStatus } from "@/lib/data/supplies-source";
-import { advanceOrderAction } from "../../actions";
 import { startPaymentAction } from "@/app/(dashboard)/dashboard/pay/actions";
 import { enabledPayMethods } from "@/lib/payments";
 import { PrintBar, Letterhead, DocTable, SealFooter } from "@/components/print/print-doc";
 import { getPlatformInfo } from "@/lib/runtime-config";
 
-export const metadata = { title: "采购单处置 · 建材集采" };
+export const metadata = { title: "采购单 · 对账监管 · 建材集采" };
 
 const ORDER_LABEL: Record<OrderStatus, string> = { pending: "待确认", confirmed: "已确认", shipped: "已发货", done: "已完成" };
 const ORDER_TONE: Record<OrderStatus, "yellow" | "brand" | "build" | "tea"> = { pending: "yellow", confirmed: "brand", shipped: "build", done: "tea" };
-const NEXT: Record<OrderStatus, OrderStatus | null> = { pending: "confirmed", confirmed: "shipped", shipped: "done", done: null };
-const NEXT_LABEL: Record<string, string> = { confirmed: "确认接单", shipped: "发货", done: "完成" };
 const SELLER_LABEL: Record<string, string> = { association: "协会自营", enterprise: "企业会员", practitioner: "个人会员" };
 
 function fmt(ms: number) { if (!ms) return "—"; const d = new Date(ms); const p = (n: number) => String(n).padStart(2, "0"); return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}`; }
@@ -29,25 +26,17 @@ export default async function SupplyOrderDetail({ params }: { params: Promise<{ 
   if (!o) notFound();
   const org = await getPlatformInfo();
   const payMethods = o!.settleStatus !== "paid" ? await enabledPayMethods() : [];
-
-  const nx = NEXT[o!.status];
-  const selfHref = `/dashboard/association/supplies/order/${o!.id}`;
   const overdue = isOverdue(o!);
   const docNo = `XYJZ-CG-${String(o!.id).padStart(4, "0")}`;
   const settleText = o!.settleStatus === "paid" ? "已结清" : overdue ? `逾期未结（账期至 ${fmtDay(o!.dueAt)}）` : `未结清 · 账期至 ${fmtDay(o!.dueAt)}（月结 ${SUPPLY_TERM_DAYS} 天）`;
 
   return (
-    <AssociationShell title="采购单处置" subtitle={`${o!.buyerName || o!.enterpriseName} · ${o!.productName}`}>
+    <AssociationShell title="采购单 · 对账监管" subtitle={`${o!.buyerName || o!.enterpriseName} · ${o!.productName}`}>
       <div className="no-print">
         <Link href="/dashboard/association/supplies?tab=orders" className="inline-flex items-center gap-1.5 text-[13px] text-muted-foreground hover:text-foreground mb-4"><ArrowLeft className="h-3.5 w-3.5" /> 返回采购单列表</Link>
         <div className="mb-4 flex items-center gap-3 flex-wrap">
-          <Badge tone={ORDER_TONE[o!.status]}>{ORDER_LABEL[o!.status]}</Badge>
-          {nx ? (
-            <form action={advanceOrderAction}>
-              <input type="hidden" name="id" value={o!.id} /><input type="hidden" name="status" value={nx} /><input type="hidden" name="redirect" value={selfHref} />
-              <button className="h-10 px-5 rounded-full bg-foreground text-background text-[13px] font-medium inline-flex items-center gap-1.5"><Truck className="h-4 w-4" /> 推进到「{NEXT_LABEL[nx]}」</button>
-            </form>
-          ) : <span className="text-[12px] text-muted-foreground">订单已完成。</span>}
+          <Badge tone={ORDER_TONE[o!.status]}>履约：{ORDER_LABEL[o!.status]}</Badge>
+          <span className="text-[12px] text-muted-foreground">履约（确认/发货/完成）由卖家在其工作台推进；平台只负责对账 / 佣金 / 争议介入。</span>
         </div>
 
         {o!.settleStatus !== "paid" ? (

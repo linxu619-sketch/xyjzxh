@@ -23,8 +23,10 @@ function fmt(ms: number) {
 
 export default async function SuppliesAdmin({ searchParams }: { searchParams: Promise<{ tab?: string; pok?: string; perr?: string; rok?: string; conflict?: string; notcheaper?: string }> }) {
   const { tab, pok, perr, rok, conflict, notcheaper } = await searchParams;
+  // 默认进来＝「商品待审核」队列（平台对商品是审核者，最该动手的事）
   const showOrders = tab === "orders";
-  const showReview = tab === "review";
+  const showProducts = tab === "products";
+  const showReview = !showOrders && !showProducts;
   const products = listProducts(false);
   const orders = listAllSupplyOrders();
   const pending = listByStatus("pending");
@@ -33,7 +35,7 @@ export default async function SuppliesAdmin({ searchParams }: { searchParams: Pr
   const base = "/dashboard/association/supplies";
 
   return (
-    <AssociationShell title="建材集采" subtitle={`在架 ${active} 款 · 待审核 ${pending.length} · 采购单 ${orders.length}`} actions={<PublishProduct />}>
+    <AssociationShell title="建材集采" subtitle={`待审核 ${pending.length} · 在架 ${active} 款 · 采购单 ${orders.length}`} actions={<PublishProduct />}>
       {pok && <div className="mb-5 rounded-2xl border border-accent-tea/30 bg-[#e6f7f1] text-accent-tea p-4 flex items-center gap-3"><CheckCircle2 className="h-5 w-5 shrink-0" /><div className="text-[13px]"><b>已上架！</b>企业可在「建材采购」按会员价下单。</div></div>}
       {perr && <div className="mb-5 rounded-2xl border border-cat-decor/30 bg-cat-decor-soft text-cat-decor p-4 text-[13px]">上架失败：请填写名称与会员价。</div>}
       {rok === "1" && <div className="mb-5 rounded-2xl border border-accent-tea/30 bg-[#e6f7f1] text-accent-tea p-4 flex items-center gap-3"><CheckCircle2 className="h-5 w-5 shrink-0" /><div className="text-[13px]"><b>审核通过，已上架。</b></div></div>}
@@ -43,12 +45,19 @@ export default async function SuppliesAdmin({ searchParams }: { searchParams: Pr
 
       <StatFilters
         items={[
-          { key: "products", label: "在架商品", value: active, color: "text-cat-build", href: base, active: !showOrders && !showReview },
-          { key: "review", label: "待审核", value: pending.length, color: "text-accent-yellow", href: `${base}?tab=review`, active: showReview },
-          { key: "orders", label: "采购单", value: orders.length, color: "text-cat-decor", href: `${base}?tab=orders`, active: showOrders },
+          { key: "review", label: "商品待审", value: pending.length, color: "text-accent-yellow", href: base, active: showReview },
+          { key: "products", label: "在架商品", value: active, color: "text-cat-build", href: `${base}?tab=products`, active: showProducts },
+          { key: "orders", label: "采购单·对账", value: orders.length, color: "text-cat-decor", href: `${base}?tab=orders`, active: showOrders },
           { key: "pendingOrders", label: "待确认单", value: pendingOrders, color: "text-cat-design" },
         ]}
       />
+
+      {/* 平台职责说明：商品＝审核，订单＝对账监管（两种不同性质的工作）*/}
+      <div className="mb-4 rounded-2xl border border-border bg-surface/50 px-4 py-2.5 text-[12px] text-muted-foreground leading-5">
+        {showOrders
+          ? <><b className="text-foreground">订单＝平台监管 / 对账</b>：交易在会员买家↔卖家之间，平台只负责对账、佣金、争议介入，<b>不审核、不代为发货</b>（履约由卖家在其工作台推进）。</>
+          : <><b className="text-foreground">商品＝平台审核</b>：企业 / 个人商家上架须经平台核验资格、比价与品牌排他（价格擂台），通过后才在架。</>}
+      </div>
 
       {showReview ? (
         <div className="rounded-2xl border border-border bg-background overflow-hidden">
@@ -124,8 +133,8 @@ export default async function SuppliesAdmin({ searchParams }: { searchParams: Pr
       ) : (
         <div className="rounded-2xl border border-border bg-background overflow-hidden">
           <div className="px-5 py-3 border-b border-border text-[14px] font-semibold flex items-center justify-between">
-            <span className="inline-flex items-center gap-1.5"><ShoppingCart className="h-4 w-4" /> 企业采购单</span>
-            <Link href={base} className="text-[12px] text-brand font-normal">← 看商品</Link>
+            <span className="inline-flex items-center gap-1.5"><ShoppingCart className="h-4 w-4" /> 采购单 · 平台对账监管</span>
+            <Link href={base} className="text-[12px] text-brand font-normal">← 商品审核</Link>
           </div>
           {orders.length > 0 && (() => { const rec = reconcileAll(); return (
             <div className="px-5 py-2.5 border-b border-border bg-surface/50 flex items-center gap-x-5 gap-y-1 flex-wrap text-[12px]">
@@ -163,7 +172,7 @@ export default async function SuppliesAdmin({ searchParams }: { searchParams: Pr
               </ul>
             </>
           )}
-          <div className="px-5 py-3 text-[12px] text-muted-foreground border-t border-border">点击任一行进入详情页推进履约状态流转。</div>
+          <div className="px-5 py-3 text-[12px] text-muted-foreground border-t border-border">点击任一行查看对账、佣金与争议处置；订单履约（确认/发货/完成）由卖家在其工作台推进。</div>
         </div>
       )}
     </AssociationShell>
