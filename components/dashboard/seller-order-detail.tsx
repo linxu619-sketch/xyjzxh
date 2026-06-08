@@ -1,11 +1,13 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, Truck, Wallet } from "lucide-react";
+import { ArrowLeft, Truck, Wallet, Coins } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { resolveSeller } from "@/lib/dashboard/seller";
 import { getSupplyOrder, type OrderStatus } from "@/lib/data/supplies-source";
 import { listPaymentsByBiz } from "@/lib/data/payments-source";
 import { advanceSellerOrderAction, markOrderPaidAction } from "@/app/(dashboard)/dashboard/store-actions";
+import { startPaymentAction } from "@/app/(dashboard)/dashboard/pay/actions";
+import { enabledPayMethods } from "@/lib/payments";
 import { PrintBar } from "@/components/print/print-doc";
 import { SupplyOrderContract } from "@/components/print/supply-contract";
 
@@ -27,6 +29,8 @@ export async function SellerOrderDetail({ id }: { id: number }) {
   const selfHref = `${seller.base}/order/${o!.id}`;
   // 该单若走平台收银台已付，取佣金/应结明细（让卖家透明知道平台抽成）
   const paidPay = isSeller ? listPaymentsByBiz("supply_order", o!.id).find((p) => p.status === "paid") : undefined;
+  // 卖家可发起收银台收款（买家在线付，平台按佣金拆分）
+  const payMethods = isSeller && o!.settleStatus === "unpaid" ? await enabledPayMethods() : [];
 
   return (
     <>
@@ -49,6 +53,22 @@ export async function SellerOrderDetail({ id }: { id: number }) {
           )}
           {!isSeller && <span className="text-[12px] text-muted-foreground">· 买家视角为只读跟踪</span>}
         </div>
+        {isSeller && o!.settleStatus === "unpaid" && payMethods.length > 0 && (
+          <div className="mb-4 rounded-2xl border border-border bg-background p-4 max-w-xl">
+            <div className="text-[13px] font-semibold mb-1 inline-flex items-center gap-1.5"><Coins className="h-4 w-4 text-cat-build" /> 发起收款 · 收银台</div>
+            <p className="text-[12px] text-muted-foreground mb-3">应收 <b className="text-foreground">¥{o!.total.toLocaleString()}</b> · 选渠道生成收银台供买家在线付款（平台按商品佣金比例自动拆分，你到账即应结）。或直接「确认收款」走线下月结。</p>
+            <div className="flex flex-wrap gap-2">
+              {payMethods.map((m) => (
+                <form key={m.method} action={startPaymentAction}>
+                  <input type="hidden" name="bizType" value="supply_order" />
+                  <input type="hidden" name="bizId" value={o!.id} />
+                  <input type="hidden" name="method" value={m.method} />
+                  <button className="h-9 px-3.5 rounded-full border border-border text-[12px] inline-flex items-center gap-1 hover:bg-surface"><span>{m.icon}</span> {m.label}</button>
+                </form>
+              ))}
+            </div>
+          </div>
+        )}
         {isSeller && (
           <div className="mb-4 rounded-2xl border border-border bg-surface/50 p-3 text-[12px] text-muted-foreground leading-5 max-w-xl">
             履约（确认 / 发货 / 完成）与收款由你处理；平台负责对账、佣金与争议介入。

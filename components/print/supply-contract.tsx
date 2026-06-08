@@ -1,5 +1,6 @@
 import { SITE } from "@/lib/site";
 import type { SupplyOrder } from "@/lib/data/supplies-source";
+import { getEnterpriseBySlugOrId } from "@/lib/data/enterprises-source";
 
 /* ============================================================
    建材集采购销单（A4 打印，单页）
@@ -44,13 +45,25 @@ function amountCN(n: number): string {
 function Blank({ w = 90 }: { w?: number }) {
   return <span className="inline-block border-b border-black align-bottom mx-1" style={{ minWidth: `${w}px`, height: "1.05em" }}>&nbsp;</span>;
 }
+// 有值则印出，无值留下划线（合同字段优先从甲乙双方数据库自动调取）
+function Fill({ value, w = 90 }: { value?: string; w?: number }) {
+  return value ? <span className="font-medium">{value}</span> : <Blank w={w} />;
+}
 
-export function SupplyOrderContract({ order, org }: { order: SupplyOrder; org?: { name?: string; tel?: string; address?: string } }) {
+export async function SupplyOrderContract({ order, org }: { order: SupplyOrder; org?: { name?: string; tel?: string; address?: string } }) {
   const o = order;
   const docNo = `XYJZ-CG-${String(o.id).padStart(4, "0")}`;
   const assocName = org?.name || SITE.name;
+  const assocTel0 = org?.tel || SITE.tel;
   const isAssocSeller = o.sellerType === "association";
   const settleText = o.settleStatus === "paid" ? "已结清 / 付讫" : `账期月结 30 天 · 至 ${fmtDay(o.dueAt)}`;
+
+  // 自动调取甲乙双方联系信息（联系人无独立字段，留白手填）
+  const buyerEnt = o.buyerId ? await getEnterpriseBySlugOrId(o.buyerId) : undefined;
+  const sellerEnt = o.sellerType !== "association" && o.sellerId ? await getEnterpriseBySlugOrId(o.sellerId) : undefined;
+  const buyerTel = buyerEnt?.contact?.tel || "";
+  const buyerAddr = buyerEnt?.contact?.addr || buyerEnt?.district || "";
+  const sellerTel = isAssocSeller ? assocTel0 : (sellerEnt?.contact?.tel || "");
 
   const Cell = "border border-black px-2.5 py-1 align-top";
   const Th = "border border-black bg-[#f2f2f2] px-2.5 py-1 text-left font-medium align-top whitespace-nowrap";
@@ -94,9 +107,9 @@ export function SupplyOrderContract({ order, org }: { order: SupplyOrder; org?: 
             </tr>
             <tr>
               <th className={Th}>联系人 / 电话</th>
-              <td className={Cell}><Blank w={56} />/<Blank w={84} /></td>
+              <td className={Cell}><Blank w={56} />/<Fill value={buyerTel} w={84} /></td>
               <th className={Th}>联系人 / 电话</th>
-              <td className={Cell}><Blank w={56} />/<Blank w={84} /></td>
+              <td className={Cell}><Blank w={56} />/<Fill value={sellerTel} w={84} /></td>
             </tr>
           </tbody>
         </table>
@@ -127,11 +140,13 @@ export function SupplyOrderContract({ order, org }: { order: SupplyOrder; org?: 
         <table className="w-full border-collapse text-[12px] mt-1">
           <tbody>
             <tr>
-              <th className={`${Th} w-[88px]`}>交货期</th><td className={Cell}><Blank w={120} /></td>
-              <th className={`${Th} w-[88px]`}>付款方式</th><td className={Cell}>☐ 转账　☐ 承兑　☐ 现金　其他<Blank w={56} /></td>
+              <th className={`${Th} w-[88px]`}>交货期</th><td className={Cell} colSpan={3}><Blank w={140} />（如：现货当天 / 7 个工作日）</td>
             </tr>
             <tr>
-              <th className={Th}>交货地址</th><td className={Cell} colSpan={3}><Blank w={420} /></td>
+              <th className={Th}>付款方式</th><td className={Cell} colSpan={3}>☐ 支付宝　☐ 微信支付　☐ 银行转账(对公)　☐ 银行转账(对私)　☐ 承兑汇票　☐ 现金</td>
+            </tr>
+            <tr>
+              <th className={Th}>交货地址</th><td className={Cell} colSpan={3}><Fill value={buyerAddr} w={420} /></td>
             </tr>
             <tr>
               <th className={Th}>账期 / 结算</th><td className={Cell} colSpan={3}>{settleText}（具体付款节点由双方约定）</td>
