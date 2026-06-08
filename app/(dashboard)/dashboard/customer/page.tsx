@@ -16,15 +16,6 @@ import { CUSTOMER_TABS } from "@/lib/dashboard/nav";
 import { CustomerBottomNav } from "@/components/dashboard/customer-bottom-nav";
 import { ResignBanner } from "@/components/agreements/resign-banner";
 
-const DEMO_RESIGNS = [
-  {
-    templateId: "tpl-cust-privacy",
-    templateTitle: "用户隐私政策 v1.1.0",
-    reason: "version_changed" as const,
-    changelogPreview: "增加跨境传输章节 · AI 对话脱敏新方案",
-    daysLeft: 12,
-  },
-];
 
 const MED_STATUS: Record<string, string> = { pending: "待受理", accepted: "受理中", closed: "已结案", rejected: "已驳回" };
 
@@ -95,8 +86,8 @@ export default async function CustomerDashboard() {
       </div>
 
       <Container className="max-w-2xl -mt-16 relative space-y-3">
-        {/* 协议待重签横幅（PIPL · 优先级最高）*/}
-        <ResignBanner pending={DEMO_RESIGNS} href="/dashboard/resign" />
+        {/* 协议待重签横幅 —— 暂无真实「版本变更需重签」检测，无待重签时不显示（接入后传真实列表即可）*/}
+        <ResignBanner pending={[]} href="/dashboard/resign" />
 
         {/* 待办横幅（仅有进行中项目时）*/}
         {hasProject && pending > 0 && (

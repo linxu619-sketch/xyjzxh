@@ -2,25 +2,16 @@ import Link from "next/link";
 import { Download, ShieldCheck, ChevronRight, Clock, Eye, AlertCircle } from "lucide-react";
 import { PractitionerShell } from "@/components/dashboard/practitioner-shell";
 import { Badge } from "@/components/ui/badge";
-import { allAgreementsFor, getAgreementTemplate } from "@/lib/data/agreements-source";
-import { RevokeButton } from "@/components/agreements/revoke-button";
+import { allAgreementsFor, getAgreementTemplate, signaturesByUser } from "@/lib/data/agreements-source";
+import { getSession } from "@/lib/auth/session";
 
 export const metadata = { title: "我的协议 · 从业者门户" };
 
-export default function PractitionerAgreements() {
+export default async function PractitionerAgreements() {
+  const session = await getSession();
   const templates = allAgreementsFor("practitioner");
-  // 演示：所有必签认为已签 (P-2024-00284)
-  const sigsAll = templates.filter((t) => t.required).map((t, i) => ({
-    id: `SIG-DEMO-${i + 1}`,
-    templateId: t.id,
-    templateCode: t.code,
-    templateVersion: t.version,
-    contentHash: `sha256:${t.code.toLowerCase()}...`,
-    signedAt: "2024-08-12 10:38:42",
-    readSeconds: 65,
-    scrollCompletionPct: 100,
-    signingIp: "117.158.***.***",
-  }));
+  // 本人真实签署记录（agreement_signatures，按登录账号）
+  const sigsAll = session ? signaturesByUser("practitioner", session.uid) : [];
 
   return (
     <PractitionerShell
@@ -35,6 +26,11 @@ export default function PractitionerAgreements() {
       </div>
 
       <h2 className="text-[13px] font-semibold tracking-tight mb-2 px-1">已签协议</h2>
+      {sigsAll.length === 0 ? (
+        <div className="rounded-3xl border border-border bg-background p-6 text-center text-[13px] text-muted-foreground mb-6">
+          还没有已签协议。入会或在下方「可选授权」签署后，带哈希/时间戳的存证会出现在这里。
+        </div>
+      ) : (
       <div className="space-y-3 mb-6">
         {sigsAll.map((s) => {
           const t = getAgreementTemplate(s.templateId);
@@ -65,6 +61,7 @@ export default function PractitionerAgreements() {
           );
         })}
       </div>
+      )}
 
       {/* 可选未签 */}
       {templates.filter((t) => !t.required).length > 0 && (
