@@ -1,10 +1,12 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, Truck } from "lucide-react";
+import { ArrowLeft, Truck, Coins } from "lucide-react";
 import { AssociationShell } from "@/components/dashboard/shell";
 import { Badge } from "@/components/ui/badge";
 import { getSupplyOrder, isOverdue, SUPPLY_TERM_DAYS, type OrderStatus } from "@/lib/data/supplies-source";
 import { advanceOrderAction } from "../../actions";
+import { startPaymentAction } from "@/app/(dashboard)/dashboard/pay/actions";
+import { PAY_METHODS } from "@/lib/payments";
 import { PrintBar, Letterhead, DocTable, SealFooter } from "@/components/print/print-doc";
 import { getPlatformInfo } from "@/lib/runtime-config";
 
@@ -46,6 +48,26 @@ export default async function SupplyOrderDetail({ params }: { params: Promise<{ 
             </form>
           ) : <span className="text-[12px] text-muted-foreground">订单已完成。</span>}
         </div>
+
+        {o!.settleStatus !== "paid" ? (
+          <div className="mb-4 rounded-2xl border border-border bg-background p-4 max-w-xl">
+            <div className="text-[13px] font-semibold mb-1 inline-flex items-center gap-1.5"><Coins className="h-4 w-4 text-cat-build" /> 发起收款 · 收银台</div>
+            <p className="text-[12px] text-muted-foreground mb-3">应收 <b className="text-foreground">¥{o!.total.toLocaleString()}</b> · 选择渠道生成收银台（佣金按商品比例自动拆分）。</p>
+            <div className="flex flex-wrap gap-2">
+              {PAY_METHODS.map((m) => (
+                <form key={m.method} action={startPaymentAction}>
+                  <input type="hidden" name="bizType" value="supply_order" />
+                  <input type="hidden" name="bizId" value={o!.id} />
+                  <input type="hidden" name="method" value={m.method} />
+                  <button className="h-9 px-3.5 rounded-full border border-border text-[12px] inline-flex items-center gap-1 hover:bg-surface"><span>{m.icon}</span> {m.label}</button>
+                </form>
+              ))}
+            </div>
+          </div>
+        ) : (
+          <div className="mb-4 rounded-2xl border border-accent-tea/30 bg-[#e6f7f1] text-accent-tea p-3 text-[13px] max-w-xl inline-flex items-center gap-2"><Coins className="h-4 w-4" /> 该采购单已结清。</div>
+        )}
+
         <PrintBar hint="下方为 A4 建材集采采购单 / 结算单，可直接打印或「另存为 PDF」对账存档。" />
       </div>
 

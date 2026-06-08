@@ -540,6 +540,27 @@ CREATE TABLE IF NOT EXISTS supply_cart (
 );
 CREATE INDEX IF NOT EXISTS idx_cart_buyer ON supply_cart(buyer_type, buyer_id);
 
+-- 资金交易/支付（统一支付单；渠道：支付宝/微信/银行对公/银行对私。框架先行，真实渠道密钥后接）
+CREATE TABLE IF NOT EXISTS payments (
+  id            INTEGER PRIMARY KEY AUTOINCREMENT,
+  out_trade_no  TEXT,                    -- 商户订单号(唯一)
+  biz_type      TEXT,                    -- supply_order | construction_order | ...（可扩展）
+  biz_id        INTEGER,                 -- 关联业务单 id
+  method        TEXT,                    -- alipay | wechat | bank_corp | bank_personal
+  amount        INTEGER,                 -- 金额(元)
+  commission    INTEGER DEFAULT 0,       -- 平台佣金(元)
+  payee_amount  INTEGER DEFAULT 0,       -- 卖家应结(元) = amount - commission
+  status        TEXT DEFAULT 'pending',  -- pending | paid | failed | refunded | closed
+  channel_ref   TEXT,                    -- 渠道流水号(支付/回调写入)
+  payer_name    TEXT,
+  payee_name    TEXT,
+  subject       TEXT,
+  created_at    INTEGER,
+  paid_at       INTEGER
+);
+CREATE INDEX IF NOT EXISTS idx_pay_outno ON payments(out_trade_no);
+CREATE INDEX IF NOT EXISTS idx_pay_biz ON payments(biz_type, biz_id);
+
 CREATE INDEX IF NOT EXISTS idx_sorder_ent ON supply_orders(enterprise_id, created_at);
 CREATE INDEX IF NOT EXISTS idx_sorder_buyer ON supply_orders(buyer_type, buyer_id, created_at);
 CREATE INDEX IF NOT EXISTS idx_sorder_seller ON supply_orders(seller_type, seller_id, created_at);
