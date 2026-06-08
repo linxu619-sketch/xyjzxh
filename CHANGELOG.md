@@ -14,6 +14,15 @@
 
 ---
 
+## [0.123.0] - 2026-06-08
+
+### 建材超市：商品信息扩展(1688 式) + 平台佣金
+商品详情原字段偏少、可操作内容少。参考 1688 扩展：
+- **数据层**：supply_products 新增 description(图文详情)、params(规格参数表 JSON)、origin(产地)、lead_time(货期)、shipping(物流运费)、after_sale(售后)、stock(库存)、commission_pct(平台佣金)。SupplyProduct 类型 + createListing/updateProductDetail/setCommission 配套。
+- **卖家上架**(listing-form)：企业/个人卖家可填产地/货期/物流/售后/库存/图文详情 + 动态「规格参数表」(可加删行)。
+- **平台后台商品详情**(association/supplies/product)：① 平台佣金设置 0%-2%(带成交分成示例)；② 完整商品详情编辑器(图文/参数/产地/货期/物流/售后/库存)，平台可补充修订；并完整展示富字段。
+- **公开商品详情**(supplies/[id])：买家可见规格参数表、图文详情、产地/货期/物流/售后/库存。
+
 ## [0.122.3] - 2026-06-08
 
 ### 施工进度闭环：企业侧验证 + 客户电话提示

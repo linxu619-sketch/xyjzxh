@@ -11,12 +11,17 @@ export type ReasonType = "agent" | "self" | "direct"; // 独家代理 | 自产�
 export type OrderStatus = "pending" | "confirmed" | "shipped" | "done";
 
 export type PriceTier = { minQty: number; price: number };
+export type ProductParam = { k: string; v: string }; // 规格参数表的一行
 export type SupplyProduct = {
   id: number; name: string; category: string; unit: string; spec: string; supplier: string;
   brand: string; sellerType: SellerType; sellerId: string; sellerName: string;
   reasonType: ReasonType; reasonNote: string; proofUrl: string; moq: number;
   imageUrl: string; images: string[]; priceTiers: PriceTier[];
-  marketPrice: number; memberPrice: number; status: ProductStatus; rejectReason: string; createdAt: number;
+  marketPrice: number; memberPrice: number;
+  // 1688 式详情扩展
+  description: string; params: ProductParam[]; origin: string; leadTime: string; shipping: string; afterSale: string; stock: number;
+  commissionPct: number; // 平台佣金 0-2(%)
+  status: ProductStatus; rejectReason: string; createdAt: number;
 };
 export type SettleStatus = "unpaid" | "paid";
 export type SupplyOrder = {
@@ -37,7 +42,9 @@ type PRow = {
   id: number; name: string | null; category: string | null; unit: string | null; spec: string | null; supplier: string | null;
   brand: string | null; seller_type: string | null; seller_id: string | null; seller_name: string | null;
   reason_type: string | null; reason_note: string | null; proof_url: string | null; moq: number | null; image_url: string | null; price_tiers: string | null;
-  market_price: number | null; member_price: number | null; status: string; reject_reason: string | null; created_at: number | null;
+  market_price: number | null; member_price: number | null;
+  description: string | null; params: string | null; origin: string | null; lead_time: string | null; shipping: string | null; after_sale: string | null; stock: number | null; commission_pct: number | null;
+  status: string; reject_reason: string | null; created_at: number | null;
 };
 
 // image_url 存 1-3 张图：优先按 JSON 数组解析，兼容旧的单条 URL
@@ -51,6 +58,15 @@ function parseImages(s: string | null): string[] {
     } catch { /* fallthrough */ }
   }
   return t ? [t] : [];
+}
+function parseParams(s: string | null): ProductParam[] {
+  if (!s) return [];
+  try {
+    const arr = JSON.parse(s) as ProductParam[];
+    if (!Array.isArray(arr)) return [];
+    return arr.filter((p) => p && typeof p.k === "string" && typeof p.v === "string" && p.k.trim() && p.v.trim())
+      .map((p) => ({ k: p.k.trim(), v: p.v.trim() })).slice(0, 30);
+  } catch { return []; }
 }
 function parseTiers(s: string | null): PriceTier[] {
   if (!s) return [];
@@ -82,7 +98,10 @@ function toP(r: PRow): SupplyProduct {
     brand: r.brand ?? "", sellerType: (r.seller_type as SellerType) ?? "association", sellerId: r.seller_id ?? "", sellerName: r.seller_name ?? "",
     reasonType: (r.reason_type as ReasonType) ?? "direct", reasonNote: r.reason_note ?? "", proofUrl: r.proof_url ?? "", moq: r.moq ?? 1,
     imageUrl: parseImages(r.image_url)[0] ?? "", images: parseImages(r.image_url), priceTiers: parseTiers(r.price_tiers),
-    marketPrice: r.market_price ?? 0, memberPrice: r.member_price ?? 0, status: (r.status as ProductStatus) ?? "active", rejectReason: r.reject_reason ?? "", createdAt: r.created_at ?? 0,
+    marketPrice: r.market_price ?? 0, memberPrice: r.member_price ?? 0,
+    description: r.description ?? "", params: parseParams(r.params), origin: r.origin ?? "", leadTime: r.lead_time ?? "",
+    shipping: r.shipping ?? "", afterSale: r.after_sale ?? "", stock: r.stock ?? 0, commissionPct: r.commission_pct ?? 0,
+    status: (r.status as ProductStatus) ?? "active", rejectReason: r.reject_reason ?? "", createdAt: r.created_at ?? 0,
   };
 }
 function toO(r: ORow): SupplyOrder {
@@ -121,21 +140,49 @@ export type ListingInput = {
   name: string; brand: string; category: string; unit: string; spec?: string;
   reasonType: ReasonType; reasonNote?: string; proofUrl?: string;
   moq?: number; images?: string[]; priceTiers?: PriceTier[]; marketPrice: number; memberPrice: number;
+  // 1688 式详情
+  description?: string; params?: ProductParam[]; origin?: string; leadTime?: string; shipping?: string; afterSale?: string; stock?: number;
 };
+function cleanParams(arr?: ProductParam[]): string | null {
+  const list = (arr ?? []).filter((p) => p && p.k?.trim() && p.v?.trim()).map((p) => ({ k: p.k.trim(), v: p.v.trim() })).slice(0, 30);
+  return list.length ? JSON.stringify(list) : null;
+}
 // 会员提交上架 → 进入待审核（pending）
 export function createListing(input: ListingInput): number {
   const tiers = (input.priceTiers ?? []).filter((t) => t.minQty > 0 && t.price > 0);
   const info = getDb().prepare(
     `INSERT INTO supply_products
-       (name,category,unit,spec,supplier,brand,seller_type,seller_id,seller_name,reason_type,reason_note,proof_url,moq,image_url,price_tiers,market_price,member_price,status,created_at)
-     VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?, 'pending', ?)`,
+       (name,category,unit,spec,supplier,brand,seller_type,seller_id,seller_name,reason_type,reason_note,proof_url,moq,image_url,price_tiers,market_price,member_price,description,params,origin,lead_time,shipping,after_sale,stock,status,created_at)
+     VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?, 'pending', ?)`,
   ).run(
     input.name, input.category, input.unit, input.spec ?? "", input.brand, input.brand,
     input.sellerType, input.sellerId, input.sellerName,
     input.reasonType, input.reasonNote ?? "", input.proofUrl ?? "",
-    input.moq ?? 1, (input.images && input.images.length ? JSON.stringify(input.images.slice(0, 3)) : ""), tiers.length ? JSON.stringify(tiers) : null, input.marketPrice, input.memberPrice, Date.now(),
+    input.moq ?? 1, (input.images && input.images.length ? JSON.stringify(input.images.slice(0, 3)) : ""), tiers.length ? JSON.stringify(tiers) : null, input.marketPrice, input.memberPrice,
+    input.description ?? "", cleanParams(input.params), input.origin ?? "", input.leadTime ?? "", input.shipping ?? "", input.afterSale ?? "", Math.max(0, input.stock ?? 0),
+    Date.now(),
   );
   return Number(info.lastInsertRowid);
+}
+// 平台后台：设置该商品佣金（0-2%）
+export function setCommission(id: number, pct: number) {
+  const v = Math.min(2, Math.max(0, Number(pct) || 0));
+  getDb().prepare("UPDATE supply_products SET commission_pct=? WHERE id=?").run(v, id);
+}
+// 卖家/平台编辑商品详情（1688 式字段）
+export function updateProductDetail(id: number, f: {
+  description?: string; params?: ProductParam[]; origin?: string; leadTime?: string; shipping?: string; afterSale?: string; stock?: number;
+}) {
+  const p = getProduct(id);
+  if (!p) return;
+  getDb().prepare(
+    "UPDATE supply_products SET description=?, params=?, origin=?, lead_time=?, shipping=?, after_sale=?, stock=? WHERE id=?",
+  ).run(
+    f.description ?? p.description,
+    f.params !== undefined ? cleanParams(f.params) : cleanParams(p.params),
+    f.origin ?? p.origin, f.leadTime ?? p.leadTime, f.shipping ?? p.shipping, f.afterSale ?? p.afterSale,
+    Math.max(0, f.stock ?? p.stock), id,
+  );
 }
 // 某会员的全部上架（含各状态）
 export function listBySeller(sellerType: SellerType, sellerId: string): SupplyProduct[] {

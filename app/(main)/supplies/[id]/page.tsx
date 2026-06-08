@@ -164,8 +164,36 @@ export default async function ProductDetail({ params, searchParams }: { params: 
             {p.spec && <Row k="规格" v={p.spec} />}
             <Row k="单位 / 起批量" v={`${p.unit} · ${p.moq}${p.unit} 起`} />
             <Row k="类别" v={p.category} />
+            {p.origin && <Row k="产地" v={p.origin} />}
+            <Row k="库存" v={p.stock > 0 ? `${p.stock}${p.unit}` : "现货 / 可备货"} />
+            {p.leadTime && <Row k="货期 / 交期" v={p.leadTime} />}
+            {p.shipping && <Row k="物流 / 运费" v={p.shipping} />}
+            {p.afterSale && <Row k="售后服务" v={p.afterSale} />}
             {p.proofUrl && <Row k="资格证明" v={<a href={p.proofUrl} target="_blank" rel="noreferrer" className="text-brand">查看 →</a>} />}
           </div>
+
+          {/* 规格参数表 */}
+          {p.params.length > 0 && (
+            <>
+              <h3 className="mt-8 mb-3 text-[16px] font-semibold">规格参数</h3>
+              <div className="rounded-2xl border border-border overflow-hidden">
+                {p.params.map((pm, i) => (
+                  <div key={i} className={cn("grid grid-cols-3 text-[13px]", i % 2 ? "bg-surface/50" : "bg-background")}>
+                    <span className="px-4 py-2.5 text-muted-foreground border-r border-border">{pm.k}</span>
+                    <span className="px-4 py-2.5 col-span-2 font-medium">{pm.v}</span>
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
+
+          {/* 图文详情 */}
+          {p.description && (
+            <>
+              <h3 className="mt-8 mb-3 text-[16px] font-semibold">图文详情</h3>
+              <p className="text-[13px] leading-7 text-foreground/90 whitespace-pre-wrap">{p.description}</p>
+            </>
+          )}
 
           <h3 className="mt-8 mb-3 text-[16px] font-semibold">集采规则 · 质保</h3>
           <ul className="space-y-1.5 text-[13px] text-muted-foreground">

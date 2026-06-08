@@ -53,6 +53,11 @@ export async function createListingAction(fd: FormData) {
     { minQty: Number(fd.get("tier2Qty") || 0) || 0, price: Number(fd.get("tier2Price") || 0) || 0 },
   ].filter((t) => t.minQty > 0 && t.price > 0 && t.price < member);
 
+  // 1688 式详情：规格参数表（paramK[]/paramV[] 平行数组）
+  const pks = fd.getAll("paramK").map((x) => String(x));
+  const pvs = fd.getAll("paramV").map((x) => String(x));
+  const params = pks.map((k, i) => ({ k, v: pvs[i] ?? "" })).filter((p) => p.k.trim() && p.v.trim());
+
   createListing({
     sellerType: seller.type, sellerId: seller.id, sellerName: seller.name,
     name, brand,
@@ -68,6 +73,13 @@ export async function createListingAction(fd: FormData) {
     priceTiers: tiers,
     marketPrice: Number(fd.get("marketPrice") || 0) || 0,
     memberPrice: member,
+    description: String(fd.get("description") || "").trim(),
+    params,
+    origin: String(fd.get("origin") || "").trim(),
+    leadTime: String(fd.get("leadTime") || "").trim(),
+    shipping: String(fd.get("shipping") || "").trim(),
+    afterSale: String(fd.get("afterSale") || "").trim(),
+    stock: Math.max(0, Number(fd.get("stock") || 0) || 0),
   });
   revalidatePath(seller.base);
   revalidatePath("/dashboard/association/supplies");

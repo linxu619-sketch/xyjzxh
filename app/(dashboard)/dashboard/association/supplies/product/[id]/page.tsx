@@ -1,19 +1,21 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, Package, CheckCircle2, TrendingDown, ShieldCheck, Swords, AlertTriangle, Power } from "lucide-react";
+import { ArrowLeft, Package, CheckCircle2, TrendingDown, ShieldCheck, Swords, AlertTriangle, Power, Coins, FileText } from "lucide-react";
 import { AssociationShell } from "@/components/dashboard/shell";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/cn";
 import { getProduct, brandActiveHolder, type ReasonType } from "@/lib/data/supplies-source";
-import { setProductStatusAction, approveListingAction, rejectListingAction, replaceListingAction } from "../../actions";
+import { setProductStatusAction, approveListingAction, rejectListingAction, replaceListingAction, setCommissionAction } from "../../actions";
+import { ProductDetailEditor } from "./ProductDetailEditor";
 
 export const metadata = { title: "商品详情 · 建材集采" };
 
 const REASON_LABEL: Record<ReasonType, string> = { agent: "独家代理", self: "自产自销", direct: "厂家直供" };
 const SELLER_LABEL: Record<string, string> = { association: "协会自营", enterprise: "企业会员", practitioner: "个人会员" };
 
-export default async function SupplyProductDetail({ params }: { params: Promise<{ id: string }> }) {
+export default async function SupplyProductDetail({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ cok?: string; dok?: string }> }) {
   const { id: idStr } = await params;
+  const { cok, dok } = await searchParams;
   const id = Number(idStr);
   const p = id ? getProduct(id) : undefined;
   if (!p) notFound();
@@ -50,6 +52,14 @@ export default async function SupplyProductDetail({ params }: { params: Promise<
         <dl className="mt-5 space-y-3 text-[13px]">
           <Row k="会员批发价" v={<span><b className="text-cat-decor text-[15px]">¥{p!.memberPrice}</b><span className="line-through ml-1.5 text-[11px] text-muted-foreground">¥{p!.marketPrice}</span>/{p!.unit}{off > 0 && <span className="text-accent-tea ml-2 inline-flex items-center gap-0.5"><TrendingDown className="h-3 w-3" />省{off}%</span>}</span>} />
           {p!.priceTiers.length > 0 && <Row k="阶梯量价" v={p!.priceTiers.map((t) => `满${t.minQty}${p!.unit}→¥${t.price}`).join(" · ")} />}
+          <Row k="平台佣金" v={<span className="font-semibold text-cat-build">{p!.commissionPct.toFixed(2)}%</span>} />
+          <Row k="库存" v={p!.stock > 0 ? `${p!.stock}${p!.unit}` : "现货 / 不限"} />
+          {p!.origin && <Row k="产地" v={p!.origin} />}
+          {p!.leadTime && <Row k="货期 / 交期" v={p!.leadTime} />}
+          {p!.shipping && <Row k="物流 / 运费" v={p!.shipping} />}
+          {p!.afterSale && <Row k="售后服务" v={p!.afterSale} />}
+          {p!.params.length > 0 && <Row k="规格参数" v={<div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1">{p!.params.map((pm, i) => <span key={i} className="text-[12px]"><span className="text-muted-foreground">{pm.k}：</span>{pm.v}</span>)}</div>} />}
+          {p!.description && <Row k="图文详情" v={<span className="whitespace-pre-wrap text-[12px] leading-5">{p!.description}</span>} />}
           {p!.reasonNote && <Row k="资格说明" v={p!.reasonNote} />}
           {p!.proofUrl && <Row k="资格证明" v={<a href={p!.proofUrl} target="_blank" rel="noreferrer" className="text-brand">查看证明 →</a>} />}
           {p!.status === "rejected" && p!.rejectReason && <Row k="驳回原因" v={<span className="text-cat-decor">{p!.rejectReason}</span>} />}
@@ -119,6 +129,30 @@ export default async function SupplyProductDetail({ params }: { params: Promise<
             <p className="text-[12px] text-muted-foreground">该商品已驳回，会员可修改后重新提交。</p>
           )}
         </div>
+      </div>
+
+      {(cok || dok) && <div className="mt-4 max-w-2xl rounded-2xl border border-accent-tea/30 bg-[#e6f7f1] text-accent-tea p-3 text-[13px]">{cok ? "平台佣金已更新。" : "商品详情已保存。"}</div>}
+
+      {/* 平台佣金设置（0-2%） */}
+      <div className="mt-4 rounded-2xl border border-border bg-background p-5 md:p-6 max-w-2xl">
+        <div className="text-[14px] font-semibold mb-1 inline-flex items-center gap-1.5"><Coins className="h-4 w-4 text-cat-build" /> 平台佣金</div>
+        <p className="text-[12px] text-muted-foreground mb-3">按成交额向平台抽取的佣金比例，范围 0%–2%。当前 <b className="text-foreground">{p!.commissionPct.toFixed(2)}%</b>。</p>
+        <form action={setCommissionAction} className="flex items-center gap-2 flex-wrap">
+          <input type="hidden" name="id" value={p!.id} />
+          <div className="inline-flex items-center gap-1.5">
+            <input name="commissionPct" type="number" min="0" max="2" step="0.05" defaultValue={p!.commissionPct} className="h-10 w-24 rounded-xl border border-border bg-background px-3 text-[14px] outline-none focus:border-foreground/30" />
+            <span className="text-[13px] text-muted-foreground">%</span>
+          </div>
+          <button className="h-10 px-5 rounded-full bg-cat-build text-white text-[13px] font-medium">保存佣金</button>
+          <span className="text-[11px] text-muted-foreground">示例：成交 ¥{(p!.memberPrice * p!.moq).toLocaleString()} → 平台得 ¥{((p!.memberPrice * p!.moq) * p!.commissionPct / 100).toFixed(2)}</span>
+        </form>
+      </div>
+
+      {/* 商品详情编辑（1688 式：图文/参数/产地/货期/物流/售后/库存） */}
+      <div className="mt-4 rounded-2xl border border-border bg-background p-5 md:p-6 max-w-2xl">
+        <div className="text-[14px] font-semibold mb-1 inline-flex items-center gap-1.5"><FileText className="h-4 w-4 text-cat-design" /> 商品详情（买家详情页展示）</div>
+        <p className="text-[12px] text-muted-foreground mb-4">完善图文详情与规格参数，买家更易下单；卖家上架时也可填写，平台可在此补充/修订。</p>
+        <ProductDetailEditor id={p!.id} description={p!.description} params={p!.params} origin={p!.origin} leadTime={p!.leadTime} shipping={p!.shipping} afterSale={p!.afterSale} stock={p!.stock} />
       </div>
     </AssociationShell>
   );

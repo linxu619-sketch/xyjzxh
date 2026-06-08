@@ -18,6 +18,8 @@ export function ListingForm({ disabled, disabledHint }: { disabled?: boolean; di
   const [uploading, setUploading] = useState(false);
   const [imgs, setImgs] = useState<string[]>([]);   // 商品图，最多 3 张
   const [uploadingImg, setUploadingImg] = useState(false);
+  const [params, setParams] = useState<{ k: string; v: string }[]>([{ k: "", v: "" }]); // 规格参数行
+  const setParam = (i: number, key: "k" | "v", val: string) => setParams(params.map((r, j) => (j === i ? { ...r, [key]: val } : r)));
 
   async function doUpload(file: File): Promise<string | null> {
     const fd = new FormData();
@@ -122,6 +124,30 @@ export function ListingForm({ disabled, disabledHint }: { disabled?: boolean; di
               </div>
             </div>
           </div>
+          <div className="pt-1 border-t border-border" />
+          <div className="text-[12px] font-semibold text-muted-foreground">商品详情（让买家更易下单 · 选填）</div>
+          <div className="grid grid-cols-2 gap-3">
+            <Field label="产地"><input name="origin" placeholder="如 广东佛山" className={INPUT} /></Field>
+            <Field label="库存（0=现货）"><input name="stock" inputMode="numeric" placeholder="0" className={INPUT} /></Field>
+            <Field label="货期 / 交期"><input name="leadTime" placeholder="现货 / 7天" className={INPUT} /></Field>
+            <Field label="物流 / 运费"><input name="shipping" placeholder="厂家包邮 / 到付" className={INPUT} /></Field>
+          </div>
+          <Field label="售后服务"><input name="afterSale" placeholder="7天无理由 · 质保2年" className={INPUT} /></Field>
+          <Field label="图文详情 / 卖点"><textarea name="description" rows={3} placeholder="材质、工艺、适用场景、核心卖点…" className="w-full rounded-xl border border-border bg-background p-3 text-[14px] leading-6 outline-none focus:border-foreground/30" /></Field>
+          <div>
+            <span className="text-[12px] font-medium">规格参数（选填）</span>
+            <div className="mt-1.5 space-y-2">
+              {params.map((r, i) => (
+                <div key={i} className="flex items-center gap-2">
+                  <input value={r.k} onChange={(e) => setParam(i, "k", e.target.value)} name="paramK" placeholder="参数名（如 材质）" className={`${INPUT} flex-1`} />
+                  <input value={r.v} onChange={(e) => setParam(i, "v", e.target.value)} name="paramV" placeholder="参数值（如 304不锈钢）" className={`${INPUT} flex-1`} />
+                  <button type="button" onClick={() => setParams(params.length > 1 ? params.filter((_, j) => j !== i) : [{ k: "", v: "" }])} className="h-9 w-9 rounded-lg text-muted-foreground hover:bg-surface inline-flex items-center justify-center shrink-0"><X className="h-4 w-4" /></button>
+                </div>
+              ))}
+            </div>
+            <button type="button" onClick={() => setParams([...params, { k: "", v: "" }])} className="mt-2 h-8 px-3 rounded-full border border-dashed border-border text-[12px] text-muted-foreground inline-flex items-center gap-1"><Plus className="h-3 w-3" /> 加一行参数</button>
+          </div>
+
           <div className="flex items-center gap-3 pt-1">
             <button type="submit" disabled={uploading} className="h-11 px-6 rounded-full bg-accent-tea text-white text-[14px] font-medium inline-flex items-center gap-1.5 disabled:opacity-50"><Plus className="h-4 w-4" /> 提交审核</button>
             <button type="button" onClick={() => setOpen(false)} className="h-11 px-4 rounded-full text-[13px] text-muted-foreground hover:text-foreground">取消</button>

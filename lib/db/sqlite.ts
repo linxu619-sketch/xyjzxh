@@ -492,6 +492,14 @@ CREATE TABLE IF NOT EXISTS supply_products (
   price_tiers   TEXT,                      -- 阶梯量价 JSON: [{minQty,price}] 买得越多单价越低
   market_price  INTEGER,
   member_price  INTEGER,
+  description    TEXT,                     -- 图文详情/卖点描述
+  params         TEXT,                     -- 规格参数 JSON: [{k,v}]
+  origin         TEXT,                     -- 产地
+  lead_time      TEXT,                     -- 货期/交期
+  shipping       TEXT,                     -- 物流/运费说明
+  after_sale     TEXT,                     -- 售后服务
+  stock          INTEGER DEFAULT 0,        -- 库存(0=现货/不限)
+  commission_pct REAL DEFAULT 0,           -- 平台佣金 0-2(%)，平台后台设置
   status        TEXT DEFAULT 'active',     -- pending(待审) | active(在架) | rejected(驳回) | off(下架)
   reject_reason TEXT,
   created_at    INTEGER
@@ -1199,6 +1207,15 @@ function migrate(db: DB) {
     "ALTER TABLE knowledge_articles ADD COLUMN source_name TEXT",
     // 个人会员简介（入会申请填写，通过后落到从业者档案）
     "ALTER TABLE practitioners ADD COLUMN bio TEXT",
+    // 建材超市商品详情扩展（1688 式：图文详情/规格参数/产地/货期/物流/售后/库存）+ 平台佣金
+    "ALTER TABLE supply_products ADD COLUMN description TEXT",
+    "ALTER TABLE supply_products ADD COLUMN params TEXT",          // 规格参数 JSON [{k,v}]
+    "ALTER TABLE supply_products ADD COLUMN origin TEXT",          // 产地
+    "ALTER TABLE supply_products ADD COLUMN lead_time TEXT",       // 货期/交期
+    "ALTER TABLE supply_products ADD COLUMN shipping TEXT",        // 物流/运费说明
+    "ALTER TABLE supply_products ADD COLUMN after_sale TEXT",      // 售后服务
+    "ALTER TABLE supply_products ADD COLUMN stock INTEGER DEFAULT 0", // 库存(0=现货/不限)
+    "ALTER TABLE supply_products ADD COLUMN commission_pct REAL DEFAULT 0", // 平台佣金 0-2(%)
   ];
   for (const sql of alters) {
     try { db.exec(sql); } catch { /* 列已存在，忽略 */ }

@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { getSession } from "@/lib/auth/session";
-import { createProduct, getProduct, setProductStatus, getSupplyOrder, setSupplyOrderStatus, approveListing, rejectListing, replaceListing, brandActiveHolder, type ProductStatus, type OrderStatus } from "@/lib/data/supplies-source";
+import { createProduct, getProduct, setProductStatus, getSupplyOrder, setSupplyOrderStatus, approveListing, rejectListing, replaceListing, brandActiveHolder, setCommission, updateProductDetail, type ProductStatus, type OrderStatus, type ProductParam } from "@/lib/data/supplies-source";
 
 async function requireAssoc() {
   const s = await getSession();
@@ -101,4 +101,38 @@ export async function advanceOrderAction(fd: FormData) {
   if (getSupplyOrder(id) && ["pending", "confirmed", "shipped", "done"].includes(status)) setSupplyOrderStatus(id, status);
   refresh();
   redirectTo(fd, "/dashboard/association/supplies?tab=orders");
+}
+
+// 平台后台：设置该商品佣金（0-2%）
+export async function setCommissionAction(fd: FormData) {
+  await requireAssoc();
+  const id = Number(fd.get("id") || 0);
+  const pct = Number(fd.get("commissionPct") || 0);
+  if (getProduct(id)) setCommission(id, pct);
+  const self = `/dashboard/association/supplies/product/${id}`;
+  revalidatePath(self);
+  redirect(`${self}?cok=1`);
+}
+
+// 平台/卖家：编辑商品 1688 式详情（图文/参数/产地/货期/物流/售后/库存）
+export async function updateProductDetailAction(fd: FormData) {
+  await requireAssoc();
+  const id = Number(fd.get("id") || 0);
+  if (!getProduct(id)) redirect("/dashboard/association/supplies");
+  // 参数表：paramK[] / paramV[] 平行数组
+  const ks = fd.getAll("paramK").map((x) => String(x));
+  const vs = fd.getAll("paramV").map((x) => String(x));
+  const params: ProductParam[] = ks.map((k, i) => ({ k, v: vs[i] ?? "" })).filter((p) => p.k.trim() && p.v.trim());
+  updateProductDetail(id, {
+    description: String(fd.get("description") || "").trim(),
+    params,
+    origin: String(fd.get("origin") || "").trim(),
+    leadTime: String(fd.get("leadTime") || "").trim(),
+    shipping: String(fd.get("shipping") || "").trim(),
+    afterSale: String(fd.get("afterSale") || "").trim(),
+    stock: Math.max(0, Number(fd.get("stock") || 0) || 0),
+  });
+  const self = `/dashboard/association/supplies/product/${id}`;
+  revalidatePath(self);
+  redirect(`${self}?dok=1`);
 }
