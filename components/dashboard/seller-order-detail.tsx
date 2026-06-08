@@ -4,6 +4,7 @@ import { ArrowLeft, Truck, Wallet } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { resolveSeller } from "@/lib/dashboard/seller";
 import { getSupplyOrder, isOverdue, SUPPLY_TERM_DAYS, type OrderStatus } from "@/lib/data/supplies-source";
+import { listPaymentsByBiz } from "@/lib/data/payments-source";
 import { advanceSellerOrderAction, markOrderPaidAction } from "@/app/(dashboard)/dashboard/store-actions";
 import { PrintBar, Letterhead, DocTable, SealFooter } from "@/components/print/print-doc";
 
@@ -28,6 +29,8 @@ export async function SellerOrderDetail({ id }: { id: number }) {
   const nx = O_NEXT[o!.status];
   const selfHref = `${seller.base}/order/${o!.id}`;
   const overdue = isOverdue(o!);
+  // 该单若走平台收银台已付，取佣金/应结明细（让卖家透明知道平台抽成）
+  const paidPay = isSeller ? listPaymentsByBiz("supply_order", o!.id).find((p) => p.status === "paid") : undefined;
   const docNo = `XYJZ-CG-${String(o!.id).padStart(4, "0")}`;
   const settleText = o!.settleStatus === "paid" ? "已结清" : overdue ? `逾期未结（账期至 ${fmtDay(o!.dueAt)}）` : `未结清 · 账期至 ${fmtDay(o!.dueAt)}（月结 ${SUPPLY_TERM_DAYS} 天）`;
 
@@ -52,6 +55,12 @@ export async function SellerOrderDetail({ id }: { id: number }) {
           )}
           {!isSeller && <span className="text-[12px] text-muted-foreground">· 买家视角为只读跟踪</span>}
         </div>
+        {isSeller && (
+          <div className="mb-4 rounded-2xl border border-border bg-surface/50 p-3 text-[12px] text-muted-foreground leading-5 max-w-xl">
+            履约（确认 / 发货 / 完成）与收款由你处理；平台负责对账、佣金与争议介入。
+            {paidPay && <span className="block mt-1 text-foreground">本单已通过平台收银台收款 ¥{paidPay.amount.toLocaleString()}：平台佣金 <b className="text-cat-build">¥{paidPay.commission.toLocaleString()}</b>，你应结 <b className="text-accent-tea">¥{paidPay.payeeAmount.toLocaleString()}</b>。</span>}
+          </div>
+        )}
         <PrintBar hint="下方为 A4 采购单 / 结算单，可直接打印或「另存为 PDF」对账存档。" />
       </div>
 
