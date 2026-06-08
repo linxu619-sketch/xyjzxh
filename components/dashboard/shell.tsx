@@ -5,6 +5,7 @@ import { TopBar } from "./widgets";
 import { AccountMenu } from "./account-menu";
 import { roleLabel, PERMISSIONS, type Permission } from "@/lib/auth/roles";
 import { getSession } from "@/lib/auth/session";
+import { SITE } from "@/lib/site";
 import { ASSOC_NAV, ENT_NAV } from "@/lib/dashboard/nav";
 import { countByStatus } from "@/lib/data/applications";
 import { listReports, listReportsByUid } from "@/lib/data/reports";
@@ -161,7 +162,23 @@ export async function EnterpriseShell({ title, subtitle, actions, children }: Sh
         <div className="md:hidden h-14" aria-hidden />
         <div className="px-5 md:px-10 pb-8 md:pb-10 pt-5 max-w-7xl">
           {preview && <PreviewBanner back="返回协会工作台" portal={`企业工作台预览 · ${ent?.name ?? ""}`} />}
-          <TopBar title={title} subtitle={subtitle} actions={actions} />
+          <TopBar
+            title={title}
+            subtitle={subtitle}
+            actions={actions}
+            tone="brand"
+            brandLabel="企业工作台"
+            brandHref={ent?.slug ? `/biz/${ent.slug}` : "/"}
+            brandSub={ent?.slug ? `${ent.slug}.${SITE.domain}` : undefined}
+            trailing={!preview && session ? (
+              <AccountMenu
+                name={session.name}
+                roleLabel="企业管理员"
+                phone={maskPhone(session.phone)}
+                settingsHref="/dashboard/enterprise/settings"
+              />
+            ) : undefined}
+          />
           {children}
         </div>
       </div>

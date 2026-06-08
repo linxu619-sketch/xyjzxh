@@ -46,7 +46,7 @@ export default async function LeadsPage({ searchParams }: { searchParams: Promis
     <EnterpriseShell
       title="客户线索"
       subtitle={`累计 ${total} 条 · 待跟进 ${pending} 条 · 已签单 ${signed} 条`}
-      actions={<button className="h-9 px-4 rounded-full bg-foreground text-background text-[13px] font-medium">导出 CSV</button>}
+      actions={<a href="/dashboard/enterprise/leads/export" className="h-9 px-4 rounded-full bg-foreground text-background text-[13px] font-medium inline-flex items-center">导出 CSV</a>}
     >
       <StatFilters
         items={[

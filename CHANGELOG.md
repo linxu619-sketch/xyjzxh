@@ -14,6 +14,13 @@
 
 ---
 
+## [0.120.0] - 2026-06-08
+
+### 企业端打磨（快赢三件）
+- **修报备口径**（`enterprise/projects`）：原报备按 `uid` 查(只看当前登录人)、KPI 与大表用全平台 mock(`PROJECTS`)。改为按企业名/简称汇总本企业全部报备（新增 `listReportsByEnterprise()`），KPI(待审/已通过/已驳回/累计)与列表全部读真实 `project_reports`，去掉误导的 mock 项目表。
+- **客户线索 CSV 导出**（`enterprise/leads`）：原「导出 CSV」按钮占位。新增 route `enterprise/leads/export`，按本企业(effectiveEnterpriseId)导出真实线索为 CSV(UTF-8 BOM，Excel 中文正常)，按钮改为下载链接。实测 200 + attachment。
+- **企业工作台顶栏对齐协会端**：`TopBar` 套色变体参数化(brandLabel/brandHref/brandSub)，`EnterpriseShell` 启用同款「白底 logo 顶栏 + 账号菜单」(品牌名「企业工作台」、链到子站、域名 `<slug>.域名`)，与协会工作台视觉统一；预览模式不显账号菜单。
+
 ## [0.119.3] - 2026-06-08
 
 ### 修复：总览「门面预览」业主门户首页跳转错 + 删冗余协会首页卡

@@ -88,6 +88,14 @@ export function listReportsByUid(uid: string): ProjectReport[] {
   return rows.map(rowTo);
 }
 
+// 按企业名/简称汇总本企业的全部报备（project_reports 无 enterprise_id，按报备时填写的企业名匹配，
+// 与口碑评价同款）。让企业 leader 看到本企业所有成员提交的报备，而非仅当前登录人。
+export function listReportsByEnterprise(names: string[]): ProjectReport[] {
+  const set = new Set(names.map((n) => n.trim()).filter(Boolean));
+  if (!set.size) return [];
+  return listReports().filter((r) => set.has((r.enterprise || "").trim()));
+}
+
 export function listReports(status?: ReportStatus): ProjectReport[] {
   const db = getDb();
   const rows = (status

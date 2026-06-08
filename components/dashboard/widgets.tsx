@@ -68,23 +68,23 @@ export function Panel({
   );
 }
 
-export function TopBar({ title, subtitle, actions, trailing, tone }: { title: string; subtitle?: string; actions?: React.ReactNode; trailing?: React.ReactNode; tone?: "brand" }) {
+export function TopBar({ title, subtitle, actions, trailing, tone, brandLabel = "协会工作台", brandHref = "/xh", brandSub }: { title: string; subtitle?: string; actions?: React.ReactNode; trailing?: React.ReactNode; tone?: "brand"; brandLabel?: string; brandHref?: string; brandSub?: string }) {
   // 工作台顶栏 —— 与主页顶栏同款：白底 + 左侧 logo + 右侧账号；页面标题置于其下。
+  // 协会 / 企业工作台共用，仅品牌名/链接/域名不同。
   if (tone === "brand") {
+    const sub = brandSub ?? `xh.${SITE.domain}`;
     return (
       <div>
         <div className="mb-5 flex h-14 items-center justify-between gap-3 border-b border-border">
-          <Link href="/xh" className="flex items-center gap-2.5 group shrink-0">
+          <Link href={brandHref} className="flex items-center gap-2.5 group shrink-0">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src="/brand/seal.png" alt="信阳市建筑装饰装修协会" className="h-8 w-8 object-contain shrink-0" />
             <div className="leading-tight">
               <div className="text-[14px] font-semibold tracking-tight">
                 {SITE.shortName}
-                <span className="ml-1 text-muted-foreground font-normal hidden sm:inline">协会工作台</span>
+                <span className="ml-1 text-muted-foreground font-normal hidden sm:inline">{brandLabel}</span>
               </div>
-              <div className="text-[9px] text-muted-foreground tracking-[0.18em] uppercase font-medium hidden sm:block">
-                {`xh.${SITE.domain}`}
-              </div>
+              {sub && <div className="text-[9px] text-muted-foreground tracking-[0.18em] uppercase font-medium hidden sm:block">{sub}</div>}
             </div>
           </Link>
           <div className="flex items-center gap-2 shrink-0">{actions}{trailing}</div>
