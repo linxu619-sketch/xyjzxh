@@ -693,14 +693,24 @@ function seedReviews(db: DB) {
   const rows: [string, string, string, number, string, string][] = [
     ["刘女士", "名家装饰", "金茂悦府 1602", 5, "项目经理特别负责，水电改造多次主动来工地，质量超预期。", "decor"],
     ["陈先生", "壹品装饰", "茶都商务 22F", 5, "设计师很懂年轻人审美，方案改了两版就定稿，施工严格按图。", "decor"],
-    ["孙先生", "华泰建工", "茶博园景观二期", 4, "整体满意，进度严格，唯独沟通群有时回得慢。", "build"],
+    ["孙先生", "信阳华泰建工", "茶博园景观二期", 4, "整体满意，进度严格，唯独沟通群有时回得慢。", "build"],
     ["周女士", "雅舍设计事务所", "御景湾别墅软装", 5, "软装搭配出乎意料，节奏感和留白处理得很到位。", "design"],
     ["王女士", "万家美装饰", "弦山街老房翻新", 4, "县域价格做出市区品质，性价比之选。", "decor"],
-    ["杨先生", "中恒建设", "申城大道商办", 5, "央企施工就是稳，安全文明施工到位。", "build"],
+    ["杨先生", "中恒建设集团信阳分公司", "申城大道商办", 5, "央企施工就是稳，安全文明施工到位。", "build"],
+    ["赵女士", "佳和苑装饰", "南湖一号 401", 5, "工长经验足，泥木阶段收口干净，验收一次通过。", "decor"],
+    ["郑先生", "远景空间设计", "未来城 3 期样板间", 4, "设计有想法，落地度高，预算控制得不错。", "design"],
+    ["黄女士", "名家装饰", "弦山雅居 88㎡", 5, "小户型做出大空间感，收纳设计很贴心。", "decor"],
+    ["吴先生", "壹品装饰", "建业森林半岛", 4, "整体不错，主材选购协会集采省了不少。", "decor"],
+    ["冯女士", "雅舍设计事务所", "信阳碧桂园别墅", 5, "设计与软装一体，呈现效果和方案高度一致。", "design"],
+    ["蒋先生", "信阳建宇建筑工程", "羊山中学改扩建", 5, "公建项目质量过硬，资料齐全，配合验收。", "build"],
+    ["韩女士", "万家美装饰", "潢川老街民宿", 4, "县域改造经验丰富，性价比高，沟通顺畅。", "decor"],
+    ["沈先生", "山水景观设计院", "浉河公园景观提升", 5, "景观方案大气，植物配置专业，落地完成度高。", "design"],
+    ["许女士", "佳和苑装饰", "金牛山别墅", 5, "全程留痕，每个阶段都有验收照片，放心。", "decor"],
+    ["朱先生", "同创建工集团", "工业园标准厂房", 4, "工期把控好，安全文明施工到位。", "build"],
   ];
   const stmt = db.prepare("INSERT INTO reviews (user,enterprise,project,rating,content,category,created_at) VALUES (?,?,?,?,?,?,?)");
   const now = Date.now();
-  rows.forEach((r, i) => stmt.run(r[0], r[1], r[2], r[3], r[4], r[5], now - i * DAY));
+  rows.forEach((r, i) => stmt.run(r[0], r[1], r[2], r[3], r[4], r[5], now - i * 12 * 3600000));
 }
 
 function seedApplications(db: DB) {
@@ -774,21 +784,31 @@ function seedMediations(db: DB) {
 
 function seedLeads(db: DB) {
   if (!isEmpty(db, "leads")) return;
-  // 演示线索归属 e002（名家装饰，演示登录默认绑定的企业）
-  type LR = { name: string; phone: string; type: string; style: string; area: string; budget: string; address: string; note: string; source: string; status: string };
+  // 多数归 e002（名家装饰，演示登录默认绑定）+ 部分分散到其它企业，保证各家线索页都有数据
+  type LR = { eid: string; name: string; phone: string; type: string; style: string; area: string; budget: string; address: string; note: string; source: string; status: string };
   const rows: LR[] = [
-    { name: "刘女士", phone: "13811110001", type: "家装 · 整装", style: "现代极简", area: "120", budget: "30", address: "浉河区金茂悦府", note: "三居室，想要开放式厨房，预算偏紧。", source: "子站表单", status: "surveying" },
-    { name: "陈先生", phone: "13811110002", type: "工装 · 办公", style: "不限", area: "320", budget: "60", address: "羊山新区茶都商务", note: "整层办公室翻新，含弱电。", source: "在线咨询", status: "contacting" },
-    { name: "王女士", phone: "13811110003", type: "家装 · 半包", style: "新中式", area: "98", budget: "20", address: "平桥区南湖一号", note: "老房翻新，主要改水电与厨卫。", source: "子站表单", status: "new" },
-    { name: "孙总", phone: "13811110004", type: "工装 · 商业", style: "不限", area: "1200", budget: "180", address: "羊山新区万象城", note: "餐饮空间，含厨房工程。", source: "AI 估价", status: "surveying" },
-    { name: "周女士", phone: "13811110005", type: "家装 · 整装", style: "原木", area: "85", budget: "16", address: "浉河区弦山街", note: "小户型，性价比优先。", source: "口碑评价", status: "signed" },
-    { name: "赵先生", phone: "13811110006", type: "家装 · 整装", style: "北欧", area: "140", budget: "28", address: "平桥区御景湾", note: "已选定其他公司。", source: "子站表单", status: "lost" },
+    { eid: "e002", name: "刘女士", phone: "13811110001", type: "家装 · 整装", style: "现代极简", area: "120", budget: "30", address: "浉河区金茂悦府", note: "三居室，想要开放式厨房，预算偏紧。", source: "子站表单", status: "surveying" },
+    { eid: "e002", name: "陈先生", phone: "13811110002", type: "工装 · 办公", style: "不限", area: "320", budget: "60", address: "羊山新区茶都商务", note: "整层办公室翻新，含弱电。", source: "在线咨询", status: "contacting" },
+    { eid: "e002", name: "王女士", phone: "13811110003", type: "家装 · 半包", style: "新中式", area: "98", budget: "20", address: "平桥区南湖一号", note: "老房翻新，主要改水电与厨卫。", source: "子站表单", status: "new" },
+    { eid: "e002", name: "孙总", phone: "13811110004", type: "工装 · 商业", style: "不限", area: "1200", budget: "180", address: "羊山新区万象城", note: "餐饮空间，含厨房工程。", source: "AI 估价", status: "surveying" },
+    { eid: "e002", name: "周女士", phone: "13811110005", type: "家装 · 整装", style: "原木", area: "85", budget: "16", address: "浉河区弦山街", note: "小户型，性价比优先。", source: "口碑评价", status: "signed" },
+    { eid: "e002", name: "赵先生", phone: "13811110006", type: "家装 · 整装", style: "北欧", area: "140", budget: "28", address: "平桥区御景湾", note: "已选定其他公司。", source: "子站表单", status: "lost" },
+    { eid: "e002", name: "钱女士", phone: "13811110007", type: "家装 · 整装", style: "奶油风", area: "110", budget: "26", address: "浉河区羊山一号", note: "婚房整装，急。", source: "在线咨询", status: "contacting" },
+    { eid: "e002", name: "冯先生", phone: "13811110008", type: "家装 · 局部", style: "不限", area: "60", budget: "8", address: "平桥区世纪城", note: "只做厨卫局改。", source: "子站表单", status: "new" },
+    { eid: "e001", name: "马总", phone: "13811110009", type: "工装 · 厂房", style: "不限", area: "3000", budget: "260", address: "上天梯产业园", note: "标准厂房装修，含消防。", source: "在线咨询", status: "surveying" },
+    { eid: "e001", name: "杨女士", phone: "13811110010", type: "工装 · 办公", style: "简约", area: "500", budget: "75", address: "羊山新区科技大厦", note: "办公室整装。", source: "子站表单", status: "contacting" },
+    { eid: "e003", name: "许先生", phone: "13811110011", type: "家装 · 设计", style: "新中式", area: "260", budget: "50", address: "浉河区碧桂园", note: "别墅设计 + 软装。", source: "AI 估价", status: "new" },
+    { eid: "e003", name: "邓女士", phone: "13811110012", type: "家装 · 设计", style: "现代", area: "140", budget: "20", address: "平桥区南湾首府", note: "需要全案设计。", source: "口碑评价", status: "surveying" },
+    { eid: "e005", name: "曹先生", phone: "13811110013", type: "家装 · 半包", style: "极简", area: "100", budget: "18", address: "息县新区", note: "县域项目。", source: "子站表单", status: "signed" },
+    { eid: "e006", name: "贾女士", phone: "13811110014", type: "工装 · 商业", style: "不限", area: "800", budget: "120", address: "羊山新区茶博城", note: "茶楼空间设计。", source: "在线咨询", status: "contacting" },
+    { eid: "e008", name: "范先生", phone: "13811110015", type: "家装 · 整装", style: "轻奢", area: "160", budget: "40", address: "浉河区建业森林半岛", note: "改善型四居。", source: "AI 估价", status: "new" },
+    { eid: "e010", name: "石女士", phone: "13811110016", type: "家装 · 整装", style: "原木", area: "90", budget: "15", address: "潢川县城关", note: "首套刚需。", source: "子站表单", status: "surveying" },
   ];
   const stmt = db.prepare(
-    "INSERT INTO leads (enterprise_id,name,phone,type,style,area,budget,address,note,source,status,created_at) VALUES ('e002',?,?,?,?,?,?,?,?,?,?,?)",
+    "INSERT INTO leads (enterprise_id,name,phone,type,style,area,budget,address,note,source,status,created_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)",
   );
   const now = Date.now();
-  rows.forEach((r, i) => stmt.run(r.name, r.phone, r.type, r.style, r.area, r.budget, r.address, r.note, r.source, r.status, now - i * 7200000));
+  rows.forEach((r, i) => stmt.run(r.eid, r.name, r.phone, r.type, r.style, r.area, r.budget, r.address, r.note, r.source, r.status, now - i * 7200000));
 }
 
 function seedCases(db: DB) {
@@ -879,6 +899,11 @@ function init(): DB {
   seedKnowledgeArticles(db);
   seedKnowledgeSources(db);
   seedAgreements(db);
+  seedSupplyOrders(db);          // 建材采购单（须在 seedPayments 之前）
+  seedPayments(db);              // 平台收银台成交 + 佣金
+  seedFinanceApplications(db);   // 金融申请
+  seedAiQuestions(db);           // AI 对话记录（统计）
+  seedTrainingEnrollments(db);   // 培训报名
   seedAssociationStaff(db);
   seedDemoCustomers(db);
   return db;
@@ -1070,6 +1095,121 @@ function seedInsuranceProducts(db: DB) {
   );
   const now = Date.now();
   rows.forEach((r, i) => stmt.run(r[0], r[1], r[2], r[3], r[4], r[5], r[6], r[7], JSON.stringify(r[8]), now - i * 3600000));
+}
+
+// 建材采购单（买家=会员，卖家多为协会集采，少量会员互卖）—— 用于「建材订单·对账」页
+function seedSupplyOrders(db: DB) {
+  if (!isEmpty(db, "supply_orders")) return;
+  const now = Date.now();
+  // [buyerName, buyerId, sellerType, sellerId, sellerName, productId, productName, unit, qty, unitPrice, status, settle, daysAgo]
+  const rows: [string, string, string, string, string, number, string, string, number, number, string, string, number][] = [
+    ["信阳华泰建工有限公司", "e001", "association", "assoc", "协会集采", 3, "伟星PPR给水管", "支(4m)", 360, 28, "done", "paid", 42],
+    ["名家装饰", "e002", "association", "assoc", "协会集采", 5, "圣象多层实木地板", "㎡", 280, 158, "shipped", "unpaid", 13],
+    ["雅舍设计事务所", "e003", "association", "assoc", "协会集采", 6, "蒙娜丽莎瓷砖", "㎡", 420, 95, "confirmed", "unpaid", 6],
+    ["中恒建设集团信阳分公司", "e004", "enterprise", "e001", "信阳华泰建工", 0, "海螺 PO42.5 散装水泥", "吨", 60, 420, "confirmed", "unpaid", 4],
+    ["佳和苑装饰", "e005", "association", "assoc", "协会集采", 1, "立邦多乐士内墙乳胶漆", "桶(18L)", 80, 285, "done", "paid", 30],
+    ["远景空间设计", "e006", "association", "assoc", "协会集采", 2, "东方雨虹防水涂料", "组(20kg)", 120, 178, "shipped", "unpaid", 9],
+    ["信阳建宇建筑工程", "e007", "association", "assoc", "协会集采", 4, "西门子开关插座", "个", 400, 18, "done", "paid", 25],
+    ["壹品装饰", "e008", "association", "assoc", "协会集采", 6, "蒙娜丽莎瓷砖", "㎡", 360, 95, "pending", "unpaid", 1],
+    ["山水景观设计院", "e009", "association", "assoc", "协会集采", 5, "圣象多层实木地板", "㎡", 520, 158, "shipped", "unpaid", 8],
+    ["万家美装饰", "e010", "association", "assoc", "协会集采", 3, "伟星PPR给水管", "支(4m)", 240, 28, "done", "paid", 35],
+    ["同创建工集团", "e011", "association", "assoc", "协会集采", 2, "东方雨虹防水涂料", "组(20kg)", 200, 178, "confirmed", "unpaid", 3],
+    ["蓝色空间软装", "e012", "association", "assoc", "协会集采", 1, "立邦多乐士内墙乳胶漆", "桶(18L)", 60, 285, "pending", "unpaid", 2],
+    ["名家装饰", "e002", "enterprise", "e003", "雅舍设计建材", 0, "定制护墙板", "㎡", 90, 320, "confirmed", "unpaid", 5],
+    ["佳和苑装饰", "e005", "association", "assoc", "协会集采", 4, "西门子开关插座", "个", 260, 18, "done", "paid", 18],
+  ];
+  const stmt = db.prepare(
+    "INSERT INTO supply_orders (enterprise_id,enterprise_name,buyer_type,buyer_id,buyer_name,seller_type,seller_id,seller_name,product_id,product_name,unit,qty,unit_price,total,status,settle_status,due_at,paid_at,created_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
+  );
+  for (const r of rows) {
+    const [buyerName, buyerId, sellerType, sellerId, sellerName, pid, pname, unit, qty, price, status, settle, daysAgo] = r;
+    const created = now - daysAgo * DAY;
+    const total = qty * price;
+    const due = created + 30 * DAY;
+    const paidAt = settle === "paid" ? created + 10 * DAY : 0;
+    stmt.run(buyerId, buyerName, "enterprise", buyerId, buyerName, sellerType, sellerId, sellerName, pid, pname, unit, qty, price, total, status, settle, due, paidAt, created);
+  }
+}
+
+// 平台收银台成交（含佣金拆分）—— 用于「平台资金」页
+function seedPayments(db: DB) {
+  if (!isEmpty(db, "payments")) return;
+  const now = Date.now();
+  // [bizId, amount, commissionPct, method, payer, payee, subject, status, daysAgo]
+  const rows: [number, number, number, string, string, string, string, string, number][] = [
+    [1, 10080, 1.0, "alipay", "信阳华泰建工有限公司", "协会集采", "伟星PPR给水管", "paid", 41],
+    [5, 22800, 1.5, "wechat", "佳和苑装饰", "协会集采", "立邦多乐士内墙乳胶漆", "paid", 29],
+    [7, 7200, 0.5, "bank_corp", "信阳建宇建筑工程", "协会集采", "西门子开关插座", "paid", 24],
+    [10, 6720, 1.0, "alipay", "万家美装饰", "协会集采", "伟星PPR给水管", "paid", 34],
+    [2, 44240, 1.0, "wechat", "名家装饰", "协会集采", "圣象多层实木地板", "pending", 13],
+  ];
+  const stmt = db.prepare(
+    "INSERT INTO payments (out_trade_no,biz_type,biz_id,method,amount,commission,payee_amount,status,payer_name,payee_name,subject,created_at,paid_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)",
+  );
+  rows.forEach((r, i) => {
+    const [bizId, amount, pct, method, payer, payee, subject, status, daysAgo] = r;
+    const created = now - daysAgo * DAY;
+    const commission = Math.round((amount * pct) / 100);
+    const paidAt = status === "paid" ? created + 3600000 : 0;
+    stmt.run(`PAY${created}${String(1000 + i)}`, "supply_order", bizId, method, amount, commission, amount - commission, status, payer, payee, subject, created, paidAt);
+  });
+}
+
+// 金融申请 —— 用于协会「金融保险」审批页
+function seedFinanceApplications(db: DB) {
+  if (!isEmpty(db, "finance_applications")) return;
+  const now = Date.now();
+  // [enterpriseName, productName, amount, status, daysAgo]
+  const rows: [string, string, string, string, number][] = [
+    ["信阳华泰建工有限公司", "建装贷", "300 万", "approved", 12],
+    ["中恒建设集团信阳分公司", "工程保函", "800 万", "disbursed", 20],
+    ["名家装饰", "装修分期", "30 万", "pending", 2],
+    ["同创建工集团", "工程款保理", "500 万", "pending", 1],
+    ["雅舍设计事务所", "建装贷", "120 万", "approved", 8],
+    ["佳和苑装饰", "施工设备分期", "200 万", "rejected", 15],
+    ["远景空间设计", "装修分期", "20 万", "pending", 3],
+    ["信阳建宇建筑工程", "工程保函", "1500 万", "approved", 6],
+    ["山水景观设计院", "工程款保理", "300 万", "disbursed", 22],
+    ["壹品装饰", "建装贷", "80 万", "pending", 1],
+  ];
+  const stmt = db.prepare("INSERT INTO finance_applications (enterprise_id,enterprise_name,product_id,product_name,amount,note,status,created_at) VALUES (?,?,?,?,?,?,?,?)");
+  rows.forEach((r, i) => stmt.run("e" + String(101 + i), r[0], 0, r[1], r[2], "协会会员融资申请", r[3], now - r[4] * DAY));
+}
+
+// AI 对话记录 —— 用于协会「AI 配置」与企业「AI 员工」统计页（按员工 key + 时间分布）
+function seedAiQuestions(db: DB) {
+  if (!isEmpty(db, "ai_questions")) return;
+  const now = Date.now();
+  const keys = ["advisor", "decor", "design", "fin", "ins", "report", "know", "hr", "mediate", "biz"];
+  const samples = [
+    "怎么申请入会？需要什么材料？", "会员有哪些权益？", "这个报价合理吗？", "100 平整装大概多少钱？",
+    "这个户型怎么改造？", "工装报备流程是什么？", "保函怎么申请？", "工伤险怎么投保？",
+    "纠纷怎么处理？", "哪里发布招工信息？", "建材集采怎么下单？", "企业子站怎么开通？",
+    "资质年检什么时候开始？", "培训在哪里报名？", "这个材料合规吗？",
+  ];
+  const stmt = db.prepare("INSERT INTO ai_questions (employee_key,question,created_at) VALUES (?,?,?)");
+  keys.forEach((k, ki) => {
+    const count = 8 + ((ki * 3) % 13); // 8..20
+    for (let i = 0; i < count; i++) {
+      const daysAgo = Math.floor((i / count) * 30); // 0..30（近期略多）
+      const ts = now - daysAgo * DAY - ((i * 7) % 20) * 3600000;
+      stmt.run(k, samples[(ki * 4 + i) % samples.length], ts);
+    }
+  });
+}
+
+// 培训报名 —— 用于协会「培训管理」报名数 + 从业者「培训」页
+function seedTrainingEnrollments(db: DB) {
+  if (!isEmpty(db, "training_enrollments")) return;
+  const now = Date.now();
+  const people: [string, string][] = [
+    ["张建国", "13700020001"], ["李红军", "13700020002"], ["王志强", "13700020003"], ["刘伟", "13700020004"],
+    ["陈志远", "13700020005"], ["赵敏", "13700020006"], ["孙立军", "13700020007"], ["周建华", "13700020008"],
+    ["吴磊", "13700020009"], ["郑国强", "13700020010"],
+  ];
+  const tids = [1, 1, 1, 2, 2, 3, 3, 4, 5, 5, 6, 7, 8, 9, 10];
+  const stmt = db.prepare("INSERT INTO training_enrollments (training_id,practitioner_phone,name,phone,created_at) VALUES (?,?,?,?,?)");
+  tids.forEach((tid, i) => { const [n, p] = people[i % people.length]; stmt.run(tid, p, n, p, now - i * DAY); });
 }
 
 function seedSupplyProducts(db: DB) {
