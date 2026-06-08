@@ -3,21 +3,17 @@ import Link from "next/link";
 import { ArrowLeft, Coins } from "lucide-react";
 import { AssociationShell } from "@/components/dashboard/shell";
 import { Badge } from "@/components/ui/badge";
-import { getSupplyOrder, isOverdue, SUPPLY_TERM_DAYS, type OrderStatus } from "@/lib/data/supplies-source";
+import { getSupplyOrder, type OrderStatus } from "@/lib/data/supplies-source";
 import { startPaymentAction } from "@/app/(dashboard)/dashboard/pay/actions";
 import { enabledPayMethods } from "@/lib/payments";
-import { PrintBar, Letterhead, DocTable, SealFooter } from "@/components/print/print-doc";
+import { PrintBar } from "@/components/print/print-doc";
+import { SupplyOrderContract } from "@/components/print/supply-contract";
 import { getPlatformInfo } from "@/lib/runtime-config";
 
 export const metadata = { title: "采购单 · 对账监管 · 建材集采" };
 
 const ORDER_LABEL: Record<OrderStatus, string> = { pending: "待确认", confirmed: "已确认", shipped: "已发货", done: "已完成" };
 const ORDER_TONE: Record<OrderStatus, "yellow" | "brand" | "build" | "tea"> = { pending: "yellow", confirmed: "brand", shipped: "build", done: "tea" };
-const SELLER_LABEL: Record<string, string> = { association: "协会自营", enterprise: "企业会员", practitioner: "个人会员" };
-
-function fmt(ms: number) { if (!ms) return "—"; const d = new Date(ms); const p = (n: number) => String(n).padStart(2, "0"); return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}`; }
-function fmtDay(ms: number) { if (!ms) return "—"; const d = new Date(ms); const p = (n: number) => String(n).padStart(2, "0"); return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`; }
-function fmtCN(ms: number) { if (!ms) return "—"; const d = new Date(ms); const p = (n: number) => String(n).padStart(2, "0"); return `${d.getFullYear()} 年 ${p(d.getMonth() + 1)} 月 ${p(d.getDate())} 日`; }
 
 export default async function SupplyOrderDetail({ params }: { params: Promise<{ id: string }> }) {
   const { id: idStr } = await params;
@@ -26,9 +22,6 @@ export default async function SupplyOrderDetail({ params }: { params: Promise<{ 
   if (!o) notFound();
   const org = await getPlatformInfo();
   const payMethods = o!.settleStatus !== "paid" ? await enabledPayMethods() : [];
-  const overdue = isOverdue(o!);
-  const docNo = `XYJZ-CG-${String(o!.id).padStart(4, "0")}`;
-  const settleText = o!.settleStatus === "paid" ? "已结清" : overdue ? `逾期未结（账期至 ${fmtDay(o!.dueAt)}）` : `未结清 · 账期至 ${fmtDay(o!.dueAt)}（月结 ${SUPPLY_TERM_DAYS} 天）`;
 
   return (
     <AssociationShell title="采购单 · 对账监管" subtitle={`${o!.buyerName || o!.enterpriseName} · ${o!.productName}`}>
@@ -58,31 +51,11 @@ export default async function SupplyOrderDetail({ params }: { params: Promise<{ 
           <div className="mb-4 rounded-2xl border border-accent-tea/30 bg-[#e6f7f1] text-accent-tea p-3 text-[13px] max-w-xl inline-flex items-center gap-2"><Coins className="h-4 w-4" /> 该采购单已结清。</div>
         )}
 
-        <PrintBar hint="下方为 A4 建材集采采购单 / 结算单，可直接打印或「另存为 PDF」对账存档。" />
+        <PrintBar hint="下方为 A4「建材集采购销单」，可直接打印或「另存为 PDF」存档。" />
       </div>
 
       <div className="print-area">
-        <div className="a4-sheet">
-          <Letterhead title="建材集采采购单 / 结算单" docNo={docNo} date={fmtCN(o!.createdAt)} org={org} />
-          <DocTable
-            rows={[
-              { k: "采购单号", v: docNo },
-              { k: "买方", v: o!.buyerName || o!.enterpriseName },
-              { k: "卖方", v: `${SELLER_LABEL[o!.sellerType] ?? o!.sellerType} · ${o!.sellerName}` },
-              { k: "商品名称", v: o!.productName },
-              { k: "单价 / 数量", v: `¥${o!.unitPrice} / ${o!.unit} × ${o!.qty}${o!.unit}` },
-              { k: "金额合计", v: <b className="text-[15px]">¥{o!.total.toLocaleString()}</b> },
-              { k: "履约状态", v: ORDER_LABEL[o!.status] },
-              { k: "结算状态", v: settleText },
-              { k: "下单时间", v: fmt(o!.createdAt) },
-            ]}
-          />
-          <div className="mt-6 grid grid-cols-2 gap-x-10 text-[13px]">
-            <div>应付金额：<b>¥{o!.total.toLocaleString()}</b></div>
-            <div>{o!.settleStatus === "paid" ? "已收 / 付讫" : `账期至：${fmtDay(o!.dueAt)}`}</div>
-          </div>
-          <SealFooter lines={[{ label: "买方（签字 / 盖章）" }, { label: "卖方（签字 / 盖章）" }, { label: "经办人（签字）" }, { label: "协会集采（盖章）" }]} />
-        </div>
+        <SupplyOrderContract order={o!} org={org} />
       </div>
     </AssociationShell>
   );
