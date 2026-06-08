@@ -1,4 +1,4 @@
-import { Save, Building2, KeyRound, Bell, Trash2, CreditCard } from "lucide-react";
+import { Building2, KeyRound, Bell, Trash2, CreditCard, CheckCircle2, AlertCircle } from "lucide-react";
 import { EnterpriseShell } from "@/components/dashboard/shell";
 import { SettingsCard, FormRow, Toggle, Input, Textarea } from "@/components/dashboard/section";
 import { Badge } from "@/components/ui/badge";
@@ -6,10 +6,12 @@ import { getSession } from "@/lib/auth/session";
 import { getEnterpriseBySlugOrId } from "@/lib/data/enterprises-source";
 import { getMemberTier } from "@/lib/data/member-tier";
 import { effectiveEnterpriseId } from "@/lib/dashboard/preview";
+import { setEnterprisePasswordAction } from "./actions";
 
 export const metadata = { title: "企业设置 · 企业工作台" };
 
-export default async function EnterpriseSettings() {
+export default async function EnterpriseSettings({ searchParams }: { searchParams: Promise<{ pwd?: string; pwderr?: string }> }) {
+  const { pwd, pwderr } = await searchParams;
   const session = await getSession();
   const eid = effectiveEnterpriseId(session);
   const e = eid ? await getEnterpriseBySlugOrId(eid) : undefined;
@@ -23,8 +25,9 @@ export default async function EnterpriseSettings() {
     <EnterpriseShell
       title="企业设置"
       subtitle="仅 owner 与管理员可修改"
-      actions={<button className="h-9 px-4 rounded-full bg-foreground text-background text-[13px] font-medium inline-flex items-center gap-1.5"><Save className="h-3.5 w-3.5" /> 保存全部</button>}
     >
+      {pwd && <div className="mb-5 rounded-2xl border border-accent-tea/30 bg-[#e6f7f1] text-accent-tea p-4 flex items-center gap-2 text-[13px]"><CheckCircle2 className="h-4 w-4 shrink-0" /> 登录密码已更新，下次登录用新密码。</div>}
+      {pwderr && <div className="mb-5 rounded-2xl border border-cat-decor/30 bg-cat-decor-soft text-cat-decor p-4 flex items-center gap-2 text-[13px]"><AlertCircle className="h-4 w-4 shrink-0" /> 改密失败：新密码至少 6 位。</div>}
       <div className="grid grid-cols-1 lg:grid-cols-[200px_1fr] gap-6">
         <nav className="sticky top-6 self-start space-y-1 text-[13px]">
           {[
@@ -68,11 +71,18 @@ export default async function EnterpriseSettings() {
 
           <SettingsCard title="账号 / 密码">
             <div id="account" />
-            <FormRow label="登录手机号" required hint="变更需短信验证"><Input defaultValue={maskedTel} /></FormRow>
-            <FormRow label="登录密码"><div className="flex gap-2"><Input type="password" defaultValue="123456" /><button className="h-11 px-4 rounded-xl bg-foreground text-background text-[13px] font-medium shrink-0">更新</button></div></FormRow>
-            <FormRow label="二次验证"><div className="flex items-center justify-between"><span className="text-[13px]">登录时发送短信</span><Toggle defaultChecked /></div></FormRow>
+            <FormRow label="登录手机号" hint="变更需短信验证（即将开放）"><Input defaultValue={maskedTel} /></FormRow>
+            <FormRow label="登录密码" hint="至少 6 位，更新即生效">
+              <form action={setEnterprisePasswordAction} className="flex gap-2">
+                <Input name="password" type="password" placeholder="输入新密码" autoComplete="new-password" />
+                <button type="submit" className="h-11 px-4 rounded-xl bg-foreground text-background text-[13px] font-medium shrink-0">更新</button>
+              </form>
+            </FormRow>
+            <FormRow label="二次验证" hint="短信网关接入后开放">
+              <div className="flex items-center justify-between"><span className="text-[13px] text-muted-foreground">登录时发送短信验证码</span><Badge tone="yellow">即将开放</Badge></div>
+            </FormRow>
             <FormRow label="API Key" hint="供 ERP / 微信小程序对接调用">
-              <div className="flex gap-2"><Input defaultValue="sk_ent_mingjia_3f8a2****" /><button className="h-11 px-4 rounded-xl bg-surface text-[13px] shrink-0">重新生成</button></div>
+              <div className="flex items-center justify-between"><span className="text-[13px] text-muted-foreground">开放平台对接</span><Badge tone="yellow">即将开放</Badge></div>
             </FormRow>
           </SettingsCard>
 
@@ -104,13 +114,13 @@ export default async function EnterpriseSettings() {
             </FormRow>
           </SettingsCard>
 
-          <SettingsCard title="高危操作" desc="操作不可逆，请二次确认">
+          <SettingsCard title="高危操作" desc="退会 / 改子域名需协会秘书处审核">
             <div id="danger" />
-            <FormRow label="退出协会" hint="子站立即下线，账号锁定，已有线索 90 天后删除">
-              <button className="h-10 px-4 rounded-full border border-cat-decor text-cat-decor text-[12px] font-medium">申请退会</button>
+            <FormRow label="退出协会" hint="子站下线、账号锁定、线索 90 天后删除；线下联系协会秘书处办理">
+              <Badge tone="yellow">线下办理 · 即将支持在线申请</Badge>
             </FormRow>
-            <FormRow label="迁移子域名" hint="需协会审核">
-              <div className="flex gap-2"><Input placeholder="新子域名" /><button className="h-11 px-4 rounded-xl bg-cat-decor text-white text-[13px] font-medium shrink-0">提交</button></div>
+            <FormRow label="迁移子域名" hint="改子域名涉及对外链接与备案，需协会审核">
+              <Badge tone="yellow">即将开放</Badge>
             </FormRow>
           </SettingsCard>
         </div>
