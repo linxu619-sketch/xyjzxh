@@ -215,12 +215,11 @@ export default async function ConsumerHome({ searchParams }: { searchParams: Pro
         </Container>
       </section>
 
-      {/* 另一个门面 */}
+      {/* 企业/从业者入口说明 —— 仅文字提示，业主门户不跨层跳转到协会门户 */}
       <section className="pb-14 md:pb-20">
         <Container>
-          <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 text-[13px] text-muted-foreground">
-            <div>您是装修企业 / 从业者？协会门户 <code className="font-mono text-foreground">xh.xyjzxh.com</code> 提供入会、工装报备、子站、招工、培训等服务。</div>
-            <Link href="/xh" className="inline-flex items-center gap-1.5 text-foreground hover:gap-2 transition-all shrink-0">进入协会门户 <ArrowRight className="h-3.5 w-3.5" /></Link>
+          <div className="text-[13px] text-muted-foreground">
+            您是装修企业 / 从业者？请访问协会门户 <code className="font-mono text-foreground">xh.xyjzxh.com</code>，办理入会、工装报备、子站、招工、培训等会员服务。
           </div>
         </Container>
       </section>

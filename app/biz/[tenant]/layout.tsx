@@ -99,8 +99,8 @@ export default async function TenantLayout({
               <ShieldCheck className="h-3.5 w-3.5 text-accent-tea" />
               本站为 {SITE.name} 认证企业 · 资质实时同步
             </div>
-            <Link href="/" className="text-background/70 hover:text-background">
-              返回协会主站 →
+            <Link href="/members" className="text-background/70 hover:text-background">
+              找其他装企 →
             </Link>
           </div>
         </Container>
@@ -162,7 +162,6 @@ export default async function TenantLayout({
                   <li key={q} className="flex items-start gap-1.5"><BadgeCheck className="h-3.5 w-3.5 mt-0.5 shrink-0 text-accent-tea" />{q}</li>
                 ))}
                 <li><Link href="/members" className="hover:text-background underline-offset-2 hover:underline">找其他装企 →</Link></li>
-                <li><Link href="/" className="hover:text-background underline-offset-2 hover:underline">返回协会主站 →</Link></li>
               </ul>
             </div>
           </div>

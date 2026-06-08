@@ -65,7 +65,7 @@ export const CUSTOMER_TABS: BottomTab[] = [
   { href: "/dashboard/customer",           label: "我的",   icon: "home" },
   { href: "/dashboard/customer/projects",  label: "项目",   icon: "projects" },
   { href: "/dashboard/customer/insurance", label: "保险",   icon: "insurance" },
-  { href: "/ai",                           label: "AI",     icon: "ai" },
+  { href: "/ai/decor",                     label: "AI",     icon: "ai" },
   { href: "/dashboard/customer/settings",  label: "设置",   icon: "settings" },
 ];
 

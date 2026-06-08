@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { headers } from "next/headers";
 import { ArrowUpRight, Sparkles, Search, Star } from "lucide-react";
 import { Container } from "@/components/container";
 import { PageHeader } from "@/components/page-header";
@@ -28,6 +29,8 @@ export const metadata = { title: "AI 助手大厅 · 信阳市建筑装饰装修
 
 export default async function AiHall() {
   const aiCount = AI_EMPLOYEES.length;
+  // 仅协会门面展示「企业自定义 AI」入口（业主门面不跨层跳企业工作台）
+  const face = (await headers()).get("x-face") === "xh" ? "xh" : "consumer";
   const kbCount = listKnowledge().length;
   return (
     <>
@@ -128,7 +131,8 @@ export default async function AiHall() {
           ))}
         </div>
 
-        {/* 企业自定义 AI */}
+        {/* 企业自定义 AI —— 仅协会门面展示（业主门面不跨层跳企业工作台）*/}
+        {face === "xh" && (
         <div className="mt-8 md:mt-10 rounded-3xl border border-border bg-surface p-6 md:p-8 flex flex-col md:flex-row md:items-center gap-4 justify-between">
           <div className="flex items-start gap-3">
             <Star className="h-7 w-7 text-cat-decor shrink-0 mt-0.5" />
@@ -150,6 +154,7 @@ export default async function AiHall() {
             <ArrowUpRight className="h-4 w-4" />
           </Link>
         </div>
+        )}
       </Container>
     </>
   );

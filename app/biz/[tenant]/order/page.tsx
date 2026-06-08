@@ -262,7 +262,7 @@ export default async function OrderPage({
             <input type="checkbox" defaultChecked required className="mt-0.5 accent-brand" />
             <span>
               我同意将信息提交给 <b className="text-foreground">{e.name}</b>，并由
-              <Link href="/" className="text-brand mx-1">信阳市建筑装饰装修协会</Link>
+              <b className="text-foreground mx-1">信阳市建筑装饰装修协会</b>
               进行平台留痕。详见
               <Link href="/legal/privacy" className="text-brand mx-1">隐私政策</Link>
               。

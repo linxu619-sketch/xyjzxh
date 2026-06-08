@@ -79,7 +79,7 @@ export default async function CustomerSettings({ searchParams }: { searchParams:
       {/* 我的 */}
       <Group title="我的">
         <Row icon={MessageSquareHeart} label="我的评价" sub={reviewCount > 0 ? `${reviewCount} 条已发布` : "完工后来打分"} href="/dashboard/customer/review" />
-        <Row icon={MessageSquareWarning} label="我的调解记录" sub={medCount > 0 ? `${medCount} 起` : "暂无"} href="/dashboard/customer/requests" />
+        <Row icon={MessageSquareWarning} label="我的调解记录" sub={medCount > 0 ? `${medCount} 起` : "暂无"} href="/dashboard/customer" />
         <Row icon={HelpCircle} label="帮助中心 / 联系客服" href="/about/contact" />
         <Row icon={ShieldCheck} label="隐私政策" href="/legal/privacy" />
         <Row icon={FileText} label="服务条款" href="/legal/terms" />
