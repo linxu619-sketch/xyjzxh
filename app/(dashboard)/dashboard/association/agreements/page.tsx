@@ -38,11 +38,13 @@ export default function AssociationAgreements() {
   const published = AGREEMENT_TEMPLATES.filter((t) => t.status === "published");
   const drafts = AGREEMENT_TEMPLATES.filter((t) => t.status === "draft");
   const archived = AGREEMENT_TEMPLATES.filter((t) => t.status === "archived");
+  const ym = new Date().toISOString().slice(0, 7); // 本月 YYYY-MM
+  const monthSigned = AGREEMENT_SIGNATURES.filter((s) => (s.signedAt || "").startsWith(ym)).length;
 
   return (
     <AssociationShell
       title="协议 / 电子签管理"
-      subtitle={`${published.length} 份生效 · ${drafts.length} 份草稿 · 累计签署 ${AGREEMENT_SIGNATURES.length + 12482} 份`}
+      subtitle={`${published.length} 份生效 · ${drafts.length} 份草稿 · 累计签署 ${AGREEMENT_SIGNATURES.length} 份`}
       actions={
         <>
           <Link href="#new" className="h-9 px-4 rounded-full bg-foreground text-background text-[13px] font-medium inline-flex items-center gap-1.5 active:scale-95 transition-transform">
@@ -55,8 +57,8 @@ export default function AssociationAgreements() {
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 mb-6">
         {[
           { l: "生效协议",   v: published.length, c: "text-accent-tea" },
-          { l: "本月新签",   v: 482, c: "text-cat-build" },
-          { l: "累计签署",   v: "12,605", c: "text-cat-decor" },
+          { l: "本月新签",   v: monthSigned, c: "text-cat-build" },
+          { l: "累计签署",   v: AGREEMENT_SIGNATURES.length, c: "text-cat-decor" },
           { l: "PIPL 单独同意", v: published.filter((t) => t.requiresSeparateConsent).length, c: "text-cat-design" },
         ].map((s) => (
           <div key={s.l} className="rounded-2xl border border-border bg-background p-5">

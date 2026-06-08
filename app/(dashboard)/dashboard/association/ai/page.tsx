@@ -5,6 +5,7 @@ import { SettingsCard, Toggle, FormRow } from "@/components/dashboard/section";
 import { AI_EMPLOYEES } from "@/lib/site";
 import { AI_PROMPTS } from "@/lib/ai/prompts";
 import { readRuntimeSettings } from "@/lib/runtime-config";
+import { questionCounts } from "@/lib/ai/knowledge-source";
 import { cn } from "@/lib/cn";
 
 export const metadata = { title: "AI 配置 · 协会工作台" };
@@ -23,22 +24,19 @@ const GRAD: Record<string, string> = {
   yellow: "from-[#ffd34d] to-[#ffae00]",
 };
 
-const USAGE = {
-  advisor: { d: 284, m: 8420 }, decor: { d: 1812, m: 54360 },
-  design: { d: 612, m: 18280 }, fin: { d: 124, m: 3720 },
-  ins: { d: 286, m: 8580 }, report: { d: 196, m: 5840 },
-  know: { d: 482, m: 14460 }, hr: { d: 168, m: 5040 },
-  mediate: { d: 47, m: 1410 }, biz: { d: 304, m: 9120 },
-};
-
 export default async function AiAdmin() {
   const aiCfg = (await readRuntimeSettings()).ai ?? {};
   const rawModel = aiCfg.deepseekModel || "deepseek-v4-flash";
   const model = LEGACY_TO_V4[rawModel] ?? rawModel;
+  // 真实对话量（ai_questions）：本月 + 今日，按员工 key 统计
+  const monthStart = new Date(); monthStart.setDate(1); monthStart.setHours(0, 0, 0, 0);
+  const todayStart = new Date(); todayStart.setHours(0, 0, 0, 0);
+  const usageMonth = questionCounts(monthStart.getTime());
+  const usageToday = questionCounts(todayStart.getTime());
   return (
     <AssociationShell
       title="AI 员工配置"
-      subtitle={`全站 10 位 AI · 本月对话 12.9 万次 · 满意度 4.7 / 5.0 · Token 消耗 ¥2,840`}
+      subtitle={`全站 ${AI_EMPLOYEES.length} 位 AI · 本月对话 ${usageMonth.total.toLocaleString()} 次 · 今日 ${usageToday.total.toLocaleString()} 次`}
       actions={
         <div className="flex items-center gap-2">
           <Link href="/dashboard/association/ai/knowledge" className="h-9 px-4 rounded-full bg-foreground text-background text-[13px] font-medium inline-flex items-center gap-1.5">
@@ -53,7 +51,6 @@ export default async function AiAdmin() {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {AI_EMPLOYEES.map((ai) => {
           const p = AI_PROMPTS[ai.key];
-          const u = USAGE[ai.key as keyof typeof USAGE];
           return (
             <div key={ai.key} className="rounded-2xl border border-border bg-background overflow-hidden">
               <div className="flex items-center gap-3 p-5 border-b border-border">
@@ -69,10 +66,9 @@ export default async function AiAdmin() {
                 </div>
                 <Toggle defaultChecked />
               </div>
-              <div className="px-5 py-4 grid grid-cols-3 gap-2 text-center text-[11px] border-b border-border">
-                <div><div className="text-muted-foreground">今日</div><div className="text-[16px] font-semibold mt-0.5">{u.d}</div></div>
-                <div><div className="text-muted-foreground">本月</div><div className="text-[16px] font-semibold mt-0.5">{u.m.toLocaleString()}</div></div>
-                <div><div className="text-muted-foreground">满意度</div><div className="text-[16px] font-semibold text-accent-tea mt-0.5">4.{6 + (ai.key.length % 4)}</div></div>
+              <div className="px-5 py-4 grid grid-cols-2 gap-2 text-center text-[11px] border-b border-border">
+                <div><div className="text-muted-foreground">今日对话</div><div className="text-[16px] font-semibold mt-0.5">{(usageToday.byKey[ai.key] ?? 0).toLocaleString()}</div></div>
+                <div><div className="text-muted-foreground">本月对话</div><div className="text-[16px] font-semibold mt-0.5">{(usageMonth.byKey[ai.key] ?? 0).toLocaleString()}</div></div>
               </div>
               {p && (
                 <details className="px-5 py-3 text-[12px]">

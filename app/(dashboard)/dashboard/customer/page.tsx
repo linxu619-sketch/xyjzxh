@@ -43,10 +43,8 @@ export default async function CustomerDashboard() {
 
   const o = ORDER_DEMO;
   const progress = Math.round(o.schedule.reduce((a, t) => a + t.progress, 0) / o.schedule.length);
-  const pendingAcc = o.acceptance.filter((a) => a.status === "ready").length;
-  const pendingChg = o.changeOrders.filter((c) => c.status === "pending" && c.approverChain.find((x) => x.role === "业主" && !x.result)).length;
-  const pendingPay = o.payments.filter((p) => !p.paidAt && new Date(p.due) <= new Date("2026-06-30")).length;
-  const pending = pendingAcc + pendingChg + pendingPay;
+  // 施工管理（验收/变更/付款）实时数据系统尚未接入：不展示伪造待办（下方「当前项目」卡已明确标注为演示）。
+  const pendingAcc = 0, pendingChg = 0, pendingPay = 0, pending = 0;
 
   const stagesShort = [
     { k: "拆改", done: o.schedule.slice(0, 1).every((t) => t.progress === 100) },
