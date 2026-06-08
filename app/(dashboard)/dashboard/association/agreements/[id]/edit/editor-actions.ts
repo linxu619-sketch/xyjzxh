@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { getSession } from "@/lib/auth/session";
+import { requireStaffPermission } from "@/lib/auth/guard";
 import { scanProtocolRisks, type RiskFinding } from "@/lib/ai/risk-scan";
 
 export async function saveDraftAction(
@@ -9,10 +9,7 @@ export async function saveDraftAction(
   content: string,
   highlights: string[],
 ): Promise<{ ok: boolean; msg: string }> {
-  const session = await getSession();
-  if (!session || (session.role !== "association" && session.role !== "system_admin")) {
-    return { ok: false, msg: "无权限" };
-  }
+  try { await requireStaffPermission("agreements"); } catch { return { ok: false, msg: "无权限" }; }
 
   if (!content.trim()) return { ok: false, msg: "正文不能为空" };
   if (highlights.some((h) => !h.trim())) return { ok: false, msg: "重点条款不能有空项" };
@@ -29,7 +26,6 @@ export async function saveDraftAction(
 }
 
 export async function scanRisksClientAction(content: string): Promise<RiskFinding[]> {
-  const session = await getSession();
-  if (!session) return [];
+  try { await requireStaffPermission("agreements"); } catch { return []; }
   return scanProtocolRisks(content);
 }

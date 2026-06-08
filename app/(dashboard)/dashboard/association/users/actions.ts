@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { getSession } from "@/lib/auth/session";
+import { requireStaffPermission } from "@/lib/auth/guard";
 import { getAccountByPhone, setAccountStatus, setAccountTier, setAccountPassword, deleteAccount, updateAccountProfile, type AccountStatus } from "@/lib/data/accounts";
 import { tierLadder } from "@/lib/data/member-tier";
 import { getStaff, getStaffAuthByPhone, setStaffStatus, setStaffRoles, setStaffPassword, deleteStaff, createStaff, type StaffStatus } from "@/lib/data/staff-source";
@@ -10,9 +10,7 @@ import { ROLE_KEYS } from "@/lib/auth/roles";
 import { hashPassword } from "@/lib/auth/password";
 
 async function requireAssoc() {
-  const s = await getSession();
-  if (!s || (s.role !== "association" && s.role !== "system_admin")) throw new Error("无权限：仅协会工作人员可管理账号");
-  return s;
+  return requireStaffPermission("users");
 }
 function backToAccount(phone: string): never {
   const to = `/dashboard/association/users/${encodeURIComponent(phone)}`;
@@ -25,8 +23,7 @@ function backToStaff(id: string): never {
 
 // 协会工作人员 启用/停用（超级管理员账号不可停用）
 export async function setStaffStatusAction(fd: FormData) {
-  const s = await getSession();
-  if (!s || (s.role !== "association" && s.role !== "system_admin")) throw new Error("无权限：仅协会工作人员可管理员工账号");
+  await requireStaffPermission("users");
   const id = String(fd.get("id") || "").trim();
   const status = String(fd.get("status") || "") as StaffStatus;
   const st = id ? getStaff(id) : undefined;
@@ -39,8 +36,7 @@ export async function setStaffStatusAction(fd: FormData) {
 }
 
 export async function setAccountStatusAction(fd: FormData) {
-  const s = await getSession();
-  if (!s || (s.role !== "association" && s.role !== "system_admin")) throw new Error("无权限：仅协会工作人员可管理账号");
+  await requireStaffPermission("users");
   const phone = String(fd.get("phone") || "").trim();
   const status = String(fd.get("status") || "") as AccountStatus;
   if (phone && getAccountByPhone(phone) && ["active", "rejected", "pending"].includes(status)) {
@@ -57,8 +53,7 @@ export async function setAccountStatusAction(fd: FormData) {
 
 // 协会调整会员等级（企业=治理梯队 / 个人=专业梯队，两套互不相干，按角色校验）
 export async function setMemberTierAction(fd: FormData) {
-  const s = await getSession();
-  if (!s || (s.role !== "association" && s.role !== "system_admin")) throw new Error("无权限：仅协会工作人员可调整会员等级");
+  await requireStaffPermission("users");
   const phone = String(fd.get("phone") || "").trim();
   const tier = String(fd.get("tier") || "").trim();
   const acc = phone ? getAccountByPhone(phone) : undefined;

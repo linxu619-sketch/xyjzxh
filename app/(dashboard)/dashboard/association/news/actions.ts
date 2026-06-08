@@ -2,12 +2,11 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { getSession } from "@/lib/auth/session";
+import { requireStaffPermission } from "@/lib/auth/guard";
 import { createNews, setNewsStatus, deleteNews, getNews, type NewsStatus } from "@/lib/data/news-source";
 
 async function requireAssoc() {
-  const s = await getSession();
-  if (!s || (s.role !== "association" && s.role !== "system_admin")) throw new Error("无权限：仅协会工作人员可发布新闻");
+  await requireStaffPermission("news");
 }
 
 function refresh() {

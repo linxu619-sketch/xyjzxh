@@ -14,6 +14,15 @@
 
 ---
 
+## [0.125.5] - 2026-06-08
+
+### server action 越权防护：协会 action 强制细粒度权限
+审 server action 的越权：业主/从业者/企业 action 均为好模式（角色校验 + CREATE 绑 uid / 用 session 派生 id / 显式验归属，无 IDOR）。但发现**系统性纵深缺口**——协会几乎所有 action 仅校验「是协会员工」(role)，**不校验细粒度权限**(RBAC 矩阵)，有限权限员工可直接 POST 绕过页面级 RBAC（最危险 users/finance/members）。
+- **新增** `requireStaffPermission(perm)`（`lib/auth/guard.ts`）：校验员工具备所需权限点；系统超管/全权角色恒通过，否则抛错。
+- **改造 13 个协会 action 文件**按模块权限点强制：members→members、users→users、reports→reports、mediations→mediation、training→training、supplies→supplies、knowledge/ai·knowledge→knowledge、news→news、finance→finance、agreements(3 文件)→agreements。共 30+ 个 action。
+- 返回式 action(协议工作流/审计导出/草稿)用 try/catch 复用同一 helper，保留 {ok,msg}/null 契约。
+- 实测：超管访问协会各页 200(happy path 完好)；构建/lint 通过。
+
 ## [0.125.4] - 2026-06-08
 
 ### 签署验真证书：capability URL + 登录后仅本人/员工可查

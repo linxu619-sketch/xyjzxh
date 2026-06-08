@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { getSession } from "@/lib/auth/session";
+import { requireStaffPermission } from "@/lib/auth/guard";
 import { setMediationStatus, type MediationStatus } from "@/lib/data/mediations";
 import { operatorName } from "@/lib/dashboard/operator";
 
@@ -13,10 +13,7 @@ const MAP: Record<string, MediationStatus> = {
 };
 
 export async function reviewMediationAction(fd: FormData) {
-  const s = await getSession();
-  if (!s || (s.role !== "association" && s.role !== "system_admin")) {
-    throw new Error("无权限：仅协会工作人员可处理");
-  }
+  const s = await requireStaffPermission("mediation");
   const id = Number(fd.get("id") || 0);
   const next = MAP[String(fd.get("act") || "")];
   if (id && next) setMediationStatus(id, next, operatorName(s));

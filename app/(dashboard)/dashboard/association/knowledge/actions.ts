@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { getSession } from "@/lib/auth/session";
+import { requireStaffPermission } from "@/lib/auth/guard";
 import { createKnowledge, updateKnowledge, deleteKnowledge, setKnowledgeHot, getKnowledgeArticle, type KnowledgeInput } from "@/lib/data/knowledge-source";
 import { getDraft, listDrafts, setDraftStatus, deleteDraft } from "@/lib/data/knowledge-drafts-source";
 import { addSource, setSourceEnabled, deleteSource } from "@/lib/data/knowledge-sources-source";
@@ -11,9 +11,7 @@ import type { KnowledgeSection } from "@/lib/data/knowledge";
 import type { SourceKind } from "@/lib/data/knowledge-sources";
 
 async function requireAssoc() {
-  const s = await getSession();
-  if (!s || (s.role !== "association" && s.role !== "system_admin")) throw new Error("无权限：仅协会工作人员可管理知识库");
-  return s;
+  return requireStaffPermission("knowledge");
 }
 
 function todayStr(): string {

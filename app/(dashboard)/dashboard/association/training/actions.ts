@@ -2,12 +2,11 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { getSession } from "@/lib/auth/session";
+import { requireStaffPermission } from "@/lib/auth/guard";
 import { createTraining, getTraining, setTrainingStatus, type TrainingStatus } from "@/lib/data/training";
 
 async function requireAssoc() {
-  const s = await getSession();
-  if (!s || (s.role !== "association" && s.role !== "system_admin")) throw new Error("无权限：仅协会工作人员可发布培训");
+  await requireStaffPermission("training");
 }
 
 function refresh() {

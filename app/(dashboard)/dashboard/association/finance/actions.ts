@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { getSession } from "@/lib/auth/session";
+import { requireStaffPermission } from "@/lib/auth/guard";
 import {
   getFinanceApplication, setFinanceAppStatus, type FinAppStatus,
   createFinanceProduct, updateFinanceProduct, setFinanceProductStatus, deleteFinanceProduct,
@@ -16,9 +16,7 @@ import { getClaim, setClaimStatus, type ClaimStatus } from "@/lib/data/insurance
 import { operatorName } from "@/lib/dashboard/operator";
 
 async function requireAssoc() {
-  const s = await getSession();
-  if (!s || (s.role !== "association" && s.role !== "system_admin")) throw new Error("无权限：仅协会工作人员可管理金融合作");
-  return s;
+  return requireStaffPermission("finance");
 }
 function refresh(fd?: FormData): never {
   revalidatePath("/dashboard/association/finance");

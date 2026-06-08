@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { getSession } from "@/lib/auth/session";
+import { requireStaffPermission } from "@/lib/auth/guard";
 import { getApplication, setApplicationStatus, setIdVerify, type IdVerifyStatus } from "@/lib/data/applications";
 import { operatorName } from "@/lib/dashboard/operator";
 import { createEnterpriseFromApplication } from "@/lib/data/enterprises-source";
@@ -10,10 +10,7 @@ import { createPractitionerFromApplication, getPractitionerRefByAppId } from "@/
 import { activateAccountByAppId, rejectAccountByAppId } from "@/lib/data/accounts";
 
 export async function reviewApplicationAction(fd: FormData) {
-  const s = await getSession();
-  if (!s || (s.role !== "association" && s.role !== "system_admin")) {
-    throw new Error("无权限：仅协会工作人员可审核");
-  }
+  const s = await requireStaffPermission("members");
   const id = Number(fd.get("id") || 0);
   const act = String(fd.get("act") || "");
   if (!id) return;
@@ -51,10 +48,7 @@ export async function reviewApplicationAction(fd: FormData) {
 
 // 实名核验（人工）：审核员对申请的实名信息标记核验通过 / 不通过，留痕核验人与时间
 export async function verifyIdentityAction(fd: FormData) {
-  const s = await getSession();
-  if (!s || (s.role !== "association" && s.role !== "system_admin")) {
-    throw new Error("无权限：仅协会工作人员可核验实名");
-  }
+  const s = await requireStaffPermission("members");
   const id = Number(fd.get("id") || 0);
   const status = String(fd.get("status") || "") as IdVerifyStatus;
   if (id && ["unverified", "verified", "failed"].includes(status)) {

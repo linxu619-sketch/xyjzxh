@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { getSession } from "@/lib/auth/session";
+import { requireStaffPermission } from "@/lib/auth/guard";
 import {
   addKnowledge,
   updateKnowledge,
@@ -13,10 +13,7 @@ import {
 const PATH = "/dashboard/association/ai/knowledge";
 
 async function ensure() {
-  const s = await getSession();
-  if (!s || (s.role !== "association" && s.role !== "system_admin")) {
-    throw new Error("无权限：仅协会工作人员可维护知识库");
-  }
+  await requireStaffPermission("knowledge");
 }
 
 function parseKeywords(s: string): string[] {

@@ -1,14 +1,11 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { getSession } from "@/lib/auth/session";
+import { requireStaffPermission } from "@/lib/auth/guard";
 import { ACTION_META, type WorkflowAction } from "@/lib/agreements/workflow";
 
 export async function performWorkflowAction(fd: FormData): Promise<{ ok: boolean; msg: string }> {
-  const session = await getSession();
-  if (!session || (session.role !== "association" && session.role !== "system_admin")) {
-    return { ok: false, msg: "无权限" };
-  }
+  try { await requireStaffPermission("agreements"); } catch { return { ok: false, msg: "无权限" }; }
 
   const templateId = String(fd.get("templateId") ?? "");
   const action = String(fd.get("action") ?? "") as WorkflowAction;

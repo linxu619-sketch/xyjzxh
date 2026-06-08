@@ -1,6 +1,6 @@
 "use server";
 
-import { getSession } from "@/lib/auth/session";
+import { requireStaffPermission } from "@/lib/auth/guard";
 import { listSignatures, listAgreementTemplates } from "@/lib/data/agreements-source";
 
 /**
@@ -8,10 +8,7 @@ import { listSignatures, listAgreementTemplates } from "@/lib/data/agreements-so
  * 监管 / 司法机关要求出示时使用
  */
 export async function exportAuditAction(): Promise<string | null> {
-  const session = await getSession();
-  if (!session || (session.role !== "association" && session.role !== "system_admin")) {
-    return null;
-  }
+  try { await requireStaffPermission("agreements"); } catch { return null; }
 
   const headers = [
     "存证编号", "协议编号", "协议标题", "版本",

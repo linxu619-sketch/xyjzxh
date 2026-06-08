@@ -2,12 +2,11 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { getSession } from "@/lib/auth/session";
+import { requireStaffPermission } from "@/lib/auth/guard";
 import { createProduct, getProduct, setProductStatus, getSupplyOrder, setSupplyOrderStatus, approveListing, rejectListing, replaceListing, brandActiveHolder, setCommission, updateProductDetail, type ProductStatus, type OrderStatus, type ProductParam } from "@/lib/data/supplies-source";
 
 async function requireAssoc() {
-  const s = await getSession();
-  if (!s || (s.role !== "association" && s.role !== "system_admin")) throw new Error("无权限：仅协会工作人员可管理建材集采");
+  await requireStaffPermission("supplies");
 }
 function refresh() {
   revalidatePath("/dashboard/association/supplies");
