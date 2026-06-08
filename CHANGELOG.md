@@ -14,6 +14,14 @@
 
 ---
 
+## [0.124.2] - 2026-06-08
+
+### 支付回调 route 骨架（渠道异步通知落点）
+- **新增** `POST /api/pay/callback/[channel]`（alipay/wechat/bank_corp/bank_personal）：验签 → 解析报文 → 取 out_trade_no/状态 → 成功则结算业务单(幂等) → 按渠道格式应答(支付宝纯文本 success/微信 JSON)。各渠道的验签与解析留 TODO，接入真实密钥即生效。
+- **安全**：`verifySignature` 骨架默认不放行，伪造回调一律拒绝（实测伪造支付宝 TRADE_SUCCESS 返回 fail 且支付单仍 pending，不会被结算）；人工「确认到账」仍为当前可用结算路径。
+- **结算复用**：抽出 `lib/payments/settle.ts`（settlePayment/settleByOutTradeNo，幂等），回调与人工确认共用，新增 biz_type 在此扩展。
+- 系统设置「收款/支付」卡标出异步通知地址，接入时填到渠道后台。
+
 ## [0.124.1] - 2026-06-08
 
 ### 收款账户配置进系统设置（收银台实时读取）

@@ -3,9 +3,10 @@
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { getSession } from "@/lib/auth/session";
-import { createPayment, getPayment, markPaymentPaid, setPaymentMethod } from "@/lib/data/payments-source";
-import { getSupplyOrder, markOrderPaid, getProduct } from "@/lib/data/supplies-source";
+import { createPayment, getPayment, setPaymentMethod } from "@/lib/data/payments-source";
+import { getSupplyOrder, getProduct } from "@/lib/data/supplies-source";
 import { isPayMethod } from "@/lib/payments";
+import { settlePayment } from "@/lib/payments/settle";
 
 // 收银台切换支付渠道
 export async function setPayMethodAction(fd: FormData) {
@@ -47,11 +48,8 @@ export async function confirmPaymentAction(fd: FormData) {
   const id = Number(fd.get("id") || 0);
   const pay = getPayment(id);
   if (!pay) redirect("/dashboard");
-  markPaymentPaid(id, "manual-confirm");
-  if (pay.bizType === "supply_order") {
-    markOrderPaid(pay.bizId);
-    revalidatePath("/dashboard/association/supplies");
-    revalidatePath("/dashboard/enterprise/supplies");
-  }
+  settlePayment(pay, "manual-confirm");
+  revalidatePath("/dashboard/association/supplies");
+  revalidatePath("/dashboard/enterprise/supplies");
   redirect(`/dashboard/pay/${id}?ok=1`);
 }

@@ -105,6 +105,12 @@ export default async function SystemSettings() {
               <FormRow label="支付宝应用私钥" hint={pay.alipayPrivateKey ? "已配置，留空则不变" : "仅服务端使用，不回显"}><Input name="payment.alipayPrivateKey" type="password" placeholder={pay.alipayPrivateKey ? maskSecret(pay.alipayPrivateKey) : "粘贴应用私钥"} /></FormRow>
               <FormRow label="微信商户号 MchID" hint="接入微信支付商户平台后填写"><Input name="payment.wechatMchId" defaultValue={pay.wechatMchId} placeholder="16xxxxxxxx" /></FormRow>
               <FormRow label="微信 APIv3 密钥" hint={pay.wechatApiKey ? "已配置，留空则不变" : "仅服务端使用，不回显"}><Input name="payment.wechatApiKey" type="password" placeholder={pay.wechatApiKey ? maskSecret(pay.wechatApiKey) : "粘贴 APIv3 密钥"} /></FormRow>
+              <FormRow label="异步通知地址" hint="接入时填到渠道后台；服务端验签后自动结算，无需人工确认">
+                <div className="text-[12px] text-muted-foreground leading-6">
+                  支付宝：<code className="text-foreground">https://{platform.domain ?? SITE.domain}/api/pay/callback/alipay</code><br />
+                  微信：<code className="text-foreground">https://{platform.domain ?? SITE.domain}/api/pay/callback/wechat</code>
+                </div>
+              </FormRow>
             </SettingsCard>
 
             {/* 账号与安全 */}
