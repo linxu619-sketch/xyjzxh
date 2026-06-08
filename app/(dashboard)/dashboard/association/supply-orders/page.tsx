@@ -4,6 +4,7 @@ import { AssociationShell } from "@/components/dashboard/shell";
 import { StatFilters } from "@/components/dashboard/stat-filters";
 import { Badge } from "@/components/ui/badge";
 import { listAllSupplyOrders, reconcileAll, type OrderStatus } from "@/lib/data/supplies-source";
+import { paymentsSummary } from "@/lib/data/payments-source";
 
 export const metadata = { title: "建材订单 · 对账监管 · 协会工作台" };
 
@@ -14,6 +15,7 @@ const SELLER_LABEL: Record<string, string> = { association: "协会自营", ente
 export default async function SupplyOrdersAdmin() {
   const orders = listAllSupplyOrders();
   const rec = reconcileAll();
+  const pay = paymentsSummary(); // 平台收银台成交：佣金收入
   const pending = orders.filter((o) => o.status === "pending").length;
   const settled = orders.filter((o) => o.settleStatus === "paid").length;
 
@@ -43,6 +45,7 @@ export default async function SupplyOrdersAdmin() {
             <span className="text-accent-tea">已结 ¥{rec.paid.toLocaleString()}</span>
             <span className="text-cat-decor">未结 ¥{rec.unpaid.toLocaleString()}</span>
             {rec.overdueCount > 0 && <span className="text-cat-decor font-medium">逾期 {rec.overdueCount} 单 · ¥{rec.overdue.toLocaleString()}</span>}
+            <span className="text-cat-build font-medium">平台佣金 ¥{pay.commission.toLocaleString()}{pay.paidCount > 0 ? `（${pay.paidCount} 笔收银台成交）` : ""}</span>
           </div>
         )}
 
