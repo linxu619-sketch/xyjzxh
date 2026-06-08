@@ -25,7 +25,7 @@ export function NewOrder() {
         <div className="space-y-3">
           <div className="grid grid-cols-2 gap-3">
             <Field label="客户称呼" required><input name="customerName" required placeholder="如 刘女士" className={INPUT} /></Field>
-            <Field label="客户电话"><input name="customerPhone" type="tel" placeholder="11 位手机号" className={INPUT} /></Field>
+            <Field label="客户电话" hint="业主凭此手机号在「我的项目」实时看进度，建议填写"><input name="customerPhone" type="tel" placeholder="11 位手机号" className={INPUT} /></Field>
           </div>
           <Field label="项目 / 工程范围" required><input name="scope" required placeholder="如 金茂悦府 1602 整装" className={INPUT} /></Field>
           <div className="grid grid-cols-3 gap-3">
@@ -44,11 +44,12 @@ export function NewOrder() {
   );
 }
 
-function Field({ label, required, children }: { label: string; required?: boolean; children: React.ReactNode }) {
+function Field({ label, required, hint, children }: { label: string; required?: boolean; hint?: string; children: React.ReactNode }) {
   return (
     <label className="block">
       <span className="text-[12px] font-medium">{label}{required && <span className="text-cat-decor ml-0.5">*</span>}</span>
       <div className="mt-1.5">{children}</div>
+      {hint && <span className="mt-1 block text-[10px] text-muted-foreground leading-4">{hint}</span>}
     </label>
   );
 }
