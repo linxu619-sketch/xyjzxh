@@ -46,7 +46,9 @@ npm run clean    # 删除 .next
 - `(dashboard)/dashboard` — 控制台（客户/从业者/企业/协会职员/系统管理员）。
 - `biz/[tenant]` — 企业子站（由 middleware 重写进入）。
 - `legal/` — 协议签署页。
-- `api/` — Route Handlers：`chat`（AI 对话）、`upload` / `upload-doc`、`esign/callback`、`cron/knowledge-fetch`、`health`。
+- `api/` — Route Handlers：`chat`（AI 对话）、`upload` / `upload-doc`、`esign/callback`、`pay/callback/[channel]`（支付渠道异步通知）、`cron/knowledge-fetch`、`health`。
+
+**资金交易 / 支付**（建材超市收银台，详见 `docs/payments.md`）：统一支付单 `payments` 表 + `lib/payments/`（渠道抽象 alipay/wechat/银行对公对私 + `settle.ts` 幂等结算）+ 收银台 `dashboard/pay/[id]` + 回调 `api/pay/callback/[channel]`。**框架先行**：真实渠道只差填 SDK / 验签 / 密钥（密钥走系统设置「收款/支付」卡，勿硬编码）。商品佣金存 `supply_products.commission_pct`（0–2%）。
 
 **数据层（关键模式）**：本地 **SQLite**（Node 24 内置 `node:sqlite`，零依赖、零配置）。
 - 库文件 `data/app.db`（gitignore）；schema + 首访自动建表 + 种子灌库都在 `lib/db/sqlite.ts`。

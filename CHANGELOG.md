@@ -14,6 +14,12 @@
 
 ---
 
+## [0.124.3] - 2026-06-08
+
+### 文档：支付系统对接指南 docs/payments.md
+- 新增 `docs/payments.md`：全景流程、payments 数据模型、代码结构表、**接入清单**(① 各 provider initiate 填 SDK ② verifySignature 验签 ③ 后台配密钥/账户)、扩展到其它业务的方法、安全要点。
+- CLAUDE.md 架构补「资金交易/支付」一节 + api 列表补 pay/callback。
+
 ## [0.124.2] - 2026-06-08
 
 ### 支付回调 route 骨架（渠道异步通知落点）
