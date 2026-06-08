@@ -4,6 +4,10 @@ import { EnterpriseShell } from "@/components/dashboard/shell";
 import { Toggle, SettingsCard, FormRow, Input, Textarea } from "@/components/dashboard/section";
 import { AI_EMPLOYEES } from "@/lib/site";
 import { cn } from "@/lib/cn";
+import { getSession } from "@/lib/auth/session";
+import { effectiveEnterpriseId } from "@/lib/dashboard/preview";
+import { listLeadsByEnterprise } from "@/lib/data/leads";
+import { questionCounts } from "@/lib/ai/knowledge-source";
 
 export const metadata = { title: "AI 员工 · 企业工作台" };
 
@@ -19,11 +23,21 @@ const GRAD: Record<string, string> = {
 // 企业可启用的 4 位（剩余 6 位仅协会可用）
 const ENABLED = new Set(["decor", "design", "biz", "ins"]);
 
-export default function EnterpriseAi() {
+export default async function EnterpriseAi() {
+  // 真实统计：AI 对话量来自 ai_questions（按员工 key 的本月平台对话）；
+  // AI 来源线索 = 本企业线索中来自「在线咨询」(子站 AI 聊天) 的部分。满意度/平均时长暂无埋点，不再编造。
+  const session = await getSession();
+  const eid = effectiveEnterpriseId(session);
+  const monthStart = new Date(); monthStart.setDate(1); monthStart.setHours(0, 0, 0, 0);
+  const usage = questionCounts(monthStart.getTime());
+  const enabledTotal = AI_EMPLOYEES.filter((e) => ENABLED.has(e.key)).reduce((n, e) => n + (usage.byKey[e.key] ?? 0), 0);
+  const leads = eid ? listLeadsByEnterprise(eid) : [];
+  const aiLeads = leads.filter((l) => l.source === "在线咨询").length;
+
   return (
     <EnterpriseShell
       title="AI 员工"
-      subtitle="本企业可在子站嵌入 4 位 AI · 本月对话 1,320 次 · 转化贡献 18%"
+      subtitle={`可嵌入 4 位 AI · 本月对话 ${enabledTotal.toLocaleString()} 次 · AI 来源线索 ${aiLeads} 条`}
       actions={
         <Link href="/ai" className="h-9 px-4 rounded-full bg-foreground text-background text-[13px] font-medium inline-flex items-center gap-1.5">
           <MessageCircle className="h-3.5 w-3.5" /> 试聊
@@ -32,10 +46,10 @@ export default function EnterpriseAi() {
     >
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 mb-6">
         {[
-          { l: "本月对话", v: "1,320", c: "text-cat-design" },
-          { l: "转化线索", v: 92, c: "text-cat-decor" },
-          { l: "平均时长", v: "4.2 分钟", c: "text-cat-build" },
-          { l: "满意度", v: "4.7", c: "text-accent-tea" },
+          { l: "本月对话(可嵌入4位)", v: enabledTotal.toLocaleString(), c: "text-cat-design" },
+          { l: "AI 来源线索(本企业)", v: aiLeads, c: "text-cat-decor" },
+          { l: "可嵌入 AI", v: ENABLED.size, c: "text-cat-build" },
+          { l: "本月平台总对话", v: usage.total.toLocaleString(), c: "text-accent-tea" },
         ].map((s) => (
           <div key={s.l} className="rounded-2xl border border-border bg-background p-5">
             <div className="text-[11px] text-muted-foreground tracking-wider uppercase">{s.l}</div>
@@ -70,10 +84,9 @@ export default function EnterpriseAi() {
                 )}
               </div>
               {enabled && (
-                <div className="mt-3 grid grid-cols-3 gap-2 text-center text-[11px]">
-                  <div><div className="text-muted-foreground">本月</div><div className="text-[14px] font-semibold mt-0.5">{420 + ai.key.length * 40}</div></div>
-                  <div><div className="text-muted-foreground">转化</div><div className="text-[14px] font-semibold text-cat-decor mt-0.5">{(ai.key.length * 4)}</div></div>
-                  <div><div className="text-muted-foreground">满意度</div><div className="text-[14px] font-semibold text-accent-tea mt-0.5">4.{6 + ai.key.length % 4}</div></div>
+                <div className="mt-3 pt-3 border-t border-border flex items-center justify-between text-[11px] text-muted-foreground">
+                  <span>本月平台对话</span>
+                  <span className="text-[14px] font-semibold text-foreground tabular-nums">{(usage.byKey[ai.key] ?? 0).toLocaleString()}</span>
                 </div>
               )}
             </div>
