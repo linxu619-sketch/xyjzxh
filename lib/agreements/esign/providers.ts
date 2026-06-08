@@ -1,5 +1,11 @@
 import "server-only";
+import { randomUUID } from "node:crypto";
 import { readRuntimeSettings } from "@/lib/runtime-config";
+
+// 不可枚举的存证编号（capability token）：时间戳前缀 + 16 位强随机，URL 里不含手机号等 PII
+function makeSerial(prefix: string): string {
+  return `${prefix}-${Date.now().toString(36).toUpperCase()}-${randomUUID().replace(/-/g, "").slice(0, 16).toUpperCase()}`;
+}
 
 /* ============================================================
    电子签 provider 抽象
@@ -112,8 +118,8 @@ async function signWithEqianbao(ctx: EsignContext): Promise<EsignResult> {
    - 平台公章覆盖
    - 写入 agreement_signatures 表
    ============================================================ */
-function signNative(ctx: EsignContext, brand: string): EsignResult {
-  const serial = `XHN-${Date.now().toString(36).toUpperCase()}-${ctx.signerPhone.slice(-4)}`;
+function signNative(_ctx: EsignContext, _brand: string): EsignResult {
+  const serial = makeSerial("XHN");
   return {
     ok: true,
     serialNo: serial,
@@ -121,10 +127,10 @@ function signNative(ctx: EsignContext, brand: string): EsignResult {
   };
 }
 
-function signDemo(ctx: EsignContext): EsignResult {
+function signDemo(_ctx: EsignContext): EsignResult {
   return {
     ok: true,
-    serialNo: `DEMO-${Date.now().toString(36).toUpperCase()}-${ctx.signerPhone.slice(-4)}`,
+    serialNo: makeSerial("DEMO"),
     pdfUrl: `/legal/signature/SIG-2026-001142`, // 跳到 demo 证书
   };
 }

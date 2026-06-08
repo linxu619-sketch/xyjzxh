@@ -1,19 +1,26 @@
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import {
   ShieldCheck, FileCheck2, QrCode, Printer,
 } from "lucide-react";
 import { AGREEMENT_SIGNATURES, getTemplate } from "@/lib/data/agreements";
 import { SITE } from "@/lib/site";
+import { getSession } from "@/lib/auth/session";
 import { PrintButton } from "./PrintButton";
 
 export const metadata = { title: "签署证书 · 信阳市建筑装饰装修协会" };
 
 export default async function SignatureCert({ params }: { params: Promise<{ serial: string }> }) {
   const { serial } = await params;
+  // ① capability URL（编号即凭证）+ ② 登录后仅「签署本人」或「协会员工/监管」可查取证证书
+  const session = await getSession();
+  if (!session) redirect(`/login?next=${encodeURIComponent(`/legal/signature/${serial}`)}`);
   const sig = AGREEMENT_SIGNATURES.find((s) => s.id === serial || s.esignSerialNo === serial);
   if (!sig) notFound();
   const tpl = getTemplate(sig.templateId);
   if (!tpl) notFound();
+  const isOwner = sig.signerId === session.uid || (!!session.phone && sig.signerPhone === session.phone);
+  const isStaff = session.role === "association" || session.role === "system_admin";
+  if (!isOwner && !isStaff) notFound(); // 非本人 / 非员工：不泄露证书是否存在
 
   // 模拟 QR 内容
   const verifyUrl = `https://${SITE.domain}/verify?sig=${sig.id}`;
