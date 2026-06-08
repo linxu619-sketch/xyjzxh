@@ -1,6 +1,7 @@
 import { writeFile, mkdir } from "node:fs/promises";
 import { randomUUID } from "node:crypto";
 import path from "node:path";
+import { getSession } from "@/lib/auth/session";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -15,6 +16,11 @@ const OK_TYPE = new Set([
 
 // 接收单个 PDF/DOC/DOCX，存到 public/uploads/，返回可访问 URL（知识库原文）。
 export async function POST(req: Request) {
+  // 知识库原文上传仅协会员工 / 超管（防匿名上传大文件滥用存储）
+  const s = await getSession();
+  if (!s || (s.role !== "association" && s.role !== "system_admin")) {
+    return Response.json({ error: "无权限" }, { status: 403 });
+  }
   let form: FormData;
   try { form = await req.formData(); } catch { return Response.json({ error: "请求格式错误" }, { status: 400 }); }
   const file = form.get("file");

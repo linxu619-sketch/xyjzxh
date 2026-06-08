@@ -1,6 +1,7 @@
 import { writeFile, mkdir } from "node:fs/promises";
 import { randomUUID } from "node:crypto";
 import path from "node:path";
+import { getSession } from "@/lib/auth/session";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -10,6 +11,8 @@ const OK_EXT = new Set(["jpg", "jpeg", "png", "webp", "gif", "svg"]);
 
 // 接收单张图片，存到 public/uploads/，返回可访问 URL。
 export async function POST(req: Request) {
+  // 仅登录用户可上传（防匿名滥用存储 / 托管任意文件）
+  if (!(await getSession())) return Response.json({ error: "请先登录" }, { status: 401 });
   let form: FormData;
   try {
     form = await req.formData();
