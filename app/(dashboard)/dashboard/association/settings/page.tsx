@@ -1,7 +1,7 @@
 import Link from "next/link";
 import {
   Building2, Lock, Bell, Plug, Database, ShieldCheck, KeyRound,
-  AlertTriangle, Sparkles, ExternalLink, BookOpen, Download, Users2,
+  AlertTriangle, Sparkles, ExternalLink, BookOpen, Download, Users2, Wallet,
 } from "lucide-react";
 import { AssociationShell } from "@/components/dashboard/shell";
 import { SettingsCard, FormRow, Toggle, Input, Textarea } from "@/components/dashboard/section";
@@ -23,6 +23,7 @@ export default async function SystemSettings() {
   const eq = settings.e_qianbao ?? {};
   const reg = settings.regulator ?? {};
   const esign = settings.esign ?? {};
+  const pay = settings.payment ?? {};
   const provider = await activeProvider();
   const effPerms = await getEffectiveRolePermissions();
   const editableRoles = ROLE_KEYS.filter((r) => r !== "super_admin");
@@ -47,6 +48,7 @@ export default async function SystemSettings() {
             {[
               { h: "#platform", l: "平台信息", icon: Building2 },
               { h: "#security", l: "账号与安全", icon: Lock },
+              { h: "#payment", l: "收款 / 支付", icon: Wallet },
               { h: "#roles", l: "角色权限", icon: ShieldCheck },
               { h: "#notify",   l: "通知 / 短信", icon: Bell },
               { h: "#integration", l: "对外集成", icon: Plug },
@@ -79,6 +81,30 @@ export default async function SystemSettings() {
               <FormRow label="标语"><Input name="platform.slogan" defaultValue={platform.slogan ?? SITE.slogan} /></FormRow>
               <FormRow label="副标语"><Textarea name="platform.subSlogan" defaultValue={platform.subSlogan ?? SITE.subSlogan} rows={2} /></FormRow>
               <FormRow label="ICP / 公安备案号"><Input name="platform.icp" defaultValue={platform.icp} placeholder="例：豫 ICP 备 12345678 号 / 豫公网安备 41xxxxx 号" /></FormRow>
+            </SettingsCard>
+
+            {/* 收款 / 支付 */}
+            <SettingsCard
+              title="收款 / 支付"
+              desc="建材超市收银台的收款账户与支付渠道。账户填写后，收银台「银行转账」实时展示；接入支付宝/微信后扫码生效。"
+            >
+              <div id="payment" />
+              <FormRow label="开启支付宝"><div className="flex items-center justify-between"><span className="text-[13px] text-muted-foreground">收银台展示支付宝扫码</span><Toggle name="payment.enableAlipay" defaultChecked={pay.enableAlipay ?? true} /></div></FormRow>
+              <FormRow label="开启微信支付"><div className="flex items-center justify-between"><span className="text-[13px] text-muted-foreground">收银台展示微信扫码</span><Toggle name="payment.enableWechat" defaultChecked={pay.enableWechat ?? true} /></div></FormRow>
+              <FormRow label="开启银行对公"><div className="flex items-center justify-between"><span className="text-[13px] text-muted-foreground">收银台展示对公转账</span><Toggle name="payment.enableBankCorp" defaultChecked={pay.enableBankCorp ?? true} /></div></FormRow>
+              <FormRow label="开启银行对私"><div className="flex items-center justify-between"><span className="text-[13px] text-muted-foreground">收银台展示对私转账</span><Toggle name="payment.enableBankPersonal" defaultChecked={pay.enableBankPersonal ?? true} /></div></FormRow>
+
+              <FormRow label="对公账户 · 户名"><Input name="payment.corpAccountName" defaultValue={pay.corpAccountName} placeholder="如 信阳市建筑装饰装修协会" /></FormRow>
+              <FormRow label="对公账户 · 账号"><Input name="payment.corpAccountNo" defaultValue={pay.corpAccountNo} placeholder="对公银行账号" /></FormRow>
+              <FormRow label="对公账户 · 开户行"><Input name="payment.corpBankName" defaultValue={pay.corpBankName} placeholder="如 中原银行信阳分行营业部" /></FormRow>
+              <FormRow label="对私账户 · 户名"><Input name="payment.personalAccountName" defaultValue={pay.personalAccountName} placeholder="收款人姓名" /></FormRow>
+              <FormRow label="对私账户 · 账号"><Input name="payment.personalAccountNo" defaultValue={pay.personalAccountNo} placeholder="个人银行账号" /></FormRow>
+              <FormRow label="对私账户 · 开户行"><Input name="payment.personalBankName" defaultValue={pay.personalBankName} placeholder="如 工商银行信阳XX支行" /></FormRow>
+
+              <FormRow label="支付宝 AppID" hint="接入支付宝开放平台后填写"><Input name="payment.alipayAppId" defaultValue={pay.alipayAppId} placeholder="2021xxxxxxxxxxxx" /></FormRow>
+              <FormRow label="支付宝应用私钥" hint={pay.alipayPrivateKey ? "已配置，留空则不变" : "仅服务端使用，不回显"}><Input name="payment.alipayPrivateKey" type="password" placeholder={pay.alipayPrivateKey ? maskSecret(pay.alipayPrivateKey) : "粘贴应用私钥"} /></FormRow>
+              <FormRow label="微信商户号 MchID" hint="接入微信支付商户平台后填写"><Input name="payment.wechatMchId" defaultValue={pay.wechatMchId} placeholder="16xxxxxxxx" /></FormRow>
+              <FormRow label="微信 APIv3 密钥" hint={pay.wechatApiKey ? "已配置，留空则不变" : "仅服务端使用，不回显"}><Input name="payment.wechatApiKey" type="password" placeholder={pay.wechatApiKey ? maskSecret(pay.wechatApiKey) : "粘贴 APIv3 密钥"} /></FormRow>
             </SettingsCard>
 
             {/* 账号与安全 */}

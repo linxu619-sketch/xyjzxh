@@ -58,6 +58,14 @@ export type RuntimeSettings = {
     cityEndpoint?: string;
     cityApiKey?: string;
   };
+  /** 资金交易 / 支付：收款账户 + 渠道开关 + 渠道密钥（密钥仅服务端使用，勿外泄） */
+  payment?: {
+    corpAccountName?: string; corpAccountNo?: string; corpBankName?: string;
+    personalAccountName?: string; personalAccountNo?: string; personalBankName?: string;
+    enableAlipay?: boolean; enableWechat?: boolean; enableBankCorp?: boolean; enableBankPersonal?: boolean;
+    alipayAppId?: string; alipayPrivateKey?: string;
+    wechatMchId?: string; wechatApiKey?: string;
+  };
   /** 角色权限覆盖（系统设置「角色权限表」编辑后写入；某角色缺省时用 STAFF_ROLES 内置） */
   rolePermissions?: Record<string, string[]>;
 };
@@ -120,6 +128,17 @@ export async function getPlatformInfo() {
     slogan: p.slogan || SITE.slogan,
     subSlogan: p.subSlogan || SITE.subSlogan,
     icp: p.icp || "",
+  };
+}
+
+/** 支付配置：收款账户 + 渠道开关（供收银台/渠道读取）。 */
+export async function getPaymentConfig() {
+  const p = (await readRuntimeSettings()).payment ?? {};
+  return {
+    corpAccountName: p.corpAccountName ?? "", corpAccountNo: p.corpAccountNo ?? "", corpBankName: p.corpBankName ?? "",
+    personalAccountName: p.personalAccountName ?? "", personalAccountNo: p.personalAccountNo ?? "", personalBankName: p.personalBankName ?? "",
+    enableAlipay: p.enableAlipay ?? true, enableWechat: p.enableWechat ?? true,
+    enableBankCorp: p.enableBankCorp ?? true, enableBankPersonal: p.enableBankPersonal ?? true,
   };
 }
 

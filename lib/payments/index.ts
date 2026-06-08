@@ -8,6 +8,8 @@
    真实密钥/账户从平台后台「系统设置」配置，切勿硬编码到代码或提交到仓库。
    ============================================================ */
 
+import { getPaymentConfig } from "@/lib/runtime-config";
+
 export type PayMethod = "alipay" | "wechat" | "bank_corp" | "bank_personal";
 export type PayStatus = "pending" | "paid" | "failed" | "refunded" | "closed";
 
@@ -41,11 +43,18 @@ export interface PaymentProvider {
 
 const DEMO = "演示模式：尚未接入真实支付渠道，可在「确认到账」后手动结算。";
 
-// 平台收款账户（占位）：真实环境从平台「系统设置」读取，勿硬编码真实账号
-export function collectionAccount(type: "corporate" | "personal"): BankAccount {
+// 平台收款账户：从平台「系统设置 · 收款账户」读取（未配置时回退占位文案）
+export async function collectionAccount(type: "corporate" | "personal"): Promise<BankAccount> {
+  const c = await getPaymentConfig();
   return type === "corporate"
-    ? { type: "corporate", accountName: "信阳市建筑装饰装修协会", accountNo: "（对公账户待平台配置）", bankName: "（开户行待配置）" }
-    : { type: "personal", accountName: "（收款人待配置）", accountNo: "（账户待配置）", bankName: "（开户行待配置）" };
+    ? { type: "corporate", accountName: c.corpAccountName || "信阳市建筑装饰装修协会", accountNo: c.corpAccountNo || "（对公账户待平台配置）", bankName: c.corpBankName || "（开户行待配置）" }
+    : { type: "personal", accountName: c.personalAccountName || "（收款人待配置）", accountNo: c.personalAccountNo || "（账户待配置）", bankName: c.personalBankName || "（开户行待配置）" };
+}
+// 当前启用的支付渠道（系统设置可关闭某些渠道）
+export async function enabledPayMethods() {
+  const c = await getPaymentConfig();
+  const on: Record<PayMethod, boolean> = { alipay: c.enableAlipay, wechat: c.enableWechat, bank_corp: c.enableBankCorp, bank_personal: c.enableBankPersonal };
+  return PAY_METHODS.filter((m) => on[m.method]);
 }
 
 const alipay: PaymentProvider = {
@@ -72,7 +81,8 @@ function bankProvider(method: "bank_corp" | "bank_personal", type: "corporate" |
   return {
     method, label,
     async initiate(init) {
-      return { kind: "bank_transfer", method, label, bank: collectionAccount(type), memo: init.outTradeNo, note: `请按上述账户转账，并在转账备注填写订单号 ${init.outTradeNo} 以便核销。${DEMO}` };
+      const bank = await collectionAccount(type);
+      return { kind: "bank_transfer", method, label, bank, memo: init.outTradeNo, note: `请按上述账户转账，并在转账备注填写订单号 ${init.outTradeNo} 以便核销。${DEMO}` };
     },
     async query() { return "pending"; },
   };

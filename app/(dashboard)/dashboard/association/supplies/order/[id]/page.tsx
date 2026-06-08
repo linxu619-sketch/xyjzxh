@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { getSupplyOrder, isOverdue, SUPPLY_TERM_DAYS, type OrderStatus } from "@/lib/data/supplies-source";
 import { advanceOrderAction } from "../../actions";
 import { startPaymentAction } from "@/app/(dashboard)/dashboard/pay/actions";
-import { PAY_METHODS } from "@/lib/payments";
+import { enabledPayMethods } from "@/lib/payments";
 import { PrintBar, Letterhead, DocTable, SealFooter } from "@/components/print/print-doc";
 import { getPlatformInfo } from "@/lib/runtime-config";
 
@@ -28,6 +28,7 @@ export default async function SupplyOrderDetail({ params }: { params: Promise<{ 
   const o = id ? getSupplyOrder(id) : undefined;
   if (!o) notFound();
   const org = await getPlatformInfo();
+  const payMethods = o!.settleStatus !== "paid" ? await enabledPayMethods() : [];
 
   const nx = NEXT[o!.status];
   const selfHref = `/dashboard/association/supplies/order/${o!.id}`;
@@ -54,7 +55,7 @@ export default async function SupplyOrderDetail({ params }: { params: Promise<{ 
             <div className="text-[13px] font-semibold mb-1 inline-flex items-center gap-1.5"><Coins className="h-4 w-4 text-cat-build" /> 发起收款 · 收银台</div>
             <p className="text-[12px] text-muted-foreground mb-3">应收 <b className="text-foreground">¥{o!.total.toLocaleString()}</b> · 选择渠道生成收银台（佣金按商品比例自动拆分）。</p>
             <div className="flex flex-wrap gap-2">
-              {PAY_METHODS.map((m) => (
+              {payMethods.map((m) => (
                 <form key={m.method} action={startPaymentAction}>
                   <input type="hidden" name="bizType" value="supply_order" />
                   <input type="hidden" name="bizId" value={o!.id} />

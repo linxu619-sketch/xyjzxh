@@ -2,7 +2,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, QrCode, Landmark, CheckCircle2, ShieldCheck, Coins } from "lucide-react";
 import { getPayment } from "@/lib/data/payments-source";
-import { getProvider, PAY_METHODS, type PayMethod } from "@/lib/payments";
+import { getProvider, enabledPayMethods, type PayMethod } from "@/lib/payments";
 import { confirmPaymentAction, setPayMethodAction } from "../actions";
 
 export const metadata = { title: "收银台 · 信阳市建筑装饰装修协会" };
@@ -17,6 +17,7 @@ export default async function PayPage({ params, searchParams }: { params: Promis
   const provider = getProvider(pay.method);
   const ins = provider ? await provider.initiate({ outTradeNo: pay.outTradeNo, amount: pay.amount, subject: pay.subject, payerName: pay.payerName }) : undefined;
   const paid = pay.status === "paid";
+  const methods = await enabledPayMethods();
 
   return (
     <div className="min-h-screen bg-surface py-6 md:py-12 px-4">
@@ -72,7 +73,7 @@ export default async function PayPage({ params, searchParams }: { params: Promis
 
               {/* 切换支付方式 */}
               <div className="flex flex-wrap gap-2">
-                {PAY_METHODS.map((m) => (
+                {methods.map((m) => (
                   <form key={m.method} action={setPayMethodAction}>
                     <input type="hidden" name="id" value={pay.id} />
                     <input type="hidden" name="method" value={m.method} />

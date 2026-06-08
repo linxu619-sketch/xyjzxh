@@ -61,7 +61,29 @@ export async function saveSettingsAction(
         provincialEndpoint: pickString(fd, "regulator.provincialEndpoint"),
         cityEndpoint:       pickString(fd, "regulator.cityEndpoint"),
       },
+      payment: {
+        corpAccountName:     pickString(fd, "payment.corpAccountName"),
+        corpAccountNo:       pickString(fd, "payment.corpAccountNo"),
+        corpBankName:        pickString(fd, "payment.corpBankName"),
+        personalAccountName: pickString(fd, "payment.personalAccountName"),
+        personalAccountNo:   pickString(fd, "payment.personalAccountNo"),
+        personalBankName:    pickString(fd, "payment.personalBankName"),
+        enableAlipay:        pickBool(fd, "payment.enableAlipay"),
+        enableWechat:        pickBool(fd, "payment.enableWechat"),
+        enableBankCorp:      pickBool(fd, "payment.enableBankCorp"),
+        enableBankPersonal:  pickBool(fd, "payment.enableBankPersonal"),
+      },
     };
+
+    // 支付渠道密钥：仅在用户重新填写时覆盖（避免被空值清掉）
+    const aliKey = String(fd.get("payment.alipayPrivateKey") || "").trim();
+    if (aliKey) patch.payment = { ...patch.payment, alipayPrivateKey: aliKey };
+    const wxKey = String(fd.get("payment.wechatApiKey") || "").trim();
+    if (wxKey) patch.payment = { ...patch.payment, wechatApiKey: wxKey };
+    const aliApp = String(fd.get("payment.alipayAppId") || "").trim();
+    if (aliApp) patch.payment = { ...patch.payment, alipayAppId: aliApp };
+    const wxMch = String(fd.get("payment.wechatMchId") || "").trim();
+    if (wxMch) patch.payment = { ...patch.payment, wechatMchId: wxMch };
 
     // 仅在用户重新填写时覆盖 key
     const dsKey = String(fd.get("ai.deepseekApiKey") || "").trim();
