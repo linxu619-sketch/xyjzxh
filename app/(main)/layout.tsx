@@ -20,7 +20,7 @@ export default async function MainLayout({ children }: { children: React.ReactNo
       <SiteHeader face={face} authed={!!session} todo={todo} />
       <main className="flex-1">{children}</main>
       <SiteFooter face={face} />
-      <AiDock />
+      <AiDock face={face} />
       {/* 移动端全站固定底栏（桌面端隐藏，桌面用顶部导航 + 悬浮 AI 按钮）；按门面显示消费者/协会两套标签 */}
       <GlobalBottomNav face={face} todo={todo} />
     </>

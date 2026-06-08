@@ -14,6 +14,13 @@
 
 ---
 
+## [0.125.1] - 2026-06-08
+
+### 两层面隔离补强：ai-dock 按 face 过滤 AI 员工
+深扫「业主层是否意外链到个人会员(从业者)/协会侧」发现：悬浮 `ai-dock` 之前把全部 10 个 AI 都展示给所有人，业主能点开面向企业/从业者的 AI——小才(招工/找活 /ai/hr)、小协(入会)、小报(报备)、小经(企业经营)、小金、小知。
+- `AiDock` 加 `face` 入参，消费者门面只展示 `face=consumer|both` 的 AI（小装/小设/小保/小和），隐藏 member 侧；协会门面展示全部。`(main)/layout` 传入当前 face。
+- 复核：业主层顶栏/底栏/footer/共享页(members/insurance/review/knowledge/news) 均无指向 `/practitioners`、`/talents`、`/dashboard/practitioner`、`/ai/hr`、`role=practitioner` 的链接；个人会员对业主零暴露。
+
 ## [0.125.0] - 2026-06-08
 
 ### 两层面隔离：清除业主层→协会层的跨层跳转

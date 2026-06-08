@@ -15,8 +15,11 @@ const TONE: Record<string, string> = {
   yellow: "from-[#ffd34d] to-[#ffae00]",
 };
 
-export function AiDock() {
+export function AiDock({ face = "consumer" }: { face?: "consumer" | "xh" }) {
   const [open, setOpen] = useState(false);
+  // 业主门面只展示面向业主的 AI（consumer/both）；协会门面展示全部。
+  // 避免业主跨层接触面向企业/从业者的 AI（小才招工 / 小协入会 / 小报报备 / 小经经营等）。
+  const list = face === "consumer" ? AI_EMPLOYEES.filter((ai) => ai.face === "consumer" || ai.face === "both") : AI_EMPLOYEES;
 
   return (
     <>
@@ -60,7 +63,7 @@ export function AiDock() {
               </button>
             </div>
             <div className="overflow-y-auto p-3 grid grid-cols-2 gap-2.5">
-              {AI_EMPLOYEES.map((ai) => (
+              {list.map((ai) => (
                 <Link
                   key={ai.key}
                   href={`/ai/${ai.key}`}
