@@ -23,7 +23,7 @@ export default async function ProjectsPage() {
         eyebrow="工装报备 · PROJECTS"
         tone="build"
         title={<>工装报备 · 信阳一网通办</>}
-        description={<>信阳已与省厅数据打通，企业 <b>一次填报</b> 即同步省级监管。本月已受理 <b>187</b> 项，平均审批 <b>≤24h</b>。</>}
+        description={<>信阳已与省厅数据打通，企业 <b>一次填报</b> 即同步省级监管，平均审批 <b>≤24h</b>。</>}
         actions={
           <>
             <Button href="/projects/new" size="md" variant="secondary">

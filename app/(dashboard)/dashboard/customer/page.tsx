@@ -11,6 +11,7 @@ import { getSession } from "@/lib/auth/session";
 import { ORDER_DEMO } from "@/lib/data/orders";
 import { listReviewsByUid } from "@/lib/data/reviews";
 import { listLeadsForCustomer } from "@/lib/data/leads";
+import { getEnterprises } from "@/lib/data/enterprises-source";
 import { listMediationsByUid } from "@/lib/data/mediations";
 import { CUSTOMER_TABS } from "@/lib/dashboard/nav";
 import { CustomerBottomNav } from "@/components/dashboard/customer-bottom-nav";
@@ -41,19 +42,14 @@ export default async function CustomerDashboard() {
     ...myRequests.map((l) => ({ t: `提交装修需求${l.type ? ` · ${l.type}` : ""}`, ts: l.createdAt, tag: "需求", color: "brand" as const })),
   ].sort((a, b) => b.ts - a.ts).slice(0, 5);
 
-  const o = ORDER_DEMO;
-  const progress = Math.round(o.schedule.reduce((a, t) => a + t.progress, 0) / o.schedule.length);
-  // 施工管理（验收/变更/付款）实时数据系统尚未接入：不展示伪造待办（下方「当前项目」卡已明确标注为演示）。
+  const o = ORDER_DEMO; // 仅用于空态「查看装修管理演示」入口（明确标注）
+  // 施工管理（验收/变更/付款）实时数据系统尚未接入：不展示伪造待办。
   const pendingAcc = 0, pendingChg = 0, pendingPay = 0, pending = 0;
-
-  const stagesShort = [
-    { k: "拆改", done: o.schedule.slice(0, 1).every((t) => t.progress === 100) },
-    { k: "水电", done: o.schedule.slice(1, 3).every((t) => t.progress === 100) },
-    { k: "泥木", done: o.schedule.slice(3, 6).every((t) => t.progress === 100), current: true },
-    { k: "油漆", done: false },
-    { k: "安装", done: false },
-    { k: "竣工", done: false },
-  ];
+  // 本人真实已签约项目
+  const signedLeads = myRequests.filter((l) => l.status === "signed");
+  const ents = hasProject ? await getEnterprises() : [];
+  const entName = (id: string) => ents.find((e) => e.id === id || e.slug === id)?.name ?? "协会会员企业";
+  const proj = signedLeads[0];
 
   return (
     <div className="min-h-screen bg-surface pb-24">
@@ -126,59 +122,20 @@ export default async function CustomerDashboard() {
           </div>
         ) : (
         <Link
-          href={`/dashboard/customer/projects/${o.id}`}
+          href="/dashboard/customer/projects"
           className="block rounded-3xl bg-background border border-border p-5 shadow-sm active:scale-[0.99] transition-transform"
         >
           <div className="flex items-center justify-between mb-3">
-            <div className="text-[11px] tracking-widest text-muted-foreground uppercase">CURRENT PROJECT</div>
-            <div className="flex items-center gap-1.5">
-              <Badge tone="build">演示数据</Badge>
-              <Badge tone="decor">施工中</Badge>
-            </div>
+            <div className="text-[11px] tracking-widest text-muted-foreground uppercase">MY PROJECT</div>
+            <Badge tone="tea">已签约</Badge>
           </div>
-          <div className="text-[18px] font-semibold tracking-tight">{o.inquiry.address}</div>
-          <div className="text-[12px] text-muted-foreground mt-1">{o.enterpriseName} · {o.id}</div>
-
-          {/* 进度条 + 阶段点 */}
-          <div className="mt-4">
-            <div className="flex items-center justify-between text-[12px] mb-1.5">
-              <span className="text-muted-foreground">总进度</span>
-              <span className="font-semibold tabular-nums">{progress}%</span>
-            </div>
-            <div className="h-2 rounded-full bg-surface overflow-hidden">
-              <div className="h-full rounded-full bg-gradient-to-r from-cat-decor to-[#ff7a45] transition-all duration-700" style={{ width: `${progress}%` }} />
-            </div>
+          <div className="text-[18px] font-semibold tracking-tight">{proj?.type || "装修项目"}{proj?.area ? ` · ${proj.area}㎡` : ""}</div>
+          <div className="text-[12px] text-muted-foreground mt-1">{proj ? entName(proj.enterpriseId) : "协会会员企业"}{proj?.budget ? ` · 预算 ${proj.budget} 万` : ""}</div>
+          {signedLeads.length > 1 && <div className="text-[11px] text-muted-foreground mt-1">共 {signedLeads.length} 个已签约项目</div>}
+          <div className="mt-4 pt-3 border-t border-border flex items-center justify-between text-[12px]">
+            <span className="text-muted-foreground">施工进度 / 验收 / 付款实时同步即将上线</span>
+            <span className="inline-flex items-center gap-1 text-brand font-medium shrink-0">查看 <ArrowUpRight className="h-3.5 w-3.5" /></span>
           </div>
-
-          <div className="mt-4 grid grid-cols-6 gap-1.5 text-center">
-            {stagesShort.map((s) => (
-              <div key={s.k} className={`rounded-lg py-2 ${
-                s.current ? "bg-cat-decor-soft text-cat-decor border border-cat-decor/30" :
-                s.done ? "bg-[#e6f7f1] text-accent-tea" : "bg-surface text-muted-foreground"
-              }`}>
-                <div className="text-[9px]">{s.done ? "✓" : s.current ? "●" : "○"}</div>
-                <div className="text-[10px] font-medium mt-0.5">{s.k}</div>
-              </div>
-            ))}
-          </div>
-
-          {/* 最新现场 */}
-          {o.dailyLogs[0] && (
-            <div className="mt-4 pt-4 border-t border-border flex items-center gap-3">
-              <div className="flex gap-1">
-                {[...Array(3)].map((_, i) => (
-                  <div key={i} className="aspect-square w-10 rounded-md bg-gradient-to-br from-cat-decor/30 to-surface" />
-                ))}
-              </div>
-              <div className="flex-1 min-w-0 text-[12px]">
-                <div className="font-medium truncate">{o.dailyLogs[0].phase} · {o.dailyLogs[0].date}</div>
-                <div className="text-[10px] text-muted-foreground inline-flex items-center gap-1">
-                  <Camera className="h-2.5 w-2.5" /> {o.dailyLogs[0].photos} 张现场照
-                </div>
-              </div>
-              <ArrowUpRight className="h-4 w-4 text-muted-foreground" />
-            </div>
-          )}
         </Link>
         )}
 

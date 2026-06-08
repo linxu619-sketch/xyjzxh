@@ -28,7 +28,7 @@ export default async function FinancePage() {
         eyebrow="FINANCE · 金融服务"
         tone="design"
         title={<>协会撮合 <br className="md:hidden" />本地最优金融方案</>}
-        description="已对接中原银行、建行、招行、农商行、工银租赁等 12 家金融机构。协会会员专属费率，最快 T+1 放款。"
+        description="已对接中原银行、建行、招行、农商行、工银租赁等多家金融机构。协会会员专属费率，最快 T+1 放款。"
         actions={<Button href="/ai/fin" variant="secondary">AI 小金推荐</Button>}
       />
 
