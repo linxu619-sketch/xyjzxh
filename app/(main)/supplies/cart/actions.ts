@@ -46,7 +46,7 @@ export async function checkoutCartAction() {
     createSupplyOrder({ buyer: { type: buyer!.type, id: buyer!.id, name: buyer!.name }, product: line.product, qty: line.qty });
   }
   clearCart(buyer!.type, buyer!.id);
-  revalidatePath("/dashboard/association/supplies");
+  revalidatePath("/dashboard/association/supply-orders");
   revalidatePath(buyer!.base);
   revalidatePath("/supplies/cart");
   redirect(`${buyer!.base}?ok=ordered`);

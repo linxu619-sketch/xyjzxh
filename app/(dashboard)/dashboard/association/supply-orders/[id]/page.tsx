@@ -33,7 +33,7 @@ export default async function SupplyOrderDetail({ params }: { params: Promise<{ 
   return (
     <AssociationShell title="采购单 · 对账监管" subtitle={`${o!.buyerName || o!.enterpriseName} · ${o!.productName}`}>
       <div className="no-print">
-        <Link href="/dashboard/association/supplies?tab=orders" className="inline-flex items-center gap-1.5 text-[13px] text-muted-foreground hover:text-foreground mb-4"><ArrowLeft className="h-3.5 w-3.5" /> 返回采购单列表</Link>
+        <Link href="/dashboard/association/supply-orders" className="inline-flex items-center gap-1.5 text-[13px] text-muted-foreground hover:text-foreground mb-4"><ArrowLeft className="h-3.5 w-3.5" /> 返回订单对账列表</Link>
         <div className="mb-4 flex items-center gap-3 flex-wrap">
           <Badge tone={ORDER_TONE[o!.status]}>履约：{ORDER_LABEL[o!.status]}</Badge>
           <span className="text-[12px] text-muted-foreground">履约（确认/发货/完成）由卖家在其工作台推进；平台只负责对账 / 佣金 / 争议介入。</span>

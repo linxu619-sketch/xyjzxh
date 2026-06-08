@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { requireStaffPermission } from "@/lib/auth/guard";
-import { createProduct, getProduct, setProductStatus, getSupplyOrder, setSupplyOrderStatus, approveListing, rejectListing, replaceListing, brandActiveHolder, setCommission, updateProductDetail, type ProductStatus, type OrderStatus, type ProductParam } from "@/lib/data/supplies-source";
+import { createProduct, getProduct, setProductStatus, approveListing, rejectListing, replaceListing, brandActiveHolder, setCommission, updateProductDetail, type ProductStatus, type ProductParam } from "@/lib/data/supplies-source";
 
 async function requireAssoc() {
   await requireStaffPermission("supplies");
@@ -91,15 +91,6 @@ export async function rejectListingAction(fd: FormData) {
   if (p && p.status === "pending") rejectListing(id, reason);
   refresh();
   redirect("/dashboard/association/supplies?tab=review");
-}
-
-export async function advanceOrderAction(fd: FormData) {
-  await requireAssoc();
-  const id = Number(fd.get("id") || 0);
-  const status = String(fd.get("status") || "") as OrderStatus;
-  if (getSupplyOrder(id) && ["pending", "confirmed", "shipped", "done"].includes(status)) setSupplyOrderStatus(id, status);
-  refresh();
-  redirectTo(fd, "/dashboard/association/supplies?tab=orders");
 }
 
 // 平台后台：设置该商品佣金（0-2%）

@@ -101,7 +101,7 @@ export async function placeOrderAction(fd: FormData) {
   if (!product || product.status !== "active") redirect(`${backTo}?err=off`);
   if (product!.sellerType === buyer!.type && product!.sellerId === buyer!.id) redirect(`${backTo}?err=self`);
   createSupplyOrder({ buyer: { type: buyer!.type, id: buyer!.id, name: buyer!.name }, product: product!, qty });
-  revalidatePath("/dashboard/association/supplies");
+  revalidatePath("/dashboard/association/supply-orders");
   revalidatePath(buyer!.base);
   redirect(`${buyer!.base}?ok=ordered`);
 }

@@ -24,7 +24,7 @@ export async function placeSupplyOrderAction(fd: FormData) {
     qty,
   });
   revalidatePath("/dashboard/enterprise/supplies");
-  revalidatePath("/dashboard/association/supplies");
+  revalidatePath("/dashboard/association/supply-orders");
   revalidatePath(product.sellerType === "enterprise" ? "/dashboard/enterprise/store" : "/dashboard/practitioner/store");
   redirect("/dashboard/enterprise/supplies?sok=1");
 }

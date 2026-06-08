@@ -49,7 +49,7 @@ export async function confirmPaymentAction(fd: FormData) {
   const pay = getPayment(id);
   if (!pay) redirect("/dashboard");
   settlePayment(pay, "manual-confirm");
-  revalidatePath("/dashboard/association/supplies");
+  revalidatePath("/dashboard/association/supply-orders");
   revalidatePath("/dashboard/enterprise/supplies");
   redirect(`/dashboard/pay/${id}?ok=1`);
 }
