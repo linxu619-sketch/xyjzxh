@@ -12,6 +12,7 @@ import { ORDER_DEMO } from "@/lib/data/orders";
 import { listReviewsByUid } from "@/lib/data/reviews";
 import { listLeadsForCustomer } from "@/lib/data/leads";
 import { getEnterprises } from "@/lib/data/enterprises-source";
+import { listOrdersByCustomer, type OrderStage } from "@/lib/data/orders-source";
 import { listMediationsByUid } from "@/lib/data/mediations";
 import { CUSTOMER_TABS } from "@/lib/dashboard/nav";
 import { CustomerBottomNav } from "@/components/dashboard/customer-bottom-nav";
@@ -19,6 +20,9 @@ import { ResignBanner } from "@/components/agreements/resign-banner";
 
 
 const MED_STATUS: Record<string, string> = { pending: "待受理", accepted: "受理中", closed: "已结案", rejected: "已驳回" };
+
+const ORDER_STAGE_LABEL: Record<OrderStage, string> = { signed: "已签约", planning: "施工准备", "in-progress": "施工中", accepted: "已竣工验收" };
+const ORDER_STAGE_TONE: Record<OrderStage, "yellow" | "brand" | "decor" | "tea"> = { signed: "yellow", planning: "brand", "in-progress": "decor", accepted: "tea" };
 
 export const metadata = { title: "我的 · 信阳市建筑装饰装修协会" };
 
@@ -43,13 +47,13 @@ export default async function CustomerDashboard() {
   ].sort((a, b) => b.ts - a.ts).slice(0, 5);
 
   const o = ORDER_DEMO; // 仅用于空态「查看装修管理演示」入口（明确标注）
-  // 施工管理（验收/变更/付款）实时数据系统尚未接入：不展示伪造待办。
+  // 施工管理待办（验收/变更/付款）尚未接入：不展示伪造待办。
   const pendingAcc = 0, pendingChg = 0, pendingPay = 0, pending = 0;
-  // 本人真实已签约项目
-  const signedLeads = myRequests.filter((l) => l.status === "signed");
-  const ents = hasProject ? await getEnterprises() : [];
-  const entName = (id: string) => ents.find((e) => e.id === id || e.slug === id)?.name ?? "协会会员企业";
-  const proj = signedLeads[0];
+  // 本人真实订单（含企业维护的真实 stage/progress/收款）
+  const myOrders = listOrdersByCustomer(session.phone);
+  const curOrder = myOrders[0];
+  const ents = curOrder ? await getEnterprises() : [];
+  const curEnt = curOrder ? (ents.find((e) => e.id === curOrder.enterpriseId || e.slug === curOrder.enterpriseId)?.name ?? "协会会员企业") : "";
 
   return (
     <div className="min-h-screen bg-surface pb-24">
@@ -108,8 +112,8 @@ export default async function CustomerDashboard() {
           </Link>
         )}
 
-        {/* 当前项目卡 —— 有进行中项目才显示；否则引导开始装修 */}
-        {!hasProject ? (
+        {/* 当前项目卡 —— 有真实订单才显示；否则引导开始装修 */}
+        {!curOrder ? (
           <div className="rounded-3xl bg-background border border-border p-5 shadow-sm">
             <div className="text-[11px] tracking-widest text-muted-foreground uppercase mb-2">MY PROJECT</div>
             <div className="text-[16px] font-semibold tracking-tight">还没有进行中的装修项目</div>
@@ -126,15 +130,25 @@ export default async function CustomerDashboard() {
           className="block rounded-3xl bg-background border border-border p-5 shadow-sm active:scale-[0.99] transition-transform"
         >
           <div className="flex items-center justify-between mb-3">
-            <div className="text-[11px] tracking-widest text-muted-foreground uppercase">MY PROJECT</div>
-            <Badge tone="tea">已签约</Badge>
+            <div className="text-[11px] tracking-widest text-muted-foreground uppercase">CURRENT PROJECT</div>
+            <Badge tone={ORDER_STAGE_TONE[curOrder.stage]}>{ORDER_STAGE_LABEL[curOrder.stage]}</Badge>
           </div>
-          <div className="text-[18px] font-semibold tracking-tight">{proj?.type || "装修项目"}{proj?.area ? ` · ${proj.area}㎡` : ""}</div>
-          <div className="text-[12px] text-muted-foreground mt-1">{proj ? entName(proj.enterpriseId) : "协会会员企业"}{proj?.budget ? ` · 预算 ${proj.budget} 万` : ""}</div>
-          {signedLeads.length > 1 && <div className="text-[11px] text-muted-foreground mt-1">共 {signedLeads.length} 个已签约项目</div>}
+          <div className="text-[18px] font-semibold tracking-tight">{curOrder.scope || curOrder.type}{curOrder.area ? ` · ${curOrder.area}` : ""}</div>
+          <div className="text-[12px] text-muted-foreground mt-1">{curEnt} · {curOrder.code}</div>
+
+          <div className="mt-4">
+            <div className="flex items-center justify-between text-[12px] mb-1.5">
+              <span className="text-muted-foreground">施工进度</span>
+              <span className="font-semibold tabular-nums">{curOrder.progress}%</span>
+            </div>
+            <div className="h-2 rounded-full bg-surface overflow-hidden">
+              <div className={`h-full rounded-full transition-all duration-700 ${curOrder.stage === "accepted" ? "bg-accent-tea" : "bg-gradient-to-r from-cat-decor to-[#ff7a45]"}`} style={{ width: `${curOrder.progress}%` }} />
+            </div>
+          </div>
+
           <div className="mt-4 pt-3 border-t border-border flex items-center justify-between text-[12px]">
-            <span className="text-muted-foreground">施工进度 / 验收 / 付款实时同步即将上线</span>
-            <span className="inline-flex items-center gap-1 text-brand font-medium shrink-0">查看 <ArrowUpRight className="h-3.5 w-3.5" /></span>
+            <span className="text-muted-foreground inline-flex items-center gap-1"><Wallet className="h-3.5 w-3.5" /> 已收款 {curOrder.receivedPct}%{myOrders.length > 1 ? ` · 共 ${myOrders.length} 个项目` : ""}</span>
+            <span className="inline-flex items-center gap-1 text-brand font-medium shrink-0">查看全部 <ArrowUpRight className="h-3.5 w-3.5" /></span>
           </div>
         </Link>
         )}

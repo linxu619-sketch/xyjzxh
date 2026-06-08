@@ -41,6 +41,12 @@ function rowTo(r: Row): Order {
 export function listOrdersByEnterprise(eid: string): Order[] {
   return (getDb().prepare("SELECT * FROM orders WHERE enterprise_id=? ORDER BY created_at DESC").all(eid) as Row[]).map(rowTo);
 }
+// 业主端「我的项目」：按客户手机号匹配本人订单（含企业维护的真实 stage/progress/收款）
+export function listOrdersByCustomer(phone: string): Order[] {
+  const p = (phone || "").trim();
+  if (!p) return [];
+  return (getDb().prepare("SELECT * FROM orders WHERE customer_phone=? ORDER BY created_at DESC").all(p) as Row[]).map(rowTo);
+}
 export function getOrder(id: number): Order | undefined {
   const r = getDb().prepare("SELECT * FROM orders WHERE id=?").get(id) as Row | undefined;
   return r ? rowTo(r) : undefined;
