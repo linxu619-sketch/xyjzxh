@@ -14,6 +14,13 @@
 
 ---
 
+## [0.125.2] - 2026-06-08
+
+### 层面隔离强制化校验 + 修支付页越权
+核查「隐藏链接」之外的真·访问控制：
+- **复核**：协会/企业工作台全部页面均用对应 Shell（含角色守卫）；业主首页、从业者首页虽未用 Shell 但各自带 `if(!session||role!==…)redirect` 守卫。实测业主(customer)直敲 `/dashboard/{enterprise,association,practitioner}` 全部 307 弹回登录，访问自己工作台 200——层面隔离是 RBAC 强制，非仅隐藏链接。
+- **修复支付页越权**：`/dashboard/pay/[id]` 原无任何登录校验，匿名即可看金额/收款账户/佣金/收付款方。加 `requireLogin()`，未登录跳 `/login?next=…`。
+
 ## [0.125.1] - 2026-06-08
 
 ### 两层面隔离补强：ai-dock 按 face 过滤 AI 员工

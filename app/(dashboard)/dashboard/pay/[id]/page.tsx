@@ -4,12 +4,14 @@ import { ArrowLeft, QrCode, Landmark, CheckCircle2, ShieldCheck, Coins } from "l
 import { getPayment } from "@/lib/data/payments-source";
 import { getProvider, enabledPayMethods, type PayMethod } from "@/lib/payments";
 import { confirmPaymentAction, setPayMethodAction } from "../actions";
+import { requireLogin } from "@/lib/auth/guard";
 
 export const metadata = { title: "收银台 · 信阳市建筑装饰装修协会" };
 
 const METHOD_LABEL: Record<PayMethod, string> = { alipay: "支付宝", wechat: "微信支付", bank_corp: "银行转账 · 对公", bank_personal: "银行转账 · 对私" };
 
 export default async function PayPage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ ok?: string }> }) {
+  await requireLogin(); // 收银台含金额/收款账户/佣金，须登录后访问
   const { id } = await params;
   const { ok } = await searchParams;
   const pay = getPayment(Number(id));
