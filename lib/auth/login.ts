@@ -1,7 +1,7 @@
 import "server-only";
 import { SYSTEM_ADMIN } from "./system-admin";
 import { getStaffAuthByPhone } from "@/lib/data/staff-source";
-import { findEnterpriseByContactPhone } from "@/lib/data/enterprises-source";
+import { findEnterpriseByContactPhone, ensureEnterpriseForAccount } from "@/lib/data/enterprises-source";
 import { getPractitionerByPhone } from "@/lib/data/practitioners-source";
 import { getAccountByPhone, upsertAccount } from "@/lib/data/accounts";
 import { verifyPassword } from "./password";
@@ -239,10 +239,12 @@ export async function loginEnterpriseWithPassword(
       return { ok: false, error: "密码错误" };
     }
     if (acct.status === "active") {
+      // 自愈：未链到企业/企业记录缺失时从入会申请补建并回填 member_ref
+      const entId = ensureEnterpriseForAccount({ phone: cleanPhone, memberRef: acct.memberRef, appId: acct.appId });
       return {
         ok: true,
         isSystemAdmin: false,
-        session: { uid: `ent-${acct.memberRef ?? cleanPhone}`, role: "enterprise", name: acct.name || "企业会员", phone: cleanPhone, enterpriseId: acct.memberRef ?? undefined },
+        session: { uid: `ent-${entId ?? cleanPhone}`, role: "enterprise", name: acct.name || "企业会员", phone: cleanPhone, enterpriseId: entId },
       };
     }
     // pending / rejected → 审核进度页
@@ -304,10 +306,12 @@ export async function loginEnterpriseWithSms(
   const acct = getAccountByPhone(cleanPhone);
   if (acct && acct.role === "enterprise") {
     if (acct.status === "active") {
+      // 自愈：未链到企业/企业记录缺失时从入会申请补建并回填 member_ref
+      const entId = ensureEnterpriseForAccount({ phone: cleanPhone, memberRef: acct.memberRef, appId: acct.appId });
       return {
         ok: true,
         isSystemAdmin: false,
-        session: { uid: `ent-${acct.memberRef ?? cleanPhone}`, role: "enterprise", name: acct.name || "企业会员", phone: cleanPhone, enterpriseId: acct.memberRef ?? undefined },
+        session: { uid: `ent-${entId ?? cleanPhone}`, role: "enterprise", name: acct.name || "企业会员", phone: cleanPhone, enterpriseId: entId },
       };
     }
     // pending / rejected → 审核进度页

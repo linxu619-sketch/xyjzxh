@@ -1,6 +1,7 @@
 import "server-only";
 import { ENTERPRISES, type Enterprise } from "./enterprises";
 import { getDb } from "@/lib/db/sqlite";
+import { getApplication } from "./applications";
 
 /* ============================================================
    企业数据源：本地 SQLite（失败回退 mock，保证 UI 不崩）
@@ -121,6 +122,28 @@ export function createEnterpriseFromApplication(app: {
     JSON.stringify({ tel: app.phone ?? "", addr: p.region ?? "" }),
     0, 0, 0, 1, 0,
   );
+}
+
+/**
+ * 自愈：企业账号已通过审批、但未链到企业（member_ref 空）或企业记录缺失时，
+ * 从其入会申请补建企业记录并回填 accounts.member_ref，返回有效的企业 id。
+ * 解决「历史/种子审批未走完整闭环」导致的「当前账号未绑定企业」。在企业登录时调用。
+ */
+export function ensureEnterpriseForAccount(acct: { phone: string; memberRef?: string | null; appId?: number | null }): string | undefined {
+  const db = getDb();
+  // 已正确链到存在的企业记录 → 直接用
+  if (acct.memberRef && db.prepare("SELECT 1 FROM enterprises WHERE id = ?").get(acct.memberRef)) return acct.memberRef;
+  // 用 app_id 从入会申请补建 + 链定
+  if (acct.appId) {
+    const app = getApplication(acct.appId);
+    if (app && app.type === "enterprise" && app.status === "approved") {
+      createEnterpriseFromApplication(app); // 幂等：已存在则跳过
+      const ref = `app-${acct.appId}`;
+      db.prepare("UPDATE accounts SET member_ref = ? WHERE phone = ? AND (member_ref IS NULL OR member_ref = '')").run(ref, acct.phone);
+      return ref;
+    }
+  }
+  return acct.memberRef ?? undefined;
 }
 
 // 企业自助编辑子站资料 → 写回 enterprises 表（子站随即生效）
