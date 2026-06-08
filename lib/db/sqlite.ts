@@ -361,6 +361,18 @@ CREATE TABLE IF NOT EXISTS enterprise_team (
 );
 CREATE INDEX IF NOT EXISTS idx_team_ent ON enterprise_team(enterprise_id, created_at);
 
+-- 企业工作台「团队管理」：成员账号 / 角色 / 状态（区别于 enterprise_team 子站展示）
+CREATE TABLE IF NOT EXISTS enterprise_staff (
+  id            INTEGER PRIMARY KEY AUTOINCREMENT,
+  enterprise_id TEXT,
+  name          TEXT,
+  phone         TEXT,
+  role          TEXT,     -- owner/admin/sales/site_manager/designer/finance/viewer
+  status        TEXT,     -- active/locked/invited
+  created_at    INTEGER
+);
+CREATE INDEX IF NOT EXISTS idx_entstaff_ent ON enterprise_staff(enterprise_id, created_at);
+
 CREATE TABLE IF NOT EXISTS jobs (
   id              INTEGER PRIMARY KEY AUTOINCREMENT,
   enterprise_id   TEXT,

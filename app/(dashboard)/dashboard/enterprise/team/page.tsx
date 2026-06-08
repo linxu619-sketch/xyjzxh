@@ -1,90 +1,137 @@
-import { Plus, Search, MoreHorizontal, Crown, ShieldCheck } from "lucide-react";
+import { Plus, Crown, ShieldCheck, Lock, Unlock, Trash2, UserCheck } from "lucide-react";
 import { EnterpriseShell } from "@/components/dashboard/shell";
-import { FilterBar, DataTable } from "@/components/dashboard/section";
 import { Badge } from "@/components/ui/badge";
+import { getSession } from "@/lib/auth/session";
+import { effectiveEnterpriseId, isEnterprisePreview } from "@/lib/dashboard/preview";
+import { getEnterpriseBySlugOrId } from "@/lib/data/enterprises-source";
+import { ensureOwner, listStaffByEnterprise, ENT_INVITE_ROLES, type EntStaffRole, type EntStaffStatus } from "@/lib/data/enterprise-staff";
+import { inviteStaffAction, setStaffStatusAction, removeStaffAction } from "./actions";
+import { RoleSelect } from "./RoleSelect";
 
 export const metadata = { title: "团队管理 · 企业工作台" };
 
-type Member = {
-  name: string; phone: string; role: "owner" | "admin" | "sales" | "site_manager" | "designer" | "finance" | "viewer";
-  status: "active" | "locked" | "invited"; lastLogin: string; deals: number;
-};
-
-const ROLE_LABEL: Record<Member["role"], string> = {
-  owner: "Owner", admin: "管理员", sales: "销售顾问", site_manager: "项目经理",
+const ROLE_LABEL: Record<EntStaffRole, string> = {
+  owner: "负责人", admin: "管理员", sales: "销售顾问", site_manager: "项目经理",
   designer: "设计师", finance: "财务", viewer: "查看者",
 };
-
-const ROLE_TONE: Record<Member["role"], "brand" | "build" | "decor" | "design" | "tea" | "yellow" | "neutral"> = {
+const ROLE_TONE: Record<EntStaffRole, "brand" | "build" | "decor" | "design" | "tea" | "yellow" | "neutral"> = {
   owner: "yellow", admin: "brand", sales: "decor", site_manager: "build",
   designer: "design", finance: "tea", viewer: "neutral",
 };
+const STATUS_LABEL: Record<EntStaffStatus, string> = { active: "在职", locked: "已锁定", invited: "待激活" };
+const STATUS_TONE: Record<EntStaffStatus, "tea" | "decor" | "yellow"> = { active: "tea", locked: "decor", invited: "yellow" };
 
-const TEAM: Member[] = [
-  { name: "张经理", phone: "138****1001", role: "owner",        status: "active", lastLogin: "刚刚",       deals: 18 },
-  { name: "李顾问", phone: "138****1002", role: "sales",        status: "active", lastLogin: "5 分钟前",   deals: 24 },
-  { name: "王经理", phone: "138****1003", role: "site_manager", status: "active", lastLogin: "1 小时前",   deals: 12 },
-  { name: "张设计", phone: "138****1004", role: "designer",     status: "active", lastLogin: "20 分钟前",  deals: 16 },
-  { name: "刘会计", phone: "138****1005", role: "finance",      status: "active", lastLogin: "今天 09:00",  deals: 0 },
-  { name: "陈助理", phone: "138****1006", role: "admin",        status: "active", lastLogin: "今天 08:55",  deals: 0 },
-  { name: "孙顾问", phone: "138****1007", role: "sales",        status: "locked", lastLogin: "5 月 12 日",  deals: 6 },
-  { name: "周顾问", phone: "138****1008", role: "sales",        status: "invited",lastLogin: "—",         deals: 0 },
-];
+const INPUT = "h-10 rounded-xl border border-border bg-background px-3 text-[13px] outline-none focus:border-foreground/30 w-full";
 
-const STATUS_TONE: Record<Member["status"], "tea" | "decor" | "yellow"> = {
-  active: "tea", locked: "decor", invited: "yellow",
-};
+export default async function TeamPage() {
+  const session = await getSession();
+  const eid = effectiveEnterpriseId(session);
+  const preview = isEnterprisePreview(session);
+  const ent = eid ? await getEnterpriseBySlugOrId(eid) : undefined;
+  // 首访自动建 owner（企业账号本人）
+  if (eid && ent) ensureOwner(eid, { name: ent.name, phone: ent.contact.tel });
+  const team = eid ? listStaffByEnterprise(eid) : [];
+  const active = team.filter((m) => m.status === "active").length;
+  const invited = team.filter((m) => m.status === "invited").length;
+  const roleOptions = ENT_INVITE_ROLES.map((r) => ({ value: r, label: ROLE_LABEL[r] }));
 
-const STATUS_LABEL: Record<Member["status"], string> = {
-  active: "在职", locked: "已锁定", invited: "待激活",
-};
-
-export default function TeamPage() {
   return (
     <EnterpriseShell
       title="团队管理"
-      subtitle={`成员 ${TEAM.length} 人 · 在职 ${TEAM.filter((m) => m.status === "active").length} · 待激活 ${TEAM.filter((m) => m.status === "invited").length}`}
-      actions={
-        <button className="h-9 px-4 rounded-full bg-foreground text-background text-[13px] font-medium inline-flex items-center gap-1.5">
-          <Plus className="h-3.5 w-3.5" /> 邀请成员
-        </button>
-      }
+      subtitle={`成员 ${team.length} 人 · 在职 ${active} · 待激活 ${invited}`}
     >
-      <FilterBar className="mb-3">
-        <div className="flex items-center gap-2 flex-1 min-w-[200px]">
-          <Search className="h-4 w-4 text-muted-foreground ml-2" />
-          <input placeholder="搜索成员姓名 / 手机号" className="flex-1 bg-transparent outline-none text-[13px] py-1" />
-        </div>
-        <select className="h-9 rounded-full bg-surface text-[12px] px-3 border border-transparent">
-          <option>角色：全部</option><option>管理员</option><option>销售</option><option>项目经理</option><option>设计师</option><option>财务</option>
-        </select>
-        <select className="h-9 rounded-full bg-surface text-[12px] px-3 border border-transparent">
-          <option>状态：全部</option><option>在职</option><option>已锁定</option><option>待激活</option>
-        </select>
-      </FilterBar>
+      {/* 邀请成员（协会只读预览不显示）*/}
+      {!preview && (
+        <form action={inviteStaffAction} className="mb-5 rounded-2xl border border-border bg-background p-4 md:p-5">
+          <div className="text-[13px] font-semibold mb-3 inline-flex items-center gap-1.5"><Plus className="h-4 w-4" /> 邀请成员</div>
+          <div className="grid grid-cols-1 sm:grid-cols-[1fr_1fr_1fr_auto] gap-3 items-end">
+            <label className="block">
+              <span className="text-[12px] text-muted-foreground">姓名</span>
+              <input name="name" required placeholder="成员姓名" className={INPUT} />
+            </label>
+            <label className="block">
+              <span className="text-[12px] text-muted-foreground">手机号</span>
+              <input name="phone" required placeholder="11 位手机号" className={INPUT} />
+            </label>
+            <label className="block">
+              <span className="text-[12px] text-muted-foreground">角色</span>
+              <select name="role" defaultValue="sales" className={INPUT}>
+                {roleOptions.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
+              </select>
+            </label>
+            <button type="submit" className="h-10 px-5 rounded-xl bg-foreground text-background text-[13px] font-medium shrink-0">发出邀请</button>
+          </div>
+          <p className="mt-2.5 text-[11px] text-muted-foreground">邀请后成员为「待激活」，对方用该手机号登录企业端即激活。</p>
+        </form>
+      )}
 
-      <DataTable dropActionCol
-        head={["成员", "手机", "角色", "签单(本月)", "最后登录", "状态", "操作"]}
-        rows={TEAM.map((m) => [
-          <div key="n" className="flex items-center gap-2.5">
-            <span className="h-9 w-9 rounded-full bg-foreground text-background inline-flex items-center justify-center text-[12px] font-semibold">{m.name.slice(0, 1)}</span>
-            <div>
-              <div className="font-medium flex items-center gap-1.5">{m.name}{m.role === "owner" && <Crown className="h-3 w-3 text-accent-yellow" />}</div>
-            </div>
-          </div>,
-          <span key="p" className="text-muted-foreground">{m.phone}</span>,
-          <Badge key="r" tone={ROLE_TONE[m.role]}>{ROLE_LABEL[m.role]}</Badge>,
-          <span key="d" className="font-medium">{m.deals}</span>,
-          <span key="l" className="text-[11px] text-muted-foreground">{m.lastLogin}</span>,
-          <Badge key="s" tone={STATUS_TONE[m.status]}>{STATUS_LABEL[m.status]}</Badge>,
-          <button key="o" className="h-8 w-8 rounded-lg hover:bg-surface text-muted-foreground hover:text-foreground"><MoreHorizontal className="h-4 w-4" /></button>,
-        ])}
-      />
+      {/* 成员列表 */}
+      <div className="rounded-2xl border border-border bg-background overflow-hidden">
+        <div className="hidden md:grid grid-cols-[1.4fr_1fr_1.1fr_0.8fr_auto] gap-3 px-5 py-2.5 border-b border-border text-[11px] text-muted-foreground tracking-wider">
+          <span>成员</span><span>手机</span><span>角色</span><span>状态</span><span className="text-right">操作</span>
+        </div>
+        {team.length === 0 ? (
+          <div className="px-5 py-12 text-center text-[13px] text-muted-foreground">还没有团队成员，用上方「邀请成员」添加。</div>
+        ) : (
+          <ul className="divide-y divide-border">
+            {team.map((m) => {
+              const isOwner = m.role === "owner";
+              const editable = !preview && !isOwner;
+              return (
+                <li key={m.id} className="grid grid-cols-[1fr_auto] md:grid-cols-[1.4fr_1fr_1.1fr_0.8fr_auto] gap-3 items-center px-5 py-3.5 text-[13px]">
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <span className="h-9 w-9 rounded-full bg-foreground text-background inline-flex items-center justify-center text-[12px] font-semibold shrink-0">{m.name.slice(0, 1)}</span>
+                    <span className="min-w-0">
+                      <span className="font-medium truncate flex items-center gap-1.5">{m.name}{isOwner && <Crown className="h-3 w-3 text-accent-yellow shrink-0" />}</span>
+                      <span className="md:hidden text-[11px] text-muted-foreground">{m.phone} · {ROLE_LABEL[m.role]}</span>
+                    </span>
+                  </div>
+                  <span className="hidden md:block text-muted-foreground tabular-nums">{m.phone}</span>
+                  <span className="hidden md:flex items-center">
+                    {editable ? <RoleSelect id={m.id} role={m.role} options={roleOptions} /> : <Badge tone={ROLE_TONE[m.role]}>{ROLE_LABEL[m.role]}</Badge>}
+                  </span>
+                  <span className="hidden md:block"><Badge tone={STATUS_TONE[m.status]}>{STATUS_LABEL[m.status]}</Badge></span>
+                  <span className="flex items-center justify-end gap-1.5 shrink-0">
+                    {editable ? (
+                      <>
+                        {m.status === "invited" && (
+                          <form action={setStaffStatusAction}>
+                            <input type="hidden" name="id" value={m.id} /><input type="hidden" name="status" value="active" />
+                            <button title="激活" className="h-8 px-2.5 rounded-lg text-[12px] text-accent-tea hover:bg-surface inline-flex items-center gap-1"><UserCheck className="h-3.5 w-3.5" /> 激活</button>
+                          </form>
+                        )}
+                        {m.status === "active" && (
+                          <form action={setStaffStatusAction}>
+                            <input type="hidden" name="id" value={m.id} /><input type="hidden" name="status" value="locked" />
+                            <button title="锁定" className="h-8 w-8 rounded-lg text-muted-foreground hover:text-cat-decor hover:bg-surface inline-flex items-center justify-center"><Lock className="h-3.5 w-3.5" /></button>
+                          </form>
+                        )}
+                        {m.status === "locked" && (
+                          <form action={setStaffStatusAction}>
+                            <input type="hidden" name="id" value={m.id} /><input type="hidden" name="status" value="active" />
+                            <button title="解锁" className="h-8 w-8 rounded-lg text-muted-foreground hover:text-accent-tea hover:bg-surface inline-flex items-center justify-center"><Unlock className="h-3.5 w-3.5" /></button>
+                          </form>
+                        )}
+                        <form action={removeStaffAction}>
+                          <input type="hidden" name="id" value={m.id} />
+                          <button title="移除" className="h-8 w-8 rounded-lg text-muted-foreground hover:text-cat-decor hover:bg-surface inline-flex items-center justify-center"><Trash2 className="h-3.5 w-3.5" /></button>
+                        </form>
+                      </>
+                    ) : (
+                      <span className="text-[11px] text-muted-foreground">{isOwner ? "账号本人" : ""}</span>
+                    )}
+                  </span>
+                </li>
+              );
+            })}
+          </ul>
+        )}
+      </div>
 
       <div className="mt-6 rounded-2xl border border-border bg-surface p-5 flex items-start gap-3">
         <ShieldCheck className="h-5 w-5 text-accent-tea mt-0.5 shrink-0" />
         <div className="text-[12px] text-muted-foreground leading-5">
-          <b className="text-foreground">权限说明：</b> Owner 拥有全部权限；管理员可邀请成员、改子站、看全部数据；销售/项目经理/设计师只能看自己负责的线索与项目；财务可看金额相关。详见 协会 → 系统设置。
+          <b className="text-foreground">权限说明：</b> 负责人(账号本人)拥有全部权限；管理员可邀请成员、改子站、看全部数据；销售/项目经理/设计师看自己负责的线索与项目；财务看金额相关；查看者只读。
         </div>
       </div>
     </EnterpriseShell>
