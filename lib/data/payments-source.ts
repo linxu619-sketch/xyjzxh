@@ -54,6 +54,10 @@ export function getPaymentByOutTradeNo(no: string): Payment | undefined {
 export function listPaymentsByBiz(bizType: string, bizId: number): Payment[] {
   return (getDb().prepare("SELECT * FROM payments WHERE biz_type=? AND biz_id=? ORDER BY created_at DESC").all(bizType, bizId) as Row[]).map(toP);
 }
+// 平台资金总览：全部支付单（最新在前）
+export function listAllPayments(): Payment[] {
+  return (getDb().prepare("SELECT * FROM payments ORDER BY created_at DESC").all() as Row[]).map(toP);
+}
 // 标记到账（渠道回调 / 人工确认）
 export function markPaymentPaid(id: number, channelRef?: string) {
   getDb().prepare("UPDATE payments SET status='paid', channel_ref=?, paid_at=? WHERE id=? AND status!='paid'").run(channelRef ?? "manual", Date.now(), id);
