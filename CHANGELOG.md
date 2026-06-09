@@ -14,6 +14,14 @@
 
 ---
 
+## [0.132.2] - 2026-06-09
+
+### 规范：协会页对外标准地址统一为 xh.xyjzxh.com/<path>
+
+- 在 `CONVENTIONS.md`「双主页 / 三门面架构」下新增约定：所有协会相关页面对外公示 / 站内链接 / SEO 口径一律以协会子域 `xh.xyjzxh.com` 为准，不同页面接各自路径（协会首页为根，内部重写 `/xh`）。
+- 附协会层专属页标准地址映射表（party/join/register/services/projects/talents/practitioners/about/dashboard）+ 两面共享页（members/news/knowledge/finance/supplies/insurance/ai）域名随语境说明。
+- 力度：当前仅定**对外标准口径**，不做技术强制（消费者域名暂仍可访问这些路径，不误伤共享页）；如需协会专属页 301 跳 xh 子域，另行确认。
+
 ## [0.132.1] - 2026-06-09
 
 ### 党建资讯一并打通到从业者工作台（一致性收尾）

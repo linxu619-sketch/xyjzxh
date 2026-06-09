@@ -36,6 +36,24 @@
     - `localhost:3000/xh` — 最简单、离线即用，但 face 标记仍是 consumer（仅看内容够用）。
     - `xh.lvh.me:3000` — 真实子域名分流（face=xh），需联网；`middleware.ts` 的 `DEV_ROOTS` 已内置 `lvh.me`。
     - ⚠️ **不要用 `xh.localhost:3000`**：Windows 浏览器默认不解析 `*.localhost`，打不开。
+- **协会页对外标准地址 = `xh.xyjzxh.com/<path>`（已确认规范）**：所有**协会相关页面**对外公示、站内链接、SEO 口径**一律以协会子域 `xh.xyjzxh.com` 为准**，不同页面在后面接各自路径（协会首页为根 `xh.xyjzxh.com`，内部重写到 `/xh`）。
+  - **协会层专属页**（标准地址）：
+
+    | 页面 | 标准地址 |
+    |------|---------|
+    | 协会首页 | `xh.xyjzxh.com`（根→ `/xh`）|
+    | 党的建设 | `xh.xyjzxh.com/party` |
+    | 申请入会 | `xh.xyjzxh.com/join` |
+    | 会员注册 | `xh.xyjzxh.com/register` |
+    | 协会服务 | `xh.xyjzxh.com/services` |
+    | 工装报备 | `xh.xyjzxh.com/projects` |
+    | 人才中心 | `xh.xyjzxh.com/talents` |
+    | 从业者名录 | `xh.xyjzxh.com/practitioners` |
+    | 关于协会 | `xh.xyjzxh.com/about`（`/about/org`·`/about/rules`·`/about/contact`）|
+    | 协会 / 企业 / 从业者工作台 | `xh.xyjzxh.com/dashboard/{association,enterprise,practitioner}/…` |
+
+  - **两面共享页**（协会面与业主面都用，路径相同、域名随语境）：`/members`、`/news`、`/knowledge`、`/finance`、`/supplies`、`/insurance`、`/ai`——协会语境用 `xh.xyjzxh.com/<path>`，业主语境用 `xyjzxh.com/<path>`（如 `xyjzxh.com/members?cat=decor` 找装企）。
+  - **力度（当前）**：本条仅为**对外标准口径**，**暂不做技术强制**——`middleware.ts` 中 `xh` 子域已能服务任意路径并打 `face=xh`；消费者域名当前仍可访问这些路径（避免误伤共享页）。如需把协会专属页在消费者域名 301 跳转到 xh 子域，另行确认后再实现。
 - **移动端全站固定底栏**（`components/global-bottom-nav.tsx`，挂在 `(main)` 布局）：每个门户页移动端固定显示，桌面端隐藏（桌面用顶部导航 + 悬浮 AI 按钮 `AiDock`）。两门面各一套标签：
   - 消费者：首页 / 找装企 / **AI估价**(中间凸起) / 评价 / 我的
   - 协会：协会(首页) / 会员 / **AI** / 工装报备 / 我的
