@@ -77,7 +77,7 @@ export function ListingForm({ disabled, disabledHint, action, selfOperated, trig
             <input type="hidden" name="imageUrl3" value={imgs[2] ?? ""} />
             <div className="flex gap-2 flex-wrap">
               {imgs.map((u, i) => (
-                <div key={i} className="relative w-20 h-20 rounded-xl overflow-hidden border border-border">
+                <div key={i} className="relative w-20 h-20 overflow-hidden border border-border">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img src={u} alt={`商品图${i + 1}`} className="w-full h-full object-cover" />
                   {i === 0 && <span className="absolute top-0.5 left-0.5 bg-foreground/70 text-background text-[9px] px-1 rounded">封面</span>}
@@ -85,7 +85,7 @@ export function ListingForm({ disabled, disabledHint, action, selfOperated, trig
                 </div>
               ))}
               {imgs.length < 3 && (
-                <label className="w-20 h-20 rounded-xl border border-dashed border-border flex flex-col items-center justify-center gap-1 text-[10px] text-muted-foreground cursor-pointer hover:border-foreground/30">
+                <label className="w-20 h-20 border border-dashed border-border flex flex-col items-center justify-center gap-1 text-[10px] text-muted-foreground cursor-pointer hover:border-foreground/30">
                   {uploadingImg ? <Loader2 className="h-5 w-5 animate-spin" /> : <ImageIcon className="h-5 w-5" />}
                   {uploadingImg ? "上传中" : "加图片"}
                   <input type="file" accept="image/*" className="hidden" onChange={onAddImg} />
