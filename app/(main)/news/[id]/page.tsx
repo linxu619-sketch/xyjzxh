@@ -41,8 +41,8 @@ export default async function NewsDetail({ params }: { params: Promise<{ id: str
         </Link>
       )}
 
-      <Badge tone={TONE[n.color] ?? "build"}>{n.category}</Badge>
-      <h1 className="mt-4 text-[28px] md:text-[40px] font-semibold tracking-tight leading-[1.15]">{n.title}</h1>
+      {!isParty && <Badge tone={TONE[n.color] ?? "build"}>{n.category}</Badge>}
+      <h1 className={`${isParty ? "" : "mt-4"} text-[28px] md:text-[40px] font-semibold tracking-tight leading-[1.15]`}>{n.title}</h1>
       <div className="mt-4 flex items-center gap-4 text-[12px] text-muted-foreground flex-wrap">
         <span className="inline-flex items-center gap-1"><Calendar className="h-3 w-3" /> {fmt(n.createdAt)}</span>
         {n.author && <span className="inline-flex items-center gap-1"><User className="h-3 w-3" /> {n.author}</span>}
