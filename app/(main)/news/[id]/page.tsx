@@ -31,9 +31,15 @@ export default async function NewsDetail({ params }: { params: Promise<{ id: str
 
   return (
     <Container className="py-10 md:py-14 max-w-3xl">
-      <Link href={back.href} className="inline-flex items-center gap-1.5 text-[13px] text-muted-foreground hover:text-foreground mb-6">
-        <ArrowLeft className="h-3.5 w-3.5" /> {back.label}
-      </Link>
+      {isParty ? (
+        <Link href={back.href} className="inline-flex items-center gap-1.5 h-9 px-4 rounded-full bg-party text-white text-[13px] font-medium hover:bg-party-dark transition-colors mb-6">
+          <ArrowLeft className="h-3.5 w-3.5" /> {back.label}
+        </Link>
+      ) : (
+        <Link href={back.href} className="inline-flex items-center gap-1.5 text-[13px] text-muted-foreground hover:text-foreground mb-6">
+          <ArrowLeft className="h-3.5 w-3.5" /> {back.label}
+        </Link>
+      )}
 
       <Badge tone={TONE[n.color] ?? "build"}>{n.category}</Badge>
       <h1 className="mt-4 text-[28px] md:text-[40px] font-semibold tracking-tight leading-[1.15]">{n.title}</h1>
