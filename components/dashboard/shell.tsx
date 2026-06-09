@@ -43,11 +43,16 @@ export async function AssociationShell({ title, subtitle, actions, tone = "brand
   }
   const isSys = session.role === "system_admin";
 
-  // 员工有效权限（系统超管恒全权 = null）；同时用于侧栏过滤与页面级强拦截。
+  // 「明面上的超级管理员」：会长(president)或超级管理员(super_admin)角色 —— 进超管工作台、恒全权。
+  // 与隐藏的平台超管(system_admin·林旭)区分：林旭=平台/技术 Owner；会长=协会对外的超级管理员。
+  const staff = isSys ? undefined : getStaff(session.uid);
+  const roles = staff?.roles?.length ? staff.roles : (session.staffRole ? [session.staffRole] : []);
+  const isAssocSuper = !isSys && roles.some((r) => r === "president" || r === "super_admin");
+  const isSuper = isSys || isAssocSuper;
+
+  // 有效权限（超管恒全权 = null）；同时用于侧栏过滤与页面级强拦截。
   let perms: Set<Permission> | null = null;
-  if (!isSys) {
-    const staff = getStaff(session.uid);
-    const roles = staff?.roles?.length ? staff.roles : (session.staffRole ? [session.staffRole] : []);
+  if (!isSuper) {
     perms = await getEffectivePermissionsForRoles(roles);
   }
 
@@ -73,14 +78,16 @@ export async function AssociationShell({ title, subtitle, actions, tone = "brand
     <div className="flex">
       <div className="no-print contents">
         <Sidebar
-          brand={isSys ? "平台超管控制台" : "协会工作台"}
-          role={isSys ? "Platform Owner" : "Association Console"}
+          brand={isSys ? "平台超管控制台" : isAssocSuper ? "协会超管控制台" : "协会工作台"}
+          role={isSys ? "Platform Owner" : isAssocSuper ? "会长 · 超级管理员" : "Association Console"}
           items={items}
           user={{
             name: session.name,
             meta: isSys
               ? "系统管理员 · 最高权限"
-              : `${session.staffRole ?? "staff"} · ${maskPhone(session.phone)}`,
+              : isAssocSuper
+                ? `超级管理员 · ${maskPhone(session.phone)}`
+                : `${session.staffRole ?? "staff"} · ${maskPhone(session.phone)}`,
           }}
           tone="brand"
           home="/xh"
@@ -99,7 +106,7 @@ export async function AssociationShell({ title, subtitle, actions, tone = "brand
               trailing={
                 <AccountMenu
                   name={session.name}
-                  roleLabel={isSys ? "系统管理员 · 最高权限" : roleLabel(session.staffRole ?? "")}
+                  roleLabel={isSys ? "系统管理员 · 最高权限" : isAssocSuper ? "会长 · 超级管理员" : roleLabel(session.staffRole ?? "")}
                   phone={maskPhone(session.phone)}
                   isSys={isSys}
                   settingsHref="/dashboard/association/settings"

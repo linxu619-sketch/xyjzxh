@@ -157,7 +157,7 @@ export default async function SystemSettings() {
             {/* 角色权限矩阵 */}
             <SettingsCard
               title="角色权限"
-              desc="勾选每个角色可用的职能模块；保存后该角色员工的后台导航 / 入口按此显隐。超级管理员恒为全部权限。"
+              desc="勾选每个角色可用的职能模块；保存后该角色员工的后台导航 / 入口按此显隐。"
               action={<Badge tone="brand">协会超管可改</Badge>}
             >
               <div id="roles" />
@@ -173,12 +173,6 @@ export default async function SystemSettings() {
                     </tr>
                   </thead>
                   <tbody>
-                    <tr className="border-t border-border bg-surface/40">
-                      <td className="py-2.5 pr-3 sticky left-0 bg-background z-10"><Badge tone="brand">超级管理员</Badge></td>
-                      {ALL_PERMISSIONS.map((p) => (
-                        <td key={p} className="text-center"><ShieldCheck className="h-3.5 w-3.5 text-accent-tea inline" /></td>
-                      ))}
-                    </tr>
                     {editableRoles.map((rk) => (
                       <tr key={rk} className="border-t border-border">
                         <td className="py-2.5 pr-3 sticky left-0 bg-background z-10"><Badge tone={roleTone(rk)}>{roleLabel(rk)}</Badge></td>
