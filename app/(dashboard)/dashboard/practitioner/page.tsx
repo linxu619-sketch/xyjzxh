@@ -1,7 +1,7 @@
 import Link from "next/link";
 import {
   ShieldCheck, Briefcase, GraduationCap, Wallet, Sparkles, Settings,
-  ChevronRight, Star, BadgeCheck, ArrowUpRight, AlertCircle, MapPin, Clock, Store,
+  ChevronRight, Star, BadgeCheck, ArrowUpRight, AlertCircle, MapPin, Clock, Store, Flag,
 } from "lucide-react";
 import { Container } from "@/components/container";
 import { CustomerBottomNav } from "@/components/dashboard/customer-bottom-nav";
@@ -9,6 +9,7 @@ import { PRACTITIONER_TABS } from "@/lib/dashboard/nav";
 import { Badge } from "@/components/ui/badge";
 import { getPractitionerByPhone } from "@/lib/data/practitioners-source";
 import { listOpenJobs } from "@/lib/data/jobs";
+import { listPublished } from "@/lib/data/news-source";
 import { effectivePractitionerPhone, isPractitionerPreview } from "@/lib/dashboard/preview";
 import { redirect } from "next/navigation";
 import { getSession } from "@/lib/auth/session";
@@ -36,6 +37,8 @@ export default async function PractitionerHome() {
   // 真实在招岗位（与「找活」页同源 listOpenJobs）
   const openJobs = listOpenJobs();
   const urgentJobs = openJobs.filter((j) => j.urgent).length;
+  // 协会层资讯打通：个人会员（从业者）属协会层，党建动态在前 + 协会公告在后
+  const assocFeed = [...listPublished("党建").slice(0, 2), ...listPublished().filter((n) => n.category !== "党建").slice(0, 2)].slice(0, 4);
   const fmtDay = (ms: number) => { if (!ms) return ""; const d = new Date(ms); const p = (n: number) => String(n).padStart(2, "0"); return `${p(d.getMonth() + 1)}-${p(d.getDate())}`; };
 
   return (
@@ -168,6 +171,31 @@ export default async function PractitionerHome() {
             <ArrowUpRight className="h-4 w-4" />
           </div>
         </Link>
+
+        {/* 党建 · 协会资讯（协会层资讯打通到从业者工作台；个人会员属协会层）*/}
+        <div className="rounded-3xl bg-background border border-border p-5 shadow-sm">
+          <div className="flex items-center justify-between mb-2">
+            <h3 className="text-[14px] font-semibold tracking-tight inline-flex items-center gap-1.5">
+              <Flag className="h-4 w-4 text-party" /> 党建 · 协会资讯
+            </h3>
+            <Link href="/party" className="text-[12px] text-party inline-flex items-center gap-0.5">党建专栏 <ChevronRight className="h-3 w-3" /></Link>
+          </div>
+          {assocFeed.length === 0 ? (
+            <div className="py-4 text-center text-[12px] text-muted-foreground">协会暂无资讯。</div>
+          ) : (
+            <ul className="divide-y divide-border">
+              {assocFeed.map((n) => (
+                <li key={n.id}>
+                  <Link href={`/news/${n.id}`} className="py-2.5 flex items-center gap-2.5 active:opacity-70">
+                    <Badge tone={n.category === "党建" ? "party" : "brand"} className="!px-1.5 !py-0 shrink-0">{n.category}</Badge>
+                    <span className="flex-1 min-w-0 truncate text-[12.5px]">{n.title}</span>
+                    <ChevronRight className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
 
         {/* 协会权益 */}
         <Link href="/practitioners" className="block rounded-3xl bg-gradient-to-br from-cat-design to-[#6d3df0] text-white p-5 active:scale-[0.99] transition-transform">
