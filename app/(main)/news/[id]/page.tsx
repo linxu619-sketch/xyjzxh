@@ -5,9 +5,12 @@ import { Container } from "@/components/container";
 import { Badge } from "@/components/ui/badge";
 import { getNews, listPublished, incrementViews } from "@/lib/data/news-source";
 
-const TONE: Record<string, "build" | "decor" | "design" | "brand" | "tea"> = {
-  build: "build", decor: "decor", design: "design", brand: "brand", tea: "tea",
+const TONE: Record<string, "build" | "decor" | "design" | "brand" | "tea" | "party"> = {
+  build: "build", decor: "decor", design: "design", brand: "brand", tea: "tea", party: "party",
 };
+
+// 党建 / 理论学习 文章属党建专栏，返回应回 /cpc 而非普通新闻列表
+const PARTY_CATS = ["党建", "理论学习"];
 
 function fmt(ms: number) {
   if (!ms) return "—";
@@ -23,11 +26,13 @@ export default async function NewsDetail({ params }: { params: Promise<{ id: str
 
   incrementViews(n.id);
   const related = listPublished().filter((x) => x.id !== n.id && x.category === n.category).slice(0, 3);
+  const isParty = PARTY_CATS.includes(n.category);
+  const back = isParty ? { href: "/cpc", label: "返回党建专栏" } : { href: "/news", label: "返回新闻列表" };
 
   return (
     <Container className="py-10 md:py-14 max-w-3xl">
-      <Link href="/news" className="inline-flex items-center gap-1.5 text-[13px] text-muted-foreground hover:text-foreground mb-6">
-        <ArrowLeft className="h-3.5 w-3.5" /> 返回新闻列表
+      <Link href={back.href} className="inline-flex items-center gap-1.5 text-[13px] text-muted-foreground hover:text-foreground mb-6">
+        <ArrowLeft className="h-3.5 w-3.5" /> {back.label}
       </Link>
 
       <Badge tone={TONE[n.color] ?? "build"}>{n.category}</Badge>
