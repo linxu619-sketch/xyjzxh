@@ -5,7 +5,7 @@ import { Plus, X } from "lucide-react";
 import { createNewsAction } from "./actions";
 
 const INPUT = "w-full h-11 rounded-xl border border-border bg-background px-3.5 text-[14px] outline-none focus:border-foreground/30";
-const CATS = ["党建", "协会公告", "政策解读", "行业新闻", "会员动态", "活动通知"];
+const CATS = ["党建", "理论学习", "协会公告", "政策解读", "行业新闻", "会员动态", "活动通知"];
 
 export function PublishNews() {
   const [open, setOpen] = useState(false);

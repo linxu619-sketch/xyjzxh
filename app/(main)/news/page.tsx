@@ -10,7 +10,7 @@ const TONE: Record<string, "build" | "decor" | "design" | "brand" | "tea" | "par
   build: "build", decor: "decor", design: "design", brand: "brand", tea: "tea", party: "party",
 };
 const BG: Record<string, string> = { build: "bg-cat-build", decor: "bg-cat-decor", design: "bg-cat-design", brand: "bg-brand", tea: "bg-accent-tea", party: "bg-party" };
-const CATS = ["全部", "党建", "协会公告", "政策解读", "行业新闻", "会员动态", "活动通知"];
+const CATS = ["全部", "党建", "理论学习", "协会公告", "政策解读", "行业新闻", "会员动态", "活动通知"];
 
 function fmt(ms: number) {
   if (!ms) return "—";

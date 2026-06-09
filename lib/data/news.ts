@@ -1,7 +1,7 @@
 // 新闻动态 mock 数据
 export type NewsItem = {
   id: string;
-  category: "党建" | "协会公告" | "政策解读" | "行业新闻" | "会员动态" | "活动通知";
+  category: "党建" | "理论学习" | "协会公告" | "政策解读" | "行业新闻" | "会员动态" | "活动通知";
   title: string;
   excerpt: string;
   date: string;
