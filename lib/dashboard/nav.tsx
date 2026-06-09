@@ -2,7 +2,7 @@ import {
   LayoutDashboard, Users2, FileCheck2, MessageSquareWarning, Library,
   Newspaper, Wallet, Sparkles, Settings, Globe2, MessagesSquare,
   Briefcase, MessageSquareHeart, Home, FileText, Umbrella,
-  Hammer, ShoppingBag, Truck, FileSignature, GraduationCap, Store, UserCog, Receipt, Coins,
+  Hammer, ShoppingBag, Truck, FileSignature, GraduationCap, Store, UserCog, Receipt, Coins, Flag,
 } from "lucide-react";
 import type { ReactNode } from "react";
 import type { Permission } from "@/lib/auth/roles";
@@ -23,6 +23,7 @@ export const ASSOC_NAV: AssocNavItem[] = [
   { href: "/dashboard/association/supplies",      label: "建材商品", icon: <ShoppingBag className={I} />,          perm: "supplies" },
   { href: "/dashboard/association/supply-orders", label: "建材订单", icon: <Receipt className={I} />,              perm: "supplies" },
   { href: "/dashboard/association/knowledge",  label: "知识库",   icon: <Library className={I} />,              perm: "knowledge" },
+  { href: "/dashboard/association/cpc",         label: "党的建设", icon: <Flag className={I} />,                 perm: "party" },
   { href: "/dashboard/association/news",       label: "新闻",     icon: <Newspaper className={I} />,            perm: "news" },
   { href: "/dashboard/association/finance",    label: "金融保险", icon: <Wallet className={I} />,               perm: "finance" },
   { href: "/dashboard/association/payments",   label: "平台资金", icon: <Coins className={I} />,                perm: "finance" },

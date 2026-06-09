@@ -144,13 +144,14 @@ export async function getPaymentConfig() {
 
 /**
  * 有效角色权限 = 系统设置覆盖(rolePermissions) > STAFF_ROLES 内置。
- * super_admin 恒为全部权限，不受覆盖影响。供「角色权限表」展示与后台导航/拦截统一取用。
+ * super_admin 与 president(会长=明面上的超级管理员) 恒为全部权限，不受覆盖影响（且自动含新增权限点）。
+ * 供「角色权限表」展示与后台导航/拦截统一取用。
  */
 export async function getEffectiveRolePermissions(): Promise<Record<string, Permission[]>> {
   const override = (await readRuntimeSettings()).rolePermissions ?? {};
   const out: Record<string, Permission[]> = {};
   for (const key of ROLE_KEYS) {
-    if (key === "super_admin") { out[key] = [...ALL_PERMISSIONS]; continue; }
+    if (key === "super_admin" || key === "president") { out[key] = [...ALL_PERMISSIONS]; continue; }
     const ov = override[key];
     out[key] = ov
       ? ov.filter((p): p is Permission => (ALL_PERMISSIONS as string[]).includes(p))

@@ -14,6 +14,7 @@ export const PERMISSIONS = {
   claims: "保险理赔处置",
   supplies: "建材集采审核",
   news: "新闻发布",
+  party: "党的建设",
   training: "培训管理",
   knowledge: "知识库管理",
   agreements: "协议 / 电子签管理",
@@ -30,7 +31,7 @@ export type RoleDef = { label: string; tone: "brand" | "build" | "design" | "dec
 export const STAFF_ROLES: Record<string, RoleDef> = {
   super_admin: { label: "超级管理员", tone: "brand", permissions: [...ALL_PERMISSIONS] },
   // —— 党组织 ——
-  party_secretary: { label: "党支部书记", tone: "decor", permissions: ["news", "training", "knowledge"] },
+  party_secretary: { label: "党支部书记", tone: "decor", permissions: ["party", "training", "knowledge"] },
   // —— 执行机构 · 理事会领导层 ——
   president: { label: "会长", tone: "decor", permissions: [...ALL_PERMISSIONS] },
   vice_president: { label: "副会长", tone: "yellow", permissions: ["members", "reports", "mediation", "finance", "claims", "supplies", "news", "training", "knowledge", "agreements"] },
