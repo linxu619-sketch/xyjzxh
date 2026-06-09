@@ -16,6 +16,7 @@ export function Sidebar({
   user,
   tone = "brand",
   back,
+  home = "/",
 }: {
   brand: string;
   role: string;
@@ -23,6 +24,7 @@ export function Sidebar({
   user: { name: string; meta: string };
   tone?: "brand" | "build" | "decor";
   back?: { href: string; label: string };
+  home?: string; // LOGO/名称点击跳转目标（首页）
 }) {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
@@ -88,15 +90,15 @@ export function Sidebar({
           <ChevronLeft className="h-3 w-3" /> {back.label}
         </Link>
       )}
-      <div className={cn("flex items-center gap-2.5", back && "mt-3")}>
+      <Link href={home} title="返回首页" className={cn("flex items-center gap-2.5 group", back && "mt-3")}>
         <span className={cn("h-9 w-9 rounded-xl flex items-center justify-center text-white text-[13px] font-semibold", TONE[tone])}>
           {brand.slice(0, 2)}
         </span>
         <div className="leading-tight">
-          <div className="text-[13px] font-semibold">{brand}</div>
+          <div className="text-[13px] font-semibold group-hover:text-brand transition-colors">{brand}</div>
           <div className="text-[10px] text-muted-foreground">{role}</div>
         </div>
-      </div>
+      </Link>
     </div>
   );
 
@@ -118,10 +120,12 @@ export function Sidebar({
         >
           <Menu className="h-5 w-5" />
         </button>
-        <span className={cn("h-7 w-7 rounded-lg flex items-center justify-center text-white text-[11px] font-semibold shrink-0", TONE[tone])}>
-          {brand.slice(0, 2)}
-        </span>
-        <div className="text-[14px] font-semibold truncate flex-1">{brand}</div>
+        <Link href={home} title="返回首页" className="flex items-center gap-3 flex-1 min-w-0">
+          <span className={cn("h-7 w-7 rounded-lg flex items-center justify-center text-white text-[11px] font-semibold shrink-0", TONE[tone])}>
+            {brand.slice(0, 2)}
+          </span>
+          <div className="text-[14px] font-semibold truncate">{brand}</div>
+        </Link>
         <form action={logoutAction}>
           <button type="submit" title="退出登录" className="inline-flex h-9 w-9 items-center justify-center rounded-full hover:bg-surface text-muted-foreground">
             <LogOut className="h-4 w-4" />
