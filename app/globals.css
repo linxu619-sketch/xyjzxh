@@ -31,8 +31,9 @@
   /* 强调与语义色 */
   --accent-tea: #00a878;      /* 信阳茶绿，本地呼应 */
   --accent-yellow: #ffd34d;   /* AI/亮点 */
-  --party: #c8102e;           /* 党建 · 中国红 */
-  --party-soft: #fbe9eb;
+  --party: #c7000b;           /* 党建 · 党旗红（正红，不偏粉）*/
+  --party-dark: #960009;      /* 党旗红 · 深（渐变/落底）*/
+  --party-soft: #fbe8e9;
   --success: #00a878;
   --warning: #f59e0b;
   --danger: #ef4444;
@@ -77,6 +78,7 @@
   --color-accent-tea: var(--accent-tea);
   --color-accent-yellow: var(--accent-yellow);
   --color-party: var(--party);
+  --color-party-dark: var(--party-dark);
   --color-party-soft: var(--party-soft);
   --color-success: var(--success);
   --color-warning: var(--warning);

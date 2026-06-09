@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 30 20" role="img" aria-label="中国共产党党旗">
+  <rect width="30" height="20" fill="#c7000b"/>
+  <g transform="translate(2.6,2.2) scale(0.082)">
+  <g fill="none" stroke="#f6c915" stroke-width="11" stroke-linecap="round" stroke-linejoin="round">
+    <!-- 镰刀刀刃（C 形弧）-->
+    <path d="M82,30 A36,36 0 1 0 66,94"/>
+    <!-- 镰刀手柄 -->
+    <path d="M66,94 L56,104"/>
+    <!-- 锤柄 -->
+    <path d="M44,100 L82,52"/>
+    <!-- 锤头 -->
+    <path d="M70,42 L98,64" stroke-width="16"/>
+  </g>
+  </g>
+</svg>
