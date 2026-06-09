@@ -63,8 +63,9 @@ export function SiteHeader({ face = "consumer", authed = false, todo = 0 }: { fa
           </Link>
 
           {/* Desktop nav（唯一按门户切换的部分）*/}
+          {/* 协会门户顶栏中间留空：办事入口集中在 /xh 首页「会员办事大厅」，顶栏只保留 LOGO + AI + 登录 + 申请入会。消费者门户仍展示导航。*/}
           <nav className="hidden lg:flex items-center gap-1">
-            {NAV.slice(1, isXh ? 8 : 7).map((item) => (
+            {NAV.slice(1, isXh ? 1 : 7).map((item) => (
               <Link
                 key={item.href}
                 href={item.href}
