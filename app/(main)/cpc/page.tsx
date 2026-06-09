@@ -26,17 +26,17 @@ function fmtDate(ms: number) {
 
 // —— 党建引领行业（理念亮点）——
 const LEAD = [
-  { icon: Target, t: "政治引领", d: "坚持以习近平新时代中国特色社会主义思想为指导，把党的方针政策融入协会决策与行业自律。" },
-  { icon: HeartHandshake, t: "党建+服务", d: "把党建工作融入入会、报备、集采、调解、培训等会员服务全流程，党建优势转化为发展优势。" },
-  { icon: ShieldCheck, t: "先锋示范", d: "发挥党员企业、党员骨干的先锋模范作用，亮身份、作表率，树立诚信经营标杆。" },
-  { icon: Users2, t: "凝聚行业", d: "以党组织为纽带团结引领企业会员与个人会员，听党话、感党恩、跟党走。" },
+  { icon: Target, t: "政治引领", d: "坚持以习近平新时代中国特色社会主义思想为指导，把党的方针政策融入协会决策与行业自律。", href: "/news?cat=%E5%85%9A%E5%BB%BA" },
+  { icon: HeartHandshake, t: "党建+服务", d: "把党建工作融入入会、报备、集采、调解、培训等会员服务全流程，党建优势转化为发展优势。", href: "/services" },
+  { icon: ShieldCheck, t: "先锋示范", d: "发挥党员企业、党员骨干的先锋模范作用，亮身份、作表率，树立诚信经营标杆。", href: "/members" },
+  { icon: Users2, t: "凝聚行业", d: "以党组织为纽带团结引领企业会员与个人会员，听党话、感党恩、跟党走。", href: "/join" },
 ];
 
 // —— 理论学习 · 学习园地 ——
 const STUDY = [
-  { t: "习近平新时代中国特色社会主义思想", d: "深入学习党的创新理论，及时跟进党的二十大及历次全会精神，做到学懂弄通做实。" },
-  { t: "党章党规", d: "学习《中国共产党章程》《中国共产党纪律处分条例》等党内法规，知规明矩、严守纪律。" },
-  { t: "行业政策", d: "结合住建、市场监管等行业政策，把理论学习落到协会与会员实务，知行合一。" },
+  { t: "习近平新时代中国特色社会主义思想", d: "深入学习党的创新理论，及时跟进党的二十大及历次全会精神，做到学懂弄通做实。", href: "/news?cat=%E5%85%9A%E5%BB%BA" },
+  { t: "党章党规", d: "学习《中国共产党章程》《中国共产党纪律处分条例》等党内法规，知规明矩、严守纪律。", href: "/news?cat=%E5%85%9A%E5%BB%BA" },
+  { t: "行业政策", d: "结合住建、市场监管等行业政策，把理论学习落到协会与会员实务，知行合一。", href: "/knowledge" },
 ];
 
 // —— 三会一课 / 主题党日 ——
@@ -125,7 +125,7 @@ export default async function PartyPage() {
                 查看协会组织机构 <ArrowUpRight className="h-3.5 w-3.5" />
               </Link>
             </div>
-            <div className="rounded-3xl bg-gradient-to-br from-party to-party-dark text-white p-6 md:p-8 flex flex-col justify-center relative overflow-hidden">
+            <Link href="/about/org" className="group rounded-3xl bg-gradient-to-br from-party to-party-dark text-white p-6 md:p-8 flex flex-col justify-center relative overflow-hidden transition-all md:hover:shadow-lg">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src="/brand/party-emblem.svg" alt="" aria-hidden className="absolute -right-6 -bottom-6 w-40 opacity-15" />
               {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -136,7 +136,8 @@ export default async function PartyPage() {
               <p className="relative mt-3 text-[12px] leading-6 text-white/85">
                 发挥政治引领、思想引领、组织引领作用，让党旗在行业一线高高飘扬。
               </p>
-            </div>
+              <span className="relative mt-4 inline-flex items-center gap-1 text-[12px] font-medium text-white/90">查看组织机构 <ArrowUpRight className="h-3.5 w-3.5 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" /></span>
+            </Link>
           </div>
         </Container>
       </section>
@@ -152,13 +153,14 @@ export default async function PartyPage() {
             {LEAD.map((x) => {
               const Icon = x.icon;
               return (
-                <div key={x.t} className="rounded-2xl border border-border bg-background p-5 md:p-6">
+                <Link key={x.t} href={x.href} className="group relative rounded-2xl border border-border bg-background p-5 md:p-6 transition-all active:scale-[0.98] md:hover:shadow-md md:hover:-translate-y-0.5">
                   <span className="inline-flex h-11 w-11 items-center justify-center rounded-xl bg-party-soft text-party">
                     <Icon className="h-5 w-5" />
                   </span>
                   <div className="mt-4 text-[15px] font-semibold tracking-tight">{x.t}</div>
                   <p className="mt-1.5 text-[12px] md:text-[13px] text-muted-foreground leading-5 md:leading-6">{x.d}</p>
-                </div>
+                  <ArrowUpRight className="absolute top-4 right-4 h-4 w-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+                </Link>
               );
             })}
           </div>
@@ -209,13 +211,14 @@ export default async function PartyPage() {
               <h2 className="mt-2 text-[22px] md:text-[30px] font-semibold tracking-tight">理论学习</h2>
               <div className="mt-5 space-y-3">
                 {STUDY.map((x) => (
-                  <div key={x.t} className="rounded-2xl border border-border bg-background p-5">
+                  <Link key={x.t} href={x.href} className="group block rounded-2xl border border-border bg-background p-5 transition-all active:scale-[0.99] md:hover:shadow-md">
                     <div className="flex items-center gap-2.5">
                       <span className="h-7 w-7 rounded-lg bg-party-soft text-party inline-flex items-center justify-center"><BookOpen className="h-4 w-4" /></span>
-                      <div className="text-[15px] font-semibold tracking-tight">{x.t}</div>
+                      <div className="text-[15px] font-semibold tracking-tight flex-1">{x.t}</div>
+                      <ArrowUpRight className="h-4 w-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity shrink-0" />
                     </div>
                     <p className="mt-2 text-[13px] text-muted-foreground leading-6">{x.d}</p>
-                  </div>
+                  </Link>
                 ))}
               </div>
             </div>
@@ -236,6 +239,9 @@ export default async function PartyPage() {
                   </div>
                 ))}
               </div>
+              <Link href="/news?cat=%E5%85%9A%E5%BB%BA" className="mt-4 inline-flex items-center gap-1.5 text-[13px] font-medium text-party">
+                支部活动记录见党建动态 <ArrowUpRight className="h-3.5 w-3.5" />
+              </Link>
             </div>
           </div>
         </Container>
