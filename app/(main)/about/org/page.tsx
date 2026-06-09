@@ -10,6 +10,7 @@ type OrgItem = {
   name: string;
   desc?: string;
   icon?: React.ComponentType<{ className?: string }>;
+  href?: string;         // 设置后该节点显示「查看专栏」链接（如党支部 → 党建专栏）
   children?: OrgItem[];
 };
 
@@ -20,6 +21,7 @@ const ORG: OrgItem[] = [
     name: "党支部",
     desc: "发挥政治引领与战斗堡垒作用，把党建工作融入协会运行。",
     icon: Flag,
+    href: "/party",
   },
   {
     tag: "权力机构",
@@ -96,6 +98,11 @@ function OrgNode({ node, level }: { node: OrgItem; level: number }) {
             <div className="text-[15px] font-semibold">{node.name}</div>
             {node.desc && <div className={`text-[12px] mt-0.5 ${top ? "text-background/70" : "text-muted-foreground"}`}>{node.desc}</div>}
           </div>
+          {node.href && (
+            <Link href={node.href} className="ml-auto shrink-0 inline-flex items-center gap-1 h-8 px-3.5 rounded-full bg-accent-yellow text-foreground text-[12px] font-medium">
+              党建专栏 <ArrowUpRight className="h-3 w-3" />
+            </Link>
+          )}
         </div>
       </div>
       {node.children && node.children.length > 0 && (

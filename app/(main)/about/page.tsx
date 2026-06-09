@@ -2,7 +2,7 @@ import Link from "next/link";
 import { Container } from "@/components/container";
 import { PageHeader } from "@/components/page-header";
 import { Button } from "@/components/ui/button";
-import { Building2, Users2, Award, Sparkles, Phone, Mail, MapPin, HelpCircle } from "lucide-react";
+import { Building2, Users2, Award, Sparkles, Phone, Mail, MapPin, HelpCircle, Flag, ArrowUpRight } from "lucide-react";
 import { SITE } from "@/lib/site";
 import { getPlatformInfo } from "@/lib/runtime-config";
 import { getEnterprises } from "@/lib/data/enterprises-source";
@@ -91,6 +91,24 @@ export default async function AboutPage() {
               </li>
             ))}
           </ol>
+        </section>
+
+        {/* 党的建设 */}
+        <section className="mt-20">
+          <div className="rounded-[32px] bg-party text-white p-8 md:p-12 flex flex-col md:flex-row md:items-center gap-6 relative overflow-hidden">
+            <div className="absolute -right-16 -top-16 h-56 w-56 rounded-full bg-white/10 blur-3xl" aria-hidden />
+            <Flag className="h-10 w-10 shrink-0 relative" />
+            <div className="flex-1 relative">
+              <div className="text-[12px] tracking-[0.2em] text-white/80 uppercase font-medium">PARTY BUILDING · 党的建设</div>
+              <h2 className="mt-2 text-[26px] md:text-[34px] font-semibold tracking-tight">党建引领行业高质量发展</h2>
+              <p className="mt-3 text-[13px] md:text-[14px] text-white/85 leading-6 max-w-2xl">
+                协会党支部发挥政治引领与战斗堡垒作用，把党建工作融入协会运行与会员服务全过程。了解支部概况、党建动态、理论学习与三会一课。
+              </p>
+            </div>
+            <Link href="/party" className="relative shrink-0 inline-flex items-center gap-1.5 h-12 px-7 rounded-full bg-white text-party text-[14px] font-semibold">
+              进入党建专栏 <ArrowUpRight className="h-4 w-4" />
+            </Link>
+          </div>
         </section>
 
         {/* 领导班子 */}

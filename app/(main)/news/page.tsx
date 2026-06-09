@@ -6,11 +6,11 @@ import { Badge } from "@/components/ui/badge";
 import { listPublished } from "@/lib/data/news-source";
 import { cn } from "@/lib/cn";
 
-const TONE: Record<string, "build" | "decor" | "design" | "brand" | "tea"> = {
-  build: "build", decor: "decor", design: "design", brand: "brand", tea: "tea",
+const TONE: Record<string, "build" | "decor" | "design" | "brand" | "tea" | "party"> = {
+  build: "build", decor: "decor", design: "design", brand: "brand", tea: "tea", party: "party",
 };
-const BG: Record<string, string> = { build: "bg-cat-build", decor: "bg-cat-decor", design: "bg-cat-design", brand: "bg-brand", tea: "bg-accent-tea" };
-const CATS = ["全部", "协会公告", "政策解读", "行业新闻", "会员动态", "活动通知"];
+const BG: Record<string, string> = { build: "bg-cat-build", decor: "bg-cat-decor", design: "bg-cat-design", brand: "bg-brand", tea: "bg-accent-tea", party: "bg-party" };
+const CATS = ["全部", "党建", "协会公告", "政策解读", "行业新闻", "会员动态", "活动通知"];
 
 function fmt(ms: number) {
   if (!ms) return "—";

@@ -5,6 +5,7 @@ import {
   Globe2, CalendarDays, Star, ShieldCheck, Sparkles, ChevronRight,
   HardHat, HeartHandshake,
   LayoutDashboard, Users2, MessageSquareWarning, MessagesSquare, Hammer, Briefcase, Clock,
+  Flag,
 } from "lucide-react";
 import { getSession } from "@/lib/auth/session";
 import { listApplications } from "@/lib/data/applications";
@@ -160,6 +161,22 @@ export default async function AssociationHome() {
               <span className="inline-flex items-center gap-1.5"><Sparkles className="h-3.5 w-3.5 text-cat-decor" /> 会员 AI 助手</span>
             </div>
           </div>
+        </Container>
+      </section>
+
+      {/* 党建引领 —— 政治标识，紧随 HERO，全员可见 */}
+      <section className="bg-party text-white">
+        <Container className="py-3.5 md:py-4">
+          <Link href="/party" className="flex items-center gap-3 group">
+            <Flag className="h-5 w-5 shrink-0" />
+            <div className="flex-1 min-w-0">
+              <span className="text-[13px] md:text-[15px] font-semibold">党建引领行业高质量发展</span>
+              <span className="ml-2 text-[11px] md:text-[12px] text-white/80 hidden sm:inline">党支部概况 · 党建动态 · 理论学习 · 三会一课</span>
+            </div>
+            <span className="inline-flex items-center gap-1 text-[12px] md:text-[13px] font-medium shrink-0">
+              党的建设 <ArrowUpRight className="h-3.5 w-3.5 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
+            </span>
+          </Link>
         </Container>
       </section>
 

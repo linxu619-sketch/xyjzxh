@@ -7,8 +7,8 @@ import { setNewsStatusAction, deleteNewsAction } from "../actions";
 
 export const metadata = { title: "新闻详情 · 协会工作台" };
 
-const CAT_TONE: Record<string, "build" | "decor" | "design" | "tea" | "brand"> = {
-  "协会公告": "build", "政策解读": "decor", "行业新闻": "design", "会员动态": "tea", "活动通知": "brand",
+const CAT_TONE: Record<string, "build" | "decor" | "design" | "tea" | "brand" | "party"> = {
+  "党建": "party", "协会公告": "build", "政策解读": "decor", "行业新闻": "design", "会员动态": "tea", "活动通知": "brand",
 };
 
 function fmt(ms: number) {

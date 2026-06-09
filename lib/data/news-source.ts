@@ -56,7 +56,7 @@ export function getNews(id: number): News | undefined {
 }
 
 const CAT_COLOR: Record<string, string> = {
-  "协会公告": "build", "政策解读": "decor", "行业新闻": "design", "会员动态": "tea", "活动通知": "brand",
+  "党建": "party", "协会公告": "build", "政策解读": "decor", "行业新闻": "design", "会员动态": "tea", "活动通知": "brand",
 };
 
 export function createNews(input: {

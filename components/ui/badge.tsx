@@ -1,6 +1,6 @@
 import { cn } from "@/lib/cn";
 
-type Tone = "brand" | "build" | "decor" | "design" | "tea" | "yellow" | "neutral";
+type Tone = "brand" | "build" | "decor" | "design" | "tea" | "yellow" | "party" | "neutral";
 
 const tones: Record<Tone, string> = {
   brand: "bg-brand-50 text-brand",
@@ -9,6 +9,7 @@ const tones: Record<Tone, string> = {
   design: "bg-cat-design-soft text-cat-design",
   tea: "bg-[#e6f7f1] text-accent-tea",
   yellow: "bg-[#fff6d6] text-[#a37200]",
+  party: "bg-party-soft text-party",
   neutral: "bg-surface text-muted-foreground",
 };
 
