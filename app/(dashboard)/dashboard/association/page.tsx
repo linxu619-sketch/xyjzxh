@@ -13,6 +13,7 @@ import { listMediations } from "@/lib/data/mediations";
 import { getEnterprises } from "@/lib/data/enterprises-source";
 import { listPractitioners } from "@/lib/data/practitioners-source";
 import { listPublished } from "@/lib/data/news-source";
+import { listFeedback } from "@/lib/data/feedback-source";
 import { questionCounts } from "@/lib/ai/knowledge-source";
 import { AI_EMPLOYEES } from "@/lib/site";
 
@@ -32,6 +33,7 @@ export default async function AssociationDashboard() {
   const pendingApps = listApplications("pending");
   const pendingReports = listReports("pending");
   const pendingMeds = listMediations("pending");
+  const newFeedback = listFeedback().filter((f) => f.status === "new");
   const enterprises = await getEnterprises();
   const pracs = listPractitioners();
   const news = listPublished();
@@ -42,6 +44,7 @@ export default async function AssociationDashboard() {
     ...pendingApps.map((a) => ({ tag: "会员审核", color: "brand" as const, title: `${a.applicant} · ${TYPE_LABEL[a.type] ?? a.type}待审`, href: `/dashboard/association/members/${a.id}` })),
     ...pendingReports.map((r) => ({ tag: "报备", color: "build" as const, title: `${r.code} ${r.project} 待审`, href: `/dashboard/association/reports/${r.id}` })),
     ...pendingMeds.map((m) => ({ tag: "调解", color: "decor" as const, title: `${m.applicant}：${m.detail}`, href: `/dashboard/association/mediations/${m.id}` })),
+    ...newFeedback.map((f) => ({ tag: "留言", color: "tea" as const, title: `${f.name || "匿名"}：${f.content}`, href: `/dashboard/association/feedback` })),
   ].slice(0, 6);
 
   // 平台 AI 本月真实用量
