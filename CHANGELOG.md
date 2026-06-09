@@ -14,6 +14,14 @@
 
 ---
 
+## [0.129.0] - 2026-06-09
+
+### 修复「给协会留个言」空提交 + 新增协会「留言反馈」管理
+此前联系我们页的留言表单是 `action="#"`，**提交后丢失、协会看不到**。补成真功能：
+- 新表 `feedback` + `lib/data/feedback-source.ts`（公开提交截断超长输入防滥用）+ `seedFeedback` 种子。
+- 联系我们页表单改为真实 server action `submitFeedbackAction`（客户端 `FeedbackForm` 带提交中/成功提示）。
+- 协会后台新增「留言反馈」页 `/dashboard/association/feedback`（侧栏，perm: users）：列表 + 待处理/已处理统计 + 一键标记处理；公开提交无需登录。
+
 ## [0.128.3] - 2026-06-09
 
 ### 更新协会真实联系方式

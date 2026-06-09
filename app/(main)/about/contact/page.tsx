@@ -3,6 +3,7 @@ import { Phone, Mail, MapPin, Clock, Sparkles, MessageSquareHeart } from "lucide
 import { Container } from "@/components/container";
 import { PageHeader } from "@/components/page-header";
 import { getPlatformInfo } from "@/lib/runtime-config";
+import { FeedbackForm } from "./FeedbackForm";
 
 export const metadata = { title: "联系我们 · 信阳市建筑装饰装修协会" };
 
@@ -70,13 +71,7 @@ export default async function ContactPage() {
           <MessageSquareHeart className="h-7 w-7 text-cat-decor" />
           <h2 className="mt-4 text-[22px] font-semibold tracking-tight">给协会留个言</h2>
           <p className="mt-2 text-[13px] text-muted-foreground">建议、表扬、批评都欢迎，秘书处 3 个工作日内回复。</p>
-          <form action="#" className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
-            <input placeholder="姓名" className="h-11 rounded-xl border border-border px-4 text-[14px] outline-none focus:border-foreground/30" />
-            <input placeholder="手机号" className="h-11 rounded-xl border border-border px-4 text-[14px] outline-none focus:border-foreground/30" />
-            <input placeholder="邮箱 (可选)" className="h-11 rounded-xl border border-border px-4 text-[14px] outline-none focus:border-foreground/30 md:col-span-2" />
-            <textarea rows={5} placeholder="您想说的内容…" className="rounded-xl border border-border px-4 py-3 text-[14px] outline-none focus:border-foreground/30 md:col-span-2" />
-            <button className="h-12 rounded-full bg-foreground text-background font-medium md:col-span-2">提交反馈</button>
-          </form>
+          <FeedbackForm />
         </div>
       </Container>
     </>

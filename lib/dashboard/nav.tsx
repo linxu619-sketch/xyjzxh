@@ -18,6 +18,7 @@ export const ASSOC_NAV: AssocNavItem[] = [
   { href: "/dashboard/association/users",      label: "用户管理", icon: <UserCog className={I} />,              perm: "users" },
   { href: "/dashboard/association/reports",    label: "工装报备", icon: <FileCheck2 className={I} />,           perm: "reports" },
   { href: "/dashboard/association/mediations", label: "调解纠纷", icon: <MessageSquareWarning className={I} />, perm: "mediation" },
+  { href: "/dashboard/association/feedback",   label: "留言反馈", icon: <MessageSquareHeart className={I} />,  perm: "users" },
   { href: "/dashboard/association/training",   label: "培训管理", icon: <GraduationCap className={I} />,        perm: "training" },
   { href: "/dashboard/association/supplies",      label: "建材商品", icon: <ShoppingBag className={I} />,          perm: "supplies" },
   { href: "/dashboard/association/supply-orders", label: "建材订单", icon: <Receipt className={I} />,              perm: "supplies" },

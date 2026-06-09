@@ -447,6 +447,17 @@ CREATE TABLE IF NOT EXISTS news (
 );
 CREATE INDEX IF NOT EXISTS idx_news_status ON news(status, created_at);
 
+CREATE TABLE IF NOT EXISTS feedback (
+  id          INTEGER PRIMARY KEY AUTOINCREMENT,
+  name        TEXT,
+  phone       TEXT,
+  email       TEXT,
+  content     TEXT,
+  status      TEXT DEFAULT 'new', -- new | handled
+  created_at  INTEGER
+);
+CREATE INDEX IF NOT EXISTS idx_feedback_status ON feedback(status, created_at);
+
 CREATE TABLE IF NOT EXISTS trainings (
   id          INTEGER PRIMARY KEY AUTOINCREMENT,
   title       TEXT,
@@ -904,6 +915,7 @@ function init(): DB {
   seedFinanceApplications(db);   // 金融申请
   seedAiQuestions(db);           // AI 对话记录（统计）
   seedTrainingEnrollments(db);   // 培训报名
+  seedFeedback(db);              // 协会留言 / 意见反馈
   seedAssociationStaff(db);
   seedDemoCustomers(db);
   return db;
@@ -1196,6 +1208,22 @@ function seedAiQuestions(db: DB) {
       stmt.run(k, samples[(ki * 4 + i) % samples.length], ts);
     }
   });
+}
+
+// 协会留言 / 意见反馈 —— 用于协会「留言反馈」页（联系我们页公开提交）
+function seedFeedback(db: DB) {
+  if (!isEmpty(db, "feedback")) return;
+  const now = Date.now();
+  // [name, phone, email, content, status, daysAgo]
+  const rows: [string, string, string, string, string, number][] = [
+    ["李建国", "13700030001", "", "建议协会多组织一些新材料、新工艺的培训，我们小企业很需要。", "new", 1],
+    ["王女士", "13700030002", "wang@example.com", "上次工装报备协会帮忙加急，办事效率很高，给秘书处点赞！", "new", 2],
+    ["张师傅", "13700030003", "", "想咨询一下个人会员（项目经理）怎么入会，需要哪些证书？", "new", 3],
+    ["佳和苑装饰", "13700030004", "", "建材集采的水泥价格能不能再争取低一点？量大。", "handled", 6],
+    ["匿名", "", "", "协会网站做得不错，AI 助手很好用。希望增加在线投诉进度查询。", "handled", 9],
+  ];
+  const stmt = db.prepare("INSERT INTO feedback (name,phone,email,content,status,created_at) VALUES (?,?,?,?,?,?)");
+  rows.forEach((r, i) => stmt.run(r[0], r[1], r[2], r[3], r[4], now - r[5] * DAY));
 }
 
 // 培训报名 —— 用于协会「培训管理」报名数 + 从业者「培训」页
