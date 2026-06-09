@@ -29,14 +29,17 @@ export default async function PartyAdmin({ searchParams }: { searchParams: Promi
   const catHref = (c: string) => (active === c ? base : `${base}?cat=${encodeURIComponent(c)}`);
 
   return (
-    <AssociationShell title="党的建设" subtitle={`党建动态 ${dongtai} · 理论学习 ${study}`} actions={<PublishPartyNews />}>
+    <AssociationShell title="党的建设" subtitle={`党建动态 ${dongtai} · 理论学习 ${study}`}>
       {nok && <div className="mb-5 rounded-2xl border border-accent-tea/30 bg-[#e6f7f1] text-accent-tea p-4 flex items-center gap-3"><CheckCircle2 className="h-5 w-5 shrink-0" /><div className="text-[13px]"><b>已发布！</b>党建专栏与门户即时可见。</div></div>}
       {nerr && <div className="mb-5 rounded-2xl border border-cat-decor/30 bg-cat-decor-soft text-cat-decor p-4 flex items-center gap-3"><AlertCircle className="h-5 w-5 shrink-0" /><div className="text-[13px]">发布失败：请填写标题与正文。</div></div>}
 
-      {/* 说明 + 查看前台专栏 */}
+      {/* 发布入口（醒目）+ 说明 + 查看前台专栏 */}
       <div className="mb-5 rounded-2xl border border-party/20 bg-party-soft p-4 flex flex-col sm:flex-row sm:items-center gap-3 sm:justify-between">
-        <div className="text-[13px] text-foreground">党支部在此发布与管理<b className="text-party"> 党建动态 </b>与<b className="text-party"> 理论学习 </b>，内容即时同步到党建专栏 <code className="font-mono text-[12px]">xh.xyjzxh.com/cpc</code>。</div>
-        <a href="/cpc" target="_blank" rel="noreferrer" className="shrink-0 h-9 px-4 rounded-full bg-party text-white text-[12px] font-medium inline-flex items-center gap-1.5"><ExternalLink className="h-3.5 w-3.5" /> 查看党建专栏</a>
+        <div className="text-[13px] text-foreground">党支部在此<b className="text-party">发布与管理</b>党建动态与理论学习，内容即时同步到党建专栏 <code className="font-mono text-[12px]">xh.xyjzxh.com/cpc</code>。</div>
+        <div className="flex items-center gap-2 shrink-0">
+          <PublishPartyNews />
+          <a href="/cpc" target="_blank" rel="noreferrer" className="h-9 px-4 rounded-full border border-party/30 bg-background text-party text-[12px] font-medium inline-flex items-center gap-1.5"><ExternalLink className="h-3.5 w-3.5" /> 查看专栏</a>
+        </div>
       </div>
 
       <StatFilters
