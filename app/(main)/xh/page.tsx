@@ -164,22 +164,6 @@ export default async function AssociationHome() {
         </Container>
       </section>
 
-      {/* 党建引领 —— 政治标识，紧随 HERO，全员可见 */}
-      <section className="bg-party text-white">
-        <Container className="py-3.5 md:py-4">
-          <Link href="/party" className="flex items-center gap-3 group">
-            <Flag className="h-5 w-5 shrink-0" />
-            <div className="flex-1 min-w-0">
-              <span className="text-[13px] md:text-[15px] font-semibold">党建引领行业高质量发展</span>
-              <span className="ml-2 text-[11px] md:text-[12px] text-white/80 hidden sm:inline">党支部概况 · 党建动态 · 理论学习 · 三会一课</span>
-            </div>
-            <span className="inline-flex items-center gap-1 text-[12px] md:text-[13px] font-medium shrink-0">
-              党的建设 <ArrowUpRight className="h-3.5 w-3.5 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
-            </span>
-          </Link>
-        </Container>
-      </section>
-
       {/* 入会审核中 —— 提示进度页 */}
       {session?.pending && (
         <section className="border-b border-border bg-[#fff6d6]/60">
@@ -258,6 +242,26 @@ export default async function AssociationHome() {
               );
             })}
           </div>
+        </Container>
+      </section>
+
+      {/* 党建引领 —— 卡片形式，低调融入（介于办事大厅与资讯之间）*/}
+      <section className="pb-2 md:pb-4">
+        <Container>
+          <Link href="/party" className="group flex items-center gap-4 md:gap-5 rounded-3xl border border-party/20 bg-party-soft p-5 md:p-6 transition-all md:hover:shadow-md md:hover:-translate-y-0.5">
+            <span className="h-12 w-12 md:h-14 md:w-14 rounded-2xl bg-party text-white inline-flex items-center justify-center shrink-0">
+              <Flag className="h-6 w-6 md:h-7 md:w-7" />
+            </span>
+            <div className="flex-1 min-w-0">
+              <div className="text-[11px] tracking-[0.18em] uppercase text-party font-medium">党的建设</div>
+              <div className="mt-0.5 text-[15px] md:text-[17px] font-semibold tracking-tight">党建引领行业高质量发展</div>
+              <div className="text-[12px] md:text-[13px] text-muted-foreground mt-0.5 truncate">支部概况 · 党建动态 · 理论学习 · 三会一课</div>
+            </div>
+            <span className="inline-flex items-center gap-1 text-[13px] font-medium text-party shrink-0">
+              <span className="hidden sm:inline">进入专栏</span>
+              <ArrowUpRight className="h-4 w-4 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
+            </span>
+          </Link>
         </Container>
       </section>
 
