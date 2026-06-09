@@ -175,7 +175,7 @@ export default async function AboutPage() {
             <li className="flex items-start gap-3"><Phone className="h-5 w-5 text-accent-yellow mt-0.5 shrink-0" /> 总机：{info.tel}</li>
             <li className="flex items-start gap-3"><Mail className="h-5 w-5 text-accent-yellow mt-0.5 shrink-0" /> 邮箱：{info.email}</li>
             <li className="flex items-start gap-3"><MapPin className="h-5 w-5 text-accent-yellow mt-0.5 shrink-0" /> 地址：{info.address}</li>
-            <li className="flex items-start gap-3"><Building2 className="h-5 w-5 text-accent-yellow mt-0.5 shrink-0" /> 营业时间：周一 - 周五 9:00 - 17:30</li>
+            <li className="flex items-start gap-3"><Building2 className="h-5 w-5 text-accent-yellow mt-0.5 shrink-0" /> 营业时间：周一至周五 8:30 - 17:30</li>
           </ul>
         </section>
       </Container>

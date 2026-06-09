@@ -9,9 +9,9 @@ export const SITE = {
     "汇聚 1000+ 家本地建筑、装修与设计企业 · 工装报备 · 消费保险 · AI 在线服务一站直达",
   domain: "xyjzxh.com",         // 消费者主域：xyjzxh.com
   associationHost: "xh",        // 协会门户：xh.xyjzxh.com
-  tel: "0376-000-0000",
+  tel: "0376-6239899",
   email: "xysjzzsxh2025@163.com",
-  address: "河南省信阳市浉河区行政中心",
+  address: "信阳市羊山新区新五大道与新十八大街交叉口信阳市住建局八楼",
   copyrightFrom: 2025,
 };
 

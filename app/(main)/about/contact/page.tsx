@@ -7,12 +7,12 @@ import { getPlatformInfo } from "@/lib/runtime-config";
 export const metadata = { title: "联系我们 · 信阳市建筑装饰装修协会" };
 
 const DEPTS = [
-  { name: "秘书处（综合）",       tel: "0376-1111111", mail: "secretariat@xyjzxh.com" },
-  { name: "会员部",              tel: "0376-2222222", mail: "members@xyjzxh.com" },
-  { name: "技术委员会",          tel: "0376-3333333", mail: "tech@xyjzxh.com" },
-  { name: "调解委员会",          tel: "0376-4444444", mail: "mediation@xyjzxh.com" },
-  { name: "金融保险委员会",      tel: "0376-5555555", mail: "finance@xyjzxh.com" },
-  { name: "AI 与数字化办公室",    tel: "0376-6666666", mail: "ai@xyjzxh.com" },
+  { name: "秘书处（综合）",       tel: "0376-6239899", mail: "xysjzzsxh2025@163.com" },
+  { name: "会员部",              tel: "0376-6239899", mail: "xysjzzsxh2025@163.com" },
+  { name: "技术委员会",          tel: "0376-6239899", mail: "xysjzzsxh2025@163.com" },
+  { name: "调解委员会",          tel: "0376-6239899", mail: "xysjzzsxh2025@163.com" },
+  { name: "金融保险委员会",      tel: "0376-6239899", mail: "xysjzzsxh2025@163.com" },
+  { name: "AI 与数字化办公室",    tel: "0376-6239899", mail: "xysjzzsxh2025@163.com" },
 ];
 
 export default async function ContactPage() {
@@ -23,7 +23,7 @@ export default async function ContactPage() {
         eyebrow="ABOUT · 联系我们"
         tone="brand"
         title={<>联系协会</>}
-        description="工作日 9:00 - 17:30 在岗；AI 助手 7×24 在线。媒体合作请直联秘书处。"
+        description="工作日 8:30 - 17:30 在岗；AI 助手 7×24 在线。媒体合作请直联秘书处。"
       />
       <Container className="py-12 max-w-5xl">
         {/* 主要联系 */}
@@ -34,7 +34,7 @@ export default async function ContactPage() {
               <Cell icon={Phone} label="总机" value={info.tel} />
               <Cell icon={Mail} label="邮箱" value={info.email} />
               <Cell icon={MapPin} label="地址" value={info.address} />
-              <Cell icon={Clock} label="时间" value="周一 - 周五 9:00 - 17:30" />
+              <Cell icon={Clock} label="时间" value="周一至周五 8:30 - 17:30" />
             </div>
           </div>
           <div className="rounded-3xl border border-border bg-background p-6">
