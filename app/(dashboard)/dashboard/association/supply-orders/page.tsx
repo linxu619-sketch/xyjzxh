@@ -79,7 +79,7 @@ export default async function SupplyOrdersAdmin() {
             </ul>
           </>
         )}
-        <div className="px-5 py-3 text-[12px] text-muted-foreground border-t border-border">点击任一行查看对账、发起收款（佣金拆分）与争议处置；履约由卖家推进。</div>
+        <div className="px-5 py-3 text-[12px] text-muted-foreground border-t border-border">点击任一行查看对账与争议处置；履约与收款由卖家在其工作台推进，平台不参与收付款。</div>
       </div>
     </AssociationShell>
   );

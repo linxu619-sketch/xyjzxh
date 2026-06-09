@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Container } from "./container";
 import { SITE, NAV } from "@/lib/site";
+import { getPlatformInfo } from "@/lib/runtime-config";
 import { Phone, MapPin, Mail, ArrowRight } from "lucide-react";
 
 const ABOUT_GROUP = {
@@ -43,8 +44,9 @@ const ASSOCIATION_GROUPS = [
   ABOUT_GROUP,
 ];
 
-export function SiteFooter({ face = "consumer" }: { face?: "consumer" | "xh" }) {
+export async function SiteFooter({ face = "consumer" }: { face?: "consumer" | "xh" }) {
   const FOOTER_GROUPS = face === "xh" ? ASSOCIATION_GROUPS : CONSUMER_GROUPS;
+  const info = await getPlatformInfo(); // 平台名称/电话/地址/邮箱走系统设置（非死数据）
   return (
     <footer className="mt-24 border-t border-border bg-surface">
       <Container className="py-16">
@@ -55,22 +57,22 @@ export function SiteFooter({ face = "consumer" }: { face?: "consumer" | "xh" }) 
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src="/brand/seal.png" alt="信阳市建筑装饰装修协会" className="h-11 w-11 object-contain shrink-0" />
               <div className="leading-tight">
-                <div className="text-[15px] font-semibold">{SITE.name}</div>
+                <div className="text-[15px] font-semibold">{info.name}</div>
                 <div className="text-[10px] text-muted-foreground tracking-[0.16em] uppercase">
                   XINYANG BUILDING DECORATION ASSOCIATION
                 </div>
               </div>
             </div>
             <p className="mt-4 text-[13px] leading-6 text-muted-foreground max-w-sm">
-              {SITE.slogan} · 协会认证的本地装修企业平台。
+              {info.slogan} · 协会认证的本地装修企业平台。
             </p>
             <Link href="/about" className="mt-2 inline-flex items-center gap-1 text-[13px] text-brand hover:gap-1.5 transition-all">
               了解协会 <ArrowRight className="h-3.5 w-3.5" />
             </Link>
             <ul className="mt-6 space-y-2 text-[13px] text-muted-foreground">
-              <li className="flex items-center gap-2"><Phone className="h-4 w-4" /> {SITE.tel}</li>
-              <li className="flex items-center gap-2"><MapPin className="h-4 w-4" /> {SITE.address}</li>
-              <li className="flex items-center gap-2"><Mail className="h-4 w-4" /> contact@{SITE.domain}</li>
+              <li className="flex items-center gap-2"><Phone className="h-4 w-4" /> {info.tel}</li>
+              <li className="flex items-center gap-2"><MapPin className="h-4 w-4" /> {info.address}</li>
+              <li className="flex items-center gap-2"><Mail className="h-4 w-4" /> {info.email}</li>
             </ul>
           </div>
 
@@ -96,7 +98,7 @@ export function SiteFooter({ face = "consumer" }: { face?: "consumer" | "xh" }) 
 
         <div className="mt-12 pt-6 border-t border-border flex flex-col md:flex-row md:items-center md:justify-between gap-3 text-[12px] text-muted-foreground">
           <div>
-            © {SITE.copyrightFrom}–{new Date().getFullYear()} {SITE.name} · 保留所有权利
+            © {SITE.copyrightFrom}–{new Date().getFullYear()} {info.name} · 保留所有权利
           </div>
           <div className="flex flex-wrap items-center gap-x-5 gap-y-1">
             <span>豫 ICP 备 0000000 号</span>

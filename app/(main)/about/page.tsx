@@ -4,6 +4,7 @@ import { PageHeader } from "@/components/page-header";
 import { Button } from "@/components/ui/button";
 import { Building2, Users2, Award, Sparkles, Phone, Mail, MapPin, HelpCircle } from "lucide-react";
 import { SITE } from "@/lib/site";
+import { getPlatformInfo } from "@/lib/runtime-config";
 import { getEnterprises } from "@/lib/data/enterprises-source";
 import { listReviews } from "@/lib/data/reviews";
 
@@ -30,6 +31,7 @@ export const metadata = { title: `关于协会 · ${SITE.name}` };
 export default async function AboutPage() {
   const total = (await getEnterprises()).length;
   const rvCount = listReviews(1000).length;
+  const info = await getPlatformInfo(); // 电话/邮箱/地址走系统设置
   return (
     <>
       <PageHeader
@@ -164,15 +166,15 @@ export default async function AboutPage() {
               <Button href="/ai/advisor" size="lg" variant="primary" className="!bg-accent-yellow !text-foreground hover:!bg-white">
                 问问 AI 小协
               </Button>
-              <Link href={`tel:${SITE.tel.replace(/-/g, "")}`} className="inline-flex items-center gap-1.5 h-14 px-7 rounded-full border border-white/30 text-[14px]">
-                <Phone className="h-4 w-4" /> {SITE.tel}
+              <Link href={`tel:${info.tel.replace(/-/g, "")}`} className="inline-flex items-center gap-1.5 h-14 px-7 rounded-full border border-white/30 text-[14px]">
+                <Phone className="h-4 w-4" /> {info.tel}
               </Link>
             </div>
           </div>
           <ul className="space-y-3 text-[14px]">
-            <li className="flex items-start gap-3"><Phone className="h-5 w-5 text-accent-yellow mt-0.5 shrink-0" /> 总机：{SITE.tel}</li>
-            <li className="flex items-start gap-3"><Mail className="h-5 w-5 text-accent-yellow mt-0.5 shrink-0" /> 邮箱：contact@{SITE.domain}</li>
-            <li className="flex items-start gap-3"><MapPin className="h-5 w-5 text-accent-yellow mt-0.5 shrink-0" /> 地址：{SITE.address}</li>
+            <li className="flex items-start gap-3"><Phone className="h-5 w-5 text-accent-yellow mt-0.5 shrink-0" /> 总机：{info.tel}</li>
+            <li className="flex items-start gap-3"><Mail className="h-5 w-5 text-accent-yellow mt-0.5 shrink-0" /> 邮箱：{info.email}</li>
+            <li className="flex items-start gap-3"><MapPin className="h-5 w-5 text-accent-yellow mt-0.5 shrink-0" /> 地址：{info.address}</li>
             <li className="flex items-start gap-3"><Building2 className="h-5 w-5 text-accent-yellow mt-0.5 shrink-0" /> 营业时间：周一 - 周五 9:00 - 17:30</li>
           </ul>
         </section>

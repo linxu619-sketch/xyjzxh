@@ -2,7 +2,7 @@ import Link from "next/link";
 import { Phone, Mail, MapPin, Clock, Sparkles, MessageSquareHeart } from "lucide-react";
 import { Container } from "@/components/container";
 import { PageHeader } from "@/components/page-header";
-import { SITE } from "@/lib/site";
+import { getPlatformInfo } from "@/lib/runtime-config";
 
 export const metadata = { title: "联系我们 · 信阳市建筑装饰装修协会" };
 
@@ -15,7 +15,8 @@ const DEPTS = [
   { name: "AI 与数字化办公室",    tel: "0376-6666666", mail: "ai@xyjzxh.com" },
 ];
 
-export default function ContactPage() {
+export default async function ContactPage() {
+  const info = await getPlatformInfo();
   return (
     <>
       <PageHeader
@@ -30,9 +31,9 @@ export default function ContactPage() {
           <div className="rounded-3xl bg-foreground text-background p-6 md:col-span-2 relative overflow-hidden">
             <div className="absolute -right-10 -top-10 h-40 w-40 rounded-full bg-brand/30 blur-2xl" />
             <div className="relative grid grid-cols-1 sm:grid-cols-2 gap-5">
-              <Cell icon={Phone} label="总机" value={SITE.tel} />
-              <Cell icon={Mail} label="邮箱" value={`contact@${SITE.domain}`} />
-              <Cell icon={MapPin} label="地址" value={SITE.address} />
+              <Cell icon={Phone} label="总机" value={info.tel} />
+              <Cell icon={Mail} label="邮箱" value={info.email} />
+              <Cell icon={MapPin} label="地址" value={info.address} />
               <Cell icon={Clock} label="时间" value="周一 - 周五 9:00 - 17:30" />
             </div>
           </div>
