@@ -64,8 +64,10 @@ export default async function PartyPage() {
         <div className="absolute -bottom-32 -left-20 h-80 w-80 rounded-full bg-black/15 blur-3xl" aria-hidden />
         <Container className="relative py-12 md:py-20">
           <div className="max-w-3xl">
-            {/* 国旗 + 党旗 */}
+            {/* 国徽 · 国旗 · 党旗（官方图）*/}
             <div className="flex items-center gap-3 mb-6">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="/brand/national-emblem.svg" alt="中华人民共和国国徽" className="h-9 md:h-11 w-auto" />
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src="/brand/china-flag.svg" alt="中华人民共和国国旗" className="h-7 md:h-9 w-auto rounded-[2px] shadow ring-1 ring-white/30" />
               {/* eslint-disable-next-line @next/next/no-img-element */}
