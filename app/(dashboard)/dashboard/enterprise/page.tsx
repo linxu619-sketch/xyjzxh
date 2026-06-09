@@ -1,7 +1,7 @@
 import Link from "next/link";
 import {
   ExternalLink, Sparkles, AlertCircle, ChevronRight,
-  Phone, FileCheck2, Eye, Globe2, Pencil,
+  Phone, FileCheck2, Eye, Globe2, Pencil, Flag,
 } from "lucide-react";
 import { EnterpriseShell } from "@/components/dashboard/shell";
 import { StatCard, Panel } from "@/components/dashboard/widgets";
@@ -12,6 +12,7 @@ import { listReportsByUid } from "@/lib/data/reports";
 import { listLeadsByEnterprise } from "@/lib/data/leads";
 import { listCasesByEnterprise } from "@/lib/data/cases";
 import { questionCounts } from "@/lib/ai/knowledge-source";
+import { listPublished } from "@/lib/data/news-source";
 import { AI_EMPLOYEES } from "@/lib/site";
 import { effectiveEnterpriseId, isEnterprisePreview } from "@/lib/dashboard/preview";
 
@@ -25,6 +26,13 @@ const RPT_STATUS: Record<string, { label: string; tone: "tea" | "decor" | "yello
 
 function maskPhone(p: string) {
   return p.length === 11 ? `${p.slice(0, 3)}****${p.slice(-4)}` : p;
+}
+
+function fmtDate(ms: number) {
+  if (!ms) return "";
+  const d = new Date(ms);
+  const p = (n: number) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`;
 }
 
 export default async function EnterpriseDashboard() {
@@ -48,6 +56,10 @@ export default async function EnterpriseDashboard() {
   const aiUsage = questionCounts(monthStart.getTime());
   const aiName: Record<string, string> = Object.fromEntries(AI_EMPLOYEES.map((e) => [e.key, e.name]));
   const topAi = Object.entries(aiUsage.byKey).sort((a, b) => b[1] - a[1]).slice(0, 4);
+  // 协会层资讯打通：党建动态在前 + 协会公告/政策在后（企业会员属协会层，可在自己后台看党建与协会资讯）
+  const partyFeed = listPublished("党建").slice(0, 3);
+  const otherFeed = listPublished().filter((n) => n.category !== "党建").slice(0, 3);
+  const assocFeed = [...partyFeed, ...otherFeed].slice(0, 5);
 
   return (
     <EnterpriseShell
@@ -229,6 +241,34 @@ export default async function EnterpriseDashboard() {
           <Link href="/dashboard/enterprise/ai" className="mt-4 inline-flex items-center gap-1 text-[12px] text-brand">
             <Sparkles className="h-3 w-3" /> 配置专属 AI →
           </Link>
+        </Panel>
+
+        {/* 党建 · 协会资讯（协会层资讯打通到企业工作台；子站属业主层，不放此内容）*/}
+        <Panel
+          title="党建 · 协会资讯"
+          className="lg:col-span-3"
+          action={
+            <Link href="/party" className="text-[12px] text-party inline-flex items-center gap-0.5">
+              <Flag className="h-3 w-3" /> 党建专栏 <ChevronRight className="h-3 w-3" />
+            </Link>
+          }
+        >
+          {assocFeed.length === 0 ? (
+            <div className="py-8 text-center text-[13px] text-muted-foreground">协会暂无资讯。</div>
+          ) : (
+            <ul className="divide-y divide-border">
+              {assocFeed.map((n) => (
+                <li key={n.id}>
+                  <Link href={`/news/${n.id}`} className="py-3 flex items-center gap-3 -mx-2 px-2 rounded-lg hover:bg-surface transition-colors group">
+                    <Badge tone={n.category === "党建" ? "party" : "brand"} className="!px-2 !py-0.5 shrink-0">{n.category}</Badge>
+                    <span className="flex-1 min-w-0 truncate text-[13px] group-hover:text-foreground transition-colors">{n.title}</span>
+                    <span className="text-[11px] text-muted-foreground shrink-0 tabular-nums hidden sm:inline">{fmtDate(n.createdAt)}</span>
+                    <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0" />
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          )}
         </Panel>
       </div>
     </EnterpriseShell>
