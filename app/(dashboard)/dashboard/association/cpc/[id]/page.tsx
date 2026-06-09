@@ -44,7 +44,19 @@ export default async function PartyDetailAdmin({ params }: { params: Promise<{ i
         <div className="mt-2 text-[12px] text-muted-foreground inline-flex items-center gap-3">
           <span>{n.author}</span><span>{fmt(n.createdAt)}</span><span className="inline-flex items-center gap-0.5"><Eye className="h-3 w-3" />{n.views}</span>
         </div>
+        {n.cover && (
+          /* eslint-disable-next-line @next/next/no-img-element */
+          <img src={n.cover} alt={n.title} className="mt-5 w-full max-w-md rounded-xl border border-border object-cover" style={{ aspectRatio: "16 / 9" }} />
+        )}
         <p className="mt-5 text-[14px] leading-7 text-foreground whitespace-pre-wrap">{n.content}</p>
+        {n.images.length > 0 && (
+          <div className="mt-5 grid grid-cols-3 sm:grid-cols-4 gap-2.5">
+            {n.images.map((u) => (
+              /* eslint-disable-next-line @next/next/no-img-element */
+              <img key={u} src={u} alt="配图" className="w-full rounded-lg border border-border object-cover" style={{ aspectRatio: "4 / 3" }} />
+            ))}
+          </div>
+        )}
       </article>
 
       <div className="mt-5 flex items-center gap-3 flex-wrap">

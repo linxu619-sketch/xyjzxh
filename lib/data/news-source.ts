@@ -18,19 +18,26 @@ export type News = {
   hot: boolean;
   views: number;
   status: NewsStatus;
+  cover?: string;       // 封面图 URL
+  images: string[];     // 配图集
   createdAt: number;
 };
 
 type Row = {
   id: number; category: string | null; title: string | null; excerpt: string | null; content: string | null;
-  author: string | null; color: string | null; hot: number | null; views: number | null; status: string; created_at: number | null;
+  author: string | null; color: string | null; hot: number | null; views: number | null; status: string;
+  cover?: string | null; images?: string | null; created_at: number | null;
 };
 
 function rowTo(r: Row): News {
+  let images: string[] = [];
+  try { if (r.images) images = JSON.parse(r.images); } catch { /* ignore */ }
   return {
     id: r.id, category: r.category ?? "协会公告", title: r.title ?? "", excerpt: r.excerpt ?? "",
     content: r.content ?? "", author: r.author ?? "协会秘书处", color: r.color ?? "build",
-    hot: !!r.hot, views: r.views ?? 0, status: (r.status as NewsStatus) ?? "published", createdAt: r.created_at ?? 0,
+    hot: !!r.hot, views: r.views ?? 0, status: (r.status as NewsStatus) ?? "published",
+    cover: r.cover ?? undefined, images: Array.isArray(images) ? images : [],
+    createdAt: r.created_at ?? 0,
   };
 }
 
@@ -61,12 +68,14 @@ const CAT_COLOR: Record<string, string> = {
 
 export function createNews(input: {
   category: string; title: string; excerpt: string; content: string; author?: string; hot?: boolean; status?: NewsStatus;
+  cover?: string; images?: string[];
 }): number {
   const info = getDb().prepare(
-    "INSERT INTO news (category,title,excerpt,content,author,color,hot,views,status,created_at) VALUES (?,?,?,?,?,?,?,0,?,?)",
+    "INSERT INTO news (category,title,excerpt,content,author,color,hot,views,status,cover,images,created_at) VALUES (?,?,?,?,?,?,?,0,?,?,?,?)",
   ).run(
     input.category, input.title, input.excerpt, input.content, input.author ?? "协会秘书处",
-    CAT_COLOR[input.category] ?? "build", input.hot ? 1 : 0, input.status ?? "published", Date.now(),
+    CAT_COLOR[input.category] ?? "build", input.hot ? 1 : 0, input.status ?? "published",
+    input.cover || null, input.images && input.images.length ? JSON.stringify(input.images) : null, Date.now(),
   );
   return Number(info.lastInsertRowid);
 }

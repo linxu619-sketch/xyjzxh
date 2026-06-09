@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Plus, X } from "lucide-react";
 import { createPartyNewsAction } from "./actions";
+import { SingleUpload, MultiUpload } from "@/app/(main)/register/uploads";
 
 const INPUT = "w-full h-11 rounded-xl border border-border bg-background px-3.5 text-[14px] outline-none focus:border-foreground/30";
 // 党建工作台只发这两类
@@ -10,6 +11,9 @@ const CATS = ["党建", "理论学习"];
 
 export function PublishPartyNews() {
   const [open, setOpen] = useState(false);
+  const [cover, setCover] = useState<string | null>(null);
+  const [images, setImages] = useState<string[]>([]);
+
   if (!open) {
     return (
       <button onClick={() => setOpen(true)} className="h-9 px-4 rounded-full bg-party text-white text-[13px] font-medium inline-flex items-center gap-1.5 active:scale-95 transition-transform">
@@ -32,6 +36,15 @@ export function PublishPartyNews() {
           </div>
           <Field label="摘要"><input name="excerpt" placeholder="一句话概要（列表展示用，可留空自动截取）" className={INPUT} /></Field>
           <Field label="正文" required><textarea name="content" rows={6} required placeholder="党建动态 / 理论学习正文内容" className={`${INPUT} h-auto py-2.5 leading-6`} /></Field>
+
+          {/* 封面图（单张，列表与详情顶部展示）*/}
+          <SingleUpload label="封面图" aspect="16 / 9" className="max-w-[260px]" onChange={setCover} />
+          <input type="hidden" name="cover" value={cover ?? ""} />
+
+          {/* 配图（多张，正文下方图集）*/}
+          <MultiUpload label="配图" hint="活动照片等，最多 9 张" max={9} onChange={setImages} />
+          {images.map((u) => <input key={u} type="hidden" name="images" value={u} />)}
+
           <div className="flex items-center gap-5">
             <label className="flex items-center gap-2 text-[13px]"><input type="checkbox" name="hot" className="accent-party h-4 w-4" /> 标为「热门」</label>
             <label className="flex items-center gap-2 text-[13px]"><input type="checkbox" name="draft" className="accent-foreground h-4 w-4" /> 存为草稿（不公开）</label>

@@ -443,6 +443,8 @@ CREATE TABLE IF NOT EXISTS news (
   hot         INTEGER DEFAULT 0,
   views       INTEGER DEFAULT 0,
   status      TEXT DEFAULT 'published', -- published | draft
+  cover       TEXT,                     -- 封面图 URL
+  images      TEXT,                     -- 配图集 JSON 数组
   created_at  INTEGER
 );
 CREATE INDEX IF NOT EXISTS idx_news_status ON news(status, created_at);
@@ -1425,6 +1427,9 @@ function migrate(db: DB) {
     "ALTER TABLE supply_products ADD COLUMN after_sale TEXT",      // 售后服务
     "ALTER TABLE supply_products ADD COLUMN stock INTEGER DEFAULT 0", // 库存(0=现货/不限)
     "ALTER TABLE supply_products ADD COLUMN commission_pct REAL DEFAULT 0", // 平台佣金 0-2(%)
+    // 新闻/党建 封面图 + 配图集
+    "ALTER TABLE news ADD COLUMN cover TEXT",
+    "ALTER TABLE news ADD COLUMN images TEXT",   // 配图集 JSON 数组
   ];
   for (const sql of alters) {
     try { db.exec(sql); } catch { /* 列已存在，忽略 */ }

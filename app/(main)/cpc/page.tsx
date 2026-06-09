@@ -180,7 +180,13 @@ export default async function PartyPage() {
             <div className="rounded-3xl border border-border bg-background divide-y divide-border overflow-hidden">
               {dynamics.map((n) => (
                 <Link key={n.id} href={`/news/${n.id}`} className="flex items-center gap-3 md:gap-4 px-4 md:px-6 py-4 hover:bg-surface transition-colors group">
-                  <Badge tone="party" className="!px-2 !py-0.5 shrink-0">{n.category}</Badge>
+                  <span className="h-11 w-16 rounded-lg overflow-hidden border border-border bg-party-soft shrink-0 inline-flex items-center justify-center">
+                    {n.cover
+                      // eslint-disable-next-line @next/next/no-img-element
+                      ? <img src={n.cover} alt="" className="h-full w-full object-cover" />
+                      : <Flag className="h-4 w-4 text-party/50" />}
+                  </span>
+                  <Badge tone="party" className="!px-2 !py-0.5 shrink-0 hidden sm:inline-flex">{n.category}</Badge>
                   <span className="flex-1 min-w-0 truncate text-[14px] md:text-[15px] group-hover:text-party transition-colors">{n.title}</span>
                   <span className="hidden sm:inline-flex items-center gap-1 text-[12px] text-muted-foreground shrink-0"><Eye className="h-3 w-3" />{n.views.toLocaleString()}</span>
                   <span className="text-[12px] text-muted-foreground shrink-0 tabular-nums inline-flex items-center gap-1"><Calendar className="h-3 w-3" />{fmtDate(n.createdAt)}</span>

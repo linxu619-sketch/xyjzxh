@@ -49,7 +49,21 @@ export default async function NewsDetail({ params }: { params: Promise<{ id: str
         <span className="inline-flex items-center gap-1"><Eye className="h-3 w-3" /> {n.views.toLocaleString()} 阅读</span>
       </div>
 
+      {n.cover && (
+        /* eslint-disable-next-line @next/next/no-img-element */
+        <img src={n.cover} alt={n.title} className="mt-6 w-full rounded-2xl border border-border object-cover" style={{ aspectRatio: "16 / 9" }} />
+      )}
+
       <article className="mt-8 text-[15px] leading-8 text-foreground whitespace-pre-wrap">{n.content}</article>
+
+      {n.images.length > 0 && (
+        <div className="mt-8 grid grid-cols-2 md:grid-cols-3 gap-3">
+          {n.images.map((u) => (
+            /* eslint-disable-next-line @next/next/no-img-element */
+            <img key={u} src={u} alt="配图" className="w-full rounded-xl border border-border object-cover" style={{ aspectRatio: "4 / 3" }} />
+          ))}
+        </div>
+      )}
 
       {related.length > 0 && (
         <div className="mt-14 pt-10 border-t border-border">

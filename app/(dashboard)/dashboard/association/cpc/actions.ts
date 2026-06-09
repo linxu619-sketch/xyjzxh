@@ -30,11 +30,14 @@ export async function createPartyNewsAction(fd: FormData) {
   const excerpt = String(fd.get("excerpt") || "").trim();
   const content = String(fd.get("content") || "").trim();
   if (!title || !content) redirect("/dashboard/association/cpc?nerr=1");
+  const cover = String(fd.get("cover") || "").trim() || undefined;
+  const images = fd.getAll("images").map(String).filter(Boolean);
   createNews({
     title, category, excerpt: excerpt || content.slice(0, 60), content,
     author: String(fd.get("author") || "协会党支部").trim() || "协会党支部",
     hot: fd.get("hot") === "on",
     status: fd.get("draft") === "on" ? "draft" : "published",
+    cover, images,
   });
   refresh();
   redirect("/dashboard/association/cpc?nok=1");
