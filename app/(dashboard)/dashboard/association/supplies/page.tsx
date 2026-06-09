@@ -4,7 +4,8 @@ import { AssociationShell } from "@/components/dashboard/shell";
 import { StatFilters } from "@/components/dashboard/stat-filters";
 import { Badge } from "@/components/ui/badge";
 import { listProducts, listByStatus, brandActiveHolder, type ReasonType } from "@/lib/data/supplies-source";
-import { PublishProduct } from "./PublishProduct";
+import { ListingForm } from "@/components/dashboard/listing-form";
+import { createProductAction } from "./actions";
 
 export const metadata = { title: "建材商品 · 上架审核 · 协会工作台" };
 
@@ -22,7 +23,7 @@ export default async function SuppliesAdmin({ searchParams }: { searchParams: Pr
   const base = "/dashboard/association/supplies";
 
   return (
-    <AssociationShell title="建材商品 · 上架审核" subtitle={`待审核 ${pending.length} · 在架 ${active} 款`} actions={<PublishProduct />}>
+    <AssociationShell title="建材商品 · 上架审核" subtitle={`待审核 ${pending.length} · 在架 ${active} 款`} actions={<ListingForm action={createProductAction} selfOperated triggerLabel="上架自营商品" />}>
       {pok && <div className="mb-5 rounded-2xl border border-accent-tea/30 bg-[#e6f7f1] text-accent-tea p-4 flex items-center gap-3"><CheckCircle2 className="h-5 w-5 shrink-0" /><div className="text-[13px]"><b>已上架！</b>企业可在「建材采购」按会员价下单。</div></div>}
       {perr && <div className="mb-5 rounded-2xl border border-cat-decor/30 bg-cat-decor-soft text-cat-decor p-4 text-[13px]">上架失败：请填写名称与会员价。</div>}
       {rok === "1" && <div className="mb-5 rounded-2xl border border-accent-tea/30 bg-[#e6f7f1] text-accent-tea p-4 flex items-center gap-3"><CheckCircle2 className="h-5 w-5 shrink-0" /><div className="text-[13px]"><b>审核通过，已上架。</b></div></div>}

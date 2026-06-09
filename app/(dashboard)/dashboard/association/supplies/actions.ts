@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { requireStaffPermission } from "@/lib/auth/guard";
-import { createProduct, getProduct, setProductStatus, approveListing, rejectListing, replaceListing, brandActiveHolder, setCommission, updateProductDetail, type ProductStatus, type ProductParam } from "@/lib/data/supplies-source";
+import { createListing, getProduct, setProductStatus, approveListing, rejectListing, replaceListing, brandActiveHolder, setCommission, updateProductDetail, type ProductStatus, type ProductParam } from "@/lib/data/supplies-source";
 
 async function requireAssoc() {
   await requireStaffPermission("supplies");
@@ -19,15 +19,42 @@ function redirectTo(fd: FormData, fallback: string): never {
   redirect(fallback);
 }
 
+// 协会自营上架：与企业会员上架同一套完整字段（ListingForm），但卖家=协会集采、直接 active（无需审核）
 export async function createProductAction(fd: FormData) {
   await requireAssoc();
   const name = String(fd.get("name") || "").trim();
-  const category = String(fd.get("category") || "建材").trim();
-  const unit = String(fd.get("unit") || "件").trim();
-  const market = Number(fd.get("marketPrice") || 0) || 0;
+  const brand = String(fd.get("brand") || "").trim() || name;
   const member = Number(fd.get("memberPrice") || 0) || 0;
   if (!name || member <= 0) redirect("/dashboard/association/supplies?perr=1");
-  createProduct({ name, category, unit, spec: String(fd.get("spec") || "").trim(), supplier: String(fd.get("supplier") || "").trim(), marketPrice: market, memberPrice: member });
+
+  const tiers = [
+    { minQty: Number(fd.get("tier1Qty") || 0) || 0, price: Number(fd.get("tier1Price") || 0) || 0 },
+    { minQty: Number(fd.get("tier2Qty") || 0) || 0, price: Number(fd.get("tier2Price") || 0) || 0 },
+  ].filter((t) => t.minQty > 0 && t.price > 0 && t.price < member);
+  const pks = fd.getAll("paramK").map((x) => String(x));
+  const pvs = fd.getAll("paramV").map((x) => String(x));
+  const params = pks.map((k, i) => ({ k, v: pvs[i] ?? "" })).filter((p) => p.k.trim() && p.v.trim());
+  const images = ["imageUrl", "imageUrl2", "imageUrl3"].map((n) => String(fd.get(n) || "").trim()).filter(Boolean);
+
+  const id = createListing({
+    sellerType: "association", sellerId: "assoc", sellerName: "协会集采",
+    name, brand,
+    category: String(fd.get("category") || "主材").trim(),
+    unit: String(fd.get("unit") || "件").trim(),
+    spec: String(fd.get("spec") || "").trim(),
+    reasonType: "direct", reasonNote: "协会集采自营", proofUrl: "",
+    moq: Number(fd.get("moq") || 1) || 1,
+    images, priceTiers: tiers,
+    marketPrice: Number(fd.get("marketPrice") || 0) || 0, memberPrice: member,
+    description: String(fd.get("description") || "").trim(),
+    params,
+    origin: String(fd.get("origin") || "").trim(),
+    leadTime: String(fd.get("leadTime") || "").trim(),
+    shipping: String(fd.get("shipping") || "").trim(),
+    afterSale: String(fd.get("afterSale") || "").trim(),
+    stock: Number(fd.get("stock") || 0) || 0,
+  });
+  setProductStatus(id, "active"); // 协会自营直接上架（无需审核）
   refresh();
   redirect("/dashboard/association/supplies?pok=1");
 }

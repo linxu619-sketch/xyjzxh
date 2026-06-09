@@ -12,7 +12,12 @@ const REASONS = [
   { v: "direct", label: "厂家直供" },
 ];
 
-export function ListingForm({ disabled, disabledHint }: { disabled?: boolean; disabledHint?: string }) {
+export function ListingForm({ disabled, disabledHint, action, selfOperated, triggerLabel }: {
+  disabled?: boolean; disabledHint?: string;
+  action?: (fd: FormData) => void | Promise<void>; // 不传=企业会员上架(走审核)；传协会action+selfOperated=协会自营
+  selfOperated?: boolean; triggerLabel?: string;
+}) {
+  const formAction = action ?? createListingAction;
   const [open, setOpen] = useState(false);
   const [proofUrl, setProofUrl] = useState("");
   const [uploading, setUploading] = useState(false);
@@ -51,19 +56,19 @@ export function ListingForm({ disabled, disabledHint }: { disabled?: boolean; di
         title={disabled ? disabledHint : undefined}
         className="h-9 px-4 rounded-full bg-foreground text-background text-[13px] font-medium inline-flex items-center gap-1.5 active:scale-95 transition-transform disabled:opacity-40 disabled:active:scale-100"
       >
-        <Plus className="h-3.5 w-3.5" /> 我要卖货
+        <Plus className="h-3.5 w-3.5" /> {triggerLabel ?? "我要卖货"}
       </button>
     );
   }
 
   return (
     <div className="fixed inset-0 z-[80] bg-foreground/40 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4" onClick={() => setOpen(false)}>
-      <form action={createListingAction} onClick={(e) => e.stopPropagation()} className="w-full sm:max-w-lg bg-background rounded-t-3xl sm:rounded-3xl border border-border p-5 md:p-6 max-h-[90vh] overflow-y-auto">
+      <form action={formAction} onClick={(e) => e.stopPropagation()} className="w-full sm:max-w-lg bg-background rounded-t-3xl sm:rounded-3xl border border-border p-5 md:p-6 max-h-[90vh] overflow-y-auto">
         <div className="flex items-center justify-between mb-1">
-          <h3 className="text-[16px] font-semibold">上架商品 · 申请销售</h3>
+          <h3 className="text-[16px] font-semibold">{selfOperated ? "上架商品 · 协会自营" : "上架商品 · 申请销售"}</h3>
           <button type="button" onClick={() => setOpen(false)} className="h-8 w-8 rounded-full hover:bg-surface inline-flex items-center justify-center text-muted-foreground"><X className="h-4 w-4" /></button>
         </div>
-        <p className="text-[12px] text-muted-foreground mb-4">提交后进入协会审核。<b>同一品牌平台仅允许一家在售</b>，以最低价为准。</p>
+        <p className="text-[12px] text-muted-foreground mb-4">{selfOperated ? <>协会集采自营商品，提交后<b>直接上架</b>（无需审核）。请尽量填全，便于会员下单。</> : <>提交后进入协会审核。<b>同一品牌平台仅允许一家在售</b>，以最低价为准。</>}</p>
         <div className="space-y-3">
           <Field label="商品名称" required><input name="name" required placeholder="如：美巢墙锢界面剂" className={INPUT} /></Field>
           <Field label="商品效果图（1-3 张，第一张为封面，建议正方形）">
@@ -92,18 +97,22 @@ export function ListingForm({ disabled, disabledHint }: { disabled?: boolean; di
             <Field label="品牌" required><input name="brand" required placeholder="如：美巢 / 海螺 / 自有品牌" className={INPUT} /></Field>
             <Field label="类别"><select name="category" defaultValue="主材" className={INPUT}>{CATS.map((c) => <option key={c}>{c}</option>)}</select></Field>
           </div>
-          <Field label="上架理由 / 资格" required>
-            <select name="reasonType" defaultValue="agent" className={INPUT}>{REASONS.map((r) => <option key={r.v} value={r.v}>{r.label}</option>)}</select>
-          </Field>
-          <Field label="资格说明"><input name="reasonNote" placeholder="如：XX品牌信阳区域独家代理，凭授权书" className={INPUT} /></Field>
-          <Field label="资格证明（授权书 / 营业执照 / 自产证明）">
-            <input type="hidden" name="proofUrl" value={proofUrl} />
-            <label className="flex items-center gap-2 h-11 rounded-xl border border-dashed border-border px-3.5 text-[13px] text-muted-foreground cursor-pointer hover:border-foreground/30">
-              {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : proofUrl ? <CheckCircle2 className="h-4 w-4 text-accent-tea" /> : <Upload className="h-4 w-4" />}
-              {uploading ? "上传中…" : proofUrl ? "已上传，可点击重新上传" : "点击上传图片（≤8MB）"}
-              <input type="file" accept="image/*" className="hidden" onChange={onPick} />
-            </label>
-          </Field>
+          {!selfOperated && (
+            <>
+              <Field label="上架理由 / 资格" required>
+                <select name="reasonType" defaultValue="agent" className={INPUT}>{REASONS.map((r) => <option key={r.v} value={r.v}>{r.label}</option>)}</select>
+              </Field>
+              <Field label="资格说明"><input name="reasonNote" placeholder="如：XX品牌信阳区域独家代理，凭授权书" className={INPUT} /></Field>
+              <Field label="资格证明（授权书 / 营业执照 / 自产证明）">
+                <input type="hidden" name="proofUrl" value={proofUrl} />
+                <label className="flex items-center gap-2 h-11 rounded-xl border border-dashed border-border px-3.5 text-[13px] text-muted-foreground cursor-pointer hover:border-foreground/30">
+                  {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : proofUrl ? <CheckCircle2 className="h-4 w-4 text-accent-tea" /> : <Upload className="h-4 w-4" />}
+                  {uploading ? "上传中…" : proofUrl ? "已上传，可点击重新上传" : "点击上传图片（≤8MB）"}
+                  <input type="file" accept="image/*" className="hidden" onChange={onPick} />
+                </label>
+              </Field>
+            </>
+          )}
           <div className="grid grid-cols-3 gap-3">
             <Field label="单位"><input name="unit" placeholder="桶/㎡/件/吨" className={INPUT} /></Field>
             <Field label="规格"><input name="spec" placeholder="18kg" className={INPUT} /></Field>
@@ -149,7 +158,7 @@ export function ListingForm({ disabled, disabledHint }: { disabled?: boolean; di
           </div>
 
           <div className="flex items-center gap-3 pt-1">
-            <button type="submit" disabled={uploading} className="h-11 px-6 rounded-full bg-accent-tea text-white text-[14px] font-medium inline-flex items-center gap-1.5 disabled:opacity-50"><Plus className="h-4 w-4" /> 提交审核</button>
+            <button type="submit" disabled={uploading} className="h-11 px-6 rounded-full bg-accent-tea text-white text-[14px] font-medium inline-flex items-center gap-1.5 disabled:opacity-50"><Plus className="h-4 w-4" /> {selfOperated ? "直接上架" : "提交审核"}</button>
             <button type="button" onClick={() => setOpen(false)} className="h-11 px-4 rounded-full text-[13px] text-muted-foreground hover:text-foreground">取消</button>
           </div>
         </div>
