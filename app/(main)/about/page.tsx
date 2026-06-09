@@ -105,7 +105,7 @@ export default async function AboutPage() {
                 协会党支部发挥政治引领与战斗堡垒作用，把党建工作融入协会运行与会员服务全过程。了解支部概况、党建动态、理论学习与三会一课。
               </p>
             </div>
-            <Link href="/party" className="relative shrink-0 inline-flex items-center gap-1.5 h-12 px-7 rounded-full bg-white text-party text-[14px] font-semibold">
+            <Link href="/cpc" className="relative shrink-0 inline-flex items-center gap-1.5 h-12 px-7 rounded-full bg-white text-party text-[14px] font-semibold">
               进入党建专栏 <ArrowUpRight className="h-4 w-4" />
             </Link>
           </div>

@@ -248,7 +248,7 @@ export default async function AssociationHome() {
       {/* 党建引领 —— 卡片形式，低调融入（介于办事大厅与资讯之间）*/}
       <section className="pb-2 md:pb-4">
         <Container>
-          <Link href="/party" className="group flex items-center gap-4 md:gap-5 rounded-3xl border border-party/20 bg-party-soft p-5 md:p-6 transition-all md:hover:shadow-md md:hover:-translate-y-0.5">
+          <Link href="/cpc" className="group flex items-center gap-4 md:gap-5 rounded-3xl border border-party/20 bg-party-soft p-5 md:p-6 transition-all md:hover:shadow-md md:hover:-translate-y-0.5">
             <span className="h-12 w-12 md:h-14 md:w-14 rounded-2xl bg-party text-white inline-flex items-center justify-center shrink-0">
               <Flag className="h-6 w-6 md:h-7 md:w-7" />
             </span>

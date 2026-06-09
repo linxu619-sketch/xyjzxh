@@ -178,7 +178,7 @@ export default async function PractitionerHome() {
             <h3 className="text-[14px] font-semibold tracking-tight inline-flex items-center gap-1.5">
               <Flag className="h-4 w-4 text-party" /> 党建 · 协会资讯
             </h3>
-            <Link href="/party" className="text-[12px] text-party inline-flex items-center gap-0.5">党建专栏 <ChevronRight className="h-3 w-3" /></Link>
+            <Link href="/cpc" className="text-[12px] text-party inline-flex items-center gap-0.5">党建专栏 <ChevronRight className="h-3 w-3" /></Link>
           </div>
           {assocFeed.length === 0 ? (
             <div className="py-4 text-center text-[12px] text-muted-foreground">协会暂无资讯。</div>

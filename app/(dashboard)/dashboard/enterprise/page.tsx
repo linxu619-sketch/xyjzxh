@@ -248,7 +248,7 @@ export default async function EnterpriseDashboard() {
           title="党建 · 协会资讯"
           className="lg:col-span-3"
           action={
-            <Link href="/party" className="text-[12px] text-party inline-flex items-center gap-0.5">
+            <Link href="/cpc" className="text-[12px] text-party inline-flex items-center gap-0.5">
               <Flag className="h-3 w-3" /> 党建专栏 <ChevronRight className="h-3 w-3" />
             </Link>
           }

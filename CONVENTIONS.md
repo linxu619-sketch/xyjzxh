@@ -42,7 +42,7 @@
     | 页面 | 标准地址 |
     |------|---------|
     | 协会首页 | `xh.xyjzxh.com`（根→ `/xh`）|
-    | 党的建设 | `xh.xyjzxh.com/party` |
+    | 党的建设 | `xh.xyjzxh.com/cpc` |
     | 申请入会 | `xh.xyjzxh.com/join` |
     | 会员注册 | `xh.xyjzxh.com/register` |
     | 协会服务 | `xh.xyjzxh.com/services` |

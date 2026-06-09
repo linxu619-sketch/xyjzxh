@@ -21,7 +21,7 @@ const ORG: OrgItem[] = [
     name: "党支部",
     desc: "发挥政治引领与战斗堡垒作用，把党建工作融入协会运行。",
     icon: Flag,
-    href: "/party",
+    href: "/cpc",
   },
   {
     tag: "权力机构",
