@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import {
-  ShieldCheck, Star, Sparkles, ChevronRight, LogOut, Settings, MapPin, Check, Briefcase, CalendarClock,
+  ShieldCheck, Star, Sparkles, ChevronRight, LogOut, Settings, MapPin, Check, Briefcase, CalendarClock, QrCode,
 } from "lucide-react";
 import { PractitionerShell } from "@/components/dashboard/practitioner-shell";
 import { TierBadge, GrowthMeter } from "@/components/dashboard/practitioner-tier";
@@ -80,6 +80,20 @@ export default async function PractitionerProfile() {
           </ul>
         </div>
       </section>
+
+      {/* 电子名片入口 */}
+      {me && (
+        <Link href={`/practitioners/${pid}`} className="block rounded-3xl bg-gradient-to-br from-[#f6c915] to-[#e0a900] text-[#5a3e00] p-5 mb-4 active:scale-[0.99] transition-transform shadow-sm">
+          <div className="flex items-center gap-3">
+            <QrCode className="h-6 w-6 shrink-0" />
+            <div className="flex-1 min-w-0">
+              <div className="text-[14px] font-semibold">我的电子名片 · 资历证书</div>
+              <div className="text-[11px] opacity-70 mt-0.5">带等级金徽章 · 可分享给业主 / 企业 / 同行</div>
+            </div>
+            <ChevronRight className="h-4 w-4" />
+          </div>
+        </Link>
+      )}
 
       {/* 成就数据 */}
       <section className="rounded-3xl bg-background border border-border p-5 mb-4">

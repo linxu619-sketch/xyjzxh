@@ -125,7 +125,7 @@ export default async function PractitionersLanding() {
         <p className="mt-2 text-[14px] text-muted-foreground">真实评价 · 历史项目可追溯 · 工伤险全员覆盖</p>
         <div className="mt-6 grid grid-cols-2 md:grid-cols-4 gap-3">
           {list.map((p) => (
-            <div key={p.id} className="rounded-3xl border border-border bg-background p-5">
+            <Link key={p.id} href={`/practitioners/${p.id}`} className="block rounded-3xl border border-border bg-background p-5 hover:shadow-md active:scale-[0.99] transition-all">
               <div className="flex items-center gap-2">
                 <span className="h-12 w-12 rounded-full bg-cat-design text-white inline-flex items-center justify-center text-[18px] font-semibold">{p.name.slice(0, 1)}</span>
                 <div className="min-w-0">
@@ -148,7 +148,7 @@ export default async function PractitionersLanding() {
               {p.insured && (
                 <Badge tone="tea" className="mt-2 !text-[9px]"><ShieldCheck className="h-2.5 w-2.5 inline mr-0.5" />工伤险</Badge>
               )}
-            </div>
+            </Link>
           ))}
         </div>
 

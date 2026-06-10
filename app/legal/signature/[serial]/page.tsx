@@ -5,6 +5,7 @@ import {
 import { AGREEMENT_SIGNATURES, getTemplate } from "@/lib/data/agreements";
 import { SITE } from "@/lib/site";
 import { getSession } from "@/lib/auth/session";
+import { GridQR } from "@/components/ui/grid-qr";
 import { PrintButton } from "./PrintButton";
 
 export const metadata = { title: "签署证书 · 信阳市建筑装饰装修协会" };
@@ -157,7 +158,7 @@ export default async function SignatureCert({ params }: { params: Promise<{ seri
 
             {/* 二维码 - 简化 SVG */}
             <div className="flex flex-col items-center">
-              <FakeQRCode value={verifyUrl} size={88} />
+              <GridQR value={verifyUrl} size={88} />
               <div className="text-[8px] text-gray-600 mt-1 text-center max-w-[100px] leading-tight">
                 扫码验证<br />{verifyUrl.replace(/^https?:\/\//, "").slice(0, 30)}
               </div>
@@ -204,35 +205,3 @@ export default async function SignatureCert({ params }: { params: Promise<{ seri
   );
 }
 
-// 假二维码：用网格方块替代真二维码（避免引入大库）
-function FakeQRCode({ value, size }: { value: string; size: number }) {
-  // 把 value 哈希成一个伪随机但稳定的 21x21 黑白点阵
-  const cells = 21;
-  const cellSize = size / cells;
-  const seed = value.split("").reduce((a, c) => a + c.charCodeAt(0), 0);
-  return (
-    <svg width={size} height={size} viewBox={`0 0 ${cells} ${cells}`} className="border border-black">
-      <rect width={cells} height={cells} fill="white" />
-      {/* 三角定位点 */}
-      {[[0, 0], [cells - 7, 0], [0, cells - 7]].map(([x, y], i) => (
-        <g key={i}>
-          <rect x={x} y={y} width={7} height={7} fill="black" />
-          <rect x={x + 1} y={y + 1} width={5} height={5} fill="white" />
-          <rect x={x + 2} y={y + 2} width={3} height={3} fill="black" />
-        </g>
-      ))}
-      {/* 数据块 */}
-      {Array.from({ length: cells * cells }).map((_, i) => {
-        const x = i % cells;
-        const y = Math.floor(i / cells);
-        // 避开定位点
-        if ((x < 8 && y < 8) || (x > cells - 9 && y < 8) || (x < 8 && y > cells - 9)) return null;
-        const v = ((seed * (i + 7)) ^ (i * 1234567)) & 1;
-        if (v) return <rect key={i} x={x} y={y} width={1} height={1} fill="black" />;
-        return null;
-      })}
-      <rect x={cells * 0.42} y={cells * 0.42} width={cells * 0.16} height={cells * 0.16} fill="white" />
-      <text x={cells * 0.5} y={cells * 0.55} textAnchor="middle" fontSize="2" fontWeight="bold" fill="black">XH</text>
-    </svg>
-  );
-}
