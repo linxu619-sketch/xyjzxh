@@ -31,6 +31,7 @@ export default async function PractitionerJobs({ searchParams }: { searchParams:
       canDistricts: me?.canDistricts ?? [],
       birthYear: me?.birthYear ?? null,
       expectDaily: me?.expectDaily ?? null,
+      expectDailyMax: me?.expectDailyMax ?? null,
       years: me?.years ?? 0,
       city: me?.city ?? "",
       gender: me?.gender ?? "",
@@ -158,7 +159,7 @@ function JobCard({ m, st, dim }: { m: JobMatch; st?: string; dim?: boolean }) {
       </div>
 
       <div className="mt-3 pt-3 border-t border-border flex items-center justify-between gap-2">
-        <div className="text-[18px] font-semibold text-cat-decor tabular-nums">¥{j.daily}<span className="text-[10px] font-normal text-muted-foreground"> /天</span></div>
+        <div className="text-[18px] font-semibold text-cat-decor tabular-nums">¥{j.daily}{j.dailyMax && j.dailyMax > j.daily ? `-${j.dailyMax}` : ""}<span className="text-[10px] font-normal text-muted-foreground"> /天</span></div>
         {st ? (
           <span className={`inline-flex items-center gap-1 h-10 px-3.5 rounded-full text-[12px] font-medium ${st === "accepted" ? "bg-[#e6f7f1] text-accent-tea" : st === "rejected" ? "bg-surface text-muted-foreground" : "bg-surface text-foreground"}`}>
             {st === "accepted" && <CheckCircle2 className="h-3.5 w-3.5" />}{STATUS_LABEL[st]}

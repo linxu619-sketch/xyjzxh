@@ -42,8 +42,11 @@ export function PostJobForm() {
               <datalist id="job-districts">{DISTRICTS.map((d) => <option key={d} value={d} />)}</datalist>
             </Field>
           </div>
-          <div className="grid grid-cols-3 gap-3">
-            <Field label="日薪(元)"><input name="daily" inputMode="numeric" placeholder="380" className={INPUT} /></Field>
+          <div className="grid grid-cols-2 gap-3">
+            <Field label="日薪下限(元)"><input name="daily" inputMode="numeric" placeholder="380" className={INPUT} /></Field>
+            <Field label="日薪上限(元)"><input name="dailyMax" inputMode="numeric" placeholder="420（不填=单值）" className={INPUT} /></Field>
+          </div>
+          <div className="grid grid-cols-2 gap-3">
             <Field label="名额"><input name="openings" inputMode="numeric" placeholder="5" className={INPUT} /></Field>
             <Field label="工期"><input name="duration" placeholder="约25天" className={INPUT} /></Field>
           </div>

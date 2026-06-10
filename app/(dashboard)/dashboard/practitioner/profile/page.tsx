@@ -117,7 +117,7 @@ export default async function PractitionerProfile({ searchParams }: { searchPara
           </div>
           <div className="grid grid-cols-3 gap-2 mb-3">
             <Mini2 label="年龄" value={age ? `${age}` : "未填"} sub={age ? "岁" : "去完善"} />
-            <Mini2 label="期望日薪" value={me.expectDaily ? `¥${me.expectDaily}` : "不限"} sub={me.expectDaily ? "起" : ""} />
+            <Mini2 label="期望日薪" value={me.expectDaily ? (me.expectDailyMax ? `¥${me.expectDaily}-${me.expectDailyMax}` : `¥${me.expectDaily}+`) : "不限"} sub="/天" />
             <Mini2 label="从业年限" value={me.years ? `${me.years}` : "未填"} sub={me.years ? "年" : ""} />
           </div>
           <div className="grid grid-cols-3 gap-2 mb-3">

@@ -29,6 +29,7 @@ export async function createJobAction(fd: FormData) {
     kind,
     district: String(fd.get("district") || "").trim(),
     daily: Number(fd.get("daily") || 0) || 0,
+    dailyMax: posInt("dailyMax"),
     openings: Number(fd.get("openings") || 1) || 1,
     duration: String(fd.get("duration") || "").trim(),
     urgent: fd.get("urgent") === "on",

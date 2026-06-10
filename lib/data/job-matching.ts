@@ -11,7 +11,8 @@ export type MatchInput = {
   canKinds: string[];
   canDistricts: string[];
   birthYear: number | null;
-  expectDaily: number | null;
+  expectDaily: number | null;     // 期望日薪下限
+  expectDailyMax: number | null;  // 期望日薪上限（null=不封顶）
   years: number;
   city: string;
   gender: string;
@@ -57,10 +58,18 @@ export function evalJob(p: MatchInput, job: Job): JobMatch {
     else { suitable = false; gaps.push(`需${job.minYears}年经验`); }
   }
 
-  // 4) 工资（半硬：日薪低于期望不推）
-  if (p.expectDaily && p.expectDaily > 0) {
-    if (job.daily >= p.expectDaily) { reasons.push("薪资达标"); score += Math.min((job.daily - p.expectDaily) / 20, 15); }
-    else { suitable = false; gaps.push(`¥${job.daily}低于你期望¥${p.expectDaily}`); }
+  // 4) 工资（双方日薪范围求交集：有重叠才推）
+  if (p.expectDaily || p.expectDailyMax) {
+    const pLo = p.expectDaily ?? 0;
+    const pHi = p.expectDailyMax ?? Infinity;
+    const jLo = job.daily;
+    const jHi = job.dailyMax ?? job.daily;
+    if (pLo <= jHi && jLo <= pHi) { reasons.push("薪资匹配"); score += Math.min(jHi / 25, 15); }
+    else {
+      suitable = false;
+      if (jHi < pLo) gaps.push(`日薪不足你期望¥${pLo}起`);
+      else gaps.push(`日薪高于你期望上限¥${pHi}`);
+    }
   }
 
   // 5) 性别（硬；岗位指定才卡。从业者没填→不卡，提示完善）
@@ -98,7 +107,7 @@ export function matchJobs(p: MatchInput, jobs: Job[]): { matched: JobMatch[]; ot
 
 // 从 Practitioner 记录抽取匹配输入（容错：缺字段走回退）
 export function toMatchInput(p: {
-  canKinds: string[]; canDistricts: string[]; birthYear: number | null; expectDaily: number | null; years: number; city: string;
+  canKinds: string[]; canDistricts: string[]; birthYear: number | null; expectDaily: number | null; expectDailyMax?: number | null; years: number; city: string;
   gender?: string; hasCert?: boolean | null;
 }): MatchInput {
   return {
@@ -106,6 +115,7 @@ export function toMatchInput(p: {
     canDistricts: p.canDistricts ?? [],
     birthYear: p.birthYear ?? null,
     expectDaily: p.expectDaily ?? null,
+    expectDailyMax: p.expectDailyMax ?? null,
     years: p.years ?? 0,
     city: p.city ?? "",
     gender: p.gender ?? "",

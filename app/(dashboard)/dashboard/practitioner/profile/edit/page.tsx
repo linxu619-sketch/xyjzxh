@@ -25,6 +25,7 @@ export default async function ProfileEdit() {
           canDistricts: me?.canDistricts ?? [],
           birthYear: me?.birthYear ?? null,
           expectDaily: me?.expectDaily ?? null,
+          expectDailyMax: me?.expectDailyMax ?? null,
           years: me?.years ?? 0,
           gender: me?.gender ?? "",
           hasCert: me?.hasCert ?? null,

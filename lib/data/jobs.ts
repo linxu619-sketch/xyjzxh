@@ -15,7 +15,8 @@ export type Job = {
   title: string;
   kind: string;
   district: string;
-  daily: number;
+  daily: number;           // 日薪下限
+  dailyMax: number | null;  // 日薪上限（null=同下限，单值）
   openings: number;
   duration: string;
   urgent: boolean;
@@ -43,7 +44,7 @@ export type JobApplication = {
 
 type JobRow = {
   id: number; enterprise_id: string | null; enterprise_name: string | null; title: string | null;
-  kind: string | null; district: string | null; daily: number | null; openings: number | null;
+  kind: string | null; district: string | null; daily: number | null; daily_max: number | null; openings: number | null;
   duration: string | null; urgent: number | null; detail: string | null;
   min_age: number | null; max_age: number | null; min_years: number | null;
   gender_req: string | null; need_cert: number | null;
@@ -57,7 +58,7 @@ type AppRow = {
 function toJob(r: JobRow): Job {
   return {
     id: r.id, enterpriseId: r.enterprise_id ?? "", enterpriseName: r.enterprise_name ?? "", title: r.title ?? "",
-    kind: r.kind ?? "", district: r.district ?? "", daily: r.daily ?? 0, openings: r.openings ?? 1,
+    kind: r.kind ?? "", district: r.district ?? "", daily: r.daily ?? 0, dailyMax: r.daily_max ?? null, openings: r.openings ?? 1,
     duration: r.duration ?? "", urgent: !!r.urgent, detail: r.detail ?? "",
     minAge: r.min_age ?? null, maxAge: r.max_age ?? null, minYears: r.min_years ?? 0,
     genderReq: r.gender_req ?? "", needCert: !!r.need_cert,
@@ -92,15 +93,15 @@ export function getJob(id: number): Job | undefined {
 
 export function createJob(input: {
   enterpriseId: string; enterpriseName: string; title: string; kind: string;
-  district?: string; daily?: number; openings?: number; duration?: string; urgent?: boolean; detail?: string;
+  district?: string; daily?: number; dailyMax?: number | null; openings?: number; duration?: string; urgent?: boolean; detail?: string;
   minAge?: number | null; maxAge?: number | null; minYears?: number; genderReq?: string; needCert?: boolean;
 }): number {
   const info = getDb().prepare(
-    `INSERT INTO jobs (enterprise_id,enterprise_name,title,kind,district,daily,openings,duration,urgent,detail,min_age,max_age,min_years,gender_req,need_cert,status,created_at)
-     VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?, 'open', ?)`,
+    `INSERT INTO jobs (enterprise_id,enterprise_name,title,kind,district,daily,daily_max,openings,duration,urgent,detail,min_age,max_age,min_years,gender_req,need_cert,status,created_at)
+     VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?, 'open', ?)`,
   ).run(
     input.enterpriseId, input.enterpriseName, input.title, input.kind,
-    input.district ?? "", input.daily ?? 0, input.openings ?? 1, input.duration ?? "",
+    input.district ?? "", input.daily ?? 0, input.dailyMax ?? null, input.openings ?? 1, input.duration ?? "",
     input.urgent ? 1 : 0, input.detail ?? "",
     input.minAge ?? null, input.maxAge ?? null, input.minYears ?? 0,
     input.genderReq ?? "", input.needCert ? 1 : 0,

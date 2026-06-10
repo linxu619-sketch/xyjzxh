@@ -46,7 +46,7 @@ export default async function PractitionerHome() {
   // 真实在招岗位（与「找活」页同源 listOpenJobs）+ 按本人资料做匹配
   const openJobs = listOpenJobs();
   const { matched } = matchJobs(
-    { canKinds: me?.canKinds ?? [], canDistricts: me?.canDistricts ?? [], birthYear: me?.birthYear ?? null, expectDaily: me?.expectDaily ?? null, years: me?.years ?? 0, city: me?.city ?? "", gender: me?.gender ?? "", hasCert: me?.hasCert ?? null },
+    { canKinds: me?.canKinds ?? [], canDistricts: me?.canDistricts ?? [], birthYear: me?.birthYear ?? null, expectDaily: me?.expectDaily ?? null, expectDailyMax: me?.expectDailyMax ?? null, years: me?.years ?? 0, city: me?.city ?? "", gender: me?.gender ?? "", hasCert: me?.hasCert ?? null },
     openJobs,
   );
   // 为你推荐：适配优先，无适配时回退最新（避免空）
@@ -163,7 +163,7 @@ export default async function PractitionerHome() {
                   <span className="inline-flex items-center gap-0.5"><MapPin className="h-2.5 w-2.5" />{j.district || "信阳"}</span>
                 </div>
                 <div className="mt-3 pt-3 border-t border-border flex items-center justify-between">
-                  <div className="text-[16px] font-semibold text-cat-decor tabular-nums">¥{j.daily}<span className="text-[10px] font-normal text-muted-foreground"> /天</span></div>
+                  <div className="text-[16px] font-semibold text-cat-decor tabular-nums">¥{j.daily}{j.dailyMax && j.dailyMax > j.daily ? `-${j.dailyMax}` : ""}<span className="text-[10px] font-normal text-muted-foreground"> /天</span></div>
                   <span className="inline-flex items-center gap-1 text-[11px] text-brand font-medium">报名 <ArrowUpRight className="h-3 w-3" /></span>
                 </div>
               </Link>

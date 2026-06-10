@@ -21,7 +21,8 @@ export type PractitionerCard = {
   birthYear: number | null;   // 出生年份（→ 年龄）
   canKinds: string[];         // 可接工种（缺省回退主工种）
   canDistricts: string[];     // 可接区域（缺省回退所在地）
-  expectDaily: number | null; // 期望最低日薪
+  expectDaily: number | null;    // 期望日薪下限
+  expectDailyMax: number | null; // 期望日薪上限（null=不封顶）
   gender: string;             // 性别 男/女（""=未填）
   hasCert: boolean | null;    // 是否持证 true/false/null未填
   available: boolean;         // 接单状态 true=在接单
@@ -34,7 +35,7 @@ type Row = {
   id: number; name: string | null; kind: string | null; years: number | null;
   rating: number | null; jobs: number | null; city: string | null; insured: number | null;
   phone: string | null; bio: string | null; tier: string | null;
-  birth_year: number | null; can_kinds: string | null; can_districts: string | null; expect_daily: number | null;
+  birth_year: number | null; can_kinds: string | null; can_districts: string | null; expect_daily: number | null; expect_daily_max: number | null;
   gender: string | null; has_cert: number | null; available: number | null;
 };
 
@@ -65,6 +66,7 @@ function rowTo(r: Row): Practitioner {
     canKinds: canKinds.length ? canKinds : [normalizeProfession(kind)].filter(Boolean),
     canDistricts: canDistricts.length ? canDistricts : [city].filter(Boolean),
     expectDaily: r.expect_daily ?? null,
+    expectDailyMax: r.expect_daily_max ?? null,
     gender: r.gender ?? "",
     hasCert: r.has_cert == null ? null : !!r.has_cert,
     available: r.available == null ? true : !!r.available,
@@ -137,19 +139,20 @@ export function setPractitionerTierByPhone(phone: string, tier: string): void {
 
 // 从业者更新自己的找活资料（出生年 / 可接工种 / 可接区域 / 期望日薪 / 从业年限）
 export function updatePractitionerMatchInfo(phone: string, input: {
-  birthYear?: number | null; canKinds?: string[]; canDistricts?: string[]; expectDaily?: number | null; years?: number;
+  birthYear?: number | null; canKinds?: string[]; canDistricts?: string[]; expectDaily?: number | null; expectDailyMax?: number | null; years?: number;
   gender?: string; hasCert?: boolean | null; available?: boolean;
 }): void {
   const clean = phone.trim();
   if (!clean) return;
   try {
     getDb().prepare(
-      "UPDATE practitioners SET birth_year=?, can_kinds=?, can_districts=?, expect_daily=?, years=?, gender=?, has_cert=?, available=? WHERE phone=?",
+      "UPDATE practitioners SET birth_year=?, can_kinds=?, can_districts=?, expect_daily=?, expect_daily_max=?, years=?, gender=?, has_cert=?, available=? WHERE phone=?",
     ).run(
       input.birthYear ?? null,
       JSON.stringify(input.canKinds ?? []),
       JSON.stringify(input.canDistricts ?? []),
       input.expectDaily ?? null,
+      input.expectDailyMax ?? null,
       Math.max(0, Math.floor(input.years ?? 0)),
       input.gender ?? "",
       input.hasCert == null ? null : (input.hasCert ? 1 : 0),

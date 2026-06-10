@@ -8,7 +8,7 @@ import { saveMatchInfoAction } from "./actions";
 const INPUT = "w-full h-11 rounded-xl border border-border bg-background px-3.5 text-[14px] outline-none focus:border-foreground/30";
 
 export function MatchInfoForm({ init }: {
-  init: { canKinds: string[]; canDistricts: string[]; birthYear: number | null; expectDaily: number | null; years: number; gender: string; hasCert: boolean | null; available: boolean };
+  init: { canKinds: string[]; canDistricts: string[]; birthYear: number | null; expectDaily: number | null; expectDailyMax: number | null; years: number; gender: string; hasCert: boolean | null; available: boolean };
 }) {
   const [kinds, setKinds] = useState<string[]>(init.canKinds);
   const [dists, setDists] = useState<string[]>(init.canDistricts);
@@ -43,9 +43,12 @@ export function MatchInfoForm({ init }: {
         </div>
       </Section>
 
-      {/* 期望日薪 */}
-      <Section title="期望最低日薪（元）" hint="低于这个价的岗位不会推给你，省得双方白聊">
-        <input name="expectDaily" inputMode="numeric" defaultValue={init.expectDaily ?? ""} placeholder="如 350（不填=不限）" className={INPUT} />
+      {/* 期望日薪范围 */}
+      <Section title="期望日薪范围（元/天）" hint="与岗位日薪范围求交集，有重叠才推给你。上限不填=不封顶（更高的也接）">
+        <div className="grid grid-cols-2 gap-3">
+          <Field label="最低（起）"><input name="expectDaily" inputMode="numeric" defaultValue={init.expectDaily ?? ""} placeholder="如 350" className={INPUT} /></Field>
+          <Field label="最高（不填=不限）"><input name="expectDailyMax" inputMode="numeric" defaultValue={init.expectDailyMax ?? ""} placeholder="如 500" className={INPUT} /></Field>
+        </div>
       </Section>
 
       {/* 可接区域 */}
