@@ -13,7 +13,7 @@ export function PostJobForm() {
   if (!open) {
     return (
       <button onClick={() => setOpen(true)} className="h-9 px-4 rounded-full bg-foreground text-background text-[13px] font-medium inline-flex items-center gap-1.5 active:scale-95 transition-transform">
-        <Plus className="h-3.5 w-3.5" /> 发布岗位
+        <Plus className="h-3.5 w-3.5" /> 发布用工
       </button>
     );
   }
@@ -26,7 +26,7 @@ export function PostJobForm() {
         className="w-full sm:max-w-lg bg-background rounded-t-3xl sm:rounded-3xl border border-border p-5 md:p-6 max-h-[90vh] overflow-y-auto"
       >
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-[16px] font-semibold">发布招聘岗位</h3>
+          <h3 className="text-[16px] font-semibold">发布用工 · 零工/散工（日薪）</h3>
           <button type="button" onClick={() => setOpen(false)} className="h-8 w-8 rounded-full hover:bg-surface inline-flex items-center justify-center text-muted-foreground"><X className="h-4 w-4" /></button>
         </div>
         <div className="space-y-3">

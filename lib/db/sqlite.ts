@@ -319,8 +319,10 @@ CREATE TABLE IF NOT EXISTS practitioners (
   birth_year     INTEGER,      -- 出生年份（→ 年龄，用于岗位年龄要求匹配）
   can_kinds      TEXT,         -- 可接工种 JSON 数组（缺省回退主工种 kind）
   can_districts  TEXT,         -- 可接区域 JSON 数组（缺省回退所在地 city）
-  expect_daily   INTEGER,      -- 期望日薪下限
+  expect_daily   INTEGER,      -- 期望日薪下限（零工/发活）
   expect_daily_max INTEGER,    -- 期望日薪上限（NULL=不封顶；与岗位日薪范围求交集）
+  expect_month_min INTEGER,    -- 期望月薪下限（招聘/找工作）
+  expect_month_max INTEGER,    -- 期望月薪上限（NULL=不封顶）
   gender         TEXT,         -- 性别 男/女（匹配岗位性别要求）
   has_cert       INTEGER,      -- 是否持证 1有/0无/NULL未填（匹配岗位持证要求）
   available      INTEGER DEFAULT 1, -- 接单状态 1在接单/0暂歇
@@ -386,10 +388,12 @@ CREATE TABLE IF NOT EXISTS jobs (
   id              INTEGER PRIMARY KEY AUTOINCREMENT,
   enterprise_id   TEXT,
   enterprise_name TEXT,
+  type            TEXT DEFAULT 'gig', -- gig=发活(零工·日薪) | hire=招聘(岗位·月薪)
   title           TEXT,
-  kind            TEXT,    -- 工种
+  kind            TEXT,    -- 工种 / 职位
   district        TEXT,
-  daily           INTEGER, -- 日薪下限
+  edu             TEXT,    -- 学历要求（招聘用，空=不限）
+  daily           INTEGER, -- 薪资下限（gig=日薪 / hire=月薪）
   daily_max       INTEGER, -- 日薪上限（NULL=同下限，单值；与从业者期望范围求交集）
   openings        INTEGER, -- 名额
   duration        TEXT,    -- 工期
@@ -1365,16 +1369,16 @@ function backfillEnterpriseAccounts(db: DB) {
 
 // 为示例数据回填匹配字段（COALESCE：仅补空值，永不覆盖真实评定 / 用户编辑；幂等）
 function backfillPractitionerTiers(db: DB) {
-  // 示例从业者：等级 + 出生年 + 期望日薪[下限,上限] + 性别 + 持证
-  const P: [string, string, number, number, number, string, number][] = [
-    ["13900020001", "资深会员", 1980, 450, 600, "男", 1], ["13900020002", "专家会员", 1976, 400, 550, "男", 1],
-    ["13900020003", "资深会员", 1988, 380, 480, "男", 1], ["13900020004", "资深会员", 1983, 360, 460, "男", 0],
-    ["13900020005", "资深会员", 1994, 500, 700, "女", 1], ["13900020006", "注册会员", 1986, 350, 450, "男", 0],
-    ["13900020007", "注册会员", 1985, 700, 900, "男", 1], ["13900020008", "专家会员", 1972, 500, 650, "男", 1],
+  // 示例从业者：等级 + 出生年 + 期望日薪[下,上] + 性别 + 持证 + 期望月薪[下,上]
+  const P: [string, string, number, number, number, string, number, number, number][] = [
+    ["13900020001", "资深会员", 1980, 450, 600, "男", 1, 6000, 9000], ["13900020002", "专家会员", 1976, 400, 550, "男", 1, 5000, 7000],
+    ["13900020003", "资深会员", 1988, 380, 480, "男", 1, 5000, 7000], ["13900020004", "资深会员", 1983, 360, 460, "男", 0, 5000, 7000],
+    ["13900020005", "资深会员", 1994, 500, 700, "女", 1, 6000, 10000], ["13900020006", "注册会员", 1986, 350, 450, "男", 0, 4500, 6500],
+    ["13900020007", "注册会员", 1985, 700, 900, "男", 1, 8000, 12000], ["13900020008", "专家会员", 1972, 500, 650, "男", 1, 7000, 10000],
   ];
   try {
-    const up = db.prepare("UPDATE practitioners SET tier=COALESCE(tier,?), birth_year=COALESCE(birth_year,?), expect_daily=COALESCE(expect_daily,?), expect_daily_max=COALESCE(expect_daily_max,?), gender=COALESCE(gender,?), has_cert=COALESCE(has_cert,?) WHERE phone=?");
-    P.forEach(([phone, tier, by, ed, edx, g, hc]) => up.run(tier, by, ed, edx, g, hc, phone));
+    const up = db.prepare("UPDATE practitioners SET tier=COALESCE(tier,?), birth_year=COALESCE(birth_year,?), expect_daily=COALESCE(expect_daily,?), expect_daily_max=COALESCE(expect_daily_max,?), gender=COALESCE(gender,?), has_cert=COALESCE(has_cert,?), expect_month_min=COALESCE(expect_month_min,?), expect_month_max=COALESCE(expect_month_max,?) WHERE phone=?");
+    P.forEach(([phone, tier, by, ed, edx, g, hc, mmin, mmax]) => up.run(tier, by, ed, edx, g, hc, mmin, mmax, phone));
   } catch { /* 列未迁移时忽略 */ }
   // 示例岗位：日薪上限 + 年龄 / 经验 / 持证要求（按标题匹配）
   const J: [string, number, number, number, number, number][] = [
@@ -1387,6 +1391,20 @@ function backfillPractitionerTiers(db: DB) {
   try {
     const up = db.prepare("UPDATE jobs SET daily_max=COALESCE(daily_max,?), min_age=COALESCE(min_age,?), max_age=COALESCE(max_age,?), min_years=COALESCE(min_years,?), need_cert=COALESCE(need_cert,?) WHERE title=?");
     J.forEach(([title, dmx, mn, mx, yr, nc]) => up.run(dmx, mn, mx, yr, nc, title));
+  } catch { /* 列未迁移时忽略 */ }
+  // 示例招聘岗位（type='hire'·月薪），按标题去重插入（幂等）
+  const H: [string, string, string, string, string, string, number, number, number, string, number, number, number, number][] = [
+    ["e002", "信阳名家装饰", "室内设计师 1 名 · 整装设计", "设计师", "浉河区", "大专", 6000, 10000, 1, "长期", 22, 45, 3, 0],
+    ["e001", "信阳华泰建工", "土建项目经理（长期）2 名", "项目经理", "浉河区", "本科", 8000, 12000, 2, "长期", 28, 55, 5, 1],
+    ["e002", "信阳名家装饰", "工程监理 1 名 · 长期在编", "监理", "平桥区", "大专", 7000, 9000, 1, "长期", 30, 58, 8, 1],
+  ];
+  try {
+    const has = db.prepare("SELECT 1 FROM jobs WHERE title=?");
+    const ins = db.prepare("INSERT INTO jobs (enterprise_id,enterprise_name,type,title,kind,district,edu,daily,daily_max,openings,duration,urgent,detail,min_age,max_age,min_years,gender_req,need_cert,status,created_at) VALUES (?,?, 'hire', ?,?,?,?,?,?,?,?,0, ?,?,?,?, '', ?, 'open', ?)");
+    const now = Date.now();
+    H.forEach(([eid, en, title, kind, dist, edu, smin, smax, op, dur, mn, mx, yr, nc], i) => {
+      if (!has.get(title)) ins.run(eid, en, title, kind, dist, edu, smin, smax, op, dur, `协会会员企业长期岗位 · ${kind}`, mn, mx, yr, nc, now - i * 36000000);
+    });
   } catch { /* 列未迁移时忽略 */ }
 }
 
@@ -1470,10 +1488,14 @@ function migrate(db: DB) {
     "ALTER TABLE practitioners ADD COLUMN can_districts TEXT",
     "ALTER TABLE practitioners ADD COLUMN expect_daily INTEGER",
     "ALTER TABLE practitioners ADD COLUMN expect_daily_max INTEGER",
+    "ALTER TABLE practitioners ADD COLUMN expect_month_min INTEGER",
+    "ALTER TABLE practitioners ADD COLUMN expect_month_max INTEGER",
     "ALTER TABLE practitioners ADD COLUMN gender TEXT",
     "ALTER TABLE practitioners ADD COLUMN has_cert INTEGER",
     "ALTER TABLE practitioners ADD COLUMN available INTEGER DEFAULT 1",
     // 岗位招工要求（用于双向匹配）
+    "ALTER TABLE jobs ADD COLUMN type TEXT DEFAULT 'gig'",
+    "ALTER TABLE jobs ADD COLUMN edu TEXT",
     "ALTER TABLE jobs ADD COLUMN daily_max INTEGER",
     "ALTER TABLE jobs ADD COLUMN min_age INTEGER",
     "ALTER TABLE jobs ADD COLUMN max_age INTEGER",

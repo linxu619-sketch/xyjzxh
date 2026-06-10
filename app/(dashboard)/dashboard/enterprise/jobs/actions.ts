@@ -44,6 +44,40 @@ export async function createJobAction(fd: FormData) {
   redirect("/dashboard/enterprise/jobs?jok=1");
 }
 
+// 发布招聘岗位（type=hire，月薪）
+export async function createRecruitAction(fd: FormData) {
+  const s = await requireEnterprise();
+  const title = String(fd.get("title") || "").trim();
+  const kind = String(fd.get("kind") || "").trim();
+  if (!title || !kind) redirect("/dashboard/enterprise/recruit?jerr=1");
+  const ent = await getEnterpriseBySlugOrId(s.enterpriseId!);
+  const posInt = (k: string): number | null => {
+    const n = Math.floor(Number(fd.get(k)));
+    return Number.isFinite(n) && n > 0 ? n : null;
+  };
+  createJob({
+    enterpriseId: s.enterpriseId!,
+    enterpriseName: ent?.hero.brand ?? ent?.name ?? "本企业",
+    type: "hire",
+    title,
+    kind,
+    edu: String(fd.get("edu") || "").trim(),
+    district: String(fd.get("district") || "").trim(),
+    daily: Number(fd.get("daily") || 0) || 0,          // 月薪下限
+    dailyMax: posInt("dailyMax"),                       // 月薪上限
+    openings: Number(fd.get("openings") || 1) || 1,
+    duration: "长期",
+    detail: String(fd.get("detail") || "").trim(),
+    minAge: posInt("minAge"),
+    maxAge: posInt("maxAge"),
+    minYears: posInt("minYears") ?? 0,
+    genderReq: (() => { const g = String(fd.get("genderReq") || "").trim(); return g === "男" || g === "女" ? g : ""; })(),
+    needCert: fd.get("needCert") === "on",
+  });
+  revalidatePath("/dashboard/enterprise/recruit");
+  redirect("/dashboard/enterprise/recruit?jok=1");
+}
+
 export async function setJobStatusAction(fd: FormData) {
   const s = await requireEnterprise();
   const id = Number(fd.get("id") || 0);

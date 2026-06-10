@@ -1,6 +1,6 @@
 import Link from "next/link";
 import {
-  ArrowLeft, MapPin, Clock, Users2, Phone, CheckCircle2, XCircle, RotateCcw, Pause, Play,
+  ArrowLeft, Users2, Phone, CheckCircle2, XCircle, RotateCcw, Pause, Play,
 } from "lucide-react";
 import { EnterpriseShell } from "@/components/dashboard/shell";
 import { Badge } from "@/components/ui/badge";
@@ -29,17 +29,29 @@ export default async function JobDetail({ params }: { params: Promise<{ id: stri
   if (!job || !owned) {
     return (
       <EnterpriseShell title="岗位详情">
-        <Link href="/dashboard/enterprise/jobs" className="inline-flex items-center gap-1.5 text-[13px] text-muted-foreground hover:text-foreground"><ArrowLeft className="h-3.5 w-3.5" /> 返回招聘管理</Link>
+        <Link href="/dashboard/enterprise/jobs" className="inline-flex items-center gap-1.5 text-[13px] text-muted-foreground hover:text-foreground"><ArrowLeft className="h-3.5 w-3.5" /> 返回</Link>
         <div className="mt-6 rounded-2xl border border-border bg-background p-10 text-center text-[14px] text-muted-foreground">未找到该岗位，或它不属于本企业。</div>
       </EnterpriseShell>
     );
   }
 
   const apps = listApplicationsByJob(job.id);
+  const isHire = job.type === "hire";
+  const backHref = isHire ? "/dashboard/enterprise/recruit" : "/dashboard/enterprise/jobs";
+  const backLabel = isHire ? "返回招聘岗位" : "返回用工派单";
+  const unit = isHire ? "月" : "天";
+  const payText = `¥${job.daily}${job.dailyMax && job.dailyMax > job.daily ? `-${job.dailyMax}` : ""} /${unit}`;
+  const reqs = [
+    (job.minAge || job.maxAge) ? `年龄 ${job.minAge ?? "不限"}-${job.maxAge ?? "不限"}` : "",
+    job.minYears > 0 ? `经验 ≥${job.minYears} 年` : "",
+    job.genderReq ? `限${job.genderReq}` : "",
+    job.needCert ? "需持证" : "",
+    isHire && job.edu ? `学历 ${job.edu}` : "",
+  ].filter(Boolean).join(" · ") || "不限";
 
   return (
     <EnterpriseShell title="岗位详情" subtitle={`${job.title} · ${apps.length} 份投递`}>
-      <Link href="/dashboard/enterprise/jobs" className="inline-flex items-center gap-1.5 text-[13px] text-muted-foreground hover:text-foreground mb-4"><ArrowLeft className="h-3.5 w-3.5" /> 返回招聘管理</Link>
+      <Link href={backHref} className="inline-flex items-center gap-1.5 text-[13px] text-muted-foreground hover:text-foreground mb-4"><ArrowLeft className="h-3.5 w-3.5" /> {backLabel}</Link>
 
       {/* 岗位信息 */}
       <div className="rounded-2xl border border-border bg-background overflow-hidden">
@@ -58,10 +70,11 @@ export default async function JobDetail({ params }: { params: Promise<{ id: stri
           </form>
         </div>
         <dl className="divide-y divide-border text-[14px]">
-          <Row k="工种" v={job.kind} />
-          <Row k="日薪 / 名额" v={`¥${job.daily} /天 · ${job.openings} 名额`} />
-          <Row k="区域 / 工期" v={`${job.district || "—"} · ${job.duration || "—"}`} />
-          <Row k="岗位说明" v={job.detail || "—"} />
+          <Row k={isHire ? "类型 / 职位" : "类型 / 工种"} v={`${isHire ? "招聘岗位（月薪）" : "用工派单（日薪）"} · ${job.kind}`} />
+          <Row k={isHire ? "月薪 / 名额" : "日薪 / 名额"} v={`${payText} · ${job.openings} ${isHire ? "人" : "名额"}`} />
+          <Row k={isHire ? "区域" : "区域 / 工期"} v={isHire ? (job.district || "—") : `${job.district || "—"} · ${job.duration || "—"}`} />
+          <Row k="招工要求" v={reqs} />
+          <Row k={isHire ? "岗位职责" : "岗位说明"} v={job.detail || "—"} />
           <Row k="发布时间" v={fmt(job.createdAt)} />
         </dl>
       </div>
