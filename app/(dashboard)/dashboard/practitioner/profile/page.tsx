@@ -8,7 +8,7 @@ import { TierBadge, GrowthMeter } from "@/components/dashboard/practitioner-tier
 import { logoutAction } from "@/app/(main)/login/actions";
 import { getSession } from "@/lib/auth/session";
 import { getPractitionerByPhone } from "@/lib/data/practitioners-source";
-import { getMemberTier, practitionerGrowth, practitionerLevel, metaOf } from "@/lib/data/member-tier";
+import { practitionerGrowth, practitionerLevel, metaOf } from "@/lib/data/member-tier";
 import type { PractitionerTier } from "@/lib/data/member-tier";
 import { effectivePractitionerPhone, isPractitionerPreview } from "@/lib/dashboard/preview";
 
@@ -30,7 +30,7 @@ export default async function PractitionerProfile() {
   const insured = me?.insured ?? false;
 
   // 会员等级（协会评定为准）+ 成长进度 + 当前档权益
-  const tier = getMemberTier("practitioner", pid) as PractitionerTier;
+  const tier: PractitionerTier = me?.tier ?? "注册会员";
   const level = practitionerLevel(tier);
   const isMaxTier = tier === "专家会员";
   const growth = practitionerGrowth(tier, { jobs: jobsDone, rating, years });

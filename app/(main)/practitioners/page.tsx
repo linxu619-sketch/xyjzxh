@@ -8,7 +8,9 @@ import { Container } from "@/components/container";
 import { PageHeader } from "@/components/page-header";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { TierBadge } from "@/components/dashboard/practitioner-tier";
 import { listPractitioners, listPractitionerJobs } from "@/lib/data/practitioners-source";
+import { practitionerLevel } from "@/lib/data/member-tier";
 import { cn } from "@/lib/cn";
 
 export const metadata = { title: "从业者门户 · 信阳市建筑装饰装修协会" };
@@ -131,6 +133,11 @@ export default async function PractitionersLanding() {
                   <div className="text-[10px] text-muted-foreground">{p.kind} · {p.years}年</div>
                 </div>
               </div>
+              {p.tier !== "注册会员" && (
+                <div className="mt-2.5">
+                  <TierBadge tier={p.tier} level={practitionerLevel(p.tier)} isMax={p.tier === "专家会员"} size="sm" />
+                </div>
+              )}
               {p.bio && <p className="mt-2.5 text-[11px] leading-5 text-muted-foreground line-clamp-2">{p.bio}</p>}
               <div className="mt-3 flex items-center gap-1 text-[11px]">
                 <Star className="h-3 w-3 fill-[#FFB400] text-[#FFB400]" />

@@ -315,6 +315,7 @@ CREATE TABLE IF NOT EXISTS practitioners (
   insured     INTEGER,
   phone       TEXT,
   bio         TEXT,            -- 个人简介（入会申请时填写）
+  tier        TEXT,            -- 名录展示等级（注册/资深/专家会员，协会评定）
   created_at  INTEGER
 );
 
@@ -686,19 +687,19 @@ const DAY = 86400000;
 
 function seedPractitioners(db: DB) {
   if (!isEmpty(db, "practitioners")) return;
-  const rows: [string, string, number, number, number, string, number, string][] = [
-    ["张师傅", "工长", 18, 4.8, 142, "浉河区", 1, "13900020001"],
-    ["李师傅", "木工", 22, 4.9, 218, "平桥区", 1, "13900020002"],
-    ["王师傅", "水电工", 12, 4.7, 86, "羊山新区", 1, "13900020003"],
-    ["赵师傅", "瓦工", 16, 4.6, 102, "光山县", 1, "13900020004"],
-    ["孙女士", "设计师", 8, 4.9, 62, "浉河区", 0, "13900020005"],
-    ["周师傅", "油漆工", 10, 4.5, 88, "息县", 1, "13900020006"],
-    ["钱师傅", "项目经理", 14, 4.8, 56, "罗山县", 1, "13900020007"],
-    ["陈监理", "监理", 20, 4.9, 184, "浉河区", 1, "13900020008"],
+  const rows: [string, string, number, number, number, string, number, string, string][] = [
+    ["张师傅", "工长", 18, 4.8, 142, "浉河区", 1, "13900020001", "资深会员"],
+    ["李师傅", "木工", 22, 4.9, 218, "平桥区", 1, "13900020002", "专家会员"],
+    ["王师傅", "水电工", 12, 4.7, 86, "羊山新区", 1, "13900020003", "资深会员"],
+    ["赵师傅", "瓦工", 16, 4.6, 102, "光山县", 1, "13900020004", "资深会员"],
+    ["孙女士", "设计师", 8, 4.9, 62, "浉河区", 0, "13900020005", "资深会员"],
+    ["周师傅", "油漆工", 10, 4.5, 88, "息县", 1, "13900020006", "注册会员"],
+    ["钱师傅", "项目经理", 14, 4.8, 56, "罗山县", 1, "13900020007", "注册会员"],
+    ["陈监理", "监理", 20, 4.9, 184, "浉河区", 1, "13900020008", "专家会员"],
   ];
-  const stmt = db.prepare("INSERT INTO practitioners (name,kind,years,rating,jobs,city,insured,phone,created_at) VALUES (?,?,?,?,?,?,?,?,?)");
+  const stmt = db.prepare("INSERT INTO practitioners (name,kind,years,rating,jobs,city,insured,phone,tier,created_at) VALUES (?,?,?,?,?,?,?,?,?,?)");
   const now = Date.now();
-  rows.forEach((r, i) => stmt.run(r[0], r[1], r[2], r[3], r[4], r[5], r[6], r[7], now - i * DAY));
+  rows.forEach((r, i) => stmt.run(r[0], r[1], r[2], r[3], r[4], r[5], r[6], r[7], r[8], now - i * DAY));
 }
 
 function seedReviews(db: DB) {
@@ -894,6 +895,7 @@ function init(): DB {
   seedJobs(db);
   seedAccounts(db);
   backfillEnterpriseAccounts(db);
+  backfillPractitionerTiers(db);
   seedNews(db);
   seedTrainings(db);
   seedSupplyProducts(db);
@@ -1346,6 +1348,20 @@ function backfillEnterpriseAccounts(db: DB) {
   });
 }
 
+// 为示例从业者回填名录展示等级（仅在 tier 为空时写，永不覆盖协会真实评定；幂等）
+function backfillPractitionerTiers(db: DB) {
+  const SEED: [string, string][] = [
+    ["13900020001", "资深会员"], ["13900020002", "专家会员"],
+    ["13900020003", "资深会员"], ["13900020004", "资深会员"],
+    ["13900020005", "资深会员"], ["13900020006", "注册会员"],
+    ["13900020007", "注册会员"], ["13900020008", "专家会员"],
+  ];
+  try {
+    const upd = db.prepare("UPDATE practitioners SET tier=? WHERE phone=? AND (tier IS NULL OR tier='')");
+    SEED.forEach(([phone, tier]) => upd.run(tier, phone));
+  } catch { /* 列尚未迁移时忽略 */ }
+}
+
 // 对已存在的库做幂等列迁移（新增列时用）
 function migrate(db: DB) {
   const alters = [
@@ -1418,6 +1434,8 @@ function migrate(db: DB) {
     "ALTER TABLE knowledge_articles ADD COLUMN source_name TEXT",
     // 个人会员简介（入会申请填写，通过后落到从业者档案）
     "ALTER TABLE practitioners ADD COLUMN bio TEXT",
+    // 个人会员名录展示等级（注册/资深/专家会员，协会评定）
+    "ALTER TABLE practitioners ADD COLUMN tier TEXT",
     // 建材超市商品详情扩展（1688 式：图文详情/规格参数/产地/货期/物流/售后/库存）+ 平台佣金
     "ALTER TABLE supply_products ADD COLUMN description TEXT",
     "ALTER TABLE supply_products ADD COLUMN params TEXT",          // 规格参数 JSON [{k,v}]

@@ -1,6 +1,8 @@
 import "server-only";
 import { getDb } from "@/lib/db/sqlite";
 import { PRACTITIONER_JOBS, WORKER_INSURANCE } from "@/lib/data/practitioners";
+import { normalizeTier } from "@/lib/data/member-tier";
+import type { PractitionerTier } from "@/lib/data/member-tier";
 
 // 与 /practitioners 列表卡片所需字段对齐
 export type PractitionerCard = {
@@ -13,6 +15,7 @@ export type PractitionerCard = {
   city: string;
   insured: boolean;
   bio: string;
+  tier: PractitionerTier;   // 名录展示等级（协会评定）
 };
 
 // 完整从业者记录（含手机号，用于登录绑定 / 工作台 / 个人主页）
@@ -21,7 +24,7 @@ export type Practitioner = PractitionerCard & { phone: string };
 type Row = {
   id: number; name: string | null; kind: string | null; years: number | null;
   rating: number | null; jobs: number | null; city: string | null; insured: number | null;
-  phone: string | null; bio: string | null;
+  phone: string | null; bio: string | null; tier: string | null;
 };
 
 function rowTo(r: Row): Practitioner {
@@ -36,6 +39,7 @@ function rowTo(r: Row): Practitioner {
     insured: !!r.insured,
     phone: r.phone ?? "",
     bio: r.bio ?? "",
+    tier: normalizeTier("practitioner", r.tier) as PractitionerTier,
   };
 }
 
@@ -114,9 +118,9 @@ export function createPractitionerFromApplication(app: {
   if (db.prepare("SELECT 1 FROM practitioners WHERE app_id = ?").get(app.id)) return; // 防重复
   const p = app.payload as Record<string, string>;
   db.prepare(
-    "INSERT INTO practitioners (app_id, name, kind, years, rating, jobs, city, insured, phone, bio, created_at) VALUES (?,?,?,?,?,?,?,?,?,?,?)",
+    "INSERT INTO practitioners (app_id, name, kind, years, rating, jobs, city, insured, phone, bio, tier, created_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)",
   ).run(
     app.id, app.applicant, p.profession || "个人会员", Number(p.years) || 0,
-    5.0, 0, "信阳", 0, app.phone || "", (p.bio ?? "").trim(), Date.now(),
+    5.0, 0, "信阳", 0, app.phone || "", (p.bio ?? "").trim(), "注册会员", Date.now(),
   );
 }
