@@ -67,8 +67,8 @@ export function evalJob(p: MatchInput, job: Job): JobMatch {
     if (pLo <= jHi && jLo <= pHi) { reasons.push("薪资匹配"); score += Math.min(jHi / 25, 15); }
     else {
       suitable = false;
-      if (jHi < pLo) gaps.push(`日薪不足你期望¥${pLo}起`);
-      else gaps.push(`日薪高于你期望上限¥${pHi}`);
+      if (jHi < pLo) gaps.push(`薪资不足你期望¥${pLo}起`);
+      else gaps.push(`薪资高于你期望上限¥${pHi}`);
     }
   }
 

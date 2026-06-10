@@ -125,6 +125,9 @@ export default async function PractitionerProfile({ searchParams }: { searchPara
             <Mini2 label="持证" value={me.hasCert === true ? "持证" : me.hasCert === false ? "无证" : "未填"} sub="" />
             <Mini2 label="接单状态" value={me.available ? "在接单" : "暂歇"} sub="" />
           </div>
+          <div className="mb-3 text-[11.5px] text-muted-foreground">
+            期望月薪（找工作）：<span className="text-foreground font-medium">{me.expectMonthMin ? (me.expectMonthMax ? `¥${me.expectMonthMin}-${me.expectMonthMax}/月` : `¥${me.expectMonthMin}+/月`) : "未填"}</span>
+          </div>
           <div>
             <div className="text-[11px] text-muted-foreground mb-1.5">可接工地区域</div>
             <div className="flex flex-wrap gap-1.5">

@@ -8,7 +8,7 @@ import { saveMatchInfoAction } from "./actions";
 const INPUT = "w-full h-11 rounded-xl border border-border bg-background px-3.5 text-[14px] outline-none focus:border-foreground/30";
 
 export function MatchInfoForm({ init }: {
-  init: { canKinds: string[]; canDistricts: string[]; birthYear: number | null; expectDaily: number | null; expectDailyMax: number | null; years: number; gender: string; hasCert: boolean | null; available: boolean };
+  init: { canKinds: string[]; canDistricts: string[]; birthYear: number | null; expectDaily: number | null; expectDailyMax: number | null; expectMonthMin: number | null; expectMonthMax: number | null; years: number; gender: string; hasCert: boolean | null; available: boolean };
 }) {
   const [kinds, setKinds] = useState<string[]>(init.canKinds);
   const [dists, setDists] = useState<string[]>(init.canDistricts);
@@ -43,11 +43,19 @@ export function MatchInfoForm({ init }: {
         </div>
       </Section>
 
-      {/* 期望日薪范围 */}
-      <Section title="期望日薪范围（元/天）" hint="与岗位日薪范围求交集，有重叠才推给你。上限不填=不封顶（更高的也接）">
+      {/* 期望日薪范围（零工·找活）*/}
+      <Section title="期望日薪范围（元/天 · 找活用）" hint="与零工岗位日薪范围求交集。上限不填=不封顶（更高的也接）">
         <div className="grid grid-cols-2 gap-3">
           <Field label="最低（起）"><input name="expectDaily" inputMode="numeric" defaultValue={init.expectDaily ?? ""} placeholder="如 350" className={INPUT} /></Field>
           <Field label="最高（不填=不限）"><input name="expectDailyMax" inputMode="numeric" defaultValue={init.expectDailyMax ?? ""} placeholder="如 500" className={INPUT} /></Field>
+        </div>
+      </Section>
+
+      {/* 期望月薪范围（招聘·找工作）*/}
+      <Section title="期望月薪范围（元/月 · 找工作用）" hint="投递长期招聘岗位时，与岗位月薪范围求交集">
+        <div className="grid grid-cols-2 gap-3">
+          <Field label="最低（起）"><input name="expectMonthMin" inputMode="numeric" defaultValue={init.expectMonthMin ?? ""} placeholder="如 5000" className={INPUT} /></Field>
+          <Field label="最高（不填=不限）"><input name="expectMonthMax" inputMode="numeric" defaultValue={init.expectMonthMax ?? ""} placeholder="如 9000" className={INPUT} /></Field>
         </div>
       </Section>
 

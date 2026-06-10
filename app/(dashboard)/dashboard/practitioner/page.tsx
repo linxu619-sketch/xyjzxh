@@ -1,7 +1,7 @@
 import Link from "next/link";
 import {
   ShieldCheck, Briefcase, GraduationCap, Wallet, Sparkles, Settings,
-  ChevronRight, BadgeCheck, ArrowUpRight, AlertCircle, MapPin, Clock, Store, Flag,
+  ChevronRight, BadgeCheck, ArrowUpRight, AlertCircle, MapPin, Clock, Store, Flag, Hammer,
 } from "lucide-react";
 import { Container } from "@/components/container";
 import { CustomerBottomNav } from "@/components/dashboard/customer-bottom-nav";
@@ -11,7 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { getPractitionerByPhone } from "@/lib/data/practitioners-source";
 import { practitionerGrowth, practitionerLevel } from "@/lib/data/member-tier";
 import type { PractitionerTier } from "@/lib/data/member-tier";
-import { listOpenJobs } from "@/lib/data/jobs";
+import { listOpenJobs, listOpenHires } from "@/lib/data/jobs";
 import { matchJobs } from "@/lib/data/job-matching";
 import { listPublished } from "@/lib/data/news-source";
 import { effectivePractitionerPhone, isPractitionerPreview } from "@/lib/dashboard/preview";
@@ -52,6 +52,7 @@ export default async function PractitionerHome() {
   // 为你推荐：适配优先，无适配时回退最新（避免空）
   const recJobs = (matched.length ? matched.map((m) => m.job) : openJobs).slice(0, 4);
   const urgentJobs = openJobs.filter((j) => j.urgent).length;
+  const hires = listOpenHires();
   // 协会层资讯打通：个人会员（从业者）属协会层，党建动态在前 + 协会公告在后
   const assocFeed = [...listPublished("党建").slice(0, 2), ...listPublished().filter((n) => n.category !== "党建").slice(0, 2)].slice(0, 4);
   const fmtDay = (ms: number) => { if (!ms) return ""; const d = new Date(ms); const p = (n: number) => String(n).padStart(2, "0"); return `${p(d.getMonth() + 1)}-${p(d.getDate())}`; };
@@ -126,7 +127,8 @@ export default async function PractitionerHome() {
 
         {/* 四宫格 */}
         <div className="grid grid-cols-2 gap-3">
-          <Tile icon={Briefcase} title="找活" sub={`${openJobs.length} 条岗位`} href="/dashboard/practitioner/jobs" tone="build" badge={urgentJobs > 0 ? "🔥" : undefined} />
+          <Tile icon={Hammer} title="找活 · 零工" sub={`${openJobs.length} 个 · 日薪`} href="/dashboard/practitioner/jobs" tone="build" badge={urgentJobs > 0 ? "🔥" : undefined} />
+          <Tile icon={Briefcase} title="找工作 · 招聘" sub={`${hires.length} 个 · 月薪`} href="/dashboard/practitioner/hire" tone="design" />
           <Tile icon={GraduationCap} title="培训 · 证书" sub="继续教育 / 上传" href="/dashboard/practitioner/training" tone="design" />
           <Tile icon={ShieldCheck} title="工伤险" sub={insured ? "在保中" : "立即投保"} href="/dashboard/practitioner/insurance" tone="tea" />
           <Tile icon={Wallet} title="钱包 · 收入证明" sub="收入流水" href="/dashboard/practitioner/income" tone="decor" />

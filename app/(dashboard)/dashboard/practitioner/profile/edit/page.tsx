@@ -26,6 +26,8 @@ export default async function ProfileEdit() {
           birthYear: me?.birthYear ?? null,
           expectDaily: me?.expectDaily ?? null,
           expectDailyMax: me?.expectDailyMax ?? null,
+          expectMonthMin: me?.expectMonthMin ?? null,
+          expectMonthMax: me?.expectMonthMax ?? null,
           years: me?.years ?? 0,
           gender: me?.gender ?? "",
           hasCert: me?.hasCert ?? null,
