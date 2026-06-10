@@ -12,6 +12,7 @@ import { getPractitionerByPhone } from "@/lib/data/practitioners-source";
 import { practitionerGrowth, practitionerLevel } from "@/lib/data/member-tier";
 import type { PractitionerTier } from "@/lib/data/member-tier";
 import { listOpenJobs } from "@/lib/data/jobs";
+import { matchJobs } from "@/lib/data/job-matching";
 import { listPublished } from "@/lib/data/news-source";
 import { effectivePractitionerPhone, isPractitionerPreview } from "@/lib/dashboard/preview";
 import { redirect } from "next/navigation";
@@ -42,8 +43,14 @@ export default async function PractitionerHome() {
   const level = practitionerLevel(tier);
   const isMaxTier = tier === "专家会员";
   const growth = practitionerGrowth(tier, { jobs: jobsDone, rating, years });
-  // 真实在招岗位（与「找活」页同源 listOpenJobs）
+  // 真实在招岗位（与「找活」页同源 listOpenJobs）+ 按本人资料做匹配
   const openJobs = listOpenJobs();
+  const { matched } = matchJobs(
+    { canKinds: me?.canKinds ?? [], canDistricts: me?.canDistricts ?? [], birthYear: me?.birthYear ?? null, expectDaily: me?.expectDaily ?? null, years: me?.years ?? 0, city: me?.city ?? "" },
+    openJobs,
+  );
+  // 为你推荐：适配优先，无适配时回退最新（避免空）
+  const recJobs = (matched.length ? matched.map((m) => m.job) : openJobs).slice(0, 4);
   const urgentJobs = openJobs.filter((j) => j.urgent).length;
   // 协会层资讯打通：个人会员（从业者）属协会层，党建动态在前 + 协会公告在后
   const assocFeed = [...listPublished("党建").slice(0, 2), ...listPublished().filter((n) => n.category !== "党建").slice(0, 2)].slice(0, 4);
@@ -129,14 +136,14 @@ export default async function PractitionerHome() {
         {/* 为你推荐 · 纵向网格（协会会员企业岗位）*/}
         <div>
           <div className="flex items-center justify-between mb-2 px-1">
-            <h3 className="text-[14px] font-semibold tracking-tight">为你推荐</h3>
+            <h3 className="text-[14px] font-semibold tracking-tight">为你推荐{matched.length ? ` · ${matched.length} 个适配` : ""}</h3>
             <Link href="/dashboard/practitioner/jobs" className="text-[12px] text-brand">全部 {openJobs.length} →</Link>
           </div>
           {openJobs.length === 0 ? (
             <div className="rounded-2xl border border-dashed border-border bg-background p-8 text-center text-[12px] text-muted-foreground">暂无在招岗位。协会会员企业发布招聘后会在这里推荐。</div>
           ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-            {openJobs.slice(0, 4).map((j) => (
+            {recJobs.map((j) => (
               <Link
                 key={j.id}
                 href="/dashboard/practitioner/jobs"

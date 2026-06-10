@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import {
-  ShieldCheck, Star, Sparkles, ChevronRight, LogOut, Settings, MapPin, Check, Briefcase, CalendarClock, QrCode,
+  ShieldCheck, Star, Sparkles, ChevronRight, LogOut, Settings, MapPin, Check, Briefcase, CalendarClock, QrCode, SlidersHorizontal, CheckCircle2,
 } from "lucide-react";
 import { PractitionerShell } from "@/components/dashboard/practitioner-shell";
 import { TierBadge, GrowthMeter } from "@/components/dashboard/practitioner-tier";
@@ -14,12 +14,14 @@ import { effectivePractitionerPhone, isPractitionerPreview } from "@/lib/dashboa
 
 export const metadata = { title: "我的 · 荣誉档案" };
 
-export default async function PractitionerProfile() {
+export default async function PractitionerProfile({ searchParams }: { searchParams: Promise<{ saved?: string }> }) {
   const session = await getSession();
   if (!session || (session.role !== "practitioner" && !isPractitionerPreview(session))) {
     redirect("/login?role=practitioner");
   }
+  const { saved } = await searchParams;
   const me = getPractitionerByPhone(effectivePractitionerPhone(session));
+  const age = me?.birthYear ? new Date().getFullYear() - me.birthYear : null;
   const name = me?.name ?? session.name;
   const kind = me?.kind ?? "从业者";
   const years = me?.years ?? 0;
@@ -38,6 +40,11 @@ export default async function PractitionerProfile() {
 
   return (
     <PractitionerShell title="我的" showHeader={false}>
+      {saved && (
+        <div className="mb-3 rounded-2xl border border-accent-tea/30 bg-[#e6f7f1] text-accent-tea p-3.5 text-[13px] inline-flex items-center gap-2 w-full">
+          <CheckCircle2 className="h-4 w-4 shrink-0" /> 找活资料已保存，岗位推荐已按新资料更新。
+        </div>
+      )}
       {/* 荣誉头卡 */}
       <div className="-mx-5 sm:-mx-8 lg:-mx-12 bg-foreground text-background pt-8 pb-12 px-5 sm:px-8 lg:px-12 mb-4 relative overflow-hidden">
         <div className="absolute -top-10 -right-10 h-44 w-44 rounded-full bg-[#f6c915]/25 blur-3xl" />
@@ -93,6 +100,34 @@ export default async function PractitionerProfile() {
             <ChevronRight className="h-4 w-4" />
           </div>
         </Link>
+      )}
+
+      {/* 找活资料（驱动岗位匹配）*/}
+      {me && (
+        <section className="rounded-3xl bg-background border border-border p-5 mb-4">
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="text-[14px] font-semibold tracking-tight">找活资料</h3>
+            <Link href="/dashboard/practitioner/profile/edit" className="text-[11px] text-brand inline-flex items-center gap-1"><SlidersHorizontal className="h-3 w-3" /> 编辑</Link>
+          </div>
+          <div className="mb-3">
+            <div className="text-[11px] text-muted-foreground mb-1.5">我能做的工种</div>
+            <div className="flex flex-wrap gap-1.5">
+              {me.canKinds.map((k) => <span key={k} className="text-[12px] rounded-full bg-cat-build-soft text-cat-build px-2.5 py-1">{k}</span>)}
+            </div>
+          </div>
+          <div className="grid grid-cols-3 gap-2 mb-3">
+            <Mini2 label="年龄" value={age ? `${age}` : "未填"} sub={age ? "岁" : "去完善"} />
+            <Mini2 label="期望日薪" value={me.expectDaily ? `¥${me.expectDaily}` : "不限"} sub={me.expectDaily ? "起" : ""} />
+            <Mini2 label="从业年限" value={me.years ? `${me.years}` : "未填"} sub={me.years ? "年" : ""} />
+          </div>
+          <div>
+            <div className="text-[11px] text-muted-foreground mb-1.5">可接工地区域</div>
+            <div className="flex flex-wrap gap-1.5">
+              {me.canDistricts.map((d) => <span key={d} className="text-[12px] rounded-full bg-surface text-muted-foreground px-2.5 py-1">{d}</span>)}
+            </div>
+          </div>
+          <p className="mt-3 text-[11px] text-muted-foreground leading-5">这些信息决定<Link href="/dashboard/practitioner/jobs" className="text-brand">找活页</Link>给你推哪些岗位——只推你会做、够格、够价、就近的，双方不做无用功。</p>
+        </section>
       )}
 
       {/* 成就数据 */}
@@ -160,6 +195,16 @@ function Achieve({ icon: Icon, iconClass, label, value, sub }: {
       </div>
       <div className="mt-1 text-[22px] font-semibold tracking-tight leading-none">{value}</div>
       <div className="text-[10px] text-muted-foreground mt-1">{sub}</div>
+    </div>
+  );
+}
+
+function Mini2({ label, value, sub }: { label: string; value: string; sub: string }) {
+  return (
+    <div className="rounded-2xl bg-surface p-3 text-center">
+      <div className="text-[10px] text-muted-foreground">{label}</div>
+      <div className="mt-0.5 text-[16px] font-semibold tracking-tight leading-none">{value}</div>
+      {sub && <div className="text-[9px] text-muted-foreground mt-0.5">{sub}</div>}
     </div>
   );
 }

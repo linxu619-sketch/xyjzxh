@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Plus, X } from "lucide-react";
+import { PROFESSIONS, DISTRICTS } from "@/lib/data/professions";
 import { createJobAction } from "./actions";
 
 const INPUT = "w-full h-11 rounded-xl border border-border bg-background px-3.5 text-[14px] outline-none focus:border-foreground/30";
@@ -33,16 +34,26 @@ export function PostJobForm() {
           <div className="grid grid-cols-2 gap-3">
             <Field label="工种" required>
               <select name="kind" required defaultValue="水电工" className={INPUT}>
-                {["工长", "项目经理", "监理", "木工", "瓦工", "水电工", "油漆工", "设计师", "造价/预算", "普工"].map((k) => <option key={k}>{k}</option>)}
+                {PROFESSIONS.map((k) => <option key={k}>{k}</option>)}
               </select>
             </Field>
-            <Field label="区域"><input name="district" placeholder="如 浉河区" className={INPUT} /></Field>
+            <Field label="工地区域">
+              <input name="district" list="job-districts" placeholder="如 浉河区" className={INPUT} />
+              <datalist id="job-districts">{DISTRICTS.map((d) => <option key={d} value={d} />)}</datalist>
+            </Field>
           </div>
           <div className="grid grid-cols-3 gap-3">
             <Field label="日薪(元)"><input name="daily" inputMode="numeric" placeholder="380" className={INPUT} /></Field>
             <Field label="名额"><input name="openings" inputMode="numeric" placeholder="5" className={INPUT} /></Field>
             <Field label="工期"><input name="duration" placeholder="约25天" className={INPUT} /></Field>
           </div>
+          {/* 招工要求（用于与从业者资料双向匹配；留空=不限）*/}
+          <div className="grid grid-cols-3 gap-3">
+            <Field label="最低年龄"><input name="minAge" inputMode="numeric" placeholder="18" className={INPUT} /></Field>
+            <Field label="最高年龄"><input name="maxAge" inputMode="numeric" placeholder="55" className={INPUT} /></Field>
+            <Field label="最低年限(年)"><input name="minYears" inputMode="numeric" placeholder="0" className={INPUT} /></Field>
+          </div>
+          <div className="-mt-1 text-[11px] text-muted-foreground">年龄 / 年限留空 = 不限。填了系统只把符合的从业者匹配过来，双方不做无用功。</div>
           <Field label="岗位说明"><textarea name="detail" rows={3} placeholder="工作内容、要求、是否包餐、结算方式等" className={`${INPUT} h-auto py-2.5 leading-6`} /></Field>
           <label className="flex items-center gap-2 text-[13px]">
             <input type="checkbox" name="urgent" className="accent-cat-decor h-4 w-4" /> 标记为「急招」

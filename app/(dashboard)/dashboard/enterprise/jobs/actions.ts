@@ -18,6 +18,10 @@ export async function createJobAction(fd: FormData) {
   const kind = String(fd.get("kind") || "").trim();
   if (!title || !kind) redirect("/dashboard/enterprise/jobs?jerr=1");
   const ent = await getEnterpriseBySlugOrId(s.enterpriseId!);
+  const posInt = (k: string): number | null => {
+    const n = Math.floor(Number(fd.get(k)));
+    return Number.isFinite(n) && n > 0 ? n : null;
+  };
   createJob({
     enterpriseId: s.enterpriseId!,
     enterpriseName: ent?.hero.brand ?? ent?.name ?? "本企业",
@@ -29,6 +33,9 @@ export async function createJobAction(fd: FormData) {
     duration: String(fd.get("duration") || "").trim(),
     urgent: fd.get("urgent") === "on",
     detail: String(fd.get("detail") || "").trim(),
+    minAge: posInt("minAge"),
+    maxAge: posInt("maxAge"),
+    minYears: posInt("minYears") ?? 0,
   });
   revalidatePath("/dashboard/enterprise/jobs");
   redirect("/dashboard/enterprise/jobs?jok=1");

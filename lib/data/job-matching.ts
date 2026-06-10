@@ -1,0 +1,94 @@
+import "server-only";
+import type { Job } from "@/lib/data/jobs";
+import { normalizeProfession } from "@/lib/data/professions";
+
+/* 从业者 ↔ 岗位 双向匹配
+   硬条件（决定"适配"）：工种、年龄、经验、工资下限；区域为软加分。
+   设计目标：彼此不做无用功——只把从业者能做、够格、够价的岗位标为适配，
+   不适配的也给出"差在哪"，便于从业者权衡或完善资料。 */
+
+export type MatchInput = {
+  canKinds: string[];
+  canDistricts: string[];
+  birthYear: number | null;
+  expectDaily: number | null;
+  years: number;
+  city: string;
+};
+
+export type JobMatch = {
+  job: Job;
+  suitable: boolean;   // 硬条件全过
+  score: number;       // 排序分（越大越靠前）
+  reasons: string[];   // ✓ 命中点
+  gaps: string[];      // ✗ 不符点 / 待完善
+};
+
+export function evalJob(p: MatchInput, job: Job): JobMatch {
+  const reasons: string[] = [];
+  const gaps: string[] = [];
+  let suitable = true;
+  let score = 0;
+
+  // 1) 工种（硬）
+  const jobKind = normalizeProfession(job.kind);
+  const myKinds = p.canKinds.map(normalizeProfession);
+  const kindHit = jobKind ? myKinds.includes(jobKind) : true;
+  if (kindHit) { reasons.push("工种符"); score += 20; }
+  else { suitable = false; gaps.push(`招${job.kind}`); }
+
+  // 2) 年龄（硬；岗位填了才卡。从业者没填出生年→不卡，只提示完善）
+  if (job.minAge || job.maxAge) {
+    if (p.birthYear && p.birthYear > 1900) {
+      const age = new Date().getFullYear() - p.birthYear;
+      const lo = job.minAge ?? 0, hi = job.maxAge ?? 200;
+      if (age >= lo && age <= hi) reasons.push("年龄符");
+      else { suitable = false; gaps.push(`年龄要 ${lo}-${hi}（你${age}）`); }
+    } else {
+      gaps.push("补出生年更准");
+    }
+  }
+
+  // 3) 经验（硬）
+  if (job.minYears > 0) {
+    if (p.years >= job.minYears) reasons.push("经验达标");
+    else { suitable = false; gaps.push(`需${job.minYears}年经验`); }
+  }
+
+  // 4) 工资（半硬：日薪低于期望不推）
+  if (p.expectDaily && p.expectDaily > 0) {
+    if (job.daily >= p.expectDaily) { reasons.push("薪资达标"); score += Math.min((job.daily - p.expectDaily) / 20, 15); }
+    else { suitable = false; gaps.push(`¥${job.daily}低于你期望¥${p.expectDaily}`); }
+  }
+
+  // 5) 区域（软加分）
+  const jobDist = (job.district ?? "").trim();
+  if (jobDist && (p.canDistricts.includes(jobDist) || p.city === jobDist)) { reasons.push("同区"); score += 30; }
+
+  // 排序加权
+  if (job.urgent) score += 12;
+  score += Math.min(job.daily / 60, 25);
+
+  return { job, suitable, score, reasons, gaps };
+}
+
+export function matchJobs(p: MatchInput, jobs: Job[]): { matched: JobMatch[]; others: JobMatch[] } {
+  const all = jobs.map((j) => evalJob(p, j));
+  const matched = all.filter((m) => m.suitable).sort((a, b) => b.score - a.score);
+  const others = all.filter((m) => !m.suitable).sort((a, b) => b.score - a.score);
+  return { matched, others };
+}
+
+// 从 Practitioner 记录抽取匹配输入（容错：缺字段走回退）
+export function toMatchInput(p: {
+  canKinds: string[]; canDistricts: string[]; birthYear: number | null; expectDaily: number | null; years: number; city: string;
+}): MatchInput {
+  return {
+    canKinds: p.canKinds ?? [],
+    canDistricts: p.canDistricts ?? [],
+    birthYear: p.birthYear ?? null,
+    expectDaily: p.expectDaily ?? null,
+    years: p.years ?? 0,
+    city: p.city ?? "",
+  };
+}

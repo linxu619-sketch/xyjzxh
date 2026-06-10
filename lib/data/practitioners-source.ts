@@ -3,6 +3,7 @@ import { getDb } from "@/lib/db/sqlite";
 import { PRACTITIONER_JOBS, WORKER_INSURANCE } from "@/lib/data/practitioners";
 import { normalizeTier } from "@/lib/data/member-tier";
 import type { PractitionerTier } from "@/lib/data/member-tier";
+import { normalizeProfession } from "@/lib/data/professions";
 
 // 与 /practitioners 列表卡片所需字段对齐
 export type PractitionerCard = {
@@ -16,6 +17,11 @@ export type PractitionerCard = {
   insured: boolean;
   bio: string;
   tier: PractitionerTier;   // 名录展示等级（协会评定）
+  // —— 找活资料（双向匹配用）——
+  birthYear: number | null;   // 出生年份（→ 年龄）
+  canKinds: string[];         // 可接工种（缺省回退主工种）
+  canDistricts: string[];     // 可接区域（缺省回退所在地）
+  expectDaily: number | null; // 期望最低日薪
 };
 
 // 完整从业者记录（含手机号，用于登录绑定 / 工作台 / 个人主页）
@@ -25,21 +31,36 @@ type Row = {
   id: number; name: string | null; kind: string | null; years: number | null;
   rating: number | null; jobs: number | null; city: string | null; insured: number | null;
   phone: string | null; bio: string | null; tier: string | null;
+  birth_year: number | null; can_kinds: string | null; can_districts: string | null; expect_daily: number | null;
 };
 
+function parseArr(raw: string | null): string[] {
+  if (!raw) return [];
+  try { const v = JSON.parse(raw); return Array.isArray(v) ? v.map(String).filter(Boolean) : []; } catch { return []; }
+}
+
 function rowTo(r: Row): Practitioner {
+  const kind = r.kind ?? "个人会员";
+  const city = r.city ?? "信阳";
+  const canKinds = parseArr(r.can_kinds);
+  const canDistricts = parseArr(r.can_districts);
   return {
     id: `p-${r.id}`,
     name: r.name ?? "",
-    kind: r.kind ?? "个人会员",
+    kind,
     years: r.years ?? 0,
     rating: Number(r.rating ?? 5),
     jobs: r.jobs ?? 0,
-    city: r.city ?? "信阳",
+    city,
     insured: !!r.insured,
     phone: r.phone ?? "",
     bio: r.bio ?? "",
     tier: normalizeTier("practitioner", r.tier) as PractitionerTier,
+    birthYear: r.birth_year ?? null,
+    // 未填则回退：可接工种=主工种、可接区域=所在地，保证注册后即可按工种推荐
+    canKinds: canKinds.length ? canKinds : [normalizeProfession(kind)].filter(Boolean),
+    canDistricts: canDistricts.length ? canDistricts : [city].filter(Boolean),
+    expectDaily: r.expect_daily ?? null,
   };
 }
 
@@ -105,6 +126,26 @@ export function setPractitionerTierByPhone(phone: string, tier: string): void {
   try {
     getDb().prepare("UPDATE practitioners SET tier=? WHERE phone=?").run(tier, clean);
   } catch { /* 列未迁移或库不可用时忽略 */ }
+}
+
+// 从业者更新自己的找活资料（出生年 / 可接工种 / 可接区域 / 期望日薪 / 从业年限）
+export function updatePractitionerMatchInfo(phone: string, input: {
+  birthYear?: number | null; canKinds?: string[]; canDistricts?: string[]; expectDaily?: number | null; years?: number;
+}): void {
+  const clean = phone.trim();
+  if (!clean) return;
+  try {
+    getDb().prepare(
+      "UPDATE practitioners SET birth_year=?, can_kinds=?, can_districts=?, expect_daily=?, years=? WHERE phone=?",
+    ).run(
+      input.birthYear ?? null,
+      JSON.stringify(input.canKinds ?? []),
+      JSON.stringify(input.canDistricts ?? []),
+      input.expectDaily ?? null,
+      Math.max(0, Math.floor(input.years ?? 0)),
+      clean,
+    );
+  } catch { /* 忽略 */ }
 }
 
 // 按入会申请 id 取从业者引用（p-<id>），用于审核通过后绑定账号

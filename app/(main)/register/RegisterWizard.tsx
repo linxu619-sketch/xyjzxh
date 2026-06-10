@@ -6,6 +6,7 @@ import {
   ArrowRight, ArrowLeft, CheckCircle2, ShieldCheck, Loader2, ExternalLink,
 } from "lucide-react";
 import { SingleUpload, MultiUpload } from "./uploads";
+import { PROFESSIONS } from "@/lib/data/professions";
 import { submitApplicationAction } from "./actions";
 
 type Tpl = { id: string; title: string; version: string };
@@ -227,7 +228,7 @@ function PractitionerFields({ f, set, setFile }: FU) {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <Field label="真实姓名" required><input className={INPUT} placeholder="与身份证一致" value={f.realName ?? ""} onChange={(e) => set("realName", e.target.value)} /></Field>
         <Field label="专业 / 工种" required>
-          <select className={INPUT} value={f.profession ?? "设计师"} onChange={(e) => set("profession", e.target.value)}><option>设计师</option><option>项目经理</option><option>监理</option><option>独立工长</option><option>造价 / 预算</option><option>软装设计师</option><option>其他专业个人</option></select>
+          <select className={INPUT} value={f.profession ?? "设计师"} onChange={(e) => set("profession", e.target.value)}>{PROFESSIONS.map((k) => <option key={k}>{k}</option>)}</select>
         </Field>
         <Field label="手机号" required><input type="tel" className={INPUT} placeholder="11 位手机号" value={f.phone ?? ""} onChange={(e) => set("phone", e.target.value)} /></Field>
         <Field label="身份证号" required><input className={INPUT} placeholder="18 位" value={f.idcard ?? ""} onChange={(e) => set("idcard", e.target.value)} /></Field>

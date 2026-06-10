@@ -316,6 +316,10 @@ CREATE TABLE IF NOT EXISTS practitioners (
   phone       TEXT,
   bio         TEXT,            -- 个人简介（入会申请时填写）
   tier        TEXT,            -- 名录展示等级（注册/资深/专家会员，协会评定）
+  birth_year     INTEGER,      -- 出生年份（→ 年龄，用于岗位年龄要求匹配）
+  can_kinds      TEXT,         -- 可接工种 JSON 数组（缺省回退主工种 kind）
+  can_districts  TEXT,         -- 可接区域 JSON 数组（缺省回退所在地 city）
+  expect_daily   INTEGER,      -- 期望最低日薪（岗位日薪低于此不推）
   created_at  INTEGER
 );
 
@@ -386,6 +390,9 @@ CREATE TABLE IF NOT EXISTS jobs (
   duration        TEXT,    -- 工期
   urgent          INTEGER DEFAULT 0,
   detail          TEXT,
+  min_age         INTEGER, -- 年龄要求下限（空=不限）
+  max_age         INTEGER, -- 年龄要求上限（空=不限）
+  min_years       INTEGER, -- 最低从业年限要求（空/0=不限）
   status          TEXT DEFAULT 'open', -- open | closed
   created_at      INTEGER
 );
@@ -687,19 +694,20 @@ const DAY = 86400000;
 
 function seedPractitioners(db: DB) {
   if (!isEmpty(db, "practitioners")) return;
-  const rows: [string, string, number, number, number, string, number, string, string][] = [
-    ["张师傅", "工长", 18, 4.8, 142, "浉河区", 1, "13900020001", "资深会员"],
-    ["李师傅", "木工", 22, 4.9, 218, "平桥区", 1, "13900020002", "专家会员"],
-    ["王师傅", "水电工", 12, 4.7, 86, "羊山新区", 1, "13900020003", "资深会员"],
-    ["赵师傅", "瓦工", 16, 4.6, 102, "光山县", 1, "13900020004", "资深会员"],
-    ["孙女士", "设计师", 8, 4.9, 62, "浉河区", 0, "13900020005", "资深会员"],
-    ["周师傅", "油漆工", 10, 4.5, 88, "息县", 1, "13900020006", "注册会员"],
-    ["钱师傅", "项目经理", 14, 4.8, 56, "罗山县", 1, "13900020007", "注册会员"],
-    ["陈监理", "监理", 20, 4.9, 184, "浉河区", 1, "13900020008", "专家会员"],
+  // [name, kind, years, rating, jobs, city, insured, phone, tier, birth_year, expect_daily]
+  const rows: [string, string, number, number, number, string, number, string, string, number, number][] = [
+    ["张师傅", "工长", 18, 4.8, 142, "浉河区", 1, "13900020001", "资深会员", 1980, 450],
+    ["李师傅", "木工", 22, 4.9, 218, "平桥区", 1, "13900020002", "专家会员", 1976, 400],
+    ["王师傅", "水电工", 12, 4.7, 86, "羊山新区", 1, "13900020003", "资深会员", 1988, 380],
+    ["赵师傅", "瓦工", 16, 4.6, 102, "光山县", 1, "13900020004", "资深会员", 1983, 360],
+    ["孙女士", "设计师", 8, 4.9, 62, "浉河区", 0, "13900020005", "资深会员", 1994, 500],
+    ["周师傅", "油漆工", 10, 4.5, 88, "息县", 1, "13900020006", "注册会员", 1986, 350],
+    ["钱师傅", "项目经理", 14, 4.8, 56, "罗山县", 1, "13900020007", "注册会员", 1985, 700],
+    ["陈监理", "监理", 20, 4.9, 184, "浉河区", 1, "13900020008", "专家会员", 1972, 500],
   ];
-  const stmt = db.prepare("INSERT INTO practitioners (name,kind,years,rating,jobs,city,insured,phone,tier,created_at) VALUES (?,?,?,?,?,?,?,?,?,?)");
+  const stmt = db.prepare("INSERT INTO practitioners (name,kind,years,rating,jobs,city,insured,phone,tier,birth_year,expect_daily,created_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)");
   const now = Date.now();
-  rows.forEach((r, i) => stmt.run(r[0], r[1], r[2], r[3], r[4], r[5], r[6], r[7], r[8], now - i * DAY));
+  rows.forEach((r, i) => stmt.run(r[0], r[1], r[2], r[3], r[4], r[5], r[6], r[7], r[8], r[9], r[10], now - i * DAY));
 }
 
 function seedReviews(db: DB) {
@@ -859,19 +867,19 @@ function seedTeam(db: DB) {
 
 function seedJobs(db: DB) {
   if (!isEmpty(db, "jobs")) return;
-  // [enterprise_id, enterprise_name, title, kind, district, daily, openings, duration, urgent, detail]
-  const rows: [string, string, string, string, string, number, number, string, number, string][] = [
-    ["e002", "名家装饰", "急招水电工 5 名 · 金茂悦府工地", "水电工", "浉河区", 380, 5, "约 25 天", 1, "金茂悦府整装项目，水电改造阶段，需持证、能看图，包午餐。"],
-    ["e002", "名家装饰", "木工 3 名 · 全屋定制安装", "木工", "羊山新区", 420, 3, "约 40 天", 0, "全屋定制柜体现场安装，熟练工优先，长期合作。"],
-    ["e001", "信阳华泰建工", "土建项目经理 1 名", "项目经理", "浉河区", 800, 1, "长期", 0, "市政项目现场管理，一级建造师优先，五险一金。"],
-    ["e008", "壹品装饰", "油漆工 4 名 · 茶都商务办公装修", "油漆工", "平桥区", 360, 4, "约 20 天", 1, "办公空间乳胶漆与造型，需自带工具，结算及时。"],
-    ["e002", "名家装饰", "监理 1 名 · 多工地巡检", "监理", "浉河区", 500, 1, "长期", 0, "负责在施工地质量与安全巡检，需相关证书与经验。"],
+  // [enterprise_id, enterprise_name, title, kind, district, daily, openings, duration, urgent, detail, min_age, max_age, min_years]
+  const rows: [string, string, string, string, string, number, number, string, number, string, number, number, number][] = [
+    ["e002", "名家装饰", "急招水电工 5 名 · 金茂悦府工地", "水电工", "浉河区", 380, 5, "约 25 天", 1, "金茂悦府整装项目，水电改造阶段，需持证、能看图，包午餐。", 18, 50, 2],
+    ["e002", "名家装饰", "木工 3 名 · 全屋定制安装", "木工", "羊山新区", 420, 3, "约 40 天", 0, "全屋定制柜体现场安装，熟练工优先，长期合作。", 18, 55, 3],
+    ["e001", "信阳华泰建工", "土建项目经理 1 名", "项目经理", "浉河区", 800, 1, "长期", 0, "市政项目现场管理，一级建造师优先，五险一金。", 28, 55, 5],
+    ["e008", "壹品装饰", "油漆工 4 名 · 茶都商务办公装修", "油漆工", "平桥区", 360, 4, "约 20 天", 1, "办公空间乳胶漆与造型，需自带工具，结算及时。", 18, 55, 0],
+    ["e002", "名家装饰", "监理 1 名 · 多工地巡检", "监理", "浉河区", 500, 1, "长期", 0, "负责在施工地质量与安全巡检，需相关证书与经验。", 30, 60, 8],
   ];
   const stmt = db.prepare(
-    "INSERT INTO jobs (enterprise_id,enterprise_name,title,kind,district,daily,openings,duration,urgent,detail,status,created_at) VALUES (?,?,?,?,?,?,?,?,?,?, 'open', ?)",
+    "INSERT INTO jobs (enterprise_id,enterprise_name,title,kind,district,daily,openings,duration,urgent,detail,min_age,max_age,min_years,status,created_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?, 'open', ?)",
   );
   const now = Date.now();
-  rows.forEach((r, i) => stmt.run(r[0], r[1], r[2], r[3], r[4], r[5], r[6], r[7], r[8], r[9], now - i * 43200000));
+  rows.forEach((r, i) => stmt.run(r[0], r[1], r[2], r[3], r[4], r[5], r[6], r[7], r[8], r[9], r[10], r[11], r[12], now - i * 43200000));
 }
 
 function init(): DB {
@@ -1348,18 +1356,31 @@ function backfillEnterpriseAccounts(db: DB) {
   });
 }
 
-// 为示例从业者回填名录展示等级（仅在 tier 为空时写，永不覆盖协会真实评定；幂等）
+// 为示例数据回填匹配字段（COALESCE：仅补空值，永不覆盖真实评定 / 用户编辑；幂等）
 function backfillPractitionerTiers(db: DB) {
-  const SEED: [string, string][] = [
-    ["13900020001", "资深会员"], ["13900020002", "专家会员"],
-    ["13900020003", "资深会员"], ["13900020004", "资深会员"],
-    ["13900020005", "资深会员"], ["13900020006", "注册会员"],
-    ["13900020007", "注册会员"], ["13900020008", "专家会员"],
+  // 示例从业者：等级 + 出生年 + 期望日薪
+  const P: [string, string, number, number][] = [
+    ["13900020001", "资深会员", 1980, 450], ["13900020002", "专家会员", 1976, 400],
+    ["13900020003", "资深会员", 1988, 380], ["13900020004", "资深会员", 1983, 360],
+    ["13900020005", "资深会员", 1994, 500], ["13900020006", "注册会员", 1986, 350],
+    ["13900020007", "注册会员", 1985, 700], ["13900020008", "专家会员", 1972, 500],
   ];
   try {
-    const upd = db.prepare("UPDATE practitioners SET tier=? WHERE phone=? AND (tier IS NULL OR tier='')");
-    SEED.forEach(([phone, tier]) => upd.run(tier, phone));
-  } catch { /* 列尚未迁移时忽略 */ }
+    const up = db.prepare("UPDATE practitioners SET tier=COALESCE(tier,?), birth_year=COALESCE(birth_year,?), expect_daily=COALESCE(expect_daily,?) WHERE phone=?");
+    P.forEach(([phone, tier, by, ed]) => up.run(tier, by, ed, phone));
+  } catch { /* 列未迁移时忽略 */ }
+  // 示例岗位：年龄 / 经验要求（按标题匹配）
+  const J: [string, number, number, number][] = [
+    ["急招水电工 5 名 · 金茂悦府工地", 18, 50, 2],
+    ["木工 3 名 · 全屋定制安装", 18, 55, 3],
+    ["土建项目经理 1 名", 28, 55, 5],
+    ["油漆工 4 名 · 茶都商务办公装修", 18, 55, 0],
+    ["监理 1 名 · 多工地巡检", 30, 60, 8],
+  ];
+  try {
+    const up = db.prepare("UPDATE jobs SET min_age=COALESCE(min_age,?), max_age=COALESCE(max_age,?), min_years=COALESCE(min_years,?) WHERE title=?");
+    J.forEach(([title, mn, mx, yr]) => up.run(mn, mx, yr, title));
+  } catch { /* 列未迁移时忽略 */ }
 }
 
 // 对已存在的库做幂等列迁移（新增列时用）
@@ -1436,6 +1457,15 @@ function migrate(db: DB) {
     "ALTER TABLE practitioners ADD COLUMN bio TEXT",
     // 个人会员名录展示等级（注册/资深/专家会员，协会评定）
     "ALTER TABLE practitioners ADD COLUMN tier TEXT",
+    // 从业者找活资料（用于岗位双向匹配）
+    "ALTER TABLE practitioners ADD COLUMN birth_year INTEGER",
+    "ALTER TABLE practitioners ADD COLUMN can_kinds TEXT",
+    "ALTER TABLE practitioners ADD COLUMN can_districts TEXT",
+    "ALTER TABLE practitioners ADD COLUMN expect_daily INTEGER",
+    // 岗位招工要求（用于双向匹配）
+    "ALTER TABLE jobs ADD COLUMN min_age INTEGER",
+    "ALTER TABLE jobs ADD COLUMN max_age INTEGER",
+    "ALTER TABLE jobs ADD COLUMN min_years INTEGER",
     // 建材超市商品详情扩展（1688 式：图文详情/规格参数/产地/货期/物流/售后/库存）+ 平台佣金
     "ALTER TABLE supply_products ADD COLUMN description TEXT",
     "ALTER TABLE supply_products ADD COLUMN params TEXT",          // 规格参数 JSON [{k,v}]
