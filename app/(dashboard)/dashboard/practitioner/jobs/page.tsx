@@ -12,10 +12,10 @@ export const metadata = { title: "找活 · 从业者门户" };
 
 const STATUS_LABEL: Record<string, string> = { pending: "已投递 · 待企业处理", accepted: "已被录用 🎉", rejected: "未通过" };
 
-export default async function PractitionerJobs({ searchParams }: { searchParams: Promise<{ aok?: string; adup?: string; aerr?: string }> }) {
+export default async function PractitionerJobs({ searchParams }: { searchParams: Promise<{ aok?: string; adup?: string; aerr?: string; pv?: string }> }) {
   const session = await getSession();
   if (!session || (session.role !== "practitioner" && !isPractitionerPreview(session))) redirect("/login?role=practitioner");
-  const { aok, adup, aerr } = await searchParams;
+  const { aok, adup, aerr, pv } = await searchParams;
 
   const jobs = listOpenJobs();
   const myApps = listApplicationsByPractitioner(effectivePractitionerPhone(session));
@@ -24,6 +24,7 @@ export default async function PractitionerJobs({ searchParams }: { searchParams:
 
   return (
     <PractitionerShell title="找活" subtitle={`${jobs.length} 个在招岗位${urgentCount > 0 ? ` · ${urgentCount} 急招` : ""} · 已投递 ${myApps.length}`}>
+      {pv && <Banner>预览态为只读体验，操作未提交。以从业者本人账号登录后可正常报名。</Banner>}
       {aok && <Banner ok>报名成功！企业会尽快查看你的投递，请留意电话。</Banner>}
       {adup && <Banner>你已报名过该岗位，无需重复报名。</Banner>}
       {aerr && <Banner err>该岗位已结束招聘，换一个试试。</Banner>}

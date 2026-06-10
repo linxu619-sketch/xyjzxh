@@ -10,11 +10,11 @@ import { effectivePractitionerPhone, isPractitionerPreview } from "@/lib/dashboa
 
 export const metadata = { title: "培训 · 从业者门户" };
 
-export default async function PractitionerTraining({ searchParams }: { searchParams: Promise<{ tok?: string; tdup?: string; terr?: string }> }) {
+export default async function PractitionerTraining({ searchParams }: { searchParams: Promise<{ tok?: string; tdup?: string; terr?: string; pv?: string }> }) {
   const session = await getSession();
   if (!session || (session.role !== "practitioner" && !isPractitionerPreview(session))) redirect("/login?role=practitioner");
   if (session.role === "practitioner" && session.pending) redirect("/dashboard/pending");
-  const { tok, tdup, terr } = await searchParams;
+  const { tok, tdup, terr, pv } = await searchParams;
 
   const trainings = listOpenTrainings();
   const myEnrolls = listEnrollmentsByPractitioner(effectivePractitionerPhone(session));
@@ -22,6 +22,7 @@ export default async function PractitionerTraining({ searchParams }: { searchPar
 
   return (
     <PractitionerShell title="培训 · 继续教育" subtitle={`${trainings.length} 门在招课程 · 已报名 ${myEnrolls.length}`}>
+      {pv && <Banner>预览态为只读体验，操作未提交。以从业者本人账号登录后可正常报名。</Banner>}
       {tok && <Banner ok>报名成功！协会会通知开课时间与地点。</Banner>}
       {tdup && <Banner>你已报名该课程，无需重复报名。</Banner>}
       {terr && <Banner err>该课程已结束报名。</Banner>}

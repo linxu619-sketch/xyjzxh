@@ -24,11 +24,11 @@ function fmt(ms: number) {
   return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`;
 }
 
-export default async function PractitionerInsurance({ searchParams }: { searchParams: Promise<{ ok?: string }> }) {
+export default async function PractitionerInsurance({ searchParams }: { searchParams: Promise<{ ok?: string; pv?: string }> }) {
   const session = await getSession();
   if (!session || (session.role !== "practitioner" && !isPractitionerPreview(session))) redirect("/login?role=practitioner");
   if (session.role === "practitioner" && session.pending) redirect("/dashboard/pending");
-  const { ok } = await searchParams;
+  const { ok, pv } = await searchParams;
 
   const me = getPractitionerByPhone(effectivePractitionerPhone(session));
   const WORKER_INSURANCE = listWorkerInsurance();
@@ -38,6 +38,11 @@ export default async function PractitionerInsurance({ searchParams }: { searchPa
 
   return (
     <PractitionerShell title="工伤险 + 防欠薪" subtitle={insured ? "已加入工伤险 · 在保中" : orders.length ? "投保申请处理中" : "建议立即投保"}>
+      {pv && (
+        <div className="mb-4 rounded-2xl border border-border bg-surface text-muted-foreground p-3.5 text-[13px] inline-flex items-center gap-2 w-full">
+          <AlertCircle className="h-4 w-4 shrink-0" /> 预览态为只读体验，操作未提交。以从业者本人账号登录后可正常投保。
+        </div>
+      )}
       {ok && (
         <div className="mb-4 rounded-2xl border border-accent-tea/30 bg-[#e6f7f1] text-accent-tea p-3.5 text-[13px] inline-flex items-center gap-2 w-full">
           <CheckCircle2 className="h-4 w-4 shrink-0" /> 投保申请已提交！协会将尽快为你办理，请留意通知。
