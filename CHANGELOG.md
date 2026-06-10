@@ -14,6 +14,16 @@
 
 ---
 
+## [0.139.2] - 2026-06-10
+
+### 打通协会评定从业者等级 → 名录 / 工作台展示
+
+- **问题**：v0.139.0 把从业者等级的**展示**改为读 `practitioners.tier`，但协会侧现有的等级评定入口（用户管理 `/dashboard/association/users/[phone]` 的 `setMemberTierAction`）只写 `accounts.tier`——两者脱节，导致协会调了个人会员等级后，公开名录与从业者「我的」**不变**。
+- **修复**：`setMemberTierAction` 在调整**个人会员**等级时，除写 `accounts.tier`（商城上架配额用）外，同步写 `practitioners.tier`（名录 / 工作台展示用），并 `revalidatePath` 刷新 `/practitioners` 与从业者工作台。新增数据层 `setPractitionerTierByPhone(phone, tier)`。
+- 结果：协会在「用户管理 → 个人会员 → 选等级」即可评定，公开名录金徽章与从业者本人「荣誉档案」即时一致。（企业会员等级逻辑不变。）
+
+---
+
 ## [0.139.1] - 2026-06-10
 
 ### 修复：协会预览态下从业者工作台「投保 / 报名」点击 500

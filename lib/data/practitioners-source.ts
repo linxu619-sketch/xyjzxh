@@ -97,6 +97,16 @@ export function getPractitionerById(id: string): Practitioner | undefined {
   }
 }
 
+// 协会评定个人会员等级 → 同步从业者名录展示等级（按手机号匹配本人档案）
+// 等级权威值在 accounts.tier；这里同步 practitioners.tier 让名录 / 工作台展示一致
+export function setPractitionerTierByPhone(phone: string, tier: string): void {
+  const clean = phone.trim();
+  if (!clean) return;
+  try {
+    getDb().prepare("UPDATE practitioners SET tier=? WHERE phone=?").run(tier, clean);
+  } catch { /* 列未迁移或库不可用时忽略 */ }
+}
+
 // 按入会申请 id 取从业者引用（p-<id>），用于审核通过后绑定账号
 export function getPractitionerRefByAppId(appId: number): string | undefined {
   try {

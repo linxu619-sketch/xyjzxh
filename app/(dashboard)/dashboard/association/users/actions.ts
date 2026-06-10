@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { requireStaffPermission } from "@/lib/auth/guard";
 import { getAccountByPhone, setAccountStatus, setAccountTier, setAccountPassword, deleteAccount, updateAccountProfile, type AccountStatus } from "@/lib/data/accounts";
+import { setPractitionerTierByPhone } from "@/lib/data/practitioners-source";
 import { tierLadder } from "@/lib/data/member-tier";
 import { getStaff, getStaffAuthByPhone, setStaffStatus, setStaffRoles, setStaffPassword, deleteStaff, createStaff, type StaffStatus } from "@/lib/data/staff-source";
 import { ROLE_KEYS } from "@/lib/auth/roles";
@@ -59,7 +60,16 @@ export async function setMemberTierAction(fd: FormData) {
   const acc = phone ? getAccountByPhone(phone) : undefined;
   if (acc && (acc.role === "enterprise" || acc.role === "individual")) {
     const track = acc.role === "enterprise" ? "enterprise" : "practitioner";
-    if (tierLadder(track).some((m) => m.tier === tier)) setAccountTier(phone, tier);
+    if (tierLadder(track).some((m) => m.tier === tier)) {
+      setAccountTier(phone, tier);
+      // 个人会员：同步从业者名录展示等级，让公开名录 / 从业者「我的」与评定一致
+      if (acc.role === "individual") {
+        setPractitionerTierByPhone(phone, tier);
+        revalidatePath("/practitioners");
+        revalidatePath("/dashboard/practitioner");
+        revalidatePath("/dashboard/practitioner/profile");
+      }
+    }
   }
   const to = `/dashboard/association/users/${encodeURIComponent(phone)}`;
   revalidatePath(to);
