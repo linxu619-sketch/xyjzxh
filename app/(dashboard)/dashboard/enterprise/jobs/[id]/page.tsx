@@ -74,6 +74,8 @@ export default async function JobDetail({ params }: { params: Promise<{ id: stri
           <Row k={isHire ? "月薪 / 名额" : "日薪 / 名额"} v={`${payText} · ${job.openings} ${isHire ? "人" : "名额"}`} />
           <Row k={isHire ? "区域" : "区域 / 工期"} v={isHire ? (job.district || "—") : `${job.district || "—"} · ${job.duration || "—"}`} />
           <Row k="招工要求" v={reqs} />
+          {!isHire && <Row k="工伤保障" v={job.insurance === "company" ? "企业承保 · 含工伤险（协会团险 5 元/天/人）" : "工人自理"} />}
+          {isHire && job.benefits.length > 0 && <Row k="福利待遇" v={job.benefits.join(" · ")} />}
           <Row k={isHire ? "岗位职责" : "岗位说明"} v={job.detail || "—"} />
           <Row k="发布时间" v={fmt(job.createdAt)} />
         </dl>

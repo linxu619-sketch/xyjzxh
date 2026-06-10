@@ -393,6 +393,8 @@ CREATE TABLE IF NOT EXISTS jobs (
   kind            TEXT,    -- 工种 / 职位
   district        TEXT,
   edu             TEXT,    -- 学历要求（招聘用，空=不限）
+  insurance       TEXT,    -- 零工工伤保障：company=企业承保(协会团险) / self=工人自理
+  benefits        TEXT,    -- 招聘福利 JSON 数组（五险一金/包住/双休…）
   daily           INTEGER, -- 薪资下限（gig=日薪 / hire=月薪）
   daily_max       INTEGER, -- 日薪上限（NULL=同下限，单值；与从业者期望范围求交集）
   openings        INTEGER, -- 名额
@@ -1389,21 +1391,21 @@ function backfillPractitionerTiers(db: DB) {
     ["监理 1 名 · 多工地巡检", 600, 30, 60, 8, 1],
   ];
   try {
-    const up = db.prepare("UPDATE jobs SET daily_max=COALESCE(daily_max,?), min_age=COALESCE(min_age,?), max_age=COALESCE(max_age,?), min_years=COALESCE(min_years,?), need_cert=COALESCE(need_cert,?) WHERE title=?");
+    const up = db.prepare("UPDATE jobs SET daily_max=COALESCE(daily_max,?), min_age=COALESCE(min_age,?), max_age=COALESCE(max_age,?), min_years=COALESCE(min_years,?), need_cert=COALESCE(need_cert,?), insurance=COALESCE(insurance,'company') WHERE title=?");
     J.forEach(([title, dmx, mn, mx, yr, nc]) => up.run(dmx, mn, mx, yr, nc, title));
   } catch { /* 列未迁移时忽略 */ }
   // 示例招聘岗位（type='hire'·月薪），按标题去重插入（幂等）
-  const H: [string, string, string, string, string, string, number, number, number, string, number, number, number, number][] = [
-    ["e002", "信阳名家装饰", "室内设计师 1 名 · 整装设计", "设计师", "浉河区", "大专", 6000, 10000, 1, "长期", 22, 45, 3, 0],
-    ["e001", "信阳华泰建工", "土建项目经理（长期）2 名", "项目经理", "浉河区", "本科", 8000, 12000, 2, "长期", 28, 55, 5, 1],
-    ["e002", "信阳名家装饰", "工程监理 1 名 · 长期在编", "监理", "平桥区", "大专", 7000, 9000, 1, "长期", 30, 58, 8, 1],
+  const H: [string, string, string, string, string, string, number, number, number, string, number, number, number, number, string][] = [
+    ["e002", "信阳名家装饰", "室内设计师 1 名 · 整装设计", "设计师", "浉河区", "大专", 6000, 10000, 1, "长期", 22, 45, 3, 0, '["五险一金","双休","年终奖"]'],
+    ["e001", "信阳华泰建工", "土建项目经理（长期）2 名", "项目经理", "浉河区", "本科", 8000, 12000, 2, "长期", 28, 55, 5, 1, '["五险一金","包住","晋升空间"]'],
+    ["e002", "信阳名家装饰", "工程监理 1 名 · 长期在编", "监理", "平桥区", "大专", 7000, 9000, 1, "长期", 30, 58, 8, 1, '["五险一金","包住包餐"]'],
   ];
   try {
     const has = db.prepare("SELECT 1 FROM jobs WHERE title=?");
-    const ins = db.prepare("INSERT INTO jobs (enterprise_id,enterprise_name,type,title,kind,district,edu,daily,daily_max,openings,duration,urgent,detail,min_age,max_age,min_years,gender_req,need_cert,status,created_at) VALUES (?,?, 'hire', ?,?,?,?,?,?,?,?,0, ?,?,?,?, '', ?, 'open', ?)");
+    const ins = db.prepare("INSERT INTO jobs (enterprise_id,enterprise_name,type,title,kind,district,edu,benefits,daily,daily_max,openings,duration,urgent,detail,min_age,max_age,min_years,gender_req,need_cert,status,created_at) VALUES (?,?, 'hire', ?,?,?,?,?,?,?,?,?,0, ?,?,?,?, '', ?, 'open', ?)");
     const now = Date.now();
-    H.forEach(([eid, en, title, kind, dist, edu, smin, smax, op, dur, mn, mx, yr, nc], i) => {
-      if (!has.get(title)) ins.run(eid, en, title, kind, dist, edu, smin, smax, op, dur, `协会会员企业长期岗位 · ${kind}`, mn, mx, yr, nc, now - i * 36000000);
+    H.forEach(([eid, en, title, kind, dist, edu, smin, smax, op, dur, mn, mx, yr, nc, ben], i) => {
+      if (!has.get(title)) ins.run(eid, en, title, kind, dist, edu, ben, smin, smax, op, dur, `协会会员企业长期岗位 · ${kind}`, mn, mx, yr, nc, now - i * 36000000);
     });
   } catch { /* 列未迁移时忽略 */ }
 }
@@ -1496,6 +1498,8 @@ function migrate(db: DB) {
     // 岗位招工要求（用于双向匹配）
     "ALTER TABLE jobs ADD COLUMN type TEXT DEFAULT 'gig'",
     "ALTER TABLE jobs ADD COLUMN edu TEXT",
+    "ALTER TABLE jobs ADD COLUMN insurance TEXT",
+    "ALTER TABLE jobs ADD COLUMN benefits TEXT",
     "ALTER TABLE jobs ADD COLUMN daily_max INTEGER",
     "ALTER TABLE jobs ADD COLUMN min_age INTEGER",
     "ALTER TABLE jobs ADD COLUMN max_age INTEGER",

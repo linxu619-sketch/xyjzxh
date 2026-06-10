@@ -95,7 +95,18 @@ export default async function PractitionerHire({ searchParams }: { searchParams:
         )
       )}
 
-      <Link href="/ai/hr" className="mt-6 block rounded-3xl bg-foreground text-background p-5 active:scale-[0.99] transition-transform relative overflow-hidden">
+      <div className="mt-6 rounded-3xl bg-foreground text-background p-5 relative overflow-hidden">
+        <div className="absolute -right-10 -top-10 h-32 w-32 rounded-full bg-cat-design/30 blur-2xl" />
+        <div className="relative flex items-start gap-3">
+          <ShieldCheck className="h-6 w-6 text-accent-yellow mt-0.5 shrink-0" />
+          <div className="flex-1">
+            <div className="text-[14px] font-semibold">协会背书 · 招聘更靠谱</div>
+            <p className="mt-1.5 text-[12px] text-background/70 leading-5">岗位均来自<b className="text-accent-yellow">协会认证会员企业</b>、资质已核验；你的等级与实名也经协会认证。入职可签<b className="text-accent-yellow">电子劳动合同</b>，劳动纠纷协会介入调解。</p>
+          </div>
+        </div>
+      </div>
+
+      <Link href="/ai/hr" className="mt-3 block rounded-3xl bg-foreground text-background p-5 active:scale-[0.99] transition-transform relative overflow-hidden">
         <div className="absolute -right-10 -top-10 h-32 w-32 rounded-full bg-cat-design/30 blur-2xl" />
         <div className="relative flex items-center gap-3">
           <Sparkles className="h-6 w-6 text-accent-yellow shrink-0" />
@@ -144,6 +155,12 @@ function HireCard({ m, st, dim }: { m: JobMatch; st?: string; dim?: boolean }) {
         {j.genderReq && <><span>·</span><span>限{j.genderReq}</span></>}
         {j.needCert && <><span>·</span><span>需持证</span></>}
       </div>
+
+      {j.benefits.length > 0 && (
+        <div className="mt-2 flex flex-wrap gap-1.5">
+          {j.benefits.map((b) => <span key={b} className="text-[10px] rounded-full bg-cat-design-soft text-cat-design px-2 py-0.5">{b}</span>)}
+        </div>
+      )}
 
       <div className="mt-3 pt-3 border-t border-border flex items-center justify-between gap-2">
         <div className="text-[18px] font-semibold text-cat-design tabular-nums">{pay}<span className="text-[10px] font-normal text-muted-foreground"> /月</span></div>

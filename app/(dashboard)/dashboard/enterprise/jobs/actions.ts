@@ -34,6 +34,7 @@ export async function createJobAction(fd: FormData) {
     duration: String(fd.get("duration") || "").trim(),
     urgent: fd.get("urgent") === "on",
     detail: String(fd.get("detail") || "").trim(),
+    insurance: fd.get("insurance") === "self" ? "self" : "company",
     minAge: posInt("minAge"),
     maxAge: posInt("maxAge"),
     minYears: posInt("minYears") ?? 0,
@@ -65,6 +66,7 @@ export async function createRecruitAction(fd: FormData) {
     district: String(fd.get("district") || "").trim(),
     daily: Number(fd.get("daily") || 0) || 0,          // 月薪下限
     dailyMax: posInt("dailyMax"),                       // 月薪上限
+    benefits: fd.getAll("benefits").map(String).filter(Boolean),
     openings: Number(fd.get("openings") || 1) || 1,
     duration: "长期",
     detail: String(fd.get("detail") || "").trim(),

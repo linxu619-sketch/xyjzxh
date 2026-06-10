@@ -133,6 +133,7 @@ function JobCard({ m, st, dim }: { m: JobMatch; st?: string; dim?: boolean }) {
         <Badge tone="brand">{j.openings} 名额</Badge>
         {j.urgent && <Badge tone="decor">🔥 急招</Badge>}
         <Badge tone="build">{j.kind}</Badge>
+        {j.insurance === "company" && <Badge tone="tea" className="inline-flex items-center gap-0.5"><ShieldCheck className="h-2.5 w-2.5" />含工伤险</Badge>}
         <span className="inline-flex items-center gap-0.5 text-[10px] text-accent-tea ml-auto"><ShieldCheck className="h-2.5 w-2.5" /> 协会监管</span>
       </div>
 

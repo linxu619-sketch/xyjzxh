@@ -7,9 +7,12 @@ import { createRecruitAction } from "../jobs/actions";
 
 const INPUT = "w-full h-11 rounded-xl border border-border bg-background px-3.5 text-[14px] outline-none focus:border-foreground/30";
 const EDU = ["不限", "中专/技校", "大专", "本科", "硕士及以上"];
+const BENEFITS = ["五险一金", "包住", "包餐", "双休", "法定节假日", "年终奖", "带薪年假", "晋升空间"];
 
 export function PostRecruitForm() {
   const [open, setOpen] = useState(false);
+  const [benefits, setBenefits] = useState<string[]>([]);
+  const toggleBen = (b: string) => setBenefits((v) => (v.includes(b) ? v.filter((x) => x !== b) : [...v, b]));
 
   if (!open) {
     return (
@@ -56,7 +59,15 @@ export function PostRecruitForm() {
             <Field label="持证要求"><label className="flex items-center gap-2 h-11 text-[13px]"><input type="checkbox" name="needCert" className="accent-cat-decor h-4 w-4" /> 需持证 / 资质</label></Field>
           </div>
           <div className="-mt-1 text-[11px] text-muted-foreground">月薪与从业者「期望月薪范围」求交集匹配；年龄/年限/学历/性别/持证留空或不勾=不限。</div>
-          <Field label="岗位职责 / 要求"><textarea name="detail" rows={3} placeholder="工作内容、任职要求、五险一金、晋升等" className={`${INPUT} h-auto py-2.5 leading-6`} /></Field>
+          <Field label="福利待遇（多选）">
+            {benefits.map((b) => <input key={b} type="hidden" name="benefits" value={b} />)}
+            <div className="flex flex-wrap gap-2">
+              {BENEFITS.map((b) => (
+                <button type="button" key={b} onClick={() => toggleBen(b)} className={`rounded-full px-3 py-1.5 text-[12.5px] border transition-colors ${benefits.includes(b) ? "bg-foreground text-background border-foreground" : "bg-surface text-muted-foreground border-transparent hover:border-border"}`}>{b}</button>
+              ))}
+            </div>
+          </Field>
+          <Field label="岗位职责 / 要求"><textarea name="detail" rows={3} placeholder="工作内容、任职要求、晋升空间等" className={`${INPUT} h-auto py-2.5 leading-6`} /></Field>
           <div className="flex items-center gap-3 pt-1">
             <button type="submit" className="h-11 px-6 rounded-full bg-accent-tea text-white text-[14px] font-medium inline-flex items-center gap-1.5"><Plus className="h-4 w-4" /> 发布招聘</button>
             <button type="button" onClick={() => setOpen(false)} className="h-11 px-4 rounded-full text-[13px] text-muted-foreground hover:text-foreground">取消</button>

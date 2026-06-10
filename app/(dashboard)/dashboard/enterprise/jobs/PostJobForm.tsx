@@ -67,6 +67,17 @@ export function PostJobForm() {
             </Field>
           </div>
           <div className="-mt-1 text-[11px] text-muted-foreground">年龄 / 年限 / 性别 / 持证留空或不勾 = 不限。填了系统只把符合的从业者匹配过来，双方不做无用功。</div>
+          <Field label="工伤保障（协会团险 · 5 元/天/人）">
+            <div className="grid grid-cols-2 gap-2">
+              <label className="flex items-center gap-2 h-11 px-3 rounded-xl border border-border text-[13px] cursor-pointer has-[:checked]:border-accent-tea has-[:checked]:bg-[#e6f7f1]">
+                <input type="radio" name="insurance" value="company" defaultChecked className="accent-accent-tea" /> 企业承保（推荐）
+              </label>
+              <label className="flex items-center gap-2 h-11 px-3 rounded-xl border border-border text-[13px] cursor-pointer has-[:checked]:border-foreground/40">
+                <input type="radio" name="insurance" value="self" className="accent-foreground" /> 工人自理
+              </label>
+            </div>
+            <div className="mt-1.5 text-[11px] text-muted-foreground">选「企业承保」岗位会标「含工伤险」，录用后由协会团险统一为工人投保，费用走协会监管账户。</div>
+          </Field>
           <Field label="岗位说明"><textarea name="detail" rows={3} placeholder="工作内容、要求、是否包餐、结算方式等" className={`${INPUT} h-auto py-2.5 leading-6`} /></Field>
           <label className="flex items-center gap-2 text-[13px]">
             <input type="checkbox" name="urgent" className="accent-cat-decor h-4 w-4" /> 标记为「急招」
