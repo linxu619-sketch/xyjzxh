@@ -1404,8 +1404,10 @@ function backfillPractitionerTiers(db: DB) {
     const has = db.prepare("SELECT 1 FROM jobs WHERE title=?");
     const ins = db.prepare("INSERT INTO jobs (enterprise_id,enterprise_name,type,title,kind,district,edu,benefits,daily,daily_max,openings,duration,urgent,detail,min_age,max_age,min_years,gender_req,need_cert,status,created_at) VALUES (?,?, 'hire', ?,?,?,?,?,?,?,?,?,0, ?,?,?,?, '', ?, 'open', ?)");
     const now = Date.now();
+    const upb = db.prepare("UPDATE jobs SET benefits=? WHERE title=? AND (benefits IS NULL OR benefits='' OR benefits='[]')");
     H.forEach(([eid, en, title, kind, dist, edu, smin, smax, op, dur, mn, mx, yr, nc, ben], i) => {
       if (!has.get(title)) ins.run(eid, en, title, kind, dist, edu, ben, smin, smax, op, dur, `协会会员企业长期岗位 · ${kind}`, mn, mx, yr, nc, now - i * 36000000);
+      else upb.run(ben, title); // 已存在的招聘行补福利（上一版插入时无 benefits）
     });
   } catch { /* 列未迁移时忽略 */ }
 }
