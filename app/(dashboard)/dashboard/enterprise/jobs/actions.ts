@@ -36,6 +36,8 @@ export async function createJobAction(fd: FormData) {
     minAge: posInt("minAge"),
     maxAge: posInt("maxAge"),
     minYears: posInt("minYears") ?? 0,
+    genderReq: (() => { const g = String(fd.get("genderReq") || "").trim(); return g === "男" || g === "女" ? g : ""; })(),
+    needCert: fd.get("needCert") === "on",
   });
   revalidatePath("/dashboard/enterprise/jobs");
   redirect("/dashboard/enterprise/jobs?jok=1");

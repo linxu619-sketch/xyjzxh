@@ -26,6 +26,9 @@ export default async function ProfileEdit() {
           birthYear: me?.birthYear ?? null,
           expectDaily: me?.expectDaily ?? null,
           years: me?.years ?? 0,
+          gender: me?.gender ?? "",
+          hasCert: me?.hasCert ?? null,
+          available: me?.available ?? true,
         }}
       />
     </PractitionerShell>

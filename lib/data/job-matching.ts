@@ -14,6 +14,8 @@ export type MatchInput = {
   expectDaily: number | null;
   years: number;
   city: string;
+  gender: string;
+  hasCert: boolean | null;
 };
 
 export type JobMatch = {
@@ -61,7 +63,22 @@ export function evalJob(p: MatchInput, job: Job): JobMatch {
     else { suitable = false; gaps.push(`¥${job.daily}低于你期望¥${p.expectDaily}`); }
   }
 
-  // 5) 区域（软加分）
+  // 5) 性别（硬；岗位指定才卡。从业者没填→不卡，提示完善）
+  if (job.genderReq) {
+    if (p.gender) {
+      if (p.gender === job.genderReq) reasons.push("性别符");
+      else { suitable = false; gaps.push(`限${job.genderReq}`); }
+    } else gaps.push("补性别更准");
+  }
+
+  // 6) 持证（硬；岗位要求才卡。明确无证→不推，未填→不卡只提示）
+  if (job.needCert) {
+    if (p.hasCert === true) reasons.push("持证");
+    else if (p.hasCert === false) { suitable = false; gaps.push("需持证"); }
+    else gaps.push("需持证·补证书");
+  }
+
+  // 7) 区域（软加分）
   const jobDist = (job.district ?? "").trim();
   if (jobDist && (p.canDistricts.includes(jobDist) || p.city === jobDist)) { reasons.push("同区"); score += 30; }
 
@@ -82,6 +99,7 @@ export function matchJobs(p: MatchInput, jobs: Job[]): { matched: JobMatch[]; ot
 // 从 Practitioner 记录抽取匹配输入（容错：缺字段走回退）
 export function toMatchInput(p: {
   canKinds: string[]; canDistricts: string[]; birthYear: number | null; expectDaily: number | null; years: number; city: string;
+  gender?: string; hasCert?: boolean | null;
 }): MatchInput {
   return {
     canKinds: p.canKinds ?? [],
@@ -90,5 +108,7 @@ export function toMatchInput(p: {
     expectDaily: p.expectDaily ?? null,
     years: p.years ?? 0,
     city: p.city ?? "",
+    gender: p.gender ?? "",
+    hasCert: p.hasCert ?? null,
   };
 }

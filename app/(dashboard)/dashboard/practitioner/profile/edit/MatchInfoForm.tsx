@@ -8,10 +8,11 @@ import { saveMatchInfoAction } from "./actions";
 const INPUT = "w-full h-11 rounded-xl border border-border bg-background px-3.5 text-[14px] outline-none focus:border-foreground/30";
 
 export function MatchInfoForm({ init }: {
-  init: { canKinds: string[]; canDistricts: string[]; birthYear: number | null; expectDaily: number | null; years: number };
+  init: { canKinds: string[]; canDistricts: string[]; birthYear: number | null; expectDaily: number | null; years: number; gender: string; hasCert: boolean | null; available: boolean };
 }) {
   const [kinds, setKinds] = useState<string[]>(init.canKinds);
   const [dists, setDists] = useState<string[]>(init.canDistricts);
+  const [gender, setGender] = useState<string>(init.gender);
   const toggle = (list: string[], set: (v: string[]) => void, v: string) =>
     set(list.includes(v) ? list.filter((x) => x !== v) : [...list, v]);
 
@@ -19,6 +20,7 @@ export function MatchInfoForm({ init }: {
     <form action={saveMatchInfoAction} className="space-y-5">
       {kinds.map((k) => <input key={k} type="hidden" name="canKinds" value={k} />)}
       {dists.map((d) => <input key={d} type="hidden" name="canDistricts" value={d} />)}
+      <input type="hidden" name="gender" value={gender} />
 
       {/* 可接工种 */}
       <Section title="我能做的工种" hint="多选 · 决定给你推荐哪些岗位（招的工种你会才推）">
@@ -52,6 +54,28 @@ export function MatchInfoForm({ init }: {
           {DISTRICTS.map((d) => (
             <Chip key={d} on={dists.includes(d)} onClick={() => toggle(dists, setDists, d)}>{d}</Chip>
           ))}
+        </div>
+      </Section>
+
+      {/* 性别 · 持证 · 接单状态 */}
+      <Section title="性别 · 持证 · 接单状态" hint="性别 / 持证用于匹配有相应要求的岗位；接单状态决定企业能否找到你">
+        <div className="space-y-4">
+          <div>
+            <div className="text-[12px] font-medium text-muted-foreground mb-1.5">性别</div>
+            <div className="flex gap-2">
+              {["男", "女"].map((g) => (
+                <Chip key={g} on={gender === g} onClick={() => setGender(gender === g ? "" : g)}>{g}</Chip>
+              ))}
+            </div>
+          </div>
+          <label className="flex items-center gap-2.5 cursor-pointer">
+            <input type="checkbox" name="hasCert" defaultChecked={init.hasCert === true} className="accent-accent-tea h-4 w-4 shrink-0" />
+            <span className="text-[13px]">我持有资格证书（二建 / 电工证 / 焊工证 / 设计师证等）</span>
+          </label>
+          <label className="flex items-center justify-between gap-2.5 cursor-pointer rounded-xl bg-surface px-3.5 py-3">
+            <span className="text-[13px] font-medium">接单状态 · 正在接单中</span>
+            <input type="checkbox" name="available" defaultChecked={init.available} className="accent-accent-tea h-5 w-5 shrink-0" />
+          </label>
         </div>
       </Section>
 

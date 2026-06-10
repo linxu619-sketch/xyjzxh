@@ -23,6 +23,8 @@ export type Job = {
   minAge: number | null;   // 年龄要求下限（null=不限）
   maxAge: number | null;   // 年龄要求上限（null=不限）
   minYears: number;        // 最低从业年限（0=不限）
+  genderReq: string;       // 性别要求 男/女（""=不限）
+  needCert: boolean;       // 是否需持证上岗
   status: JobStatus;
   createdAt: number;
 };
@@ -44,6 +46,7 @@ type JobRow = {
   kind: string | null; district: string | null; daily: number | null; openings: number | null;
   duration: string | null; urgent: number | null; detail: string | null;
   min_age: number | null; max_age: number | null; min_years: number | null;
+  gender_req: string | null; need_cert: number | null;
   status: string; created_at: number | null;
 };
 type AppRow = {
@@ -57,6 +60,7 @@ function toJob(r: JobRow): Job {
     kind: r.kind ?? "", district: r.district ?? "", daily: r.daily ?? 0, openings: r.openings ?? 1,
     duration: r.duration ?? "", urgent: !!r.urgent, detail: r.detail ?? "",
     minAge: r.min_age ?? null, maxAge: r.max_age ?? null, minYears: r.min_years ?? 0,
+    genderReq: r.gender_req ?? "", needCert: !!r.need_cert,
     status: (r.status as JobStatus) ?? "open",
     createdAt: r.created_at ?? 0,
   };
@@ -89,16 +93,17 @@ export function getJob(id: number): Job | undefined {
 export function createJob(input: {
   enterpriseId: string; enterpriseName: string; title: string; kind: string;
   district?: string; daily?: number; openings?: number; duration?: string; urgent?: boolean; detail?: string;
-  minAge?: number | null; maxAge?: number | null; minYears?: number;
+  minAge?: number | null; maxAge?: number | null; minYears?: number; genderReq?: string; needCert?: boolean;
 }): number {
   const info = getDb().prepare(
-    `INSERT INTO jobs (enterprise_id,enterprise_name,title,kind,district,daily,openings,duration,urgent,detail,min_age,max_age,min_years,status,created_at)
-     VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?, 'open', ?)`,
+    `INSERT INTO jobs (enterprise_id,enterprise_name,title,kind,district,daily,openings,duration,urgent,detail,min_age,max_age,min_years,gender_req,need_cert,status,created_at)
+     VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?, 'open', ?)`,
   ).run(
     input.enterpriseId, input.enterpriseName, input.title, input.kind,
     input.district ?? "", input.daily ?? 0, input.openings ?? 1, input.duration ?? "",
     input.urgent ? 1 : 0, input.detail ?? "",
     input.minAge ?? null, input.maxAge ?? null, input.minYears ?? 0,
+    input.genderReq ?? "", input.needCert ? 1 : 0,
     Date.now(),
   );
   return Number(info.lastInsertRowid);

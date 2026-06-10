@@ -53,7 +53,17 @@ export function PostJobForm() {
             <Field label="最高年龄"><input name="maxAge" inputMode="numeric" placeholder="55" className={INPUT} /></Field>
             <Field label="最低年限(年)"><input name="minYears" inputMode="numeric" placeholder="0" className={INPUT} /></Field>
           </div>
-          <div className="-mt-1 text-[11px] text-muted-foreground">年龄 / 年限留空 = 不限。填了系统只把符合的从业者匹配过来，双方不做无用功。</div>
+          <div className="grid grid-cols-2 gap-3">
+            <Field label="性别要求">
+              <select name="genderReq" defaultValue="" className={INPUT}>
+                <option value="">不限</option><option value="男">限男</option><option value="女">限女</option>
+              </select>
+            </Field>
+            <Field label="持证要求">
+              <label className="flex items-center gap-2 h-11 text-[13px]"><input type="checkbox" name="needCert" className="accent-cat-decor h-4 w-4" /> 需持证上岗</label>
+            </Field>
+          </div>
+          <div className="-mt-1 text-[11px] text-muted-foreground">年龄 / 年限 / 性别 / 持证留空或不勾 = 不限。填了系统只把符合的从业者匹配过来，双方不做无用功。</div>
           <Field label="岗位说明"><textarea name="detail" rows={3} placeholder="工作内容、要求、是否包餐、结算方式等" className={`${INPUT} h-auto py-2.5 leading-6`} /></Field>
           <label className="flex items-center gap-2 text-[13px]">
             <input type="checkbox" name="urgent" className="accent-cat-decor h-4 w-4" /> 标记为「急招」

@@ -22,8 +22,12 @@ export async function saveMatchInfoAction(fd: FormData) {
   if (birthYear && (birthYear < 1940 || birthYear > nowY - 14)) birthYear = null; // 明显非法忽略
   const expectDaily = posInt("expectDaily");
   const years = Math.max(0, Math.floor(Number(fd.get("years")) || 0));
+  const g = String(fd.get("gender") || "").trim();
+  const gender = g === "男" || g === "女" ? g : "";
+  const hasCert = fd.get("hasCert") != null;   // 勾选=持证
+  const available = fd.get("available") != null; // 勾选=在接单
 
-  updatePractitionerMatchInfo(s.phone, { birthYear, canKinds, canDistricts, expectDaily, years });
+  updatePractitionerMatchInfo(s.phone, { birthYear, canKinds, canDistricts, expectDaily, years, gender, hasCert, available });
 
   revalidatePath("/dashboard/practitioner");
   revalidatePath("/dashboard/practitioner/profile");

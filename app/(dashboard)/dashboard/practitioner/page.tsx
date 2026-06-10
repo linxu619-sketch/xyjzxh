@@ -46,7 +46,7 @@ export default async function PractitionerHome() {
   // 真实在招岗位（与「找活」页同源 listOpenJobs）+ 按本人资料做匹配
   const openJobs = listOpenJobs();
   const { matched } = matchJobs(
-    { canKinds: me?.canKinds ?? [], canDistricts: me?.canDistricts ?? [], birthYear: me?.birthYear ?? null, expectDaily: me?.expectDaily ?? null, years: me?.years ?? 0, city: me?.city ?? "" },
+    { canKinds: me?.canKinds ?? [], canDistricts: me?.canDistricts ?? [], birthYear: me?.birthYear ?? null, expectDaily: me?.expectDaily ?? null, years: me?.years ?? 0, city: me?.city ?? "", gender: me?.gender ?? "", hasCert: me?.hasCert ?? null },
     openJobs,
   );
   // 为你推荐：适配优先，无适配时回退最新（避免空）

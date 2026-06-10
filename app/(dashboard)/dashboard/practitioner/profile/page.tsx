@@ -120,6 +120,11 @@ export default async function PractitionerProfile({ searchParams }: { searchPara
             <Mini2 label="期望日薪" value={me.expectDaily ? `¥${me.expectDaily}` : "不限"} sub={me.expectDaily ? "起" : ""} />
             <Mini2 label="从业年限" value={me.years ? `${me.years}` : "未填"} sub={me.years ? "年" : ""} />
           </div>
+          <div className="grid grid-cols-3 gap-2 mb-3">
+            <Mini2 label="性别" value={me.gender || "未填"} sub="" />
+            <Mini2 label="持证" value={me.hasCert === true ? "持证" : me.hasCert === false ? "无证" : "未填"} sub="" />
+            <Mini2 label="接单状态" value={me.available ? "在接单" : "暂歇"} sub="" />
+          </div>
           <div>
             <div className="text-[11px] text-muted-foreground mb-1.5">可接工地区域</div>
             <div className="flex flex-wrap gap-1.5">

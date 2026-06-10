@@ -145,9 +145,14 @@ export default async function PractitionersLanding() {
                 <span className="text-muted-foreground">· {p.jobs} 单</span>
               </div>
               <div className="mt-1 text-[10px] text-muted-foreground">{p.city}</div>
-              {p.insured && (
-                <Badge tone="tea" className="mt-2 !text-[9px]"><ShieldCheck className="h-2.5 w-2.5 inline mr-0.5" />工伤险</Badge>
-              )}
+              <div className="mt-2 flex items-center gap-1.5 flex-wrap">
+                {p.available
+                  ? <Badge tone="tea" className="!text-[9px]">● 在接单</Badge>
+                  : <Badge tone="neutral" className="!text-[9px]">暂歇</Badge>}
+                {p.insured && (
+                  <Badge tone="tea" className="!text-[9px]"><ShieldCheck className="h-2.5 w-2.5 inline mr-0.5" />工伤险</Badge>
+                )}
+              </div>
             </Link>
           ))}
         </div>

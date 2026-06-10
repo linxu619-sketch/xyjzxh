@@ -58,6 +58,11 @@ export default async function PractitionerCard({ params }: { params: Promise<{ i
             <div className="mt-3 flex items-center justify-center">
               <TierBadge tier={tier} level={level} isMax={isMax} size="lg" track />
             </div>
+            <div className="mt-2 text-[11px]">
+              {me.available
+                ? <span className="inline-flex items-center gap-1 text-accent-tea font-medium"><span className="h-1.5 w-1.5 rounded-full bg-accent-tea" /> 正在接单</span>
+                : <span className="text-muted-foreground">暂歇接单</span>}
+            </div>
           </div>
 
           {/* 成就数据 */}

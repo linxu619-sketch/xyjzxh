@@ -33,6 +33,8 @@ export default async function PractitionerJobs({ searchParams }: { searchParams:
       expectDaily: me?.expectDaily ?? null,
       years: me?.years ?? 0,
       city: me?.city ?? "",
+      gender: me?.gender ?? "",
+      hasCert: me?.hasCert ?? null,
     },
     listOpenJobs(),
   );
@@ -151,6 +153,8 @@ function JobCard({ m, st, dim }: { m: JobMatch; st?: string; dim?: boolean }) {
         {j.duration && <><span>·</span><span className="inline-flex items-center gap-0.5"><Clock className="h-2.5 w-2.5" />{j.duration}</span></>}
         {(j.minAge || j.maxAge) && <><span>·</span><span>年龄 {j.minAge ?? "不限"}-{j.maxAge ?? "不限"}</span></>}
         {j.minYears > 0 && <><span>·</span><span>经验 ≥{j.minYears}年</span></>}
+        {j.genderReq && <><span>·</span><span>限{j.genderReq}</span></>}
+        {j.needCert && <><span>·</span><span>需持证</span></>}
       </div>
 
       <div className="mt-3 pt-3 border-t border-border flex items-center justify-between gap-2">
