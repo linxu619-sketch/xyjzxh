@@ -96,3 +96,40 @@ export function nextTierOf(track: TierTrack, tier: MemberTier): MemberTier | nul
 export function nextTierForSeller(sellerType: SellerType, tier: MemberTier): MemberTier | null {
   return nextTierOf(trackOf(sellerType), tier);
 }
+
+/* ============================================================
+   个人会员「成长进度」——协会评定为准，门户用于激励与晋级参考
+   等级的实际授予仍由协会评审；这里只把真实成就（接单 / 评分 / 从业年限）
+   对照「晋级参考线」算一个进度，给从业者看见努力方向，不改变其等级。
+   ============================================================ */
+export type PractAchievement = { jobs: number; rating: number; years: number };
+export type GrowthCriterion = { label: string; cur: number; target: number; unit: string; pct: number };
+export type PractGrowth = { next: PractitionerTier | null; criteria: GrowthCriterion[]; percent: number };
+
+// 各档晋级到下一档的参考线（达到后由协会评审授予）
+const PRACT_ADVANCE: Record<PractitionerTier, { target: PractitionerTier; jobs: number; rating: number; years: number } | null> = {
+  注册会员: { target: "资深会员", jobs: 30, rating: 4.5, years: 3 },
+  资深会员: { target: "专家会员", jobs: 100, rating: 4.7, years: 8 },
+  专家会员: null,
+};
+
+export function practitionerGrowth(tier: PractitionerTier, a: PractAchievement): PractGrowth {
+  const adv = PRACT_ADVANCE[tier];
+  if (!adv) return { next: null, criteria: [], percent: 100 };
+  const mk = (label: string, cur: number, target: number, unit: string): GrowthCriterion => ({
+    label, cur, target, unit,
+    pct: Math.round(Math.max(0, Math.min(1, target > 0 ? cur / target : 1)) * 100),
+  });
+  const criteria = [
+    mk("接单", a.jobs, adv.jobs, "单"),
+    mk("评分", a.rating, adv.rating, ""),
+    mk("从业", a.years, adv.years, "年"),
+  ];
+  const percent = Math.round(criteria.reduce((s, c) => s + c.pct, 0) / criteria.length);
+  return { next: adv.target, criteria, percent };
+}
+
+// 个人会员等级在梯队中的序号（1 起），用于展示 L1 / L2 / L3
+export function practitionerLevel(tier: PractitionerTier): number {
+  return PRACTITIONER_TIERS.find((m) => m.tier === tier)?.level ?? 1;
+}

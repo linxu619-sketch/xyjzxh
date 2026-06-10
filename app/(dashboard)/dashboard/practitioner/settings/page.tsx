@@ -1,35 +1,37 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import {
-  ArrowLeft, UserCircle2, Lock, Bell, MapPin, FileText, HelpCircle,
-  ShieldCheck, ChevronRight, LogOut,
+  UserCircle2, Bell, FileText, HelpCircle, ShieldCheck, ChevronRight, LogOut,
 } from "lucide-react";
 import { PractitionerShell } from "@/components/dashboard/practitioner-shell";
 import { Toggle } from "@/components/dashboard/section";
 import { logoutAction } from "@/app/(main)/login/actions";
+import { getSession } from "@/lib/auth/session";
+import { isPractitionerPreview } from "@/lib/dashboard/preview";
 
 export const metadata = { title: "设置 · 从业者门户" };
 
-export default function PractitionerSettings() {
+export default async function PractitionerSettings() {
+  const session = await getSession();
+  if (!session || (session.role !== "practitioner" && !isPractitionerPreview(session))) {
+    redirect("/login?role=practitioner");
+  }
+
   return (
     <PractitionerShell title="设置">
-      <Group title="账号与安全">
-        <Row icon={UserCircle2} label="个人资料" sub="姓名 · 头像 · 工种 · 工龄" href="/dashboard/practitioner/profile" />
-        <Row icon={Lock} label="修改密码 / 短信验证" sub="距上次修改 60 天" />
-        <Row icon={MapPin} label="常用工地范围" sub="3 个地区" />
+      <Group title="账号">
+        <Row icon={UserCircle2} label="个人资料 · 荣誉档案" sub="等级 · 工种 · 工龄 · 成就" href="/dashboard/practitioner/profile" />
+        <Row icon={ShieldCheck} label="实名认证" sub={`已通过 · ${session.name}`} />
       </Group>
 
       <Group title="通知">
         <RowToggle icon={Bell} label="新岗位推送" defaultChecked />
         <RowToggle icon={Bell} label="工伤险 / 保单到期" defaultChecked />
         <RowToggle icon={Bell} label="协会公告 / 培训开课" defaultChecked />
-        <RowToggle icon={Bell} label="同行圈互动" />
         <RowToggle icon={Bell} label="夜间免打扰 22:00-08:00" defaultChecked />
       </Group>
 
-      <Group title="我的">
-        <Row icon={FileText} label="我的简历" sub="最近更新 5 月 25 日" />
-        <Row icon={FileText} label="我的调解记录" sub="0 起" />
-        <Row icon={ShieldCheck} label="实名认证" sub="已通过 · 张建国" />
+      <Group title="帮助与条款">
         <Row icon={HelpCircle} label="帮助中心" sub="常见问题 · 协会热线" href="/about/contact" />
         <Row icon={FileText} label="服务条款" href="/legal/terms" />
         <Row icon={ShieldCheck} label="隐私政策" href="/legal/privacy" />
@@ -42,7 +44,7 @@ export default function PractitionerSettings() {
       </form>
 
       <div className="mt-6 mb-2 text-center text-[10px] text-muted-foreground">
-        从业者门户 v1.0 · 备案号略
+        信阳市建筑装饰装修协会 · 从业者门户
       </div>
     </PractitionerShell>
   );

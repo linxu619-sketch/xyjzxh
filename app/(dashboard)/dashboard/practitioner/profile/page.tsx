@@ -1,15 +1,18 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import {
-  ShieldCheck, Star, BadgeCheck, Sparkles, ChevronRight, Pencil, LogOut, Settings, MapPin,
+  ShieldCheck, Star, Sparkles, ChevronRight, LogOut, Settings, MapPin, Check, Briefcase, CalendarClock,
 } from "lucide-react";
 import { PractitionerShell } from "@/components/dashboard/practitioner-shell";
+import { TierBadge, GrowthMeter } from "@/components/dashboard/practitioner-tier";
 import { logoutAction } from "@/app/(main)/login/actions";
 import { getSession } from "@/lib/auth/session";
 import { getPractitionerByPhone } from "@/lib/data/practitioners-source";
+import { getMemberTier, practitionerGrowth, practitionerLevel, metaOf } from "@/lib/data/member-tier";
+import type { PractitionerTier } from "@/lib/data/member-tier";
 import { effectivePractitionerPhone, isPractitionerPreview } from "@/lib/dashboard/preview";
 
-export const metadata = { title: "我的 · 从业者门户" };
+export const metadata = { title: "我的 · 荣誉档案" };
 
 export default async function PractitionerProfile() {
   const session = await getSession();
@@ -26,39 +29,67 @@ export default async function PractitionerProfile() {
   const jobsDone = me?.jobs ?? 0;
   const insured = me?.insured ?? false;
 
+  // 会员等级（协会评定为准）+ 成长进度 + 当前档权益
+  const tier = getMemberTier("practitioner", pid) as PractitionerTier;
+  const level = practitionerLevel(tier);
+  const isMaxTier = tier === "专家会员";
+  const growth = practitionerGrowth(tier, { jobs: jobsDone, rating, years });
+  const perks = metaOf(tier)?.perks ?? [];
+
   return (
     <PractitionerShell title="我的" showHeader={false}>
-      {/* 个人卡 */}
+      {/* 荣誉头卡 */}
       <div className="-mx-5 sm:-mx-8 lg:-mx-12 bg-foreground text-background pt-8 pb-12 px-5 sm:px-8 lg:px-12 mb-4 relative overflow-hidden">
-        <div className="absolute -top-10 -right-10 h-40 w-40 rounded-full bg-cat-design/30 blur-3xl" />
-        <div className="flex items-center justify-end mb-4">
+        <div className="absolute -top-10 -right-10 h-44 w-44 rounded-full bg-[#f6c915]/25 blur-3xl" />
+        <div className="absolute -bottom-12 left-6 h-40 w-40 rounded-full bg-cat-design/25 blur-3xl" />
+        <div className="relative flex items-center justify-end mb-4">
           <Link href="/dashboard/practitioner/settings" className="h-9 w-9 rounded-full bg-white/10 inline-flex items-center justify-center hover:bg-white/20 transition-colors" aria-label="设置"><Settings className="h-4 w-4" /></Link>
         </div>
-        <div className="flex items-start gap-4">
-          <span className="h-16 w-16 rounded-full bg-cat-design text-white inline-flex items-center justify-center text-[24px] font-semibold">{name.slice(0, 1)}</span>
+        <div className="relative flex items-start gap-4">
+          <span className="h-16 w-16 rounded-full bg-gradient-to-br from-[#f6c915] to-[#e0a900] text-[#5a3e00] inline-flex items-center justify-center text-[24px] font-semibold shadow-lg shrink-0">{name.slice(0, 1)}</span>
           <div className="flex-1 min-w-0">
             <div className="text-[18px] font-semibold">{name}</div>
             <div className="text-[11px] text-background/70 mt-0.5">{kind}{years ? ` · ${years} 年` : ""} · <span className="inline-flex items-center gap-0.5"><MapPin className="h-3 w-3" />{city}</span></div>
-            <div className="text-[11px] text-background/70 mt-0.5">ID: {pid}</div>
+            <div className="mt-2.5"><TierBadge tier={tier} level={level} isMax={isMaxTier} size="lg" track /></div>
           </div>
-          <Link href="/dashboard/practitioner/settings" className="h-9 w-9 rounded-full bg-white/10 inline-flex items-center justify-center"><Pencil className="h-3.5 w-3.5" /></Link>
         </div>
-        <div className="mt-5 grid grid-cols-3 gap-2 text-center">
-          <Mini label="评分" value={rating.toFixed(1)} sub={`${jobsDone} 单`} />
-          <Mini label="累计接单" value={`${jobsDone}`} sub="单" />
-          <Mini label="工伤险" value={insured ? "在保" : "未保"} sub={insured ? "协会承保" : "去投保"} />
-        </div>
+        <div className="relative mt-3 text-[10px] text-background/50">ID {pid}</div>
       </div>
 
-      {/* 认证状态 */}
+      {/* 等级 · 成长进度 */}
       <section className="rounded-3xl bg-background border border-border p-5 mb-4">
-        <div className="flex items-center gap-2.5">
-          <ShieldCheck className="h-5 w-5 text-accent-tea" />
-          <div className="text-[14px] font-semibold">协会实名认证从业者</div>
+        <div className="flex items-center justify-between mb-3">
+          <h3 className="text-[14px] font-semibold tracking-tight">会员等级 · 成长</h3>
+          <span className="text-[11px] text-muted-foreground">协会评定 · {isMaxTier ? "已封顶" : `下一档 ${growth.next}`}</span>
         </div>
-        <p className="mt-2 text-[12px] text-muted-foreground leading-5">
-          您的{kind}身份已通过协会审核入册，展示在 <Link href="/practitioners" className="text-brand">从业者名录</Link>。完善简介与证书有助于获得更多接单机会。
-        </p>
+        <GrowthMeter next={growth.next} percent={growth.percent} criteria={growth.criteria} />
+        {!isMaxTier && (
+          <p className="mt-2.5 text-[11px] text-muted-foreground leading-5">
+            进度为晋级参考；达到参考线后由协会评审授予「{growth.next}」，专业资历越高，名录展示越靠前、权益越多。
+          </p>
+        )}
+        {/* 当前档权益 */}
+        <div className="mt-4 pt-4 border-t border-border">
+          <div className="text-[11px] text-muted-foreground mb-2">「{tier}」权益</div>
+          <ul className="space-y-1.5">
+            {perks.map((p) => (
+              <li key={p} className="flex items-start gap-1.5 text-[12.5px]">
+                <Check className="h-3.5 w-3.5 text-accent-tea mt-0.5 shrink-0" /> {p}
+              </li>
+            ))}
+          </ul>
+        </div>
+      </section>
+
+      {/* 成就数据 */}
+      <section className="rounded-3xl bg-background border border-border p-5 mb-4">
+        <h3 className="text-[14px] font-semibold tracking-tight mb-3">我的成就</h3>
+        <div className="grid grid-cols-2 gap-3">
+          <Achieve icon={Star} iconClass="fill-[#FFB400] text-[#FFB400]" label="协会评分" value={rating.toFixed(1)} sub="企业评价聚合" />
+          <Achieve icon={Briefcase} iconClass="text-cat-decor" label="累计接单" value={`${jobsDone}`} sub="单 · 经协会平台" />
+          <Achieve icon={CalendarClock} iconClass="text-cat-build" label="从业年限" value={years ? `${years}` : "—"} sub={years ? "年" : "完善资料"} />
+          <Achieve icon={ShieldCheck} iconClass={insured ? "text-accent-tea" : "text-muted-foreground"} label="工伤险" value={insured ? "在保" : "未保"} sub={insured ? "协会承保" : "建议投保"} />
+        </div>
       </section>
 
       {/* 资质证书 */}
@@ -68,7 +99,7 @@ export default async function PractitionerProfile() {
           <Link href="/dashboard/practitioner/training" className="text-[11px] text-brand">上传 →</Link>
         </div>
         <div className="rounded-2xl bg-surface p-5 text-center text-[12px] text-muted-foreground">
-          暂未上传证书。去「培训 · 证书」上传二建 / 设计师证 / 安全员等，认证后展示在名录。
+          暂未上传证书。去「培训 · 证书」上传二建 / 设计师证 / 安全员等，认证后展示在名录、并助力晋级评审。
         </div>
       </section>
 
@@ -76,10 +107,7 @@ export default async function PractitionerProfile() {
       <section className="rounded-3xl bg-background border border-border p-5 mb-4">
         <h3 className="text-[14px] font-semibold tracking-tight mb-3">历史项目</h3>
         <div className="rounded-2xl bg-surface p-5 text-center text-[12px] text-muted-foreground">
-          暂无项目记录。接单并完成后，企业评价会聚合到这里。
-        </div>
-        <div className="mt-3 inline-flex items-center gap-1 text-[11px] text-muted-foreground">
-          <Star className="h-3 w-3 fill-[#FFB400] text-[#FFB400]" /> 当前评分 {rating.toFixed(1)} · 累计 {jobsDone} 单
+          暂无项目记录。接单并完成后，企业评价会聚合到这里，累计接单与好评是晋级的重要依据。
         </div>
       </section>
 
@@ -107,12 +135,17 @@ export default async function PractitionerProfile() {
   );
 }
 
-function Mini({ label, value, sub }: { label: string; value: string; sub: string }) {
+function Achieve({ icon: Icon, iconClass, label, value, sub }: {
+  icon: React.ComponentType<{ className?: string }>;
+  iconClass: string; label: string; value: string; sub: string;
+}) {
   return (
-    <div className="rounded-xl bg-white/10 p-2.5">
-      <div className="text-[9px] text-background/60">{label}</div>
-      <div className="text-[18px] font-semibold mt-0.5">{value}</div>
-      {sub && <div className="text-[9px] text-background/60">{sub}</div>}
+    <div className="rounded-2xl bg-surface p-4">
+      <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
+        <Icon className={`h-3.5 w-3.5 ${iconClass}`} /> {label}
+      </div>
+      <div className="mt-1 text-[22px] font-semibold tracking-tight leading-none">{value}</div>
+      <div className="text-[10px] text-muted-foreground mt-1">{sub}</div>
     </div>
   );
 }

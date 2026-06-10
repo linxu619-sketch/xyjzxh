@@ -1,13 +1,16 @@
 import Link from "next/link";
 import {
   ShieldCheck, Briefcase, GraduationCap, Wallet, Sparkles, Settings,
-  ChevronRight, Star, BadgeCheck, ArrowUpRight, AlertCircle, MapPin, Clock, Store, Flag,
+  ChevronRight, BadgeCheck, ArrowUpRight, AlertCircle, MapPin, Clock, Store, Flag,
 } from "lucide-react";
 import { Container } from "@/components/container";
 import { CustomerBottomNav } from "@/components/dashboard/customer-bottom-nav";
+import { TierBadge, GrowthMeter } from "@/components/dashboard/practitioner-tier";
 import { PRACTITIONER_TABS } from "@/lib/dashboard/nav";
 import { Badge } from "@/components/ui/badge";
 import { getPractitionerByPhone } from "@/lib/data/practitioners-source";
+import { getMemberTier, practitionerGrowth, practitionerLevel } from "@/lib/data/member-tier";
+import type { PractitionerTier } from "@/lib/data/member-tier";
 import { listOpenJobs } from "@/lib/data/jobs";
 import { listPublished } from "@/lib/data/news-source";
 import { effectivePractitionerPhone, isPractitionerPreview } from "@/lib/dashboard/preview";
@@ -34,6 +37,11 @@ export default async function PractitionerHome() {
   const rating = me?.rating ?? 5;
   const jobsDone = me?.jobs ?? 0;
   const insured = me?.insured ?? false;
+  // 会员等级（协会评定为准）+ 成长进度（激励，不改变等级）
+  const tier = getMemberTier("practitioner", pid) as PractitionerTier;
+  const level = practitionerLevel(tier);
+  const isMaxTier = tier === "专家会员";
+  const growth = practitionerGrowth(tier, { jobs: jobsDone, rating, years });
   // 真实在招岗位（与「找活」页同源 listOpenJobs）
   const openJobs = listOpenJobs();
   const urgentJobs = openJobs.filter((j) => j.urgent).length;
@@ -70,8 +78,11 @@ export default async function PractitionerHome() {
             </Link>
           </div>
 
-          <div className="mt-5 inline-flex items-center gap-1.5 rounded-full bg-white/10 backdrop-blur px-3 py-1.5 text-[11px]">
-            <ShieldCheck className="h-3 w-3 text-accent-yellow" /> 已实名 · 协会认证从业者{insured ? " · 工伤险在保" : ""}
+          <div className="mt-5 flex items-center gap-2 flex-wrap">
+            <TierBadge tier={tier} level={level} isMax={isMaxTier} />
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-white/10 backdrop-blur px-3 py-1.5 text-[11px]">
+              <ShieldCheck className="h-3 w-3 text-accent-yellow" /> 已实名{insured ? " · 工伤险在保" : ""}
+            </span>
           </div>
         </Container>
       </div>
@@ -97,19 +108,14 @@ export default async function PractitionerHome() {
           </Link>
         )}
 
-        {/* 真实统计：评分 / 接单 / 工伤险 */}
-        <div className="rounded-3xl bg-background border border-border p-5 shadow-sm">
-          <div className="grid grid-cols-3 gap-3 text-center divide-x divide-border">
-            <Stat
-              label="评分"
-              value={<span className="inline-flex items-center gap-0.5"><Star className="h-4 w-4 fill-[#FFB400] text-[#FFB400]" />{rating.toFixed(1)}</span>}
-              sub="协会评价"
-              color="text-foreground"
-            />
-            <Stat label="累计接单" value={`${jobsDone}`} sub="单" color="text-cat-decor" />
-            <Stat label="工伤险" value={insured ? "在保" : "未保"} sub={insured ? "协会承保" : "去投保"} color={insured ? "text-accent-tea" : "text-muted-foreground"} />
+        {/* 会员等级 · 成长进度（详情见「我的 · 荣誉档案」）*/}
+        <Link href="/dashboard/practitioner/profile" className="block rounded-3xl bg-background border border-border p-5 shadow-sm active:scale-[0.99] transition-transform">
+          <div className="flex items-center justify-between mb-3">
+            <TierBadge tier={tier} level={level} isMax={isMaxTier} track />
+            <span className="text-[12px] text-brand inline-flex items-center gap-0.5 shrink-0">荣誉档案 <ChevronRight className="h-3 w-3" /></span>
           </div>
-        </div>
+          <GrowthMeter next={growth.next} percent={growth.percent} criteria={growth.criteria} compact />
+        </Link>
 
         {/* 四宫格 */}
         <div className="grid grid-cols-2 gap-3">
@@ -215,16 +221,6 @@ export default async function PractitionerHome() {
       </Container>
 
       <CustomerBottomNav tabs={PRACTITIONER_TABS} />
-    </div>
-  );
-}
-
-function Stat({ label, value, sub, color }: { label: string; value: React.ReactNode; sub: React.ReactNode; color: string }) {
-  return (
-    <div className="px-2">
-      <div className="text-[10px] text-muted-foreground tracking-wider uppercase">{label}</div>
-      <div className={`mt-1 text-[20px] font-semibold tracking-tight leading-none ${color}`}>{value}</div>
-      <div className="text-[10px] text-muted-foreground mt-0.5">{sub}</div>
     </div>
   );
 }
