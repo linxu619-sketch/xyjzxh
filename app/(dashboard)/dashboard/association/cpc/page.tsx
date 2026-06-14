@@ -1,9 +1,10 @@
 import Link from "next/link";
-import { ChevronRight, Eye, CheckCircle2, AlertCircle, ExternalLink } from "lucide-react";
+import { ChevronRight, Eye, CheckCircle2, AlertCircle, ExternalLink, Users2, IdCard, CalendarCheck, Layers } from "lucide-react";
 import { AssociationShell } from "@/components/dashboard/shell";
 import { StatFilters } from "@/components/dashboard/stat-filters";
 import { Badge } from "@/components/ui/badge";
 import { listNews } from "@/lib/data/news-source";
+import { listCommittee, listMembers, listMeetings, listTopics } from "@/lib/data/party-source";
 import { PublishPartyNews } from "./PublishPartyNews";
 
 export const metadata = { title: "党的建设 · 协会工作台" };
@@ -28,6 +29,18 @@ export default async function PartyAdmin({ searchParams }: { searchParams: Promi
   const base = "/dashboard/association/cpc";
   const catHref = (c: string) => (active === c ? base : `${base}?cat=${encodeURIComponent(c)}`);
 
+  // 支部建设各模块数量（班子 / 名册 / 台账 / 专题）
+  const cCommittee = listCommittee().length;
+  const cMembers = listMembers().length;
+  const cMeetings = listMeetings().length;
+  const cTopics = listTopics().length;
+  const BRANCH_CARDS = [
+    { href: "/dashboard/association/cpc/branch?tab=committee", icon: Users2, label: "支部班子", n: cCommittee },
+    { href: "/dashboard/association/cpc/branch?tab=members", icon: IdCard, label: "党员名册", n: cMembers },
+    { href: "/dashboard/association/cpc/branch?tab=meetings", icon: CalendarCheck, label: "三会一课台账", n: cMeetings },
+    { href: "/dashboard/association/cpc/branch?tab=topics", icon: Layers, label: "党建专题", n: cTopics },
+  ];
+
   return (
     <AssociationShell title="党的建设" subtitle={`党建动态 ${dongtai} · 理论学习 ${study}`}>
       {nok && <div className="mb-5 rounded-2xl border border-accent-tea/30 bg-[#e6f7f1] text-accent-tea p-4 flex items-center gap-3"><CheckCircle2 className="h-5 w-5 shrink-0" /><div className="text-[13px]"><b>已发布！</b>党建专栏与门户即时可见。</div></div>}
@@ -40,6 +53,23 @@ export default async function PartyAdmin({ searchParams }: { searchParams: Promi
           <PublishPartyNews />
           <a href="/cpc" target="_blank" rel="noreferrer" className="h-9 px-4 rounded-full border border-party/30 bg-background text-party text-[12px] font-medium inline-flex items-center gap-1.5"><ExternalLink className="h-3.5 w-3.5" /> 查看专栏</a>
         </div>
+      </div>
+
+      {/* 支部建设入口（班子 / 名册 / 台账 / 专题） */}
+      <div className="mb-5 grid grid-cols-2 lg:grid-cols-4 gap-3">
+        {BRANCH_CARDS.map((c) => {
+          const Icon = c.icon;
+          return (
+            <Link key={c.href} href={c.href} className="rounded-2xl border border-border bg-background p-4 hover:border-party/40 hover:shadow-sm transition-all group">
+              <div className="flex items-center justify-between">
+                <span className="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-party-soft text-party"><Icon className="h-5 w-5" /></span>
+                <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-party transition-colors" />
+              </div>
+              <div className="mt-3 text-[14px] font-semibold">{c.label}</div>
+              <div className="text-[12px] text-muted-foreground">{c.n} 条 · 点击管理</div>
+            </Link>
+          );
+        })}
       </div>
 
       <StatFilters

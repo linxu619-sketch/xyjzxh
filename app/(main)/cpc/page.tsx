@@ -6,6 +6,7 @@ import {
 import { Container } from "@/components/container";
 import { Badge } from "@/components/ui/badge";
 import { listPublished } from "@/lib/data/news-source";
+import { listCommittee, listMembers, listMeetings, listTopics } from "@/lib/data/party-source";
 import { SITE } from "@/lib/site";
 
 export const metadata = {
@@ -48,6 +49,10 @@ const OATH =
 export default async function PartyPage() {
   const dynamics = listPublished("党建").slice(0, 6);
   const study = listPublished("理论学习").slice(0, 5);
+  const committee = listCommittee();
+  const members = listMembers();
+  const meetings = listMeetings().slice(0, 6);
+  const topics = listTopics();
 
   return (
     <>
@@ -133,6 +138,25 @@ export default async function PartyPage() {
               </p>
             </div>
           </div>
+
+          {/* 支部班子 / 组织架构 */}
+          {committee.length > 0 && (
+            <div className="mt-5 md:mt-6 rounded-3xl border border-border bg-background p-6 md:p-8">
+              <div className="inline-flex items-center gap-2 text-[12px] tracking-[0.2em] text-party uppercase font-medium">
+                <Users2 className="h-3.5 w-3.5" /> COMMITTEE · 支部班子
+              </div>
+              <h3 className="mt-2 text-[20px] md:text-[26px] font-semibold tracking-tight">支部委员会</h3>
+              <div className="mt-5 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
+                {committee.map((c) => (
+                  <div key={c.id} className="rounded-2xl border border-border bg-surface/40 p-5">
+                    <span className="inline-flex items-center rounded-full bg-party-soft text-party px-2.5 py-0.5 text-[11px] font-medium">{c.post}</span>
+                    <div className="mt-3 text-[16px] font-semibold tracking-tight">{c.name}</div>
+                    {c.duty && <p className="mt-1.5 text-[12px] text-muted-foreground leading-5">{c.duty}</p>}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </Container>
       </section>
 
@@ -240,24 +264,92 @@ export default async function PartyPage() {
                 <GraduationCap className="h-3.5 w-3.5" /> ROUTINE · 三会一课
               </div>
               <h2 className="mt-2 text-[22px] md:text-[30px] font-semibold tracking-tight">三会一课 · 主题党日</h2>
-              <div className="mt-5 rounded-2xl border border-border bg-background divide-y divide-border overflow-hidden">
-                {ROUTINE.map((x, i) => (
-                  <div key={x.t} className="flex items-start gap-3 px-5 py-4">
-                    <span className="h-6 w-6 shrink-0 rounded-full bg-party text-white text-[12px] font-semibold inline-flex items-center justify-center">{i + 1}</span>
-                    <div className="min-w-0">
-                      <div className="text-[14px] font-semibold">{x.t}</div>
-                      <div className="text-[12px] text-muted-foreground mt-0.5 leading-5">{x.d}</div>
-                    </div>
-                  </div>
+              {/* 制度（5 类）紧凑标签 */}
+              <div className="mt-4 flex flex-wrap gap-1.5">
+                {ROUTINE.map((x) => (
+                  <span key={x.t} className="inline-flex items-center rounded-full bg-party-soft text-party px-2.5 py-1 text-[12px] font-medium">{x.t}</span>
                 ))}
               </div>
-              <Link href="/news?cat=%E5%85%9A%E5%BB%BA" className="mt-4 inline-flex items-center gap-1.5 text-[13px] font-medium text-party">
-                支部活动记录见党建动态 <ArrowUpRight className="h-3.5 w-3.5" />
-              </Link>
+              {/* 真实台账 */}
+              {meetings.length === 0 ? (
+                <div className="mt-4 rounded-2xl border border-dashed border-border bg-background p-8 text-center text-[13px] text-muted-foreground">
+                  暂无会议台账。支部在后台「支部建设 → 三会一课台账」登记后在此展示。
+                </div>
+              ) : (
+                <div className="mt-4 rounded-2xl border border-border bg-background divide-y divide-border overflow-hidden">
+                  {meetings.map((m) => (
+                    <div key={m.id} className="px-5 py-3.5">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <Badge tone="party" className="!px-2 !py-0.5">{m.type}</Badge>
+                        <span className="text-[14px] font-semibold tracking-tight flex-1 min-w-0 truncate">{m.title}</span>
+                        <span className="text-[12px] text-muted-foreground tabular-nums inline-flex items-center gap-1 shrink-0"><Calendar className="h-3 w-3" />{m.date}</span>
+                      </div>
+                      <div className="mt-1 text-[12px] text-muted-foreground leading-5">
+                        {[m.host && `主讲 ${m.host}`, m.attend, m.location].filter(Boolean).join(" · ")}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         </Container>
       </section>
+
+      {/* 党员风采 / 名册 */}
+      {members.length > 0 && (
+        <section className="py-8 md:py-12">
+          <Container>
+            <div className="mb-6 md:mb-8">
+              <div className="text-[12px] tracking-[0.2em] text-party uppercase font-medium inline-flex items-center gap-1.5">
+                <ShieldCheck className="h-3.5 w-3.5" /> MEMBERS · 党员风采
+              </div>
+              <h2 className="mt-2 text-[24px] md:text-[36px] font-semibold tracking-tight">党员先锋 · 亮身份作表率</h2>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">
+              {members.map((m) => (
+                <div key={m.id} className="rounded-2xl border border-border bg-background p-5">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <Badge tone="party" className="!px-2 !py-0.5">{m.kind}</Badge>
+                    {m.joined && <span className="text-[11px] text-muted-foreground">{m.joined} 入党</span>}
+                  </div>
+                  <div className="mt-3 text-[16px] font-semibold tracking-tight">{m.name}</div>
+                  <div className="text-[12px] text-muted-foreground">{[m.org, m.role].filter(Boolean).join(" · ")}</div>
+                  {m.highlight && <p className="mt-2.5 text-[13px] leading-6 text-foreground/80">{m.highlight}</p>}
+                </div>
+              ))}
+            </div>
+          </Container>
+        </section>
+      )}
+
+      {/* 党建专题 */}
+      {topics.length > 0 && (
+        <section className="py-8 md:py-12 bg-surface">
+          <Container>
+            <div className="mb-6 md:mb-8">
+              <div className="text-[12px] tracking-[0.2em] text-party uppercase font-medium inline-flex items-center gap-1.5">
+                <BookOpen className="h-3.5 w-3.5" /> TOPICS · 党建专题
+              </div>
+              <h2 className="mt-2 text-[24px] md:text-[36px] font-semibold tracking-tight">专题学习</h2>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4">
+              {topics.map((t) => (
+                <Link key={t.id} href={`/cpc/topic/${t.id}`} className="group rounded-2xl border border-border bg-background p-6 hover:shadow-md hover:border-party/30 transition-all">
+                  <div className="flex items-start justify-between gap-3">
+                    <h3 className="text-[17px] font-semibold tracking-tight group-hover:text-party transition-colors">{t.title}</h3>
+                    <ArrowUpRight className="h-4 w-4 text-muted-foreground shrink-0" />
+                  </div>
+                  {t.summary && <p className="mt-2 text-[13px] text-muted-foreground leading-6 line-clamp-2">{t.summary}</p>}
+                  <div className="mt-3 flex flex-wrap gap-1.5">
+                    {t.keywords.slice(0, 5).map((k) => <span key={k} className="rounded-full bg-party-soft text-party px-2 py-0.5 text-[11px]">{k}</span>)}
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </Container>
+        </section>
+      )}
 
       {/* 底部 CTA */}
       <section className="py-10 md:py-14">

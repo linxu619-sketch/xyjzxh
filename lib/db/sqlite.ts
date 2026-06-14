@@ -11,6 +11,7 @@ import { KNOWLEDGE as KB_ARTICLES } from "@/lib/data/knowledge";
 import { AGREEMENT_TEMPLATES, AGREEMENT_SIGNATURES } from "@/lib/data/agreements";
 import { SEED_STAFF } from "@/lib/data/users-seed";
 import { DEFAULT_KNOWLEDGE_SOURCES } from "@/lib/data/knowledge-sources";
+import { SEED_COMMITTEE, SEED_MEMBERS, SEED_MEETINGS, SEED_TOPICS } from "@/lib/data/party";
 
 /* ============================================================
    本地 SQLite 数据库（Node 24 内置 node:sqlite，零依赖、零云端）
@@ -662,6 +663,53 @@ CREATE TABLE IF NOT EXISTS orders (
   created_at     INTEGER
 );
 CREATE INDEX IF NOT EXISTS idx_orders_ent ON orders(enterprise_id, created_at);
+
+-- ===== 党的建设模块 =====
+-- 支部班子 / 组织架构
+CREATE TABLE IF NOT EXISTS party_committee (
+  id          TEXT PRIMARY KEY,
+  name        TEXT,
+  post        TEXT,        -- 支部书记 / 组织委员 / 宣传委员 / 纪检委员 / 委员
+  duty        TEXT,        -- 分工说明
+  sort        INTEGER DEFAULT 0,
+  created_at  INTEGER
+);
+-- 党员名册 / 党员风采
+CREATE TABLE IF NOT EXISTS party_members (
+  id          TEXT PRIMARY KEY,
+  name        TEXT,
+  kind        TEXT,        -- 党员 / 党员企业 / 入党积极分子
+  org         TEXT,        -- 所在单位 / 企业
+  role        TEXT,        -- 职务 / 工种
+  highlight   TEXT,        -- 先锋事迹 / 公开承诺
+  photo       TEXT,        -- 头像/标识 URL（选填）
+  joined      TEXT,        -- 入党时间（年）
+  sort        INTEGER DEFAULT 0,
+  created_at  INTEGER
+);
+-- 三会一课 / 主题党日 台账
+CREATE TABLE IF NOT EXISTS party_meetings (
+  id          TEXT PRIMARY KEY,
+  type        TEXT,        -- 支部党员大会 / 支部委员会 / 党小组会 / 党课 / 主题党日
+  title       TEXT,
+  date        TEXT,        -- 召开日期 YYYY-MM-DD
+  location    TEXT,
+  host        TEXT,        -- 主持 / 主讲
+  attend      TEXT,        -- 参会情况，如「应到 12 实到 11」
+  summary     TEXT,        -- 议题 / 内容（Markdown）
+  images      TEXT,        -- 现场图 JSON 数组
+  created_at  INTEGER
+);
+CREATE INDEX IF NOT EXISTS idx_party_meetings_date ON party_meetings(date);
+-- 党建专题（标签聚合相关新闻）
+CREATE TABLE IF NOT EXISTS party_topics (
+  id          TEXT PRIMARY KEY,
+  title       TEXT,
+  summary     TEXT,
+  cover       TEXT,
+  keywords    TEXT,        -- JSON 数组：用于聚合匹配新闻标题/摘要
+  created_at  INTEGER
+);
 `;
 
 function seedEnterprises(db: DB) {
@@ -944,6 +992,7 @@ function init(): DB {
   seedFeedback(db);              // 协会留言 / 意见反馈
   seedAssociationStaff(db);
   seedDemoCustomers(db);
+  seedPartyModule(db);
   return db;
 }
 
@@ -959,6 +1008,27 @@ function seedDemoCustomers(db: DB) {
   const stmt = db.prepare("INSERT OR IGNORE INTO accounts (phone,role,status,name,created_at) VALUES (?, 'customer', ?, ?, ?)");
   const now = Date.now();
   rows.forEach((r, i) => stmt.run(r[0], r[2], r[1], now - i * 2 * 86400000));
+}
+
+// 党的建设模块种子（支部班子 / 党员名册 / 三会一课台账 / 党建专题）
+function seedPartyModule(db: DB) {
+  const now = Date.now();
+  if (isEmpty(db, "party_committee")) {
+    const stmt = db.prepare("INSERT INTO party_committee (id,name,post,duty,sort,created_at) VALUES (?,?,?,?,?,?)");
+    SEED_COMMITTEE.forEach((c, i) => stmt.run(c.id, c.name, c.post, c.duty, c.sort, now - i * 1000));
+  }
+  if (isEmpty(db, "party_members")) {
+    const stmt = db.prepare("INSERT INTO party_members (id,name,kind,org,role,highlight,photo,joined,sort,created_at) VALUES (?,?,?,?,?,?,?,?,?,?)");
+    SEED_MEMBERS.forEach((m, i) => stmt.run(m.id, m.name, m.kind, m.org, m.role, m.highlight, m.photo ?? null, m.joined ?? null, m.sort, now - i * 1000));
+  }
+  if (isEmpty(db, "party_meetings")) {
+    const stmt = db.prepare("INSERT INTO party_meetings (id,type,title,date,location,host,attend,summary,images,created_at) VALUES (?,?,?,?,?,?,?,?,?,?)");
+    SEED_MEETINGS.forEach((m, i) => stmt.run(m.id, m.type, m.title, m.date, m.location, m.host, m.attend, m.summary, m.images.length ? JSON.stringify(m.images) : null, now - i * 86400000));
+  }
+  if (isEmpty(db, "party_topics")) {
+    const stmt = db.prepare("INSERT INTO party_topics (id,title,summary,cover,keywords,created_at) VALUES (?,?,?,?,?,?)");
+    SEED_TOPICS.forEach((t, i) => stmt.run(t.id, t.title, t.summary, t.cover ?? null, JSON.stringify(t.keywords), now - i * 1000));
+  }
 }
 
 // 协会工作人员入库（SEED_STAFF 作种子源；平台超管 SYSTEM_ADMIN 不入此表）
