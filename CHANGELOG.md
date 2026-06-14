@@ -14,6 +14,14 @@
 
 ---
 
+## [0.148.0] - 2026-06-14
+
+### 新增：新闻 / 知识库支持「全文」+ Markdown 排版
+- **知识库可发全文**（修复「发不了全文」）：此前知识库正文只有「小节标题+要点」结构、没有自由正文字段，发不了整篇文章。新增 `body`（Markdown 全文）字段：发布/编辑表单加「正文全文」大文本框，前台阅读页整篇渲染；原「要点小节」降级为可选的「要点速览」，老数据与 AI 抓取草稿不受影响。
+  - 数据层：`knowledge_articles` 加 `body TEXT` 列（CREATE + 幂等 ALTER）；`KnowledgeItem.body`、`KnowledgeInput.body`、create/update/rowTo、readInput 全链路打通。
+- **新闻支持 Markdown 排版**：新闻正文改用 Markdown 渲染（小标题/加粗/列表/段间插图），编辑框加大到 12 行并给语法提示；纯文本旧新闻照常显示。党建动态发布表单同步。
+- 新增只读渲染组件 `components/ui/markdown.tsx`（`react-markdown` + `remark-gfm`，已有依赖、零新增；不依赖未安装的 typography 插件，直接映射 Tailwind 类）。
+
 ## [0.147.0] - 2026-06-14
 
 ### 新增：密码框统一加「眼睛」显隐

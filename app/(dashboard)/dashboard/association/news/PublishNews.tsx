@@ -30,7 +30,10 @@ export function PublishNews() {
             <Field label="发布单位"><input name="author" defaultValue="协会秘书处" className={INPUT} /></Field>
           </div>
           <Field label="摘要"><input name="excerpt" placeholder="一句话概要（列表展示用，可留空自动截取）" className={INPUT} /></Field>
-          <Field label="正文" required><textarea name="content" rows={6} required placeholder="新闻 / 公告正文内容" className={`${INPUT} h-auto py-2.5 leading-6`} /></Field>
+          <Field label="正文" required>
+            <textarea name="content" rows={12} required placeholder={"新闻 / 公告正文，支持 Markdown：\n\n## 小标题\n**加粗**  - 列表项  [链接](https://…)  ![图片](图片URL)\n\n段落之间空一行分隔。"} className={`${INPUT} h-auto py-2.5 leading-7 font-mono`} />
+            <p className="mt-1 text-[11px] text-muted-foreground">支持 Markdown 排版（小标题 / 加粗 / 列表 / 插图）；<b>段落之间空一行</b>，前台整篇渲染。</p>
+          </Field>
           <div className="flex items-center gap-5">
             <label className="flex items-center gap-2 text-[13px]"><input type="checkbox" name="hot" className="accent-cat-decor h-4 w-4" /> 标为「热门」</label>
             <label className="flex items-center gap-2 text-[13px]"><input type="checkbox" name="draft" className="accent-foreground h-4 w-4" /> 存为草稿（不公开）</label>

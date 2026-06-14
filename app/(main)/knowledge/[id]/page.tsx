@@ -4,6 +4,7 @@ import { requireLogin } from "@/lib/auth/guard";
 import { ArrowLeft, Library, FileText, Sparkles, ShieldCheck, CalendarDays, ArrowUpRight, ExternalLink } from "lucide-react";
 import { Container } from "@/components/container";
 import { Badge } from "@/components/ui/badge";
+import { Markdown } from "@/components/ui/markdown";
 import { listKnowledge, getKnowledgeArticle } from "@/lib/data/knowledge-source";
 
 export const metadata = { title: "资料详情 · 知识库 · 信阳市建筑装饰装修协会" };
@@ -45,10 +46,18 @@ export default async function KnowledgeDetail({ params }: { params: Promise<{ id
         </p>
       </div>
 
-      {/* 正文要点 · 在线阅读 */}
+      {/* 正文全文 · 在线阅读（Markdown） */}
+      {k.body && k.body.trim() && (
+        <div className="mt-5 rounded-2xl border border-border bg-background p-5 md:p-6">
+          <div className="text-[12px] tracking-wider text-muted-foreground uppercase mb-4 inline-flex items-center gap-1.5"><FileText className="h-3.5 w-3.5" />正文 · 在线阅读</div>
+          <Markdown className="text-[15px]">{k.body}</Markdown>
+        </div>
+      )}
+
+      {/* 要点速览 · 结构化小节（可选） */}
       {k.content && k.content.length > 0 && (
         <div className="mt-5 rounded-2xl border border-border bg-background p-5 md:p-6">
-          <div className="text-[12px] tracking-wider text-muted-foreground uppercase mb-4 inline-flex items-center gap-1.5"><FileText className="h-3.5 w-3.5" />正文要点 · 在线阅读</div>
+          <div className="text-[12px] tracking-wider text-muted-foreground uppercase mb-4 inline-flex items-center gap-1.5"><FileText className="h-3.5 w-3.5" />{k.body && k.body.trim() ? "要点速览" : "正文要点 · 在线阅读"}</div>
           <div className="space-y-5">
             {k.content.map((sec, i) => (
               <div key={i}>

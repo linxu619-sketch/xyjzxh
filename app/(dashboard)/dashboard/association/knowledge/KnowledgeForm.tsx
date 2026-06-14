@@ -19,6 +19,7 @@ function Label({ children, required }: { children: React.ReactNode; required?: b
 
 type Initial = {
   id?: string; title?: string; category?: string; tags?: string; excerpt?: string;
+  body?: string;
   date?: string; hot?: boolean; fileUrl?: string; fileName?: string; size?: string;
   sections?: KnowledgeSection[];
 };
@@ -106,9 +107,24 @@ export function KnowledgeForm({ action, initial, submitLabel, hiddenFields }: {
         <input name="excerpt" defaultValue={initial?.excerpt} placeholder="用于列表与阅读页顶部的简介" className={INPUT} />
       </div>
 
-      {/* 正文要点 · 分小节 */}
+      {/* 正文全文（Markdown）—— 在线阅读主体 */}
       <div>
-        <Label>正文要点（在线阅读页展示，可分多个小节）</Label>
+        <Label>正文全文</Label>
+        <textarea
+          name="body"
+          defaultValue={initial?.body}
+          rows={14}
+          placeholder={"在此粘贴 / 撰写完整正文，支持 Markdown 排版：\n\n# 一级标题  ## 二级标题\n**加粗**  *斜体*\n- 列表项\n1. 有序列表\n> 引用\n[链接](https://…)   ![图片说明](图片URL)\n\n段落之间空一行分隔。"}
+          className={`${AREA} font-mono leading-7`}
+        />
+        <p className="mt-1.5 text-[11px] text-muted-foreground leading-5">
+          支持 Markdown：<code className="bg-surface px-1 rounded">#</code> 标题、<code className="bg-surface px-1 rounded">**粗**</code>、<code className="bg-surface px-1 rounded">- 列表</code>、<code className="bg-surface px-1 rounded">![]()</code> 插图；<b>段落之间空一行</b>。前台阅读页整篇渲染。
+        </p>
+      </div>
+
+      {/* 正文要点 · 分小节（可选） */}
+      <div>
+        <Label>要点速览（可选 · 结构化小节，便于快速查阅）</Label>
         <div className="space-y-3">
           {sections.map((s, i) => (
             <div key={i} className="rounded-none border border-border bg-surface/40 p-3 space-y-2">

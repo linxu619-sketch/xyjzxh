@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { ArrowLeft, Calendar, Eye, User, ArrowUpRight } from "lucide-react";
 import { Container } from "@/components/container";
 import { Badge } from "@/components/ui/badge";
+import { Markdown } from "@/components/ui/markdown";
 import { getNews, listPublished, incrementViews } from "@/lib/data/news-source";
 
 const TONE: Record<string, "build" | "decor" | "design" | "brand" | "tea" | "party"> = {
@@ -54,7 +55,7 @@ export default async function NewsDetail({ params }: { params: Promise<{ id: str
         <img src={n.cover} alt={n.title} className="mt-6 w-full rounded-2xl border border-border object-cover" style={{ aspectRatio: "16 / 9" }} />
       )}
 
-      <article className="mt-8 text-[15px] leading-8 text-foreground whitespace-pre-wrap">{n.content}</article>
+      <Markdown className="mt-8 text-[15px]">{n.content}</Markdown>
 
       {n.images.length > 0 && (
         <div className="mt-8 grid grid-cols-2 md:grid-cols-3 gap-3">

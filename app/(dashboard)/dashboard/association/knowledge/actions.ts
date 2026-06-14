@@ -45,6 +45,7 @@ function readInput(fd: FormData, keepDate?: string): KnowledgeInput {
     size: String(fd.get("size") || "").trim() || undefined,
     hot: String(fd.get("hot") || "") === "1",
     excerpt: String(fd.get("excerpt") || "").trim(),
+    body: String(fd.get("body") || "").trim() || undefined,
     content: parseSections(String(fd.get("content") || "")),
     fileUrl: String(fd.get("fileUrl") || "").trim() || undefined,
     fileName: String(fd.get("fileName") || "").trim() || undefined,

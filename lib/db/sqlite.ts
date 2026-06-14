@@ -207,7 +207,8 @@ CREATE TABLE IF NOT EXISTS knowledge_articles (
   size        TEXT,
   hot         INTEGER,
   excerpt     TEXT,
-  content     TEXT,    -- JSON: [{h, points[]}]
+  body        TEXT,    -- 正文全文（Markdown，在线阅读主体）
+  content     TEXT,    -- JSON: [{h, points[]}]（可选「要点速览」）
   file_url    TEXT,    -- 上传的 PDF/DOCX 原文 URL
   file_name   TEXT,    -- 原文件名
   created_at  INTEGER
@@ -1482,6 +1483,8 @@ function migrate(db: DB) {
     // 知识库文章溯源（AI 自动抓取入库时记录来源，便于去重与标注）
     "ALTER TABLE knowledge_articles ADD COLUMN source_url TEXT",
     "ALTER TABLE knowledge_articles ADD COLUMN source_name TEXT",
+    // 知识库正文全文（Markdown，在线阅读主体；要点小节降为可选）
+    "ALTER TABLE knowledge_articles ADD COLUMN body TEXT",
     // 个人会员简介（入会申请填写，通过后落到从业者档案）
     "ALTER TABLE practitioners ADD COLUMN bio TEXT",
     // 个人会员名录展示等级（注册/资深/专家会员，协会评定）

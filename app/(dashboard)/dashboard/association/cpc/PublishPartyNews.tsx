@@ -35,7 +35,10 @@ export function PublishPartyNews() {
             <Field label="发布单位"><input name="author" defaultValue="协会党支部" className={INPUT} /></Field>
           </div>
           <Field label="摘要"><input name="excerpt" placeholder="一句话概要（列表展示用，可留空自动截取）" className={INPUT} /></Field>
-          <Field label="正文" required><textarea name="content" rows={6} required placeholder="党建动态 / 理论学习正文内容" className={`${INPUT} h-auto py-2.5 leading-6`} /></Field>
+          <Field label="正文" required>
+            <textarea name="content" rows={12} required placeholder={"党建动态 / 理论学习正文，支持 Markdown：\n\n## 小标题\n**加粗**  - 列表项  ![图片](图片URL)\n\n段落之间空一行分隔。"} className={`${INPUT} h-auto py-2.5 leading-7 font-mono`} />
+            <p className="mt-1 text-[11px] text-muted-foreground">支持 Markdown 排版；<b>段落之间空一行</b>，前台整篇渲染。</p>
+          </Field>
 
           {/* 封面图（单张，列表与详情顶部展示）*/}
           <SingleUpload label="封面图" aspect="16 / 9" className="max-w-[260px]" onChange={setCover} />

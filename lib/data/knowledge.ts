@@ -9,7 +9,8 @@ export type KnowledgeItem = {
   size?: string;
   hot?: boolean;
   excerpt: string;
-  content?: KnowledgeSection[]; // 在线阅读正文要点（协会技术委员会整理，非官方全文照搬）
+  body?: string;                // 正文全文（Markdown，在线阅读主体）
+  content?: KnowledgeSection[]; // 可选「要点速览」（结构化小节，AI 抓取草稿也用它）
   fileUrl?: string;            // 上传的 PDF/DOCX 原文
   fileName?: string;
   sourceUrl?: string;          // AI 自动抓取入库时的原文链接

@@ -17,7 +17,7 @@ export default async function KnowledgeEdit({ params, searchParams }: { params: 
 
   const initial = {
     id: k.id, title: k.title, category: k.category, tags: k.tags.join("、"), excerpt: k.excerpt,
-    date: k.date, sections: k.content ?? [],
+    body: k.body, date: k.date, sections: k.content ?? [],
     hot: k.hot, fileUrl: k.fileUrl, fileName: k.fileName, size: k.size,
   };
 
