@@ -90,20 +90,32 @@ export default async function StaffDetail({ params, searchParams }: { params: Pr
         {!isSuper && (
           <div className="mt-6 pt-5 border-t border-border">
             <div className="text-[12px] text-muted-foreground mb-3 inline-flex items-center gap-1.5"><UserCog className="h-3.5 w-3.5" /> 设置角色 · 可多选</div>
-            <form action={setStaffRolesAction}>
-              <input type="hidden" name="id" value={s.id} />
-              <div className="flex flex-wrap gap-2">
-                {ROLE_KEYS.filter((r) => r !== "super_admin").map((r) => {
-                  const on = s.roles.includes(r);
-                  return (
-                    <label key={r} className="inline-flex items-center gap-1.5 h-9 px-3.5 rounded-full text-[13px] border cursor-pointer transition-colors bg-background border-border hover:bg-surface has-[:checked]:bg-foreground has-[:checked]:text-background has-[:checked]:border-foreground">
-                      <input type="checkbox" name="role" value={r} defaultChecked={on} className="accent-brand" />{roleLabel(r)}
-                    </label>
-                  );
-                })}
-              </div>
-              <button className="mt-3 h-9 px-4 rounded-full bg-foreground text-background text-[13px] font-medium inline-flex items-center gap-1.5"><Save className="h-3.5 w-3.5" /> 保存角色</button>
-            </form>
+            <div className="flex flex-wrap items-center gap-2 mb-3">
+              {s.roles.map((r) => <Badge key={r} tone={roleTone(r)}>{roleLabel(r)}</Badge>)}
+            </div>
+            <GuardedActionModal
+              action={setStaffRolesAction}
+              hidden={{ id: s.id }}
+              trigger={<><UserCog className="h-4 w-4" /> 调整角色</>}
+              triggerClassName="h-9 px-4 rounded-full border border-border text-[13px] font-medium inline-flex items-center gap-1.5 hover:bg-surface"
+              title="调整工作人员角色"
+              description={`勾选「${s.name}」的角色(可多选,权限取并集)。调整权限需管理员密码确认。`}
+              fields={
+                <div className="flex flex-wrap gap-2">
+                  {ROLE_KEYS.filter((r) => r !== "super_admin").map((r) => {
+                    const on = s.roles.includes(r);
+                    return (
+                      <label key={r} className="inline-flex items-center gap-1.5 h-9 px-3.5 rounded-full text-[13px] border cursor-pointer transition-colors bg-background border-border hover:bg-surface has-[:checked]:bg-foreground has-[:checked]:text-background has-[:checked]:border-foreground">
+                        <input type="checkbox" name="role" value={r} defaultChecked={on} className="accent-brand" />{roleLabel(r)}
+                      </label>
+                    );
+                  })}
+                </div>
+              }
+              confirmLabel={<><Save className="h-4 w-4" /> 确认保存</>}
+              confirmClassName="h-10 px-5 rounded-full bg-foreground text-background text-[13px] font-medium inline-flex items-center gap-1.5"
+              errored={err === "roles"}
+            />
           </div>
         )}
 

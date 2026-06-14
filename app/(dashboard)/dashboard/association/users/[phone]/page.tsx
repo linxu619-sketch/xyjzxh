@@ -21,9 +21,9 @@ function fmt(ms: number) { if (!ms) return "—"; const d = new Date(ms); const 
 
 export const metadata = { title: "用户详情 · 协会工作台" };
 
-export default async function UserDetail({ params, searchParams }: { params: Promise<{ phone: string }>; searchParams: Promise<{ err?: string }> }) {
+export default async function UserDetail({ params, searchParams }: { params: Promise<{ phone: string }>; searchParams: Promise<{ err?: string; t?: string }> }) {
   const { phone } = await params;
-  const { err } = await searchParams;
+  const { err, t } = await searchParams;
   const a = getAccountByPhone(decodeURIComponent(phone));
   if (!a) notFound();
   const Icon = ROLE_ICON[a.role] ?? UserRound;
@@ -116,18 +116,28 @@ export default async function UserDetail({ params, searchParams }: { params: Pro
             <div className="flex flex-wrap gap-2">
               {ladder.map((m) => {
                 const cur = m.tier === tier;
+                const quotaTxt = m.quota === Infinity ? "不限" : `${m.quota} 款`;
+                if (cur) {
+                  return (
+                    <span key={m.tier} className="h-9 px-4 rounded-full text-[13px] font-medium inline-flex items-center gap-1.5 border bg-foreground text-background border-foreground" title={m.perks.join(" / ")}>
+                      <Check className="h-3.5 w-3.5" />{m.tier}
+                      <span className="text-[11px] text-background/60">· {quotaTxt}</span>
+                    </span>
+                  );
+                }
                 return (
-                  <form key={m.tier} action={setMemberTierAction}>
-                    <input type="hidden" name="phone" value={a.phone} />
-                    <input type="hidden" name="tier" value={m.tier} />
-                    <button
-                      className={`h-9 px-4 rounded-full text-[13px] font-medium inline-flex items-center gap-1.5 border transition-colors ${cur ? "bg-foreground text-background border-foreground" : "bg-background border-border hover:bg-surface"}`}
-                      title={m.perks.join(" / ")}
-                    >
-                      {cur && <Check className="h-3.5 w-3.5" />}{m.tier}
-                      <span className={`text-[11px] ${cur ? "text-background/60" : "text-muted-foreground"}`}>· {m.quota === Infinity ? "不限" : `${m.quota} 款`}</span>
-                    </button>
-                  </form>
+                  <GuardedActionModal
+                    key={m.tier}
+                    action={setMemberTierAction}
+                    hidden={{ phone: a.phone, tier: m.tier }}
+                    trigger={<>{m.tier}<span className="text-[11px] text-muted-foreground">· {quotaTxt}</span></>}
+                    triggerClassName="h-9 px-4 rounded-full text-[13px] font-medium inline-flex items-center gap-1.5 border bg-background border-border hover:bg-surface"
+                    title="调整会员等级"
+                    description={`将「${a.name || a.phone}」的等级调整为「${m.tier}」(${quotaTxt})。等级影响商城配额 / 决策权,需管理员密码确认。`}
+                    confirmLabel={<><Check className="h-4 w-4" /> 确认调整</>}
+                    confirmClassName="h-10 px-5 rounded-full bg-foreground text-background text-[13px] font-medium inline-flex items-center gap-1.5"
+                    errored={err === "tier" && t === m.tier}
+                  />
                 );
               })}
             </div>

@@ -63,9 +63,13 @@ export async function setAccountStatusAction(fd: FormData) {
 
 // 协会调整会员等级（企业=治理梯队 / 个人=专业梯队，两套互不相干，按角色校验）
 export async function setMemberTierAction(fd: FormData) {
-  await requireStaffPermission("users");
+  const s = await requireStaffPermission("users");
   const phone = String(fd.get("phone") || "").trim();
   const tier = String(fd.get("tier") || "").trim();
+  // 调整会员等级影响商城配额 / 决策权，高危：需本人管理员密码核验
+  if (!verifyAdminPassword(s, String(fd.get("admin_pwd") || ""))) {
+    redirect(`/dashboard/association/users/${encodeURIComponent(phone)}?err=tier&t=${encodeURIComponent(tier)}`);
+  }
   const acc = phone ? getAccountByPhone(phone) : undefined;
   if (acc && (acc.role === "enterprise" || acc.role === "individual")) {
     const track = acc.role === "enterprise" ? "enterprise" : "practitioner";
@@ -146,8 +150,12 @@ export async function createStaffAction(fd: FormData) {
 
 /* ---------------- 协会工作人员 角色 / 密码 / 删除 ---------------- */
 export async function setStaffRolesAction(fd: FormData) {
-  await requireAssoc();
+  const sess = await requireAssoc();
   const id = String(fd.get("id") || "").trim();
+  // 调整角色＝调整权限，高危：需本人管理员密码核验
+  if (!verifyAdminPassword(sess, String(fd.get("admin_pwd") || ""))) {
+    redirect(`/dashboard/association/users/staff/${id}?err=roles`);
+  }
   const st = id ? getStaff(id) : undefined;
   // 超级管理员角色不可更改
   if (st && !st.roles.includes("super_admin")) {
