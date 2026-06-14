@@ -283,13 +283,18 @@ export default async function CustomerDashboard() {
           ) : (
             <div className="space-y-2">
               {myMediations.map((m) => (
-                <div key={m.id} className="rounded-2xl bg-surface p-3">
+                <Link key={m.id} href={`/dashboard/customer/mediations/${m.id}`} className="block rounded-2xl bg-surface p-3 hover:bg-surface-2/60 transition-colors active:scale-[0.99]">
                   <div className="flex items-center justify-between gap-2">
                     <span className="text-[13px] font-medium truncate">{m.respondent || "调解申请"}</span>
-                    <Badge tone={m.status === "closed" ? "tea" : m.status === "rejected" ? "decor" : "yellow"}>{MED_STATUS[m.status] ?? m.status}</Badge>
+                    <Badge tone={m.status === "closed" ? "tea" : m.status === "rejected" ? "decor" : m.status === "accepted" ? "brand" : "yellow"}>{MED_STATUS[m.status] ?? m.status}</Badge>
                   </div>
-                  <div className="text-[12px] text-muted-foreground mt-1 line-clamp-2">{m.detail}</div>
-                </div>
+                  {(m.status === "closed" || m.status === "rejected") && m.note ? (
+                    <div className="text-[12px] text-muted-foreground mt-1 line-clamp-2"><span className="text-foreground/70 font-medium">{m.status === "rejected" ? "未受理：" : "结果："}</span>{m.note}</div>
+                  ) : (
+                    <div className="text-[12px] text-muted-foreground mt-1 line-clamp-2">{m.status === "accepted" ? "协会受理中，正在联系双方…" : m.status === "pending" ? "已提交，等待协会受理…" : m.detail}</div>
+                  )}
+                  <div className="text-[11px] text-brand mt-1.5">查看进度 →</div>
+                </Link>
               ))}
             </div>
           )}
