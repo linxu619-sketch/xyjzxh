@@ -16,6 +16,7 @@ import {
   Lock, KeyRound, HardHat, Smartphone, UserPlus,
 } from "lucide-react";
 import { cn } from "@/lib/cn";
+import { PasswordInput } from "@/components/ui/password-input";
 
 const ICONS = {
   association: ShieldCheck,
@@ -259,15 +260,14 @@ export function LoginForm({ roles, initialRole, next }: { roles: Role[]; initial
           ) : (
             <label className="block mb-2">
               <span className="text-[12px] font-medium">密码</span>
-              <div className="relative">
-                <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
-                <input
+              <div className="relative mt-1.5">
+                <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none z-10" />
+                <PasswordInput
                   name="password"
-                  type="password"
                   required
                   placeholder={role === "association" ? "管理员密码" : "登录密码"}
                   autoComplete="current-password"
-                  className="mt-1.5 w-full h-12 rounded-xl border border-border pl-10 pr-4 outline-none focus:border-foreground/30 text-[15px]"
+                  className="w-full h-12 rounded-xl border border-border pl-10 outline-none focus:border-foreground/30 text-[15px]"
                 />
               </div>
             </label>

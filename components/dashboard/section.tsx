@@ -1,4 +1,5 @@
 import { cn } from "@/lib/cn";
+import { PasswordInput } from "@/components/ui/password-input";
 
 export function FilterBar({ children, className }: { children: React.ReactNode; className?: string }) {
   return (
@@ -93,6 +94,11 @@ export function Toggle({ defaultChecked, label, name }: { defaultChecked?: boole
 }
 
 export function Input({ placeholder, defaultValue, type = "text", name, autoComplete }: { placeholder?: string; defaultValue?: string; type?: string; name?: string; autoComplete?: string }) {
+  const className = "w-full h-11 rounded-xl border border-border px-4 outline-none focus:border-foreground/30 text-[14px]";
+  // 密码 / 密钥类输入统一带「眼睛」可显隐（PasswordInput 为客户端组件）
+  if (type === "password") {
+    return <PasswordInput name={name} placeholder={placeholder} defaultValue={defaultValue} autoComplete={autoComplete} className={className} />;
+  }
   return (
     <input
       type={type}
@@ -100,7 +106,7 @@ export function Input({ placeholder, defaultValue, type = "text", name, autoComp
       placeholder={placeholder}
       defaultValue={defaultValue}
       autoComplete={autoComplete}
-      className="w-full h-11 rounded-xl border border-border px-4 outline-none focus:border-foreground/30 text-[14px]"
+      className={className}
     />
   );
 }
