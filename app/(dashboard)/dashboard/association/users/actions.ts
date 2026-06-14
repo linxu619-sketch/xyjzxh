@@ -9,6 +9,7 @@ import { tierLadder } from "@/lib/data/member-tier";
 import { getStaff, getStaffAuthByPhone, setStaffStatus, setStaffRoles, setStaffPassword, deleteStaff, createStaff, type StaffStatus } from "@/lib/data/staff-source";
 import { ROLE_KEYS } from "@/lib/auth/roles";
 import { hashPassword } from "@/lib/auth/password";
+import { verifyAdminPassword } from "@/lib/auth/reauth";
 
 async function requireAssoc() {
   return requireStaffPermission("users");
@@ -94,8 +95,13 @@ export async function setAccountPasswordAction(fd: FormData) {
 }
 
 export async function deleteAccountAction(fd: FormData) {
-  await requireAssoc();
+  const s = await requireAssoc();
   const phone = String(fd.get("phone") || "").trim();
+  const pwd = String(fd.get("admin_pwd") || "");
+  // 高危：必须通过「本人管理员密码」二次核验，否则带错误回退、绝不删除
+  if (!verifyAdminPassword(s, pwd)) {
+    redirect(`/dashboard/association/users/${encodeURIComponent(phone)}?err=pwd`);
+  }
   const role = getAccountByPhone(phone)?.role;
   if (phone) deleteAccount(phone);
   const to = `/dashboard/association/users${role ? `?tab=${role}` : ""}`;
@@ -152,8 +158,13 @@ export async function setStaffPasswordAction(fd: FormData) {
 }
 
 export async function deleteStaffAction(fd: FormData) {
-  await requireAssoc();
+  const s = await requireAssoc();
   const id = String(fd.get("id") || "").trim();
+  const pwd = String(fd.get("admin_pwd") || "");
+  // 高危：必须通过「本人管理员密码」二次核验，否则带错误回退、绝不删除
+  if (!verifyAdminPassword(s, pwd)) {
+    redirect(`/dashboard/association/users/staff/${id}?err=pwd`);
+  }
   const st = id ? getStaff(id) : undefined;
   if (st && !st.roles.includes("super_admin")) deleteStaff(id);
   revalidatePath("/dashboard/association/users");

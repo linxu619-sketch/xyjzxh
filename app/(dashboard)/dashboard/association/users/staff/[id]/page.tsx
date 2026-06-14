@@ -5,6 +5,7 @@ import { AssociationShell } from "@/components/dashboard/shell";
 import { Badge } from "@/components/ui/badge";
 import { getStaff } from "@/lib/data/staff-source";
 import { setStaffStatusAction, setStaffRolesAction, setStaffPasswordAction, deleteStaffAction } from "../../actions";
+import { DangerDeleteForm } from "@/components/dashboard/danger-delete-form";
 import { roleLabel, roleTone, PERMISSIONS, ALL_PERMISSIONS, ROLE_KEYS } from "@/lib/auth/roles";
 import { getEffectiveRolePermissions } from "@/lib/runtime-config";
 
@@ -12,9 +13,9 @@ export const metadata = { title: "工作人员详情 · 协会工作台" };
 
 function mask(p: string) { return p; }  // 用户管理显示完整手机号
 
-export default async function StaffDetail({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ saved?: string }> }) {
+export default async function StaffDetail({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ saved?: string; err?: string }> }) {
   const { id } = await params;
-  const { saved } = await searchParams;
+  const { saved, err } = await searchParams;
   const s = getStaff(id);
   if (!s) notFound();
   const isSuper = s.roles.includes("super_admin");
@@ -108,10 +109,14 @@ export default async function StaffDetail({ params, searchParams }: { params: Pr
         {!isSuper && (
           <div className="mt-6 pt-5 border-t border-border">
             <div className="text-[12px] text-cat-decor mb-3 inline-flex items-center gap-1.5"><Trash2 className="h-3.5 w-3.5" /> 高危操作</div>
-            <form action={deleteStaffAction}>
-              <input type="hidden" name="id" value={s.id} />
-              <button className="h-10 px-5 rounded-full border border-cat-decor/40 text-cat-decor text-[13px] font-medium inline-flex items-center gap-1.5 hover:bg-cat-decor-soft"><Trash2 className="h-4 w-4" /> 删除该工作人员</button>
-            </form>
+            <DangerDeleteForm
+              action={deleteStaffAction}
+              idName="id"
+              idValue={s.id}
+              buttonLabel="删除该工作人员"
+              confirmText={`确认删除工作人员「${s.name}」？删除后不可恢复。`}
+              errored={err === "pwd"}
+            />
             <p className="mt-2 text-[11px] text-muted-foreground">删除后该工作人员从数据库移除,不可恢复。</p>
           </div>
         )}

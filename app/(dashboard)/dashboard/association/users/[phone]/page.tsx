@@ -7,6 +7,7 @@ import { getAccountByPhone, type AccountStatus } from "@/lib/data/accounts";
 import { getApplicationByAppId, type IdVerifyStatus } from "@/lib/data/applications";
 import { tierLadder, normalizeTier, quotaOf, type TierTrack } from "@/lib/data/member-tier";
 import { setAccountStatusAction, setMemberTierAction, updateAccountProfileAction, setAccountPasswordAction, deleteAccountAction } from "../actions";
+import { DangerDeleteForm } from "@/components/dashboard/danger-delete-form";
 
 const VERIFY_LABEL: Record<IdVerifyStatus, string> = { verified: "已实名核验", failed: "核验未通过", unverified: "待实名核验" };
 const VERIFY_TONE: Record<IdVerifyStatus, "tea" | "decor" | "yellow"> = { verified: "tea", failed: "decor", unverified: "yellow" };
@@ -20,8 +21,9 @@ function fmt(ms: number) { if (!ms) return "—"; const d = new Date(ms); const 
 
 export const metadata = { title: "用户详情 · 协会工作台" };
 
-export default async function UserDetail({ params }: { params: Promise<{ phone: string }> }) {
+export default async function UserDetail({ params, searchParams }: { params: Promise<{ phone: string }>; searchParams: Promise<{ err?: string }> }) {
   const { phone } = await params;
+  const { err } = await searchParams;
   const a = getAccountByPhone(decodeURIComponent(phone));
   if (!a) notFound();
   const Icon = ROLE_ICON[a.role] ?? UserRound;
@@ -155,10 +157,14 @@ export default async function UserDetail({ params }: { params: Promise<{ phone: 
         {/* 删除账号（高危）*/}
         <div className="mt-6 pt-5 border-t border-border">
           <div className="text-[12px] text-cat-decor mb-3 inline-flex items-center gap-1.5"><Trash2 className="h-3.5 w-3.5" /> 高危操作</div>
-          <form action={deleteAccountAction}>
-            <input type="hidden" name="phone" value={a.phone} />
-            <button className="h-10 px-5 rounded-full border border-cat-decor/40 text-cat-decor text-[13px] font-medium inline-flex items-center gap-1.5 hover:bg-cat-decor-soft"><Trash2 className="h-4 w-4" /> 删除该账号</button>
-          </form>
+          <DangerDeleteForm
+            action={deleteAccountAction}
+            idName="phone"
+            idValue={a.phone}
+            buttonLabel="删除该账号"
+            confirmText={`确认删除账号「${a.name || a.phone}」？删除后不可恢复。`}
+            errored={err === "pwd"}
+          />
           <p className="mt-2 text-[11px] text-muted-foreground">删除后该账号从数据库移除,不可恢复(会员档案 / 入会申请不受影响)。</p>
         </div>
       </div>
