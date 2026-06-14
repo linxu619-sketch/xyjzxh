@@ -15,8 +15,11 @@ const MAP: Record<string, MediationStatus> = {
 export async function reviewMediationAction(fd: FormData) {
   const s = await requireStaffPermission("mediation");
   const id = Number(fd.get("id") || 0);
-  const next = MAP[String(fd.get("act") || "")];
+  const act = String(fd.get("act") || "");
+  const next = MAP[act];
   if (id && next) setMediationStatus(id, next, operatorName(s));
   revalidatePath("/dashboard/association/mediations");
-  redirect("/dashboard/association/mediations");
+  revalidatePath(`/dashboard/association/mediations/${id}`);
+  // 留在详情页并带反馈，不再把经办人甩回列表
+  redirect(id ? `/dashboard/association/mediations/${id}?done=${act}` : "/dashboard/association/mediations");
 }

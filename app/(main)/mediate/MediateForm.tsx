@@ -12,7 +12,7 @@ export function MediateForm() {
   return (
     <form action={submitMediationAction} className="space-y-3 rounded-3xl border border-border bg-background p-5 md:p-8">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-        <input name="applicant" placeholder="你的称呼" className={INPUT} />
+        <input name="applicant" required placeholder="你的姓名（必填）" className={INPUT} />
         <input name="phone" required type="tel" placeholder="联系电话（必填）" className={INPUT} />
       </div>
       <input name="respondent" placeholder="被投诉方（企业名 / 项目）" className={INPUT} />

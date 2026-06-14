@@ -1,8 +1,8 @@
 import Link from "next/link";
-import { ArrowLeft, CheckCircle2, XCircle, Gavel, ShieldCheck } from "lucide-react";
+import { ArrowLeft, CheckCircle2, XCircle, Gavel, ShieldCheck, User, Phone, Building2, Clock, Check } from "lucide-react";
 import { AssociationShell } from "@/components/dashboard/shell";
 import { Badge } from "@/components/ui/badge";
-import { getMediation } from "@/lib/data/mediations";
+import { getMediation, type MediationStatus } from "@/lib/data/mediations";
 import { reviewMediationAction } from "../actions";
 import { PrintBar, Letterhead, DocTable, SealFooter } from "@/components/print/print-doc";
 import { getPlatformInfo } from "@/lib/runtime-config";
@@ -10,9 +10,11 @@ import { getPlatformInfo } from "@/lib/runtime-config";
 export const metadata = { title: "调解处置 · 协会工作台" };
 
 const STATUS: Record<string, string> = { pending: "待受理", accepted: "受理中", closed: "已结案", rejected: "已驳回" };
+const DONE_MSG: Record<string, string> = { accept: "已受理 —— 该纠纷进入「受理中」，可联系双方开展调解。", reject: "已驳回 —— 已记录，请告知申请人原因。", close: "已结案 —— 调解流程完成，记录单可打印归档。" };
 
-export default async function MediationDetail({ params }: { params: Promise<{ id: string }> }) {
+export default async function MediationDetail({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ done?: string }> }) {
   const { id } = await params;
+  const { done } = await searchParams;
   const m = getMediation(Number(id));
 
   if (!m) {
@@ -28,14 +30,43 @@ export default async function MediationDetail({ params }: { params: Promise<{ id
   const docNo = `XYJZ-TJ-${String(m.id).padStart(4, "0")}`;
   const org = await getPlatformInfo();
   const img = (s: string) => /^(https?:)?\//.test(s);
+  const doneMsg = done ? DONE_MSG[done] : undefined;
 
   return (
-    <AssociationShell title="调解处置" subtitle={`${m.applicant}${m.respondent ? ` · ${m.respondent}` : ""}`}>
-      {/* 工具栏（不打印）：返回 + 处置操作 + 打印 */}
+    <AssociationShell title="调解处置" subtitle={`${m.applicant}${m.respondent ? ` · 投诉 ${m.respondent}` : ""}`}>
+      {/* 工具栏（不打印）：返回 + 反馈 + 当事人卡 + 进度 + 处置操作 + 打印 */}
       <div className="no-print">
         <Link href="/dashboard/association/mediations" className="inline-flex items-center gap-1.5 text-[13px] text-muted-foreground hover:text-foreground mb-4"><ArrowLeft className="h-3.5 w-3.5" /> 返回列表</Link>
-        <div className="mb-4 flex items-center gap-3 flex-wrap">
-          <Badge tone={statusTone}>{STATUS[m.status] ?? m.status}</Badge>
+
+        {/* 操作成功反馈横幅（受理/驳回/结案后留在本页，不再甩回列表）*/}
+        {doneMsg && (
+          <div className={`mb-4 rounded-2xl border p-3.5 flex items-center gap-2 text-[13px] ${done === "reject" ? "border-cat-decor/30 bg-cat-decor-soft text-cat-decor" : "border-accent-tea/30 bg-[#e6f7f1] text-accent-tea"}`}>
+            <CheckCircle2 className="h-4 w-4 shrink-0" /> {doneMsg}
+          </div>
+        )}
+
+        {/* 当事人信息卡（屏幕醒目展示，不用到 A4 公文里找名字）*/}
+        <div className="mb-4 rounded-2xl border border-border bg-background p-5">
+          <div className="flex items-start justify-between gap-3 flex-wrap">
+            <div className="min-w-0">
+              <div className="text-[12px] text-muted-foreground inline-flex items-center gap-1.5"><User className="h-3.5 w-3.5" /> 申请人（业主）</div>
+              <div className="mt-1 text-[22px] font-semibold tracking-tight">{m.applicant || "未具名"}</div>
+              <a href={`tel:${m.phone}`} className="mt-1 inline-flex items-center gap-1.5 text-[14px] text-brand font-medium hover:underline"><Phone className="h-3.5 w-3.5" /> {m.phone || "未留电话"}</a>
+            </div>
+            <Badge tone={statusTone}>{STATUS[m.status] ?? m.status}</Badge>
+          </div>
+          <div className="mt-4 grid grid-cols-1 sm:grid-cols-3 gap-3 text-[13px]">
+            <InfoCell icon={Building2} label="被投诉方" value={m.respondent || "—"} />
+            <InfoCell icon={Clock} label="提交时间" value={fmtTime(m.createdAt)} />
+            <InfoCell icon={ShieldCheck} label="经办人" value={m.handledBy ? `${m.handledBy} · ${fmtDay(m.handledAt)}` : "尚未经办"} />
+          </div>
+        </div>
+
+        {/* 进度条 / 当前环节 */}
+        <Stepper status={m.status} />
+
+        {/* 处置操作 */}
+        <div className="mt-4 mb-4 flex items-center gap-3 flex-wrap">
           {m.status === "pending" && (
             <>
               <form action={reviewMediationAction}>
@@ -58,6 +89,7 @@ export default async function MediationDetail({ params }: { params: Promise<{ id
             <span className="inline-flex items-center gap-1.5 text-[13px] text-muted-foreground"><ShieldCheck className="h-4 w-4 text-accent-tea" /> 该调解已{STATUS[m.status]}。</span>
           )}
         </div>
+
         <PrintBar hint="下方为 A4 调解处置记录单，可直接打印或「另存为 PDF」存档。" />
       </div>
 
@@ -109,6 +141,51 @@ export default async function MediationDetail({ params }: { params: Promise<{ id
         </div>
       </div>
     </AssociationShell>
+  );
+}
+
+function InfoCell({ icon: Icon, label, value }: { icon: typeof User; label: string; value: string }) {
+  return (
+    <div className="rounded-xl border border-border bg-surface/40 px-3.5 py-2.5">
+      <div className="text-[11px] text-muted-foreground inline-flex items-center gap-1"><Icon className="h-3 w-3" /> {label}</div>
+      <div className="mt-0.5 font-medium truncate">{value}</div>
+    </div>
+  );
+}
+
+// 进度条：待受理 → 受理中 → 已结案（驳回为终止旁支）
+function Stepper({ status }: { status: MediationStatus }) {
+  if (status === "rejected") {
+    return (
+      <div className="rounded-2xl border border-cat-decor/30 bg-cat-decor-soft text-cat-decor p-4 flex items-center gap-2.5 text-[13px]">
+        <XCircle className="h-5 w-5 shrink-0" />
+        <div><b>已驳回</b> —— 该申请未予受理（不属于调解范围 / 材料不足等），流程终止。</div>
+      </div>
+    );
+  }
+  const steps = ["待受理", "受理中", "已结案"];
+  const idx = status === "pending" ? 0 : status === "accepted" ? 1 : 2;
+  return (
+    <div className="rounded-2xl border border-border bg-background p-5">
+      <div className="text-[12px] text-muted-foreground mb-4">处理进度</div>
+      <ol className="flex items-center">
+        {steps.map((s, i) => {
+          const doneStep = i < idx || (i === 2 && idx === 2);
+          const current = i === idx && !doneStep;
+          return (
+            <li key={s} className="flex items-center flex-1 last:flex-none">
+              <div className="flex flex-col items-center gap-1.5 shrink-0">
+                <span className={`h-8 w-8 rounded-full inline-flex items-center justify-center text-[13px] font-semibold ring-4 ${doneStep ? "bg-accent-tea text-white ring-accent-tea/15" : current ? "bg-brand text-white ring-brand/15" : "bg-surface text-muted-foreground ring-transparent"}`}>
+                  {doneStep ? <Check className="h-4 w-4" /> : i + 1}
+                </span>
+                <span className={`text-[12px] whitespace-nowrap ${doneStep || current ? "font-medium text-foreground" : "text-muted-foreground"}`}>{s}</span>
+              </div>
+              {i < steps.length - 1 && <span className={`h-0.5 flex-1 mx-2 mb-5 rounded ${i < idx ? "bg-accent-tea" : "bg-border"}`} />}
+            </li>
+          );
+        })}
+      </ol>
+    </div>
   );
 }
 
