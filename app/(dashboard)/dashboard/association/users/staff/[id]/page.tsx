@@ -5,7 +5,7 @@ import { AssociationShell } from "@/components/dashboard/shell";
 import { Badge } from "@/components/ui/badge";
 import { getStaff } from "@/lib/data/staff-source";
 import { setStaffStatusAction, setStaffRolesAction, setStaffPasswordAction, deleteStaffAction } from "../../actions";
-import { DangerDeleteForm } from "@/components/dashboard/danger-delete-form";
+import { GuardedActionModal } from "@/components/dashboard/guarded-action-modal";
 import { roleLabel, roleTone, PERMISSIONS, ALL_PERMISSIONS, ROLE_KEYS } from "@/lib/auth/roles";
 import { getEffectiveRolePermissions } from "@/lib/runtime-config";
 
@@ -62,12 +62,24 @@ export default async function StaffDetail({ params, searchParams }: { params: Pr
           <div className="text-[12px] text-muted-foreground mb-3 inline-flex items-center gap-1.5"><ShieldCheck className="h-3.5 w-3.5" /> 账号操作</div>
           {isSuper ? (
             <p className="text-[12px] text-muted-foreground inline-flex items-center gap-1.5"><Lock className="h-3.5 w-3.5" /> 超级管理员账号不可停用。</p>
+          ) : s.status === "active" ? (
+            <GuardedActionModal
+              action={setStaffStatusAction}
+              hidden={{ id: s.id, status: "locked" }}
+              trigger={<><Power className="h-4 w-4" /> 停用该账号</>}
+              triggerClassName="h-10 px-5 rounded-full text-[13px] font-medium inline-flex items-center gap-1.5 border border-cat-decor/40 text-cat-decor hover:bg-cat-decor-soft"
+              title="停用工作人员"
+              description={`停用后「${s.name}」将无法登录协会工作台。请输入管理员密码确认。`}
+              confirmLabel={<><Power className="h-4 w-4" /> 确认停用</>}
+              confirmClassName="h-10 px-5 rounded-full bg-cat-decor text-white text-[13px] font-medium inline-flex items-center gap-1.5"
+              errored={err === "status"}
+            />
           ) : (
             <form action={setStaffStatusAction}>
               <input type="hidden" name="id" value={s.id} />
-              <input type="hidden" name="status" value={s.status === "active" ? "locked" : "active"} />
-              <button className={`h-10 px-5 rounded-full text-[13px] font-medium inline-flex items-center gap-1.5 ${s.status === "active" ? "border border-cat-decor/40 text-cat-decor hover:bg-cat-decor-soft" : "bg-foreground text-background"}`}>
-                <Power className="h-4 w-4" /> {s.status === "active" ? "停用该账号" : "启用该账号"}
+              <input type="hidden" name="status" value="active" />
+              <button className="h-10 px-5 rounded-full text-[13px] font-medium inline-flex items-center gap-1.5 bg-foreground text-background">
+                <Power className="h-4 w-4" /> 启用该账号
               </button>
             </form>
           )}
@@ -98,24 +110,34 @@ export default async function StaffDetail({ params, searchParams }: { params: Pr
         {/* 改密码 */}
         <div className="mt-6 pt-5 border-t border-border">
           <div className="text-[12px] text-muted-foreground mb-3 inline-flex items-center gap-1.5"><KeyRound className="h-3.5 w-3.5" /> 重置登录密码</div>
-          <form action={setStaffPasswordAction} className="flex items-center gap-2 flex-wrap">
-            <input type="hidden" name="id" value={s.id} />
-            <input name="password" type="text" placeholder="新密码（≥6 位）" className="h-10 w-56 rounded-xl border border-border bg-background px-3 text-[13px] outline-none focus:border-foreground/30" />
-            <button className="h-10 px-4 rounded-full border border-border text-[13px] font-medium inline-flex items-center gap-1.5 hover:bg-surface"><KeyRound className="h-4 w-4" /> 重置密码</button>
-          </form>
+          <GuardedActionModal
+            action={setStaffPasswordAction}
+            hidden={{ id: s.id }}
+            trigger={<><KeyRound className="h-4 w-4" /> 重置登录密码</>}
+            triggerClassName="h-10 px-4 rounded-full border border-border text-[13px] font-medium inline-flex items-center gap-1.5 hover:bg-surface"
+            title="重置工作人员登录密码"
+            description={`将为「${s.name}」设置新登录密码。重置他人密码需管理员密码确认。`}
+            fields={<input name="password" type="text" required minLength={6} placeholder="新密码（≥6 位）" className="h-10 w-full rounded-xl border border-border bg-background px-3 text-[13px] outline-none focus:border-foreground/30" />}
+            confirmLabel={<><KeyRound className="h-4 w-4" /> 确认重置</>}
+            confirmClassName="h-10 px-5 rounded-full bg-foreground text-background text-[13px] font-medium inline-flex items-center gap-1.5"
+            errored={err === "reset"}
+          />
         </div>
 
         {/* 删除（超管不可删）*/}
         {!isSuper && (
           <div className="mt-6 pt-5 border-t border-border">
             <div className="text-[12px] text-cat-decor mb-3 inline-flex items-center gap-1.5"><Trash2 className="h-3.5 w-3.5" /> 高危操作</div>
-            <DangerDeleteForm
+            <GuardedActionModal
               action={deleteStaffAction}
-              idName="id"
-              idValue={s.id}
-              buttonLabel="删除该工作人员"
-              confirmText={`确认删除工作人员「${s.name}」？删除后不可恢复。`}
-              errored={err === "pwd"}
+              hidden={{ id: s.id }}
+              trigger={<><Trash2 className="h-4 w-4" /> 删除该工作人员</>}
+              triggerClassName="h-10 px-5 rounded-full border border-cat-decor/40 text-cat-decor text-[13px] font-medium inline-flex items-center gap-1.5 hover:bg-cat-decor-soft"
+              title="删除工作人员"
+              description={`确认删除工作人员「${s.name}」？删除后从数据库移除,不可恢复。请输入管理员密码确认。`}
+              confirmLabel={<><Trash2 className="h-4 w-4" /> 确认删除</>}
+              confirmClassName="h-10 px-5 rounded-full bg-cat-decor text-white text-[13px] font-medium inline-flex items-center gap-1.5"
+              errored={err === "del"}
             />
             <p className="mt-2 text-[11px] text-muted-foreground">删除后该工作人员从数据库移除,不可恢复。</p>
           </div>

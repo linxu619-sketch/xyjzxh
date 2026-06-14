@@ -7,7 +7,7 @@ import { getAccountByPhone, type AccountStatus } from "@/lib/data/accounts";
 import { getApplicationByAppId, type IdVerifyStatus } from "@/lib/data/applications";
 import { tierLadder, normalizeTier, quotaOf, type TierTrack } from "@/lib/data/member-tier";
 import { setAccountStatusAction, setMemberTierAction, updateAccountProfileAction, setAccountPasswordAction, deleteAccountAction } from "../actions";
-import { DangerDeleteForm } from "@/components/dashboard/danger-delete-form";
+import { GuardedActionModal } from "@/components/dashboard/guarded-action-modal";
 
 const VERIFY_LABEL: Record<IdVerifyStatus, string> = { verified: "已实名核验", failed: "核验未通过", unverified: "待实名核验" };
 const VERIFY_TONE: Record<IdVerifyStatus, "tea" | "decor" | "yellow"> = { verified: "tea", failed: "decor", unverified: "yellow" };
@@ -86,12 +86,17 @@ export default async function UserDetail({ params, searchParams }: { params: Pro
           <div className="text-[12px] text-muted-foreground mb-3 inline-flex items-center gap-1.5"><ShieldCheck className="h-3.5 w-3.5" /> 账号操作</div>
           <div className="flex flex-wrap gap-2">
             {a.status === "active" ? (
-              <form action={setAccountStatusAction}>
-                <input type="hidden" name="phone" value={a.phone} />
-                <input type="hidden" name="status" value="rejected" />
-                <input type="hidden" name="redirect" value={`/dashboard/association/users/${encodeURIComponent(a.phone)}`} />
-                <button className="h-10 px-5 rounded-full border border-cat-decor/40 text-cat-decor text-[13px] font-medium inline-flex items-center gap-1.5 hover:bg-cat-decor-soft"><Power className="h-4 w-4" /> 停用该账号</button>
-              </form>
+              <GuardedActionModal
+                action={setAccountStatusAction}
+                hidden={{ phone: a.phone, status: "rejected", redirect: `/dashboard/association/users/${encodeURIComponent(a.phone)}` }}
+                trigger={<><Power className="h-4 w-4" /> 停用该账号</>}
+                triggerClassName="h-10 px-5 rounded-full border border-cat-decor/40 text-cat-decor text-[13px] font-medium inline-flex items-center gap-1.5 hover:bg-cat-decor-soft"
+                title="停用账号"
+                description={`停用后「${a.name || a.phone}」将无法登录使用。请输入管理员密码确认。`}
+                confirmLabel={<><Power className="h-4 w-4" /> 确认停用</>}
+                confirmClassName="h-10 px-5 rounded-full bg-cat-decor text-white text-[13px] font-medium inline-flex items-center gap-1.5"
+                errored={err === "status"}
+              />
             ) : (
               <form action={setAccountStatusAction}>
                 <input type="hidden" name="phone" value={a.phone} />
@@ -144,11 +149,20 @@ export default async function UserDetail({ params, searchParams }: { params: Pro
           </form>
 
           {a.role === "enterprise" ? (
-            <form action={setAccountPasswordAction} className="mt-3 flex items-center gap-2 flex-wrap">
-              <input type="hidden" name="phone" value={a.phone} />
-              <input name="password" type="text" placeholder="新登录密码（≥6 位）" className="h-10 w-56 rounded-xl border border-border bg-background px-3 text-[13px] outline-none focus:border-foreground/30" />
-              <button className="h-10 px-4 rounded-full border border-border text-[13px] font-medium inline-flex items-center gap-1.5 hover:bg-surface"><KeyRound className="h-4 w-4" /> 重置密码</button>
-            </form>
+            <div className="mt-3">
+              <GuardedActionModal
+                action={setAccountPasswordAction}
+                hidden={{ phone: a.phone }}
+                trigger={<><KeyRound className="h-4 w-4" /> 重置登录密码</>}
+                triggerClassName="h-10 px-4 rounded-full border border-border text-[13px] font-medium inline-flex items-center gap-1.5 hover:bg-surface"
+                title="重置该账号登录密码"
+                description={`将为「${a.name || a.phone}」设置新登录密码。重置他人密码需管理员密码确认。`}
+                fields={<input name="password" type="text" required minLength={6} placeholder="新登录密码（≥6 位）" className="h-10 w-full rounded-xl border border-border bg-background px-3 text-[13px] outline-none focus:border-foreground/30" />}
+                confirmLabel={<><KeyRound className="h-4 w-4" /> 确认重置</>}
+                confirmClassName="h-10 px-5 rounded-full bg-foreground text-background text-[13px] font-medium inline-flex items-center gap-1.5"
+                errored={err === "reset"}
+              />
+            </div>
           ) : (
             <p className="mt-3 text-[11px] text-muted-foreground inline-flex items-center gap-1.5"><KeyRound className="h-3.5 w-3.5" /> {a.role === "customer" ? "业主" : "个人会员"}用短信验证码登录,无需密码。</p>
           )}
@@ -157,13 +171,16 @@ export default async function UserDetail({ params, searchParams }: { params: Pro
         {/* 删除账号（高危）*/}
         <div className="mt-6 pt-5 border-t border-border">
           <div className="text-[12px] text-cat-decor mb-3 inline-flex items-center gap-1.5"><Trash2 className="h-3.5 w-3.5" /> 高危操作</div>
-          <DangerDeleteForm
+          <GuardedActionModal
             action={deleteAccountAction}
-            idName="phone"
-            idValue={a.phone}
-            buttonLabel="删除该账号"
-            confirmText={`确认删除账号「${a.name || a.phone}」？删除后不可恢复。`}
-            errored={err === "pwd"}
+            hidden={{ phone: a.phone }}
+            trigger={<><Trash2 className="h-4 w-4" /> 删除该账号</>}
+            triggerClassName="h-10 px-5 rounded-full border border-cat-decor/40 text-cat-decor text-[13px] font-medium inline-flex items-center gap-1.5 hover:bg-cat-decor-soft"
+            title="删除账号"
+            description={`确认删除账号「${a.name || a.phone}」？删除后从数据库移除,不可恢复。请输入管理员密码确认。`}
+            confirmLabel={<><Trash2 className="h-4 w-4" /> 确认删除</>}
+            confirmClassName="h-10 px-5 rounded-full bg-cat-decor text-white text-[13px] font-medium inline-flex items-center gap-1.5"
+            errored={err === "del"}
           />
           <p className="mt-2 text-[11px] text-muted-foreground">删除后该账号从数据库移除,不可恢复(会员档案 / 入会申请不受影响)。</p>
         </div>

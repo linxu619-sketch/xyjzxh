@@ -25,9 +25,13 @@ function backToStaff(id: string): never {
 
 // 协会工作人员 启用/停用（超级管理员账号不可停用）
 export async function setStaffStatusAction(fd: FormData) {
-  await requireStaffPermission("users");
+  const s = await requireStaffPermission("users");
   const id = String(fd.get("id") || "").trim();
   const status = String(fd.get("status") || "") as StaffStatus;
+  // 停用（locked）为高危：需「本人管理员密码」二次核验（启用无需）
+  if (status === "locked" && !verifyAdminPassword(s, String(fd.get("admin_pwd") || ""))) {
+    redirect(`/dashboard/association/users/staff/${id}?err=status`);
+  }
   const st = id ? getStaff(id) : undefined;
   if (st && st.staffRole !== "super_admin" && (status === "active" || status === "locked")) {
     setStaffStatus(id, status);
@@ -38,9 +42,13 @@ export async function setStaffStatusAction(fd: FormData) {
 }
 
 export async function setAccountStatusAction(fd: FormData) {
-  await requireStaffPermission("users");
+  const s = await requireStaffPermission("users");
   const phone = String(fd.get("phone") || "").trim();
   const status = String(fd.get("status") || "") as AccountStatus;
+  // 停用为高危：需「本人管理员密码」二次核验（启用 / 恢复无需）
+  if (status === "rejected" && !verifyAdminPassword(s, String(fd.get("admin_pwd") || ""))) {
+    redirect(`/dashboard/association/users/${encodeURIComponent(phone)}?err=status`);
+  }
   if (phone && getAccountByPhone(phone) && ["active", "rejected", "pending"].includes(status)) {
     setAccountStatus(phone, status);
   }
@@ -87,9 +95,13 @@ export async function updateAccountProfileAction(fd: FormData) {
 }
 
 export async function setAccountPasswordAction(fd: FormData) {
-  await requireAssoc();
+  const s = await requireAssoc();
   const phone = String(fd.get("phone") || "").trim();
   const pwd = String(fd.get("password") || "");
+  // 重置他人密码＝可接管账号，高危：需本人管理员密码核验
+  if (!verifyAdminPassword(s, String(fd.get("admin_pwd") || ""))) {
+    redirect(`/dashboard/association/users/${encodeURIComponent(phone)}?err=reset`);
+  }
   if (phone && pwd.length >= 6 && getAccountByPhone(phone)) setAccountPassword(phone, hashPassword(pwd));
   backToAccount(phone);
 }
@@ -100,7 +112,7 @@ export async function deleteAccountAction(fd: FormData) {
   const pwd = String(fd.get("admin_pwd") || "");
   // 高危：必须通过「本人管理员密码」二次核验，否则带错误回退、绝不删除
   if (!verifyAdminPassword(s, pwd)) {
-    redirect(`/dashboard/association/users/${encodeURIComponent(phone)}?err=pwd`);
+    redirect(`/dashboard/association/users/${encodeURIComponent(phone)}?err=del`);
   }
   const role = getAccountByPhone(phone)?.role;
   if (phone) deleteAccount(phone);
@@ -149,9 +161,13 @@ export async function setStaffRolesAction(fd: FormData) {
 }
 
 export async function setStaffPasswordAction(fd: FormData) {
-  await requireAssoc();
+  const s = await requireAssoc();
   const id = String(fd.get("id") || "").trim();
   const pwd = String(fd.get("password") || "");
+  // 重置工作人员密码＝可接管其账号，高危：需本人管理员密码核验
+  if (!verifyAdminPassword(s, String(fd.get("admin_pwd") || ""))) {
+    redirect(`/dashboard/association/users/staff/${id}?err=reset`);
+  }
   if (id && pwd.length >= 6 && getStaff(id)) setStaffPassword(id, hashPassword(pwd));
   const to = `/dashboard/association/users/staff/${id}?saved=pwd`;
   revalidatePath(to); redirect(to);
@@ -163,7 +179,7 @@ export async function deleteStaffAction(fd: FormData) {
   const pwd = String(fd.get("admin_pwd") || "");
   // 高危：必须通过「本人管理员密码」二次核验，否则带错误回退、绝不删除
   if (!verifyAdminPassword(s, pwd)) {
-    redirect(`/dashboard/association/users/staff/${id}?err=pwd`);
+    redirect(`/dashboard/association/users/staff/${id}?err=del`);
   }
   const st = id ? getStaff(id) : undefined;
   if (st && !st.roles.includes("super_admin")) deleteStaff(id);
