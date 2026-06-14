@@ -107,14 +107,16 @@ type Item = { id: number; name: string; preview: string | null; url: string | nu
 
 /* 多张上传（缩略图墙 + 添加，上限 max；真实上传；点图放大）*/
 export function MultiUpload({
-  label, hint, max = 10, onChange,
+  label, hint, max = 10, onChange, initial,
 }: {
-  label: string; hint?: string; max?: number; onChange?: (urls: string[]) => void;
+  label: string; hint?: string; max?: number; onChange?: (urls: string[]) => void; initial?: string[];
 }) {
   const ref = useRef<HTMLInputElement>(null);
   const idRef = useRef(0);
-  const itemsRef = useRef<Item[]>([]);
-  const [items, setItems] = useState<Item[]>([]);
+  // 编辑回填：把已有图片作为已完成项预置（不调 onChange，父组件自行用相同 initial 初始化隐藏域）
+  const seed: Item[] = (initial ?? []).map((u) => ({ id: ++idRef.current, name: "已上传", preview: u, url: u, busy: false }));
+  const itemsRef = useRef<Item[]>(seed);
+  const [items, setItems] = useState<Item[]>(seed);
   const [zoom, setZoom] = useState<string | null>(null);
 
   function commit(next: Item[]) {

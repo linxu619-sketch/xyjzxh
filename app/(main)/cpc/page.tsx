@@ -287,6 +287,15 @@ export default async function PartyPage() {
                       <div className="mt-1 text-[12px] text-muted-foreground leading-5">
                         {[m.host && `主讲 ${m.host}`, m.attend, m.location].filter(Boolean).join(" · ")}
                       </div>
+                      {m.images.length > 0 && (
+                        <div className="mt-2 flex gap-2">
+                          {m.images.slice(0, 4).map((u) => (
+                            /* eslint-disable-next-line @next/next/no-img-element */
+                            <img key={u} src={u} alt="" className="h-14 w-20 rounded-lg border border-border object-cover" />
+                          ))}
+                          {m.images.length > 4 && <span className="h-14 w-10 rounded-lg border border-border bg-surface text-[11px] text-muted-foreground inline-flex items-center justify-center shrink-0">+{m.images.length - 4}</span>}
+                        </div>
+                      )}
                     </div>
                   ))}
                 </div>

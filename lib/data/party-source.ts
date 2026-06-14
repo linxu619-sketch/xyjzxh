@@ -24,11 +24,21 @@ export function listCommittee(): PartyCommittee[] {
     return rows.map((r) => ({ id: r.id, name: r.name ?? "", post: r.post ?? "委员", duty: r.duty ?? "", sort: r.sort ?? 0 }));
   } catch { return SEED_COMMITTEE; }
 }
+export function getCommittee(id: string): PartyCommittee | undefined {
+  try {
+    const r = getDb().prepare("SELECT * FROM party_committee WHERE id=?").get(id) as CRow | undefined;
+    return r ? { id: r.id, name: r.name ?? "", post: r.post ?? "委员", duty: r.duty ?? "", sort: r.sort ?? 0 } : SEED_COMMITTEE.find((c) => c.id === id);
+  } catch { return SEED_COMMITTEE.find((c) => c.id === id); }
+}
 export function addCommittee(input: { name: string; post: string; duty: string; sort?: number }): string {
   const id = newId("pc");
   getDb().prepare("INSERT INTO party_committee (id,name,post,duty,sort,created_at) VALUES (?,?,?,?,?,?)")
     .run(id, input.name, input.post, input.duty, input.sort ?? 0, Date.now());
   return id;
+}
+export function updateCommittee(id: string, input: { name: string; post: string; duty: string; sort?: number }): void {
+  getDb().prepare("UPDATE party_committee SET name=?,post=?,duty=?,sort=? WHERE id=?")
+    .run(input.name, input.post, input.duty, input.sort ?? 0, id);
 }
 export function deleteCommittee(id: string): void {
   getDb().prepare("DELETE FROM party_committee WHERE id=?").run(id);
@@ -42,11 +52,21 @@ export function listMembers(): PartyMember[] {
     return rows.map((r) => ({ id: r.id, name: r.name ?? "", kind: r.kind ?? "党员", org: r.org ?? "", role: r.role ?? "", highlight: r.highlight ?? "", photo: r.photo ?? undefined, joined: r.joined ?? undefined, sort: r.sort ?? 0 }));
   } catch { return SEED_MEMBERS; }
 }
+export function getMember(id: string): PartyMember | undefined {
+  try {
+    const r = getDb().prepare("SELECT * FROM party_members WHERE id=?").get(id) as MRow | undefined;
+    return r ? { id: r.id, name: r.name ?? "", kind: r.kind ?? "党员", org: r.org ?? "", role: r.role ?? "", highlight: r.highlight ?? "", photo: r.photo ?? undefined, joined: r.joined ?? undefined, sort: r.sort ?? 0 } : SEED_MEMBERS.find((m) => m.id === id);
+  } catch { return SEED_MEMBERS.find((m) => m.id === id); }
+}
 export function addMember(input: { name: string; kind: string; org: string; role: string; highlight: string; photo?: string; joined?: string; sort?: number }): string {
   const id = newId("pm");
   getDb().prepare("INSERT INTO party_members (id,name,kind,org,role,highlight,photo,joined,sort,created_at) VALUES (?,?,?,?,?,?,?,?,?,?)")
     .run(id, input.name, input.kind, input.org, input.role, input.highlight, input.photo ?? null, input.joined ?? null, input.sort ?? 0, Date.now());
   return id;
+}
+export function updateMember(id: string, input: { name: string; kind: string; org: string; role: string; highlight: string; photo?: string; joined?: string; sort?: number }): void {
+  getDb().prepare("UPDATE party_members SET name=?,kind=?,org=?,role=?,highlight=?,photo=?,joined=?,sort=? WHERE id=?")
+    .run(input.name, input.kind, input.org, input.role, input.highlight, input.photo ?? null, input.joined ?? null, input.sort ?? 0, id);
 }
 export function deleteMember(id: string): void {
   getDb().prepare("DELETE FROM party_members WHERE id=?").run(id);
@@ -75,6 +95,10 @@ export function addMeeting(input: { type: string; title: string; date: string; l
     .run(id, input.type, input.title, input.date, input.location ?? "", input.host ?? "", input.attend ?? "", input.summary ?? "", input.images && input.images.length ? JSON.stringify(input.images) : null, Date.now());
   return id;
 }
+export function updateMeeting(id: string, input: { type: string; title: string; date: string; location?: string; host?: string; attend?: string; summary?: string; images?: string[] }): void {
+  getDb().prepare("UPDATE party_meetings SET type=?,title=?,date=?,location=?,host=?,attend=?,summary=?,images=? WHERE id=?")
+    .run(input.type, input.title, input.date, input.location ?? "", input.host ?? "", input.attend ?? "", input.summary ?? "", input.images && input.images.length ? JSON.stringify(input.images) : null, id);
+}
 export function deleteMeeting(id: string): void {
   getDb().prepare("DELETE FROM party_meetings WHERE id=?").run(id);
 }
@@ -101,6 +125,10 @@ export function addTopic(input: { title: string; summary: string; cover?: string
   getDb().prepare("INSERT INTO party_topics (id,title,summary,cover,keywords,created_at) VALUES (?,?,?,?,?,?)")
     .run(id, input.title, input.summary, input.cover ?? null, JSON.stringify(input.keywords), Date.now());
   return id;
+}
+export function updateTopic(id: string, input: { title: string; summary: string; cover?: string; keywords: string[] }): void {
+  getDb().prepare("UPDATE party_topics SET title=?,summary=?,cover=?,keywords=? WHERE id=?")
+    .run(input.title, input.summary, input.cover ?? null, JSON.stringify(input.keywords), id);
 }
 export function deleteTopic(id: string): void {
   getDb().prepare("DELETE FROM party_topics WHERE id=?").run(id);
