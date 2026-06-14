@@ -4,6 +4,7 @@ import { streamDeepseek } from "@/lib/ai/providers/deepseek";
 import { streamAnthropic } from "@/lib/ai/providers/anthropic";
 import { listSources, touchSourceRun } from "@/lib/data/knowledge-sources-source";
 import { createDraft, seenSourceUrls } from "@/lib/data/knowledge-drafts-source";
+import { listArticlesMissingBody, setArticleBody } from "@/lib/data/knowledge-source";
 import { SAMPLE_CANDIDATES, type KnowledgeSource } from "@/lib/data/knowledge-sources";
 import type { KnowledgeSection } from "@/lib/data/knowledge";
 
@@ -59,6 +60,26 @@ export async function runKnowledgeFetch(): Promise<FetchSummary> {
   }
 
   return { totalNew, usedAI, sources: results };
+}
+
+/* ============================================================
+   一次性回填：给「之前已入库但 body 为空」的旧文章补抓原文正文
+   （仅处理有 source_url 的；单次限量，可重复点直到回填完）
+   ============================================================ */
+export type BackfillResult = { scanned: number; filled: number; failed: number };
+
+export async function backfillArticleBodies(limit = 12): Promise<BackfillResult> {
+  const items = listArticlesMissingBody(limit);
+  let filled = 0, failed = 0;
+  for (const it of items) {
+    if (!/^https?:\/\//.test(it.sourceUrl)) { failed++; continue; }
+    try {
+      const body = extractArticleBody(await fetchText(it.sourceUrl));
+      if (body && body.length >= 40) { setArticleBody(it.id, body); filled++; }
+      else failed++;
+    } catch { failed++; }
+  }
+  return { scanned: items.length, filled, failed };
 }
 
 /* ---------- 抓候选 ---------- */

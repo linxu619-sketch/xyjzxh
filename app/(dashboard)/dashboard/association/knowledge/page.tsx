@@ -8,12 +8,13 @@ import { listKnowledge } from "@/lib/data/knowledge-source";
 import { countDrafts } from "@/lib/data/knowledge-drafts-source";
 import { listSources } from "@/lib/data/knowledge-sources-source";
 import { KnowledgeForm } from "./KnowledgeForm";
-import { createKnowledgeAction, runKnowledgeFetchAction } from "./actions";
+import { createKnowledgeAction, runKnowledgeFetchAction, backfillBodiesAction } from "./actions";
 
 export const metadata = { title: "知识库管理 · 协会工作台" };
 
-export default async function KnowledgeAdmin({ searchParams }: { searchParams: Promise<{ kerr?: string }> }) {
-  const { kerr } = await searchParams;
+export default async function KnowledgeAdmin({ searchParams }: { searchParams: Promise<{ kerr?: string; bf?: string }> }) {
+  const { kerr, bf } = await searchParams;
+  const bfParts = bf ? bf.split("_").map((n) => Number(n) || 0) : null; // [filled, failed, scanned]
   const KNOWLEDGE = listKnowledge();
   const hotCount = KNOWLEDGE.filter((k) => k.hot).length;
   const catCount = (key: string) => KNOWLEDGE.filter((k) => k.category === key).length;
@@ -53,12 +54,26 @@ export default async function KnowledgeAdmin({ searchParams }: { searchParams: P
             <div className="text-[14px] font-semibold inline-flex items-center gap-2"><Sparkles className="h-4 w-4 text-brand" /> AI 自动更新知识库</div>
             <p className="mt-1 text-[12px] text-muted-foreground max-w-lg leading-5">从配置的政府 / 行业来源抓取最新政策资讯,AI 整理成草稿进「草稿箱」<b>待人工审核</b>后入库,不会自动直接发布。当前 {enabledSources}/{totalSources} 个来源启用。</p>
           </div>
-          <form action={runKnowledgeFetchAction}>
-            <button className="h-10 px-4 rounded-full bg-foreground text-background text-[13px] font-medium inline-flex items-center gap-1.5 active:scale-[0.98]">
-              <RefreshCw className="h-4 w-4" /> 立即抓取更新
-            </button>
-          </form>
+          <div className="flex items-center gap-2 flex-wrap">
+            <form action={backfillBodiesAction}>
+              <button className="h-10 px-4 rounded-full border border-border text-[13px] font-medium inline-flex items-center gap-1.5 hover:bg-surface active:scale-[0.98]" title="给之前已入库但没有正文的旧文章补抓原文全文（单次最多 12 篇，可重复点）">
+                <FileText className="h-4 w-4" /> 回填旧文章正文
+              </button>
+            </form>
+            <form action={runKnowledgeFetchAction}>
+              <button className="h-10 px-4 rounded-full bg-foreground text-background text-[13px] font-medium inline-flex items-center gap-1.5 active:scale-[0.98]">
+                <RefreshCw className="h-4 w-4" /> 立即抓取更新
+              </button>
+            </form>
+          </div>
         </div>
+
+        {bfParts && (
+          <div className="mt-3 rounded-xl border border-accent-tea/30 bg-[#e6f7f1]/60 text-accent-tea px-4 py-2.5 text-[12px] inline-flex items-center gap-2">
+            <FileText className="h-4 w-4 shrink-0" />
+            回填完成：成功补全 <b>{bfParts[0]}</b> 篇{bfParts[1] ? `,${bfParts[1]} 篇未抓到(可重试或人工补)` : ""}{bfParts[2] === 12 ? "。本批已满 12 篇,如还有可再点一次。" : "。"}
+          </div>
+        )}
         <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-3">
           <Link href={`${base}/drafts`} className="flex items-center gap-3 rounded-xl border border-border bg-surface/40 p-3.5 hover:bg-surface transition-colors">
             <span className="h-9 w-9 rounded-xl bg-brand-50 text-brand inline-flex items-center justify-center shrink-0"><Inbox className="h-4 w-4" /></span>

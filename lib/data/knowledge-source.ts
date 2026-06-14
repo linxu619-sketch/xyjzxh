@@ -60,3 +60,17 @@ export function setKnowledgeHot(id: string, hot: boolean): void {
 export function deleteKnowledge(id: string): void {
   getDb().prepare("DELETE FROM knowledge_articles WHERE id=?").run(id);
 }
+
+/* 回填用：列出「有原文链接但正文为空」的已入库文章（按抓取顺序，便于分批回填） */
+export function listArticlesMissingBody(limit: number): { id: string; sourceUrl: string }[] {
+  try {
+    const rows = getDb().prepare(
+      "SELECT id, source_url FROM knowledge_articles WHERE source_url IS NOT NULL AND source_url != '' AND (body IS NULL OR body = '') ORDER BY created_at DESC LIMIT ?",
+    ).all(limit) as { id: string; source_url: string }[];
+    return rows.map((r) => ({ id: r.id, sourceUrl: r.source_url }));
+  } catch { return []; }
+}
+
+export function setArticleBody(id: string, body: string): void {
+  try { getDb().prepare("UPDATE knowledge_articles SET body=? WHERE id=?").run(body, id); } catch { /* 表/列不存在则忽略 */ }
+}

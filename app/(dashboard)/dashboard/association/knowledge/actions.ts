@@ -6,7 +6,7 @@ import { requireStaffPermission } from "@/lib/auth/guard";
 import { createKnowledge, updateKnowledge, deleteKnowledge, setKnowledgeHot, getKnowledgeArticle, type KnowledgeInput } from "@/lib/data/knowledge-source";
 import { getDraft, listDrafts, setDraftStatus, deleteDraft } from "@/lib/data/knowledge-drafts-source";
 import { addSource, setSourceEnabled, deleteSource } from "@/lib/data/knowledge-sources-source";
-import { runKnowledgeFetch } from "@/lib/ai/knowledge-fetch";
+import { runKnowledgeFetch, backfillArticleBodies } from "@/lib/ai/knowledge-fetch";
 import type { KnowledgeSection } from "@/lib/data/knowledge";
 import type { SourceKind } from "@/lib/data/knowledge-sources";
 
@@ -104,6 +104,15 @@ export async function runKnowledgeFetchAction() {
   revalidatePath("/dashboard/association/knowledge/drafts");
   revalidatePath("/dashboard/association/knowledge");
   redirect(`/dashboard/association/knowledge/drafts?fetched=${summary.totalNew}&ai=${summary.usedAI ? 1 : 0}`);
+}
+
+// 一次性回填：给旧的「有原文链接但无正文」文章补抓全文（单次限量，可重复点）
+export async function backfillBodiesAction() {
+  await requireAssoc();
+  const r = await backfillArticleBodies(12);
+  revalidatePath("/dashboard/association/knowledge");
+  revalidatePath("/knowledge");
+  redirect(`/dashboard/association/knowledge?bf=${r.filled}_${r.failed}_${r.scanned}`);
 }
 
 // 草稿「通过并入库」：用（可人工编辑后的）表单字段创建正式文章，并标记草稿已通过
