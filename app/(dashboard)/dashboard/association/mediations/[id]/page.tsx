@@ -4,6 +4,7 @@ import { AssociationShell } from "@/components/dashboard/shell";
 import { Badge } from "@/components/ui/badge";
 import { getMediation, type MediationStatus } from "@/lib/data/mediations";
 import { reviewMediationAction } from "../actions";
+import { ConfirmButton } from "../ConfirmButton";
 import { PrintBar, Letterhead, DocTable, SealFooter } from "@/components/print/print-doc";
 import { getPlatformInfo } from "@/lib/runtime-config";
 
@@ -66,27 +67,40 @@ export default async function MediationDetail({ params, searchParams }: { params
         <Stepper status={m.status} />
 
         {/* 处置操作 */}
-        <div className="mt-4 mb-4 flex items-center gap-3 flex-wrap">
+        <div className="mt-4 mb-4">
           {m.status === "pending" && (
-            <>
-              <form action={reviewMediationAction}>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              {/* 受理（直接进入受理中） */}
+              <form action={reviewMediationAction} className="rounded-2xl border border-accent-tea/30 bg-[#e6f7f1]/40 p-4">
                 <input type="hidden" name="id" value={m.id} /><input type="hidden" name="act" value="accept" />
+                <div className="text-[13px] font-semibold mb-2">受理这起纠纷</div>
+                <p className="text-[12px] text-muted-foreground mb-3 leading-5">确认属于本会调解范围，进入「受理中」联系双方。</p>
                 <button className="h-10 px-5 rounded-full bg-accent-tea text-white text-[13px] font-medium inline-flex items-center gap-1.5"><CheckCircle2 className="h-4 w-4" /> 受理</button>
               </form>
-              <form action={reviewMediationAction}>
+              {/* 驳回（需填原因 + 二次确认） */}
+              <form action={reviewMediationAction} className="rounded-2xl border border-cat-decor/30 bg-cat-decor-soft/40 p-4">
                 <input type="hidden" name="id" value={m.id} /><input type="hidden" name="act" value="reject" />
-                <button className="h-10 px-5 rounded-full border border-cat-decor/40 text-cat-decor text-[13px] font-medium inline-flex items-center gap-1.5"><XCircle className="h-4 w-4" /> 驳回</button>
+                <div className="text-[13px] font-semibold mb-2">驳回申请</div>
+                <textarea name="note" rows={2} placeholder="驳回原因（将告知申请人，如：不属于本会调解范围 / 材料不足）" className="w-full rounded-xl border border-border bg-background p-2.5 text-[13px] leading-6 outline-none focus:border-cat-decor/50 mb-3" />
+                <ConfirmButton confirmText="确认驳回该调解申请？驳回后流程终止。" className="h-10 px-5 rounded-full border border-cat-decor/50 text-cat-decor text-[13px] font-medium inline-flex items-center gap-1.5 hover:bg-cat-decor-soft">
+                  <XCircle className="h-4 w-4" /> 确认驳回
+                </ConfirmButton>
               </form>
-            </>
+            </div>
           )}
           {m.status === "accepted" && (
-            <form action={reviewMediationAction}>
+            <form action={reviewMediationAction} className="rounded-2xl border border-border bg-background p-4">
               <input type="hidden" name="id" value={m.id} /><input type="hidden" name="act" value="close" />
+              <div className="text-[13px] font-semibold mb-2">结案 · 填写调解结果</div>
+              <textarea name="note" rows={3} placeholder="调解结果 / 处置意见（如：双方在协会主持下达成和解，企业 7 日内返工…）将记入处置记录单。" className="w-full rounded-xl border border-border bg-background p-2.5 text-[13px] leading-6 outline-none focus:border-foreground/40 mb-3" />
               <button className="h-10 px-5 rounded-full bg-foreground text-background text-[13px] font-medium inline-flex items-center gap-1.5"><Gavel className="h-4 w-4" /> 标记结案</button>
             </form>
           )}
           {(m.status === "closed" || m.status === "rejected") && (
-            <span className="inline-flex items-center gap-1.5 text-[13px] text-muted-foreground"><ShieldCheck className="h-4 w-4 text-accent-tea" /> 该调解已{STATUS[m.status]}。</span>
+            <div className="rounded-2xl border border-border bg-background p-4">
+              <div className="text-[12px] text-muted-foreground inline-flex items-center gap-1.5 mb-1"><ShieldCheck className="h-3.5 w-3.5 text-accent-tea" /> {m.status === "rejected" ? "驳回原因" : "调解结果 / 处置意见"}{m.handledBy ? ` · ${m.handledBy}` : ""}</div>
+              <p className="text-[13px] leading-7 whitespace-pre-wrap">{m.note || (m.status === "closed" ? "（双方已在协会主持下达成和解。）" : "（未填写原因。）")}</p>
+            </div>
           )}
         </div>
 
@@ -124,8 +138,10 @@ export default async function MediationDetail({ params, searchParams }: { params
           {/* 调解处置意见（供书写 / 归档） */}
           <div className="mt-6">
             <div className="text-[13px] font-medium mb-2">调解处置意见</div>
-            <div className="border border-[#ccc] min-h-[120px] p-3 text-[13px] leading-7 text-muted-foreground">
-              {m.status === "closed" ? "（双方已在协会主持下达成和解，详见调解协议书。）" : m.status === "rejected" ? "（经审查不属于本会调解范围 / 材料不足，已告知申请人。）" : ""}
+            <div className="border border-[#ccc] min-h-[120px] p-3 text-[13px] leading-7 whitespace-pre-wrap">
+              {m.note
+                ? m.note
+                : m.status === "closed" ? "（双方已在协会主持下达成和解，详见调解协议书。）" : m.status === "rejected" ? "（经审查不属于本会调解范围 / 材料不足，已告知申请人。）" : ""}
             </div>
           </div>
 

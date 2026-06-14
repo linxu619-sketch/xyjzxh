@@ -1545,6 +1545,7 @@ function migrate(db: DB) {
     "ALTER TABLE finance_applications ADD COLUMN reviewed_at INTEGER",
     "ALTER TABLE mediations ADD COLUMN handled_by TEXT",
     "ALTER TABLE mediations ADD COLUMN handled_at INTEGER",
+    "ALTER TABLE mediations ADD COLUMN note TEXT",   // 调解处置意见 / 驳回原因
     // 协会员工多角色
     "ALTER TABLE association_staff ADD COLUMN roles TEXT",
     // 知识库文章上传原文

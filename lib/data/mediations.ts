@@ -4,9 +4,9 @@ import { getDb } from "@/lib/db/sqlite";
 export type MediationStatus = "pending" | "accepted" | "closed" | "rejected";
 export type Mediation = {
   id: number; applicant: string; phone: string; respondent: string; detail: string;
-  photos: string[]; status: MediationStatus; handledBy: string; handledAt: number; createdAt: number;
+  photos: string[]; status: MediationStatus; handledBy: string; handledAt: number; note: string; createdAt: number;
 };
-type Row = { id: number; applicant: string | null; phone: string | null; respondent: string | null; detail: string | null; photos: string | null; status: string; handled_by: string | null; handled_at: number | null; created_at: number | null };
+type Row = { id: number; applicant: string | null; phone: string | null; respondent: string | null; detail: string | null; photos: string | null; status: string; handled_by: string | null; handled_at: number | null; note: string | null; created_at: number | null };
 
 function parsePhotos(s: string | null): string[] {
   if (!s) return [];
@@ -17,7 +17,7 @@ function rowTo(r: Row): Mediation {
   return {
     id: r.id, applicant: r.applicant ?? "", phone: r.phone ?? "", respondent: r.respondent ?? "",
     detail: r.detail ?? "", photos: parsePhotos(r.photos), status: (r.status as MediationStatus) ?? "pending",
-    handledBy: r.handled_by ?? "", handledAt: r.handled_at ?? 0, createdAt: r.created_at ?? 0,
+    handledBy: r.handled_by ?? "", handledAt: r.handled_at ?? 0, note: r.note ?? "", createdAt: r.created_at ?? 0,
   };
 }
 
@@ -48,7 +48,8 @@ export function listMediations(status?: MediationStatus): Mediation[] {
   return rows.map(rowTo);
 }
 
-export function setMediationStatus(id: number, status: MediationStatus, by?: string) {
-  if (by) getDb().prepare("UPDATE mediations SET status = ?, handled_by = ?, handled_at = ? WHERE id = ?").run(status, by, Date.now(), id);
-  else getDb().prepare("UPDATE mediations SET status = ? WHERE id = ?").run(status, id);
+export function setMediationStatus(id: number, status: MediationStatus, by?: string, note?: string) {
+  const n = note?.trim();
+  if (by) getDb().prepare("UPDATE mediations SET status = ?, handled_by = ?, handled_at = ?, note = COALESCE(?, note) WHERE id = ?").run(status, by, Date.now(), n ? n : null, id);
+  else getDb().prepare("UPDATE mediations SET status = ?, note = COALESCE(?, note) WHERE id = ?").run(status, n ? n : null, id);
 }

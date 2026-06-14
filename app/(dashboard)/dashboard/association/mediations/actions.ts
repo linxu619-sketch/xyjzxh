@@ -17,7 +17,8 @@ export async function reviewMediationAction(fd: FormData) {
   const id = Number(fd.get("id") || 0);
   const act = String(fd.get("act") || "");
   const next = MAP[act];
-  if (id && next) setMediationStatus(id, next, operatorName(s));
+  const note = String(fd.get("note") || "").trim();
+  if (id && next) setMediationStatus(id, next, operatorName(s), note || undefined);
   revalidatePath("/dashboard/association/mediations");
   revalidatePath(`/dashboard/association/mediations/${id}`);
   // 留在详情页并带反馈，不再把经办人甩回列表
