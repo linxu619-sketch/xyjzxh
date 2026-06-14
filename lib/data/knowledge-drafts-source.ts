@@ -13,6 +13,7 @@ export type KnowledgeDraft = {
   tags: string[];
   excerpt: string;
   content: KnowledgeSection[];
+  body?: string;
   sourceName: string;
   sourceUrl: string;
   status: DraftStatus;
@@ -24,7 +25,7 @@ export type KnowledgeDraft = {
 
 type Row = {
   id: string; title: string | null; category: string | null; tags: string | null; excerpt: string | null;
-  content: string | null; source_name: string | null; source_url: string | null; status: string | null;
+  content: string | null; body: string | null; source_name: string | null; source_url: string | null; status: string | null;
   reviewed_by: string | null; reviewed_at: number | null; article_id: string | null; created_at: number | null;
 };
 
@@ -34,6 +35,7 @@ function rowTo(r: Row): KnowledgeDraft {
   try { const v = JSON.parse(r.content ?? "[]"); if (Array.isArray(v)) content = v as KnowledgeSection[]; } catch { /**/ }
   return {
     id: r.id, title: r.title ?? "", category: r.category ?? "地方政策", tags, excerpt: r.excerpt ?? "", content,
+    body: r.body ?? undefined,
     sourceName: r.source_name ?? "", sourceUrl: r.source_url ?? "", status: (r.status as DraftStatus) ?? "pending",
     reviewedBy: r.reviewed_by ?? undefined, reviewedAt: r.reviewed_at ?? undefined, articleId: r.article_id ?? undefined,
     createdAt: r.created_at ?? 0,
@@ -66,14 +68,14 @@ export function countDrafts(status: DraftStatus): number {
 
 export type DraftInput = {
   title: string; category: string; tags: string[]; excerpt: string; content: KnowledgeSection[];
-  sourceName: string; sourceUrl: string;
+  body?: string; sourceName: string; sourceUrl: string;
 };
 
 export function createDraft(input: DraftInput): string {
   const id = `KD-${Date.now().toString(36)}-${Math.floor(input.title.length % 97)}`;
   getDb().prepare(
-    "INSERT INTO knowledge_drafts (id,title,category,tags,excerpt,content,source_name,source_url,status,created_at) VALUES (?,?,?,?,?,?,?,?,'pending',?)",
-  ).run(id, input.title, input.category, JSON.stringify(input.tags), input.excerpt, JSON.stringify(input.content), input.sourceName, input.sourceUrl, Date.now());
+    "INSERT INTO knowledge_drafts (id,title,category,tags,excerpt,content,body,source_name,source_url,status,created_at) VALUES (?,?,?,?,?,?,?,?,?,'pending',?)",
+  ).run(id, input.title, input.category, JSON.stringify(input.tags), input.excerpt, JSON.stringify(input.content), input.body ?? null, input.sourceName, input.sourceUrl, Date.now());
   return id;
 }
 

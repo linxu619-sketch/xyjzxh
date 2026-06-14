@@ -134,7 +134,7 @@ export async function approveAllDraftsAction() {
   for (const d of pending) {
     const articleId = createKnowledge({
       title: d.title, category: d.category, tags: d.tags, date: todayStr(),
-      hot: false, excerpt: d.excerpt, content: d.content,
+      hot: false, excerpt: d.excerpt, content: d.content, body: d.body || undefined,
       sourceUrl: d.sourceUrl || undefined, sourceName: d.sourceName || undefined,
     });
     setDraftStatus(d.id, "approved", by, articleId);

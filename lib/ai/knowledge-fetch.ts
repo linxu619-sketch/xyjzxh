@@ -123,17 +123,51 @@ function absolutize(href: string, base: string): string | null {
 
 /* ---------- 起草（AI 优先，失败兜底） ---------- */
 
-type DraftCore = { title: string; category: string; tags: string[]; excerpt: string; content: KnowledgeSection[] };
+type DraftCore = { title: string; category: string; tags: string[]; excerpt: string; content: KnowledgeSection[]; body?: string };
 
 async function draftFromCandidate(c: Candidate, src: KnowledgeSource, provider: string): Promise<DraftCore | null> {
   if (!c.title) return null;
-  if (provider === "deepseek" || provider === "anthropic") {
-    try {
-      const ai = await aiDraft(c, src, provider);
-      if (ai) return ai;
-    } catch { /* 落到兜底 */ }
+  // 抓原文正文全文（示例来源无真实链接则跳过）；抓到的正文既作 body 保存，也喂给 AI 概括要点
+  let body = "";
+  if (src.kind !== "sample" && /^https?:\/\//.test(c.url)) {
+    try { body = extractArticleBody(await fetchText(c.url)); } catch { /* 抓不到正文就留空，要点仍可生成 */ }
   }
-  return heuristicDraft(c, src);
+  const enriched: Candidate = { ...c, snippet: c.snippet || body.slice(0, 800) };
+
+  let core: DraftCore | null = null;
+  if (provider === "deepseek" || provider === "anthropic") {
+    try { core = await aiDraft(enriched, src, provider); } catch { /* 落到兜底 */ }
+  }
+  if (!core) core = heuristicDraft(enriched, src);
+  // body 用抓到的原文全文（Markdown 段落）；抓不到则留空，由人工在审核页补
+  return { ...core, body: body || undefined };
+}
+
+/* 从文章页 HTML 提取正文全文（启发式）：去脚本/样式 → 取正文容器 → 按段落抽文字 → Markdown。
+   带噪声在所难免，审核页可人工删改后再入库。 */
+function extractArticleBody(html: string): string {
+  let h = html
+    .replace(/<script[\s\S]*?<\/script>/gi, "")
+    .replace(/<style[\s\S]*?<\/style>/gi, "")
+    .replace(/<!--[\s\S]*?-->/g, "");
+  const main =
+    h.match(/<article[\s\S]*?<\/article>/i)?.[0] ||
+    h.match(/<main[\s\S]*?<\/main>/i)?.[0] ||
+    h.match(/<div[^>]*(?:class|id)=["'][^"']*(?:content|article|main|detail|text|TRS_Editor|view|zoom|conTxt|article-content)[^"']*["'][\s\S]*?<\/div>/i)?.[0] ||
+    h;
+  const ps = main.match(/<p\b[\s\S]*?<\/p>/gi);
+  const segs = ps && ps.length >= 2 ? ps : main.split(/<\/(?:p|div|li|h[1-6])\s*>|<br\s*\/?>/i);
+  const seen = new Set<string>();
+  const paras: string[] = [];
+  for (const seg of segs) {
+    const t = decodeEntities(seg.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ")).trim();
+    if (t.length < 12) continue;                                          // 跳过过短的导航/碎片
+    if (/^(首页|上一篇|下一篇|打印本页|打印|关闭窗口|关闭|分享到|分享|扫一扫|责任编辑|来源[:：]|【字体|字号)/.test(t)) continue;
+    if (seen.has(t)) continue;
+    seen.add(t);
+    paras.push(t);
+  }
+  return paras.join("\n\n").slice(0, 8000);                                // 限长，防超大页面
 }
 
 const DRAFT_SYSTEM = `你是建筑装饰装修行业协会的知识库编辑。根据给定的「标题」和「摘要片段」，整理成一条知识库待审草稿。

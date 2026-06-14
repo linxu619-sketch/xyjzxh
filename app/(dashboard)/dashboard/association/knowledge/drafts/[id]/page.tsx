@@ -26,7 +26,7 @@ export default async function DraftReview({ params, searchParams }: { params: Pr
   const isExternal = /^https?:\/\//.test(d.sourceUrl);
   const initial = {
     title: d.title, category: d.category, tags: d.tags.join("、"), excerpt: d.excerpt,
-    sections: d.content, hot: false,
+    body: d.body, sections: d.content, hot: false,
   };
 
   return (
@@ -55,7 +55,7 @@ export default async function DraftReview({ params, searchParams }: { params: Pr
             <span className="text-muted-foreground break-all">原文链接：{d.sourceUrl}（样例/内部链接）</span>
           )}
         </div>
-        <p className="mt-2 text-[11px] text-muted-foreground leading-5">⚠️ 这是 AI 自动整理的草稿,正文要点为概括摘录、并非官方全文。请对照原文核对无误后再「通过并入库」。</p>
+        <p className="mt-2 text-[11px] text-muted-foreground leading-5">⚠️ 这是 AI 自动整理的草稿{d.body ? "：正文为自动抓取的原文全文(可能含网页噪声)、要点为 AI 概括摘录" : "：仅有要点概括,未抓到原文全文"}。请对照原文核对、删改无误后再「通过并入库」。</p>
       </div>
 
       {d.status === "pending" ? (

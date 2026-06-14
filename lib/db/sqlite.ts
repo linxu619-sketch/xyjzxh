@@ -235,6 +235,7 @@ CREATE TABLE IF NOT EXISTS knowledge_drafts (
   tags        TEXT,    -- JSON
   excerpt     TEXT,
   content     TEXT,    -- JSON: [{h, points[]}]
+  body        TEXT,    -- 抓取的原文正文全文（Markdown）
   source_name TEXT,
   source_url  TEXT,    -- 原文链接（同时用于去重）
   status      TEXT DEFAULT 'pending',  -- pending | approved | rejected
@@ -1594,6 +1595,8 @@ function migrate(db: DB) {
     // 新闻/党建 封面图 + 配图集
     "ALTER TABLE news ADD COLUMN cover TEXT",
     "ALTER TABLE news ADD COLUMN images TEXT",   // 配图集 JSON 数组
+    // AI 抓取草稿：原文正文全文（Markdown），带进正式文章 body
+    "ALTER TABLE knowledge_drafts ADD COLUMN body TEXT",
   ];
   for (const sql of alters) {
     try { db.exec(sql); } catch { /* 列已存在，忽略 */ }
