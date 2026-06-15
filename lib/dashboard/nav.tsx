@@ -65,6 +65,9 @@ export type BottomTab = {
   href: string;
   label: string;
   icon: TabIconKey;
+  // 额外归属的兄弟路由前缀：这些子页(本身不在 tab 里)点亮此 tab。
+  // 高亮按「最长前缀匹配」，让每个子页都有且只有一个父 tab 选中（底栏选中态在全站一致）。
+  match?: string[];
 };
 
 export const CUSTOMER_TABS: BottomTab[] = [
@@ -77,8 +80,8 @@ export const CUSTOMER_TABS: BottomTab[] = [
 
 export const PRACTITIONER_TABS: BottomTab[] = [
   { href: "/dashboard/practitioner",          label: "首页",   icon: "home" },
-  { href: "/dashboard/practitioner/jobs",     label: "找活",   icon: "jobs" },
+  { href: "/dashboard/practitioner/jobs",     label: "找活",   icon: "jobs",     match: ["/dashboard/practitioner/hire"] },
   { href: "/dashboard/practitioner/training", label: "培训",   icon: "training" },
   { href: "/dashboard/practitioner/income",   label: "钱包",   icon: "wallet" },
-  { href: "/dashboard/practitioner/profile",  label: "我的",   icon: "user" },
+  { href: "/dashboard/practitioner/profile",  label: "我的",   icon: "user",     match: ["/dashboard/practitioner/settings", "/dashboard/practitioner/agreements", "/dashboard/practitioner/insurance", "/dashboard/practitioner/store"] },
 ];

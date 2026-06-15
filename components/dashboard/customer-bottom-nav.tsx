@@ -22,15 +22,27 @@ const ICON_MAP: Record<TabIconKey, React.ComponentType<{ className?: string }>> 
   user: Users2,
 };
 
+// 该 tab 与当前路径的匹配长度（-1=不匹配）。取 href 与 match 前缀里最长的命中。
+function tabScore(tab: BottomTab, pathname: string): number {
+  let best = -1;
+  for (const p of [tab.href, ...(tab.match ?? [])]) {
+    if (pathname === p || pathname.startsWith(p + "/")) best = Math.max(best, p.length);
+  }
+  return best;
+}
+
 export function CustomerBottomNav({ tabs }: { tabs: BottomTab[] }) {
   const pathname = usePathname();
+  // 最长前缀匹配：每个子页都点亮唯一父 tab，避免子页无选中态导致底栏「不固定」。
+  let activeIdx = -1, activeScore = -1;
+  tabs.forEach((t, i) => { const s = tabScore(t, pathname); if (s > activeScore) { activeScore = s; activeIdx = i; } });
   return (
     <nav className="fixed bottom-0 inset-x-0 z-40 bg-background border-t border-border">
       <Container className="max-w-2xl">
         <div className="grid grid-cols-5 h-16 items-center">
-          {tabs.map((t) => {
+          {tabs.map((t, i) => {
             const Icon = ICON_MAP[t.icon] ?? Home;
-            const active = pathname === t.href;
+            const active = i === activeIdx;
             return (
               <Link
                 key={t.href}

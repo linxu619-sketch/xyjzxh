@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import {
-  ShieldCheck, Star, Sparkles, ChevronRight, LogOut, Settings, MapPin, Check, Briefcase, CalendarClock, QrCode, SlidersHorizontal, CheckCircle2,
+  ShieldCheck, Star, Sparkles, ChevronRight, LogOut, Check, Briefcase, CalendarClock, QrCode, SlidersHorizontal, CheckCircle2,
 } from "lucide-react";
 import { PractitionerShell } from "@/components/dashboard/practitioner-shell";
 import { TierBadge, GrowthMeter } from "@/components/dashboard/practitioner-tier";
@@ -39,35 +39,17 @@ export default async function PractitionerProfile({ searchParams }: { searchPara
   const perks = metaOf(tier)?.perks ?? [];
 
   return (
-    <PractitionerShell title="我的" showHeader={false}>
+    <PractitionerShell title="我的" subtitle={`${name} · ${kind}${years ? ` · ${years} 年` : ""} · ${city} · ID ${pid}`}>
       {saved && (
         <div className="mb-3 rounded-2xl border border-accent-tea/30 bg-[#e6f7f1] text-accent-tea p-3.5 text-[13px] inline-flex items-center gap-2 w-full">
           <CheckCircle2 className="h-4 w-4 shrink-0" /> 找活资料已保存，岗位推荐已按新资料更新。
         </div>
       )}
-      {/* 荣誉头卡 */}
-      <div className="-mx-5 sm:-mx-8 lg:-mx-12 bg-foreground text-background pt-8 pb-12 px-5 sm:px-8 lg:px-12 mb-4 relative overflow-hidden">
-        <div className="absolute -top-10 -right-10 h-44 w-44 rounded-full bg-[#f6c915]/25 blur-3xl" />
-        <div className="absolute -bottom-12 left-6 h-40 w-40 rounded-full bg-cat-design/25 blur-3xl" />
-        <div className="relative flex items-center justify-end mb-4">
-          <Link href="/dashboard/practitioner/settings" className="h-9 w-9 rounded-full bg-white/10 inline-flex items-center justify-center hover:bg-white/20 transition-colors" aria-label="设置"><Settings className="h-4 w-4" /></Link>
-        </div>
-        <div className="relative flex items-start gap-4">
-          <span className="h-16 w-16 rounded-full bg-gradient-to-br from-[#f6c915] to-[#e0a900] text-[#5a3e00] inline-flex items-center justify-center text-[24px] font-semibold shadow-lg shrink-0">{name.slice(0, 1)}</span>
-          <div className="flex-1 min-w-0">
-            <div className="text-[18px] font-semibold">{name}</div>
-            <div className="text-[11px] text-background/70 mt-0.5">{kind}{years ? ` · ${years} 年` : ""} · <span className="inline-flex items-center gap-0.5"><MapPin className="h-3 w-3" />{city}</span></div>
-            <div className="mt-2.5"><TierBadge tier={tier} level={level} isMax={isMaxTier} size="lg" track /></div>
-          </div>
-        </div>
-        <div className="relative mt-3 text-[10px] text-background/50">ID {pid}</div>
-      </div>
-
-      {/* 等级 · 成长进度 */}
+      {/* 等级 · 成长进度（荣誉档案主卡：等级徽章 + 进度 + 当前档权益）*/}
       <section className="rounded-3xl bg-background border border-border p-5 mb-4">
         <div className="flex items-center justify-between mb-3">
-          <h3 className="text-[14px] font-semibold tracking-tight">会员等级 · 成长</h3>
-          <span className="text-[11px] text-muted-foreground">协会评定 · {isMaxTier ? "已封顶" : `下一档 ${growth.next}`}</span>
+          <TierBadge tier={tier} level={level} isMax={isMaxTier} size="lg" track />
+          <span className="text-[11px] text-muted-foreground shrink-0">协会评定 · {isMaxTier ? "已封顶" : `下一档 ${growth.next}`}</span>
         </div>
         <GrowthMeter next={growth.next} percent={growth.percent} criteria={growth.criteria} />
         {!isMaxTier && (

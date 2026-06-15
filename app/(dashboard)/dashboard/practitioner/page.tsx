@@ -87,7 +87,6 @@ export default async function PractitionerHome() {
           </div>
 
           <div className="mt-5 flex items-center gap-2 flex-wrap">
-            <TierBadge tier={tier} level={level} isMax={isMaxTier} />
             <span className="inline-flex items-center gap-1.5 rounded-full bg-white/10 backdrop-blur px-3 py-1.5 text-[11px]">
               <ShieldCheck className="h-3 w-3 text-accent-yellow" /> 已实名{insured ? " · 工伤险在保" : ""}
             </span>
@@ -96,6 +95,15 @@ export default async function PractitionerHome() {
       </div>
 
       <Container className="max-w-2xl -mt-16 relative space-y-3">
+        {/* 会员等级 · 成长进度（合并自原 hero 等级徽章，置顶唯一展示；详情见「荣誉档案」）*/}
+        <Link href="/dashboard/practitioner/profile" className="block rounded-3xl bg-background border border-border p-5 shadow-sm active:scale-[0.99] transition-transform">
+          <div className="flex items-center justify-between mb-3">
+            <TierBadge tier={tier} level={level} isMax={isMaxTier} track />
+            <span className="text-[12px] text-brand inline-flex items-center gap-0.5 shrink-0">荣誉档案 <ChevronRight className="h-3 w-3" /></span>
+          </div>
+          <GrowthMeter next={growth.next} percent={growth.percent} criteria={growth.criteria} compact />
+        </Link>
+
         {/* 提醒条：急招岗位 */}
         {urgentJobs > 0 && (
           <Link
@@ -115,15 +123,6 @@ export default async function PractitionerHome() {
             </div>
           </Link>
         )}
-
-        {/* 会员等级 · 成长进度（详情见「我的 · 荣誉档案」）*/}
-        <Link href="/dashboard/practitioner/profile" className="block rounded-3xl bg-background border border-border p-5 shadow-sm active:scale-[0.99] transition-transform">
-          <div className="flex items-center justify-between mb-3">
-            <TierBadge tier={tier} level={level} isMax={isMaxTier} track />
-            <span className="text-[12px] text-brand inline-flex items-center gap-0.5 shrink-0">荣誉档案 <ChevronRight className="h-3 w-3" /></span>
-          </div>
-          <GrowthMeter next={growth.next} percent={growth.percent} criteria={growth.criteria} compact />
-        </Link>
 
         {/* 四宫格 */}
         <div className="grid grid-cols-2 gap-3">
