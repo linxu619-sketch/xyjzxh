@@ -88,7 +88,7 @@ export default async function PractitionerHome() {
           </div>
 
           {/* 金色等级条：等级徽章背景与成长进度条合为一体，整条点击 → 荣誉档案 */}
-          <Link href="/dashboard/practitioner/profile" className="mt-3 block rounded-2xl bg-gradient-to-r from-[#f6c915] to-[#e0a900] text-[#5a3e00] px-3.5 py-3 shadow-sm active:opacity-90 transition-opacity">
+          <Link href="/dashboard/practitioner/profile" className="mt-2.5 block rounded-2xl bg-gradient-to-r from-[#f6c915] to-[#e0a900] text-[#5a3e00] px-3.5 py-2.5 shadow-sm active:opacity-90 transition-opacity">
             <div className="flex items-center justify-between gap-2">
               <span className="inline-flex items-center gap-1.5 text-[13px] font-semibold">
                 <TierIcon className="h-4 w-4 text-[#7a5400]" /> {tier}<span className="opacity-60 font-medium">· L{level}</span>
@@ -96,17 +96,11 @@ export default async function PractitionerHome() {
               <span className="text-[11px] font-medium opacity-80">协会评定 <ChevronRight className="inline h-3 w-3 -mt-0.5" /></span>
             </div>
             {!isMaxTier && growth.next ? (
-              <>
-                <div className="mt-2 flex items-center justify-between text-[10.5px] text-[#5a3e00]/70">
-                  <span>距「{growth.next}」评审参考</span>
-                  <span className="font-semibold tabular-nums text-[#5a3e00]">{growth.percent}%</span>
-                </div>
-                <div className="mt-1 h-2 rounded-full bg-[#5a3e00]/15 overflow-hidden">
-                  <div className="h-full rounded-full bg-[#5a3e00] transition-all" style={{ width: `${Math.max(4, growth.percent)}%` }} />
-                </div>
-              </>
+              <div className="mt-1.5 h-1.5 rounded-full bg-[#5a3e00]/15 overflow-hidden">
+                <div className="h-full rounded-full bg-[#5a3e00] transition-all" style={{ width: `${Math.max(4, growth.percent)}%` }} />
+              </div>
             ) : (
-              <div className="mt-1.5 text-[11px] text-[#5a3e00]/80 inline-flex items-center gap-1"><Crown className="h-3.5 w-3.5" /> 专业资历封顶</div>
+              <div className="mt-1 text-[11px] text-[#5a3e00]/80 inline-flex items-center gap-1"><Crown className="h-3.5 w-3.5" /> 专业资历封顶</div>
             )}
           </Link>
         </Container>
