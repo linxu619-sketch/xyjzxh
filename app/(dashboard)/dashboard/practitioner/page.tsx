@@ -65,38 +65,36 @@ export default async function PractitionerHome() {
           <Link href="/dashboard/association" className="underline font-medium shrink-0">返回协会工作台</Link>
         </div>
       )}
-      {/* hero —— 身份 + 等级 + 成长进度（合一；点身份区进荣誉档案；设置入口已移到底部「我的」）*/}
-      <div className="bg-foreground text-background pt-9 pb-9 relative overflow-hidden">
+      {/* hero —— 紧凑(移动端优先)：身份行 + 等级·已实名·进度条 合一卡(整卡点击→荣誉档案) */}
+      <div className="bg-foreground text-background pt-6 pb-6 relative overflow-hidden">
         <div className="absolute -top-16 -right-16 h-56 w-56 rounded-full bg-cat-design/35 blur-3xl" />
         <div className="absolute -bottom-16 left-10 h-44 w-44 rounded-full bg-brand/30 blur-3xl" />
 
         <Container className="relative max-w-2xl">
-          <Link href="/dashboard/practitioner/profile" className="flex items-center gap-3 -mx-1 px-1 py-1 rounded-2xl active:bg-white/5 transition-colors">
-            <span className="h-12 w-12 rounded-full bg-gradient-to-br from-cat-design to-[#6d3df0] text-white inline-flex items-center justify-center text-[18px] font-semibold shadow-lg shrink-0">
+          <Link href="/dashboard/practitioner/profile" className="flex items-center gap-3 -mx-1 px-1 py-0.5 rounded-2xl active:bg-white/5 transition-colors">
+            <span className="h-11 w-11 rounded-full bg-gradient-to-br from-cat-design to-[#6d3df0] text-white inline-flex items-center justify-center text-[17px] font-semibold shadow-lg shrink-0">
               {name.slice(0, 1)}
             </span>
-            <div className="leading-tight flex-1 min-w-0">
+            <div className="leading-tight min-w-0">
               <div className="text-[15px] font-semibold truncate">{name}</div>
               <div className="text-[11px] text-background/70 truncate">{kind}{years ? ` · ${years} 年` : ""} · ID {pid}</div>
             </div>
           </Link>
 
-          <div className="mt-4 flex items-center gap-2 flex-wrap">
-            <TierBadge tier={tier} level={level} isMax={isMaxTier} track />
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-white/10 backdrop-blur px-3 py-1.5 text-[11px]">
-              <ShieldCheck className="h-3 w-3 text-accent-yellow" /> 已实名{insured ? " · 工伤险在保" : ""}
-            </span>
-          </div>
-
-          {/* 成长进度（深色变体；点进荣誉档案）*/}
-          <Link href="/dashboard/practitioner/profile" className="mt-4 block rounded-2xl bg-white/5 hover:bg-white/10 transition-colors p-3.5">
+          {/* 等级 + 已实名 + 成长进度 合一卡：整卡点击直达荣誉档案 */}
+          <Link href="/dashboard/practitioner/profile" className="mt-3 block rounded-2xl bg-white/5 hover:bg-white/10 active:bg-white/10 transition-colors p-3">
+            <div className="mb-2 flex items-center gap-2 flex-wrap">
+              <TierBadge tier={tier} level={level} isMax={isMaxTier} track />
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-white/10 px-2.5 py-1 text-[11px]">
+                <ShieldCheck className="h-3 w-3 text-accent-yellow" /> 已实名{insured ? " · 工伤险在保" : ""}
+              </span>
+            </div>
             <GrowthMeter next={growth.next} percent={growth.percent} criteria={growth.criteria} compact dark />
-            <div className="mt-2 text-[11px] text-background/60 inline-flex items-center gap-0.5">查看荣誉档案 <ChevronRight className="h-3 w-3" /></div>
           </Link>
         </Container>
       </div>
 
-      <Container className="max-w-2xl pt-4 space-y-3">
+      <Container className="max-w-2xl pt-3 space-y-3">
         {/* 提醒条：急招岗位 */}
         {urgentJobs > 0 && (
           <Link
