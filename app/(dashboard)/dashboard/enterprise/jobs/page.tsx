@@ -4,7 +4,7 @@ import { EnterpriseShell } from "@/components/dashboard/shell";
 import { StatFilters } from "@/components/dashboard/stat-filters";
 import { Badge } from "@/components/ui/badge";
 import { getSession } from "@/lib/auth/session";
-import { listJobsByEnterprise, countApplicants, type JobStatus } from "@/lib/data/jobs";
+import { listJobsByEnterprise, countApplicants, countHired, type JobStatus } from "@/lib/data/jobs";
 import { PostJobForm } from "./PostJobForm";
 import { effectiveEnterpriseId } from "@/lib/dashboard/preview";
 
@@ -56,6 +56,8 @@ export default async function JobsPage({ searchParams }: { searchParams: Promise
             <ul className="divide-y divide-border">
               {list.map((j) => {
                 const apps = countApplicants(j.id);
+                const hired = countHired(j.id);
+                const full = hired >= j.openings;
                 return (
                   <li key={j.id}>
                     <Link href={`/dashboard/enterprise/jobs/${j.id}`} className="grid grid-cols-[1fr_auto] md:grid-cols-[1.8fr_1fr_1.3fr_0.8fr_auto] gap-3 items-center px-5 py-3.5 text-[13px] hover:bg-surface transition-colors active:scale-[0.99]">
@@ -63,13 +65,14 @@ export default async function JobsPage({ searchParams }: { searchParams: Promise
                         <span className="h-8 w-8 rounded-lg bg-cat-build-soft text-cat-build inline-flex items-center justify-center shrink-0 md:hidden"><Briefcase className="h-4 w-4" /></span>
                         <span className="min-w-0">
                           <span className="font-medium truncate flex items-center gap-1.5">{j.title}{j.urgent && <Badge tone="decor" className="!px-1.5 !py-0">急</Badge>}</span>
-                          <span className="md:hidden text-[11px] text-muted-foreground truncate block">{j.kind} · ¥{j.daily}/天 · {j.openings}名额 · {apps}投递</span>
+                          <span className="md:hidden text-[11px] text-muted-foreground truncate block">{j.kind} · ¥{j.daily}/天 · 录用{hired}/{j.openings} · {apps}投递{j.startDate ? ` · ${j.startDate}进场` : ""}</span>
                         </span>
                       </span>
                       <span className="hidden md:block text-muted-foreground truncate">{j.kind}</span>
-                      <span className="hidden md:block text-muted-foreground">{j.district || "信阳"} · ¥{j.daily}/天 · {j.openings}名额</span>
+                      <span className="hidden md:block text-muted-foreground">{j.district || "信阳"} · ¥{j.daily}/天 · 录用 {hired}/{j.openings}</span>
                       <span className="hidden md:inline-flex items-center gap-1 text-accent-tea"><Users2 className="h-3.5 w-3.5" />{apps}</span>
                       <span className="inline-flex items-center gap-2 justify-end shrink-0">
+                        {full && <Badge tone="build" className="!px-1.5 !py-0">满</Badge>}
                         <Badge tone={j.status === "open" ? "tea" : "neutral"}>{j.status === "open" ? "在招" : "已结束"}</Badge>
                         <ChevronRight className="h-4 w-4 text-muted-foreground" />
                       </span>

@@ -13,7 +13,7 @@ import { effectivePractitionerPhone, isPractitionerPreview } from "@/lib/dashboa
 
 export const metadata = { title: "找活 · 从业者门户" };
 
-const STATUS_LABEL: Record<string, string> = { pending: "已投递 · 待企业处理", accepted: "已被录用 🎉", rejected: "未通过" };
+const STATUS_LABEL: Record<string, string> = { pending: "已投递 · 待企业处理", accepted: "已被录用 🎉", working: "施工中", done: "已完工", rejected: "未通过" };
 
 export default async function PractitionerJobs({ searchParams }: { searchParams: Promise<{ aok?: string; adup?: string; aerr?: string; pv?: string; all?: string }> }) {
   const session = await getSession();
@@ -164,8 +164,8 @@ function JobCard({ m, st, dim }: { m: JobMatch; st?: string; dim?: boolean }) {
       <div className="mt-3 pt-3 border-t border-border flex items-center justify-between gap-2">
         <div className="text-[18px] font-semibold text-cat-decor tabular-nums">¥{j.daily}{j.dailyMax && j.dailyMax > j.daily ? `-${j.dailyMax}` : ""}<span className="text-[10px] font-normal text-muted-foreground"> /天</span></div>
         {st ? (
-          <span className={`inline-flex items-center gap-1 h-10 px-3.5 rounded-full text-[12px] font-medium ${st === "accepted" ? "bg-[#e6f7f1] text-accent-tea" : st === "rejected" ? "bg-surface text-muted-foreground" : "bg-surface text-foreground"}`}>
-            {st === "accepted" && <CheckCircle2 className="h-3.5 w-3.5" />}{STATUS_LABEL[st]}
+          <span className={`inline-flex items-center gap-1 h-10 px-3.5 rounded-full text-[12px] font-medium ${st === "accepted" || st === "working" || st === "done" ? "bg-[#e6f7f1] text-accent-tea" : st === "rejected" ? "bg-surface text-muted-foreground" : "bg-surface text-foreground"}`}>
+            {(st === "accepted" || st === "working" || st === "done") && <CheckCircle2 className="h-3.5 w-3.5" />}{STATUS_LABEL[st] ?? st}
           </span>
         ) : (
           <form action={applyJobAction}>

@@ -4,7 +4,16 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { getSession } from "@/lib/auth/session";
 import { getEnterpriseBySlugOrId } from "@/lib/data/enterprises-source";
-import { createJob, getJob, setJobStatus, getApplication, setApplicationStatus, type AppStatus, type JobStatus } from "@/lib/data/jobs";
+import { createJob, getJob, setJobStatus, getApplication, setApplicationStatus, countHired, type AppStatus, type JobStatus } from "@/lib/data/jobs";
+
+// 派工闭环：投递状态前向流转白名单（录用→到岗→完工；完工=终态；不合适/取消/中止→rejected）
+const ALLOWED_APP_FLOW: Record<AppStatus, AppStatus[]> = {
+  pending: ["accepted", "rejected"],   // 待处理 → 录用 / 不合适
+  rejected: ["pending"],               // 未通过 → 重新考虑
+  accepted: ["working", "rejected"],   // 已录用 → 标记到岗 / 取消录用
+  working: ["done", "rejected"],       // 施工中 → 标记完工 / 中止
+  done: [],                            // 已完工：终态，不可再变
+};
 
 async function requireEnterprise() {
   const s = await getSession();
@@ -32,6 +41,7 @@ export async function createJobAction(fd: FormData) {
     dailyMax: posInt("dailyMax"),
     openings: Number(fd.get("openings") || 1) || 1,
     duration: String(fd.get("duration") || "").trim(),
+    startDate: String(fd.get("startDate") || "").trim(),
     urgent: fd.get("urgent") === "on",
     detail: String(fd.get("detail") || "").trim(),
     insurance: fd.get("insurance") === "self" ? "self" : "company",
@@ -69,6 +79,7 @@ export async function createRecruitAction(fd: FormData) {
     benefits: fd.getAll("benefits").map(String).filter(Boolean),
     openings: Number(fd.get("openings") || 1) || 1,
     duration: "长期",
+    startDate: String(fd.get("startDate") || "").trim(),
     detail: String(fd.get("detail") || "").trim(),
     minAge: posInt("minAge"),
     maxAge: posInt("maxAge"),
@@ -98,7 +109,15 @@ export async function reviewApplicantAction(fd: FormData) {
   const status = String(fd.get("status") || "") as AppStatus;
   const app = getApplication(id);
   if (!app || app.enterpriseId !== s.enterpriseId) throw new Error("无权操作该投递");
-  if (status === "accepted" || status === "rejected" || status === "pending") setApplicationStatus(id, status);
-  revalidatePath(`/dashboard/enterprise/jobs/${app.jobId}`);
-  redirect(`/dashboard/enterprise/jobs/${app.jobId}`);
+  const back = `/dashboard/enterprise/jobs/${app.jobId}`;
+  // 前向流转校验：不在白名单（如已完工后再改、录用后直接点不合适越级）一律拦截，保证闭环
+  if (!ALLOWED_APP_FLOW[app.status]?.includes(status)) redirect(`${back}?aerr=flow`);
+  // 录用占名额：招满则拦截（提醒先结束招聘或取消他人录用）
+  if (status === "accepted") {
+    const job = getJob(app.jobId);
+    if (job && countHired(app.jobId) >= job.openings) redirect(`${back}?aerr=full`);
+  }
+  setApplicationStatus(id, status);
+  revalidatePath(back);
+  redirect(`${back}?aok=${status}`);
 }

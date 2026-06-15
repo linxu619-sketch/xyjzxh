@@ -6,7 +6,10 @@ import { getDb } from "@/lib/db/sqlite";
    ============================================================ */
 
 export type JobStatus = "open" | "closed";
-export type AppStatus = "pending" | "accepted" | "rejected";
+// 派工闭环：投递 → 录用 → 到岗 → 完工（前向，完工为终态）；不合适=终态分支
+export type AppStatus = "pending" | "accepted" | "working" | "done" | "rejected";
+// 计入「已用名额」的状态（已录用/施工中/已完工都占名额）
+export const HIRED_STATUSES: AppStatus[] = ["accepted", "working", "done"];
 
 export type JobType = "gig" | "hire";
 
@@ -32,6 +35,7 @@ export type Job = {
   minYears: number;        // 最低从业年限（0=不限）
   genderReq: string;       // 性别要求 男/女（""=不限）
   needCert: boolean;       // 是否需持证上岗
+  startDate: string;       // 开始日期（零工=进场日 / 招聘=可入职日，YYYY-MM-DD，""=待定）
   status: JobStatus;
   createdAt: number;
 };
@@ -45,6 +49,8 @@ export type JobApplication = {
   phone: string;
   note: string;
   status: AppStatus;
+  onboardAt: number;       // 标记已到岗时间
+  doneAt: number;          // 标记已完工时间
   createdAt: number;
 };
 
@@ -53,12 +59,13 @@ type JobRow = {
   kind: string | null; district: string | null; edu: string | null; insurance: string | null; benefits: string | null; daily: number | null; daily_max: number | null; openings: number | null;
   duration: string | null; urgent: number | null; detail: string | null;
   min_age: number | null; max_age: number | null; min_years: number | null;
-  gender_req: string | null; need_cert: number | null;
+  gender_req: string | null; need_cert: number | null; start_date: string | null;
   status: string; created_at: number | null;
 };
 type AppRow = {
   id: number; job_id: number; enterprise_id: string | null; practitioner_phone: string | null;
-  name: string | null; phone: string | null; note: string | null; status: string; created_at: number | null;
+  name: string | null; phone: string | null; note: string | null; status: string;
+  onboard_at: number | null; done_at: number | null; created_at: number | null;
 };
 
 function parseBenefits(raw: string | null): string[] {
@@ -72,7 +79,7 @@ function toJob(r: JobRow): Job {
     kind: r.kind ?? "", district: r.district ?? "", edu: r.edu ?? "", insurance: r.insurance ?? "", benefits: parseBenefits(r.benefits), daily: r.daily ?? 0, dailyMax: r.daily_max ?? null, openings: r.openings ?? 1,
     duration: r.duration ?? "", urgent: !!r.urgent, detail: r.detail ?? "",
     minAge: r.min_age ?? null, maxAge: r.max_age ?? null, minYears: r.min_years ?? 0,
-    genderReq: r.gender_req ?? "", needCert: !!r.need_cert,
+    genderReq: r.gender_req ?? "", needCert: !!r.need_cert, startDate: r.start_date ?? "",
     status: (r.status as JobStatus) ?? "open",
     createdAt: r.created_at ?? 0,
   };
@@ -81,6 +88,7 @@ function toApp(r: AppRow): JobApplication {
   return {
     id: r.id, jobId: r.job_id, enterpriseId: r.enterprise_id ?? "", practitionerPhone: r.practitioner_phone ?? "",
     name: r.name ?? "", phone: r.phone ?? "", note: r.note ?? "", status: (r.status as AppStatus) ?? "pending",
+    onboardAt: r.onboard_at ?? 0, doneAt: r.done_at ?? 0,
     createdAt: r.created_at ?? 0,
   };
 }
@@ -116,18 +124,18 @@ export function createJob(input: {
   enterpriseId: string; enterpriseName: string; title: string; kind: string; type?: JobType; edu?: string;
   insurance?: string; benefits?: string[];
   district?: string; daily?: number; dailyMax?: number | null; openings?: number; duration?: string; urgent?: boolean; detail?: string;
-  minAge?: number | null; maxAge?: number | null; minYears?: number; genderReq?: string; needCert?: boolean;
+  minAge?: number | null; maxAge?: number | null; minYears?: number; genderReq?: string; needCert?: boolean; startDate?: string;
 }): number {
   const info = getDb().prepare(
-    `INSERT INTO jobs (enterprise_id,enterprise_name,type,title,kind,district,edu,insurance,benefits,daily,daily_max,openings,duration,urgent,detail,min_age,max_age,min_years,gender_req,need_cert,status,created_at)
-     VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?, 'open', ?)`,
+    `INSERT INTO jobs (enterprise_id,enterprise_name,type,title,kind,district,edu,insurance,benefits,daily,daily_max,openings,duration,urgent,detail,min_age,max_age,min_years,gender_req,need_cert,start_date,status,created_at)
+     VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?, 'open', ?)`,
   ).run(
     input.enterpriseId, input.enterpriseName, input.type ?? "gig", input.title, input.kind,
     input.district ?? "", input.edu ?? "", input.insurance ?? "", JSON.stringify(input.benefits ?? []),
     input.daily ?? 0, input.dailyMax ?? null, input.openings ?? 1, input.duration ?? "",
     input.urgent ? 1 : 0, input.detail ?? "",
     input.minAge ?? null, input.maxAge ?? null, input.minYears ?? 0,
-    input.genderReq ?? "", input.needCert ? 1 : 0,
+    input.genderReq ?? "", input.needCert ? 1 : 0, input.startDate ?? "",
     Date.now(),
   );
   return Number(info.lastInsertRowid);
@@ -153,6 +161,13 @@ export function countApplicants(jobId: number): number {
   return (getDb().prepare("SELECT COUNT(*) AS c FROM job_applications WHERE job_id = ?").get(jobId) as { c: number }).c;
 }
 
+// 已用名额：已录用/施工中/已完工都占名额（用于名额管控与「招满」判定）
+export function countHired(jobId: number): number {
+  return (getDb()
+    .prepare("SELECT COUNT(*) AS c FROM job_applications WHERE job_id = ? AND status IN ('accepted','working','done')")
+    .get(jobId) as { c: number }).c;
+}
+
 export function hasApplied(jobId: number, phone: string): boolean {
   if (!phone) return false;
   return !!getDb().prepare("SELECT 1 FROM job_applications WHERE job_id = ? AND practitioner_phone = ?").get(jobId, phone);
@@ -171,5 +186,17 @@ export function applyToJob(input: { jobId: number; enterpriseId: string; phone: 
 }
 
 export function setApplicationStatus(id: number, status: AppStatus) {
-  getDb().prepare("UPDATE job_applications SET status = ? WHERE id = ?").run(status, id);
+  const db = getDb();
+  // 落地状态并记录到岗/完工时间点（其余状态清零相应时间戳，保持记录与状态一致）
+  if (status === "working") {
+    db.prepare("UPDATE job_applications SET status = 'working', onboard_at = ? WHERE id = ?").run(Date.now(), id);
+  } else if (status === "done") {
+    db.prepare("UPDATE job_applications SET status = 'done', done_at = ?, onboard_at = COALESCE(NULLIF(onboard_at,0), ?) WHERE id = ?")
+      .run(Date.now(), Date.now(), id);
+  } else if (status === "accepted") {
+    db.prepare("UPDATE job_applications SET status = 'accepted', done_at = 0 WHERE id = ?").run(id);
+  } else {
+    // pending / rejected：回到未施工，清空到岗/完工时间
+    db.prepare("UPDATE job_applications SET status = ?, onboard_at = 0, done_at = 0 WHERE id = ?").run(status, id);
+  }
 }

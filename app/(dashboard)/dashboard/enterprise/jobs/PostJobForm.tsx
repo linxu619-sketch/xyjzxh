@@ -50,6 +50,7 @@ export function PostJobForm() {
             <Field label="名额"><input name="openings" inputMode="numeric" placeholder="5" className={INPUT} /></Field>
             <Field label="工期"><input name="duration" placeholder="约25天" className={INPUT} /></Field>
           </div>
+          <Field label="进场 / 开工日期"><input name="startDate" type="date" className={INPUT} /><span className="text-[11px] text-muted-foreground">具体哪天进场上工；不填=与录用者商定。</span></Field>
           {/* 招工要求（用于与从业者资料双向匹配；留空=不限）*/}
           <div className="grid grid-cols-3 gap-3">
             <Field label="最低年龄"><input name="minAge" inputMode="numeric" placeholder="18" className={INPUT} /></Field>

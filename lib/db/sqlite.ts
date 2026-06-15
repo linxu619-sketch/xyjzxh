@@ -435,6 +435,7 @@ CREATE TABLE IF NOT EXISTS jobs (
   min_years       INTEGER, -- 最低从业年限要求（空/0=不限）
   gender_req      TEXT,    -- 性别要求 男/女（空=不限）
   need_cert       INTEGER, -- 是否需持证上岗 1=需要
+  start_date      TEXT DEFAULT '', -- 开始日期：零工=进场/开工日 · 招聘=可入职日（YYYY-MM-DD）
   status          TEXT DEFAULT 'open', -- open | closed
   created_at      INTEGER
 );
@@ -449,7 +450,9 @@ CREATE TABLE IF NOT EXISTS job_applications (
   name               TEXT,
   phone              TEXT,
   note               TEXT,
-  status             TEXT DEFAULT 'pending', -- pending | accepted | rejected
+  status             TEXT DEFAULT 'pending', -- pending | accepted | working(已到岗) | done(已完工) | rejected
+  onboard_at         INTEGER DEFAULT 0, -- 标记已到岗/进场时间
+  done_at            INTEGER DEFAULT 0, -- 标记已完工时间
   created_at         INTEGER
 );
 CREATE INDEX IF NOT EXISTS idx_japp_job ON job_applications(job_id, created_at);
@@ -1664,6 +1667,10 @@ function migrate(db: DB) {
     "ALTER TABLE payments ADD COLUMN payout_by TEXT DEFAULT ''",
     "ALTER TABLE payments ADD COLUMN refunded_at INTEGER DEFAULT 0",
     "ALTER TABLE payments ADD COLUMN refund_note TEXT DEFAULT ''",
+    // 派工闭环：岗位「开始日期」(进场/可入职) + 投递「到岗/完工」时间戳（录用→到岗→完工三态）
+    "ALTER TABLE jobs ADD COLUMN start_date TEXT DEFAULT ''",
+    "ALTER TABLE job_applications ADD COLUMN onboard_at INTEGER DEFAULT 0",
+    "ALTER TABLE job_applications ADD COLUMN done_at INTEGER DEFAULT 0",
   ];
   for (const sql of alters) {
     try { db.exec(sql); } catch { /* 列已存在，忽略 */ }

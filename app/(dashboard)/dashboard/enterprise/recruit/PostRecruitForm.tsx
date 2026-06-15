@@ -49,6 +49,7 @@ export function PostRecruitForm() {
             <Field label="招聘人数"><input name="openings" inputMode="numeric" placeholder="1" className={INPUT} /></Field>
             <Field label="学历要求"><select name="edu" defaultValue="不限" className={INPUT}>{EDU.map((e) => <option key={e}>{e}</option>)}</select></Field>
           </div>
+          <Field label="可入职日期"><input name="startDate" type="date" className={INPUT} /><span className="text-[11px] text-muted-foreground">期望到岗日；不填=面议。</span></Field>
           <div className="grid grid-cols-3 gap-3">
             <Field label="最低年龄"><input name="minAge" inputMode="numeric" placeholder="22" className={INPUT} /></Field>
             <Field label="最高年龄"><input name="maxAge" inputMode="numeric" placeholder="55" className={INPUT} /></Field>
