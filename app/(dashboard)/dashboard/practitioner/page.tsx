@@ -2,10 +2,10 @@ import Link from "next/link";
 import {
   ShieldCheck, Briefcase, GraduationCap, Wallet, Sparkles,
   ChevronRight, BadgeCheck, ArrowUpRight, AlertCircle, MapPin, Clock, Store, Flag, Hammer,
+  Award, Crown,
 } from "lucide-react";
 import { Container } from "@/components/container";
 import { CustomerBottomNav } from "@/components/dashboard/customer-bottom-nav";
-import { TierBadge, GrowthMeter } from "@/components/dashboard/practitioner-tier";
 import { PRACTITIONER_TABS } from "@/lib/dashboard/nav";
 import { Badge } from "@/components/ui/badge";
 import { getPractitionerByPhone } from "@/lib/data/practitioners-source";
@@ -42,6 +42,7 @@ export default async function PractitionerHome() {
   const tier: PractitionerTier = me?.tier ?? "注册会员";
   const level = practitionerLevel(tier);
   const isMaxTier = tier === "专家会员";
+  const TierIcon = isMaxTier ? Crown : Award;
   const growth = practitionerGrowth(tier, { jobs: jobsDone, rating, years });
   // 真实在招岗位（与「找活」页同源 listOpenJobs）+ 按本人资料做匹配
   const openJobs = listOpenJobs();
@@ -71,25 +72,42 @@ export default async function PractitionerHome() {
         <div className="absolute -bottom-16 left-10 h-44 w-44 rounded-full bg-brand/30 blur-3xl" />
 
         <Container className="relative max-w-2xl">
-          <Link href="/dashboard/practitioner/profile" className="flex items-center gap-3 -mx-1 px-1 py-0.5 rounded-2xl active:bg-white/5 transition-colors">
-            <span className="h-11 w-11 rounded-full bg-gradient-to-br from-cat-design to-[#6d3df0] text-white inline-flex items-center justify-center text-[17px] font-semibold shadow-lg shrink-0">
-              {name.slice(0, 1)}
-            </span>
-            <div className="leading-tight min-w-0">
-              <div className="text-[15px] font-semibold truncate">{name}</div>
-              <div className="text-[11px] text-background/70 truncate">{kind}{years ? ` · ${years} 年` : ""} · ID {pid}</div>
-            </div>
-          </Link>
-
-          {/* 等级 + 已实名 + 成长进度 合一卡：整卡点击直达荣誉档案 */}
-          <Link href="/dashboard/practitioner/profile" className="mt-3 block rounded-2xl bg-white/5 hover:bg-white/10 active:bg-white/10 transition-colors p-3">
-            <div className="mb-2 flex items-center gap-2 flex-wrap">
-              <TierBadge tier={tier} level={level} isMax={isMaxTier} track />
-              <span className="inline-flex items-center gap-1.5 rounded-full bg-white/10 px-2.5 py-1 text-[11px]">
-                <ShieldCheck className="h-3 w-3 text-accent-yellow" /> 已实名{insured ? " · 工伤险在保" : ""}
+          <div className="flex items-center gap-3">
+            <Link href="/dashboard/practitioner/profile" className="flex items-center gap-3 flex-1 min-w-0 -mx-1 px-1 py-0.5 rounded-2xl active:bg-white/5 transition-colors">
+              <span className="h-11 w-11 rounded-full bg-gradient-to-br from-cat-design to-[#6d3df0] text-white inline-flex items-center justify-center text-[17px] font-semibold shadow-lg shrink-0">
+                {name.slice(0, 1)}
               </span>
+              <div className="leading-tight min-w-0">
+                <div className="text-[15px] font-semibold truncate">{name}</div>
+                <div className="text-[11px] text-background/70 truncate">{kind}{years ? ` · ${years} 年` : ""} · ID {pid}</div>
+              </div>
+            </Link>
+            <span className="inline-flex items-center gap-1 rounded-full bg-white/10 px-2.5 py-1 text-[11px] shrink-0">
+              <ShieldCheck className="h-3 w-3 text-accent-yellow" /> 已实名
+            </span>
+          </div>
+
+          {/* 金色等级条：等级徽章背景与成长进度条合为一体，整条点击 → 荣誉档案 */}
+          <Link href="/dashboard/practitioner/profile" className="mt-3 block rounded-2xl bg-gradient-to-r from-[#f6c915] to-[#e0a900] text-[#5a3e00] px-3.5 py-3 shadow-sm active:opacity-90 transition-opacity">
+            <div className="flex items-center justify-between gap-2">
+              <span className="inline-flex items-center gap-1.5 text-[13px] font-semibold">
+                <TierIcon className="h-4 w-4 text-[#7a5400]" /> {tier}<span className="opacity-60 font-medium">· L{level}</span>
+              </span>
+              <span className="text-[11px] font-medium opacity-80">协会评定 <ChevronRight className="inline h-3 w-3 -mt-0.5" /></span>
             </div>
-            <GrowthMeter next={growth.next} percent={growth.percent} criteria={growth.criteria} compact dark />
+            {!isMaxTier && growth.next ? (
+              <>
+                <div className="mt-2 flex items-center justify-between text-[10.5px] text-[#5a3e00]/70">
+                  <span>距「{growth.next}」评审参考</span>
+                  <span className="font-semibold tabular-nums text-[#5a3e00]">{growth.percent}%</span>
+                </div>
+                <div className="mt-1 h-2 rounded-full bg-[#5a3e00]/15 overflow-hidden">
+                  <div className="h-full rounded-full bg-[#5a3e00] transition-all" style={{ width: `${Math.max(4, growth.percent)}%` }} />
+                </div>
+              </>
+            ) : (
+              <div className="mt-1.5 text-[11px] text-[#5a3e00]/80 inline-flex items-center gap-1"><Crown className="h-3.5 w-3.5" /> 专业资历封顶</div>
+            )}
           </Link>
         </Container>
       </div>
