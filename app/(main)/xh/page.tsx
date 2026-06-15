@@ -8,7 +8,7 @@ import {
   Flag,
 } from "lucide-react";
 import { getSession } from "@/lib/auth/session";
-import { listApplications } from "@/lib/data/applications";
+import { listApplications, getLatestApplicationByPhone } from "@/lib/data/applications";
 import { listReports } from "@/lib/data/reports";
 import { listMediations } from "@/lib/data/mediations";
 import { listLeadsByEnterprise } from "@/lib/data/leads";
@@ -108,6 +108,9 @@ export default async function AssociationHome() {
   const session = await getSession();
   const roleKey = session?.role === "system_admin" ? "association" : (session?.role ?? "");
   const home = !session?.pending ? MEMBER_HOME[roleKey] : undefined;
+  // 入会进度横幅：session.pending 对「审核中」与「已驳回」都为真，需读真实申请状态区分，避免把驳回误报为审核中
+  const pendingApp = session?.pending ? getLatestApplicationByPhone(session.phone) : undefined;
+  const appRejected = pendingApp?.status === "rejected";
 
   // 真实数据：badges = 红点待办；infos = 中性数字文案
   let badges: Record<string, number> = {};
@@ -164,13 +167,13 @@ export default async function AssociationHome() {
         </Container>
       </section>
 
-      {/* 入会审核中 —— 提示进度页 */}
+      {/* 入会进度 —— 区分审核中 / 已驳回，提示进度页 */}
       {session?.pending && (
-        <section className="border-b border-border bg-[#fff6d6]/60">
+        <section className={`border-b border-border ${appRejected ? "bg-cat-decor-soft/60" : "bg-[#fff6d6]/60"}`}>
           <Container className="py-3">
-            <Link href="/dashboard/pending" className="flex items-center gap-2 text-[13px] text-[#a37200] font-medium">
+            <Link href="/dashboard/pending" className={`flex items-center gap-2 text-[13px] font-medium ${appRejected ? "text-cat-decor" : "text-[#a37200]"}`}>
               <Clock className="h-4 w-4 shrink-0" />
-              <span className="flex-1 min-w-0">您的入会申请审核中 · 点击查看审核进度</span>
+              <span className="flex-1 min-w-0">{appRejected ? "您的入会申请未通过 · 点击查看详情并可补料重提" : "您的入会申请审核中 · 点击查看审核进度"}</span>
               <ChevronRight className="h-4 w-4 shrink-0" />
             </Link>
           </Container>
