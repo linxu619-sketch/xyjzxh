@@ -136,7 +136,7 @@ export default async function UsersAdmin({ searchParams }: { searchParams: Promi
                             <span className="h-8 w-8 rounded-lg bg-surface inline-flex items-center justify-center shrink-0 font-semibold md:hidden">{(a.name || "?").slice(0, 1)}</span>
                             <span className="truncate min-w-0">
                               <span className="truncate block">{a.name || "(未填名称)"}</span>
-                              {isMember && caps && <span className="md:hidden text-[11px] text-muted-foreground font-normal">{tierTxt} · {caps.canOpenStore ? `开店 ${quotaTxt}` : "禁开店"}</span>}
+                              {isMember && caps && <span className="md:hidden text-[11px] text-muted-foreground font-normal">{tierTxt} · {caps.canOpenStore ? `开店 ${quotaTxt}` : caps.storeDefaultDenied ? "未开通" : "禁开店"}</span>}
                               {!isMember && <span className="md:hidden text-[11px] text-muted-foreground font-normal">{mask(a.phone)}</span>}
                             </span>
                           </span>
@@ -144,7 +144,7 @@ export default async function UsersAdmin({ searchParams }: { searchParams: Promi
                             <>
                               <span className="hidden md:inline-flex items-center">{tierTxt && <Badge tone="yellow" className="!px-2 !py-0.5">{tierTxt}</Badge>}</span>
                               <span className="hidden md:block text-[12px] text-muted-foreground truncate">
-                                {caps?.canOpenStore ? <>开店 · {quotaTxt}{caps.storeQuotaOverridden && <span className="text-brand"> · 覆盖</span>}</> : <span className="text-cat-decor">已禁开店</span>}
+                                {caps?.canOpenStore ? <>开店 · {quotaTxt}{caps.storeQuotaOverridden && <span className="text-brand"> · 覆盖</span>}</> : <span className="text-cat-decor">{caps?.storeDefaultDenied ? "未开通开店" : "已禁开店"}</span>}
                               </span>
                             </>
                           ) : (

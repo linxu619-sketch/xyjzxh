@@ -159,19 +159,32 @@ export default async function UserDetail({ params, searchParams }: { params: Pro
           <div className="mt-6 pt-5 border-t border-border">
             <div className="text-[12px] text-muted-foreground mb-1 inline-flex items-center gap-1.5"><Store className="h-3.5 w-3.5 text-cat-build" /> 会员能力 · 店铺</div>
             <p className="text-[11px] text-muted-foreground mb-3">
-              默认随等级，可对该会员单独覆盖。当前：开店 <b className={caps.canOpenStore ? "text-accent-tea" : "text-cat-decor"}>{caps.canOpenStore ? "允许" : "禁止"}</b> · 额度 <b className="text-foreground">{caps.storeQuota === Infinity ? "不限" : caps.storeQuota}</b> 款{caps.storeQuotaOverridden ? "（已覆盖）" : "（随等级）"}。
+              默认：企业会员随等级允许开店，<b className="text-foreground">个人会员默认禁止开店</b>（需协会单独开通）。可对该会员单独覆盖。当前：开店 <b className={caps.canOpenStore ? "text-accent-tea" : "text-cat-decor"}>{caps.canOpenStore ? "允许" : caps.storeDisabledByAdmin ? "禁止" : "未开通"}</b>{caps.canOpenStore && <> · 额度 <b className="text-foreground">{caps.storeQuota === Infinity ? "不限" : caps.storeQuota}</b> 款{caps.storeQuotaOverridden ? "（已覆盖）" : "（随等级）"}</>}。
             </p>
             <form action={setMemberCapsAction} className="space-y-3">
               <input type="hidden" name="phone" value={a.phone} />
               <div>
                 <div className="text-[12px] font-medium mb-1.5">开店</div>
                 <div className="flex gap-2 flex-wrap">
-                  <label className="flex items-center gap-1.5 h-9 px-3.5 rounded-full border border-border text-[13px] cursor-pointer has-[:checked]:border-accent-tea has-[:checked]:bg-[#e6f7f1]">
-                    <input type="radio" name="capStore" value="default" defaultChecked={a.capStore !== 0} className="accent-accent-tea" /> 默认（随等级·允许）
-                  </label>
-                  <label className="flex items-center gap-1.5 h-9 px-3.5 rounded-full border border-border text-[13px] cursor-pointer has-[:checked]:border-cat-decor has-[:checked]:bg-cat-decor-soft">
-                    <input type="radio" name="capStore" value="0" defaultChecked={a.capStore === 0} className="accent-cat-decor" /> 禁止开店
-                  </label>
+                  {track === "enterprise" ? (
+                    <>
+                      <label className="flex items-center gap-1.5 h-9 px-3.5 rounded-full border border-border text-[13px] cursor-pointer has-[:checked]:border-accent-tea has-[:checked]:bg-[#e6f7f1]">
+                        <input type="radio" name="capStore" value="default" defaultChecked={a.capStore !== 0} className="accent-accent-tea" /> 默认（随等级·允许）
+                      </label>
+                      <label className="flex items-center gap-1.5 h-9 px-3.5 rounded-full border border-border text-[13px] cursor-pointer has-[:checked]:border-cat-decor has-[:checked]:bg-cat-decor-soft">
+                        <input type="radio" name="capStore" value="0" defaultChecked={a.capStore === 0} className="accent-cat-decor" /> 禁止开店
+                      </label>
+                    </>
+                  ) : (
+                    <>
+                      <label className="flex items-center gap-1.5 h-9 px-3.5 rounded-full border border-border text-[13px] cursor-pointer has-[:checked]:border-cat-decor has-[:checked]:bg-cat-decor-soft">
+                        <input type="radio" name="capStore" value="default" defaultChecked={a.capStore !== 1} className="accent-cat-decor" /> 默认（个人会员·禁止）
+                      </label>
+                      <label className="flex items-center gap-1.5 h-9 px-3.5 rounded-full border border-border text-[13px] cursor-pointer has-[:checked]:border-accent-tea has-[:checked]:bg-[#e6f7f1]">
+                        <input type="radio" name="capStore" value="1" defaultChecked={a.capStore === 1} className="accent-accent-tea" /> 允许开店
+                      </label>
+                    </>
+                  )}
                 </div>
               </div>
               <div>

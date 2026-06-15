@@ -55,7 +55,7 @@ export async function SellerPanel({ sp }: { sp?: { ok?: string; err?: string; bp
       {sp?.ok === "challenge" && <div className="mb-5 rounded-2xl border border-accent-yellow/40 bg-[#fff6d6] text-[#a37200] p-4 flex items-center gap-3"><Swords className="h-5 w-5 shrink-0" /><div className="text-[13px]"><b>价格擂台已发起！</b>你的价低于在架的「{sp.bn}」（¥{sp.bp}）。协会裁定通过后，将由你替换该品牌的在架卖家。</div></div>}
       {sp?.err === "brand" && <div className="mb-5 rounded-2xl border border-cat-decor/30 bg-cat-decor-soft text-cat-decor p-4 text-[13px] flex items-start gap-2"><AlertCircle className="h-4 w-4 shrink-0 mt-0.5" /><span>该品牌已由「{sp.bn}」以 <b>¥{sp.bp}/{sp.bu}</b> 在售。同品牌平台唯一最低价：你的会员批发价需<b>低于 ¥{sp.bp}</b> 才能发起价格擂台。</span></div>}
       {sp?.ok === "ordered" && <div className="mb-5 rounded-2xl border border-accent-tea/30 bg-[#e6f7f1] text-accent-tea p-4 flex items-center gap-3"><ShoppingCart className="h-5 w-5 shrink-0" /><div className="text-[13px]"><b>已下单！</b>卖家确认后履约，可在下方「我的采购单」跟踪。</div></div>}
-      {sp?.err === "store-disabled" && <div className="mb-5 rounded-2xl border border-cat-decor/30 bg-cat-decor-soft text-cat-decor p-4 text-[13px] flex items-start gap-2"><AlertCircle className="h-4 w-4 shrink-0 mt-0.5" /><span>该账号<b>开店权限已被协会关闭</b>，暂不能上架。如有疑问请联系协会秘书处。</span></div>}
+      {sp?.err === "store-disabled" && <div className="mb-5 rounded-2xl border border-cat-decor/30 bg-cat-decor-soft text-cat-decor p-4 text-[13px] flex items-start gap-2"><AlertCircle className="h-4 w-4 shrink-0 mt-0.5" /><span>{storeDisabled && caps.storeDefaultDenied ? <>该账号<b>暂未开通开店</b>，个人会员开店需向协会申请开通。</> : <>该账号<b>开店权限已被协会关闭</b>，暂不能上架。如有疑问请联系协会秘书处。</>}</span></div>}
       {sp?.err === "quota" && <div className="mb-5 rounded-2xl border border-cat-decor/30 bg-cat-decor-soft text-cat-decor p-4 text-[13px] flex items-start gap-2"><AlertCircle className="h-4 w-4 shrink-0 mt-0.5" /><span>已达上架配额（{quotaText} 款）。请下架旧品，{caps.storeQuotaOverridden ? "或联系协会调整额度。" : nextTier ? <>或<Link href="/services#membership" className="underline font-medium hover:opacity-80">升级到「{nextTier}」</Link>（可上架 {nextQuotaText} 款）。</> : "已是最高等级（不限上架）。"}</span></div>}
       {sp?.err === "form" && <div className="mb-5 rounded-2xl border border-cat-decor/30 bg-cat-decor-soft text-cat-decor p-4 text-[13px]">提交失败：请填写商品名称、品牌与会员批发价。</div>}
 
@@ -66,7 +66,10 @@ export async function SellerPanel({ sp }: { sp?: { ok?: string; err?: string; bp
         <div className="relative flex-1 min-w-0">
           <div className="text-[11px] text-background/60 tracking-wider uppercase">会员等级 · 上架配额</div>
           {storeDisabled ? (
-            <div className="mt-0.5 text-[18px] font-semibold leading-tight">{tier} <span className="text-[12px] text-cat-decor font-normal ml-1">开店已被协会关闭</span></div>
+            <>
+              <div className="mt-0.5 text-[18px] font-semibold leading-tight">{tier} <span className="text-[12px] text-cat-decor font-normal ml-1">{caps.storeDefaultDenied ? "开店未开通" : "开店已被协会关闭"}</span></div>
+              <div className="mt-1 text-[11px] text-background/70">{caps.storeDefaultDenied ? "个人会员开店需向协会申请开通。" : "如有疑问请联系协会秘书处。"}</div>
+            </>
           ) : (
             <div className="mt-0.5 text-[18px] font-semibold leading-tight">{tier} <span className="text-[12px] text-accent-yellow font-normal ml-1">已用 {used} / {quotaText} 款{caps.storeQuotaOverridden ? "（协会调整）" : ""}</span></div>
           )}
@@ -77,7 +80,7 @@ export async function SellerPanel({ sp }: { sp?: { ok?: string; err?: string; bp
             </Link>
           )}
         </div>
-        <ListingForm disabled={reachedQuota || storeDisabled} disabledHint={storeDisabled ? "开店权限已被协会关闭" : `已达配额（${quotaText} 款）`} />
+        <ListingForm disabled={reachedQuota || storeDisabled} disabledHint={storeDisabled ? (caps.storeDefaultDenied ? "开店需向协会申请开通" : "开店权限已被协会关闭") : `已达配额（${quotaText} 款）`} />
       </div>
 
       <div className="rounded-2xl border border-border bg-background overflow-hidden">

@@ -95,7 +95,8 @@ export async function setMemberCapsAction(fd: FormData) {
   const phone = String(fd.get("phone") || "").trim();
   const acc = phone ? getAccountByPhone(phone) : undefined;
   if (acc && (acc.role === "enterprise" || acc.role === "individual")) {
-    const capStore = String(fd.get("capStore") || "default") === "0" ? 0 : null; // 0=禁止开店 | null=随等级(允许)
+    const cv = String(fd.get("capStore") || "default");
+    const capStore = cv === "0" ? 0 : cv === "1" ? 1 : null; // 0=禁止 | 1=允许 | null=按轨道默认(企业允许/个人禁止)
     const raw = String(fd.get("capStoreQuota") || "").trim();
     const n = Math.floor(Number(raw));
     const capStoreQuota = raw !== "" && Number.isFinite(n) && n >= 0 ? n : null;   // 空=随等级
