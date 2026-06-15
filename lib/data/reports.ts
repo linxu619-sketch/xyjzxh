@@ -128,3 +128,16 @@ export function reportStatsByAssignee(names: string[]): Record<number, ReportSta
   }
   return out;
 }
+
+// 业绩看板（按周期）：窗口内「新增」报备按负责人聚合（口径=按 created_at 分窗）。
+export function reportStatsByAssigneePeriod(names: string[], since: number, until: number): Record<number, ReportStaffStat> {
+  const out: Record<number, ReportStaffStat> = {};
+  for (const r of listReportsByEnterprise(names)) {
+    if (!r.assigneeStaffId) continue;
+    if (r.createdAt < since || r.createdAt >= until) continue;
+    const s = (out[r.assigneeStaffId] ??= { total: 0, approved: 0 });
+    s.total++;
+    if (r.status === "approved") s.approved++;
+  }
+  return out;
+}
