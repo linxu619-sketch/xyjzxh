@@ -93,6 +93,7 @@ CREATE TABLE IF NOT EXISTS project_reports (
   phone       TEXT,
   payload     TEXT,    -- JSON 其余字段
   status      TEXT DEFAULT 'pending', -- pending | approved | rejected
+  assignee_staff_id INTEGER DEFAULT 0, -- 企业内负责人=enterprise_staff.id（0=未分派）
   created_at  INTEGER
 );
 CREATE INDEX IF NOT EXISTS idx_reports_status ON project_reports(status, created_at);
@@ -1631,6 +1632,8 @@ function migrate(db: DB) {
     "ALTER TABLE knowledge_drafts ADD COLUMN body TEXT",
     // 线索分派：负责人=enterprise_staff.id（团队成员业绩看板用）
     "ALTER TABLE leads ADD COLUMN assignee_staff_id INTEGER DEFAULT 0",
+    // 报备分派：企业内负责人=enterprise_staff.id（与线索同款，成员业绩看板用）
+    "ALTER TABLE project_reports ADD COLUMN assignee_staff_id INTEGER DEFAULT 0",
     // 平台资金「下半场」：平台代收全款后→应付卖家结算(打款) + 退款台账
     "ALTER TABLE payments ADD COLUMN payout_status TEXT DEFAULT 'pending'",
     "ALTER TABLE payments ADD COLUMN payout_at INTEGER DEFAULT 0",

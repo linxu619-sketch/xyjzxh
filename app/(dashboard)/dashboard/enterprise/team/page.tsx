@@ -6,6 +6,7 @@ import { effectiveEnterpriseId, isEnterprisePreview } from "@/lib/dashboard/prev
 import { getEnterpriseBySlugOrId } from "@/lib/data/enterprises-source";
 import { ensureOwner, listStaffByEnterprise, ENT_ASSIGNABLE_ROLES, type EntStaffRole, type EntStaffStatus } from "@/lib/data/enterprise-staff";
 import { leadStatsByAssignee } from "@/lib/data/leads";
+import { reportStatsByAssignee } from "@/lib/data/reports";
 import { addStaffAction, setStaffStatusAction, removeStaffAction } from "./actions";
 import { RoleSelect } from "./RoleSelect";
 
@@ -37,8 +38,10 @@ export default async function TeamPage({ searchParams }: { searchParams: Promise
   const active = team.filter((m) => m.status === "active").length;
   const invited = team.filter((m) => m.status === "invited").length;
   const roleOptions = ENT_ASSIGNABLE_ROLES.map((r) => ({ value: r, label: ROLE_LABEL[r] }));
-  // 成员线索业绩（按负责人聚合）：让名册「活」起来
+  // 成员业绩（按负责人聚合）：线索 + 报备，让名册「活」起来
   const leadStats = eid ? leadStatsByAssignee(eid) : {};
+  const entNames = [ent?.name, ent?.hero.brand].filter(Boolean) as string[];
+  const reportStats = entNames.length ? reportStatsByAssignee(entNames) : {};
 
   return (
     <EnterpriseShell
@@ -85,6 +88,7 @@ export default async function TeamPage({ searchParams }: { searchParams: Promise
               const isOwner = m.role === "owner";
               const editable = !preview && !isOwner;
               const st = leadStats[m.id];
+              const rst = reportStats[m.id];
               return (
                 <li key={m.id} className="grid grid-cols-[1fr_auto] md:grid-cols-[1.4fr_1fr_1.1fr_0.8fr_auto] gap-3 items-center px-5 py-3.5 text-[13px]">
                   <div className="flex items-center gap-2.5 min-w-0">
@@ -92,9 +96,9 @@ export default async function TeamPage({ searchParams }: { searchParams: Promise
                     <span className="min-w-0">
                       <span className="font-medium truncate flex items-center gap-1.5">{m.name}{isOwner && <Crown className="h-3 w-3 text-accent-yellow shrink-0" />}</span>
                       <span className="md:hidden text-[11px] text-muted-foreground">{m.phone ? `${m.phone} · ` : ""}{ROLE_LABEL[m.role]}</span>
-                      {st
-                        ? <span className="text-[11px] text-muted-foreground">负责 <b className="text-foreground">{st.total}</b> 线索 · 跟进 {st.active} · 签单 <b className="text-accent-tea">{st.signed}</b></span>
-                        : <span className="text-[11px] text-muted-foreground/60">暂无负责线索</span>}
+                      {st && <span className="block text-[11px] text-muted-foreground">负责 <b className="text-foreground">{st.total}</b> 线索 · 跟进 {st.active} · 签单 <b className="text-accent-tea">{st.signed}</b></span>}
+                      {rst && <span className="block text-[11px] text-muted-foreground">负责 <b className="text-foreground">{rst.total}</b> 报备 · 通过 <b className="text-accent-tea">{rst.approved}</b></span>}
+                      {!st && !rst && <span className="block text-[11px] text-muted-foreground/60">暂无负责线索 / 报备</span>}
                     </span>
                   </div>
                   <span className="hidden md:block text-muted-foreground tabular-nums">{m.phone || "—"}</span>
