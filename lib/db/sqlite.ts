@@ -352,6 +352,18 @@ CREATE TABLE IF NOT EXISTS leads (
 );
 CREATE INDEX IF NOT EXISTS idx_leads_ent ON leads(enterprise_id, created_at);
 
+-- 线索跟进记录（CRM 时间线：成员/老板记跟进 + 状态变更自动留痕）
+CREATE TABLE IF NOT EXISTS lead_activities (
+  id          INTEGER PRIMARY KEY AUTOINCREMENT,
+  lead_id     INTEGER,
+  author_name TEXT,
+  author_role TEXT,           -- owner | admin | sales | ...（记录人当时的角色）
+  kind        TEXT DEFAULT 'note', -- note 跟进备注 | status 状态变更
+  note        TEXT,
+  created_at  INTEGER
+);
+CREATE INDEX IF NOT EXISTS idx_leadact_lead ON lead_activities(lead_id, created_at);
+
 CREATE TABLE IF NOT EXISTS enterprise_cases (
   id            INTEGER PRIMARY KEY AUTOINCREMENT,
   enterprise_id TEXT,

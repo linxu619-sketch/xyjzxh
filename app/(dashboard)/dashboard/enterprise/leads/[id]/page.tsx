@@ -1,15 +1,16 @@
 import Link from "next/link";
 import {
-  ArrowLeft, Phone, MapPin, MessageSquareText, CheckCircle2, XCircle, RotateCcw, ClipboardCheck, UserCog,
+  ArrowLeft, Phone, MapPin, MessageSquareText, CheckCircle2, XCircle, RotateCcw, ClipboardCheck, UserCog, History, Send, RefreshCw,
 } from "lucide-react";
 import { EnterpriseShell } from "@/components/dashboard/shell";
 import { Badge } from "@/components/ui/badge";
 import { getSession } from "@/lib/auth/session";
 import { getLead, type LeadStatus } from "@/lib/data/leads";
+import { listLeadActivities } from "@/lib/data/lead-activities";
 import { effectiveEnterpriseId } from "@/lib/dashboard/preview";
-import { entScopesOwnData, entStaffId } from "@/lib/auth/ent-access";
+import { entScopesOwnData, entStaffId, ENT_ROLE_LABEL } from "@/lib/auth/ent-access";
 import { listStaffByEnterprise, type EntStaffRole } from "@/lib/data/enterprise-staff";
-import { updateLeadStatusAction } from "../actions";
+import { updateLeadStatusAction, addLeadNoteAction } from "../actions";
 import { AssigneeSelect } from "../AssigneeSelect";
 
 export const metadata = { title: "线索详情 · 企业工作台" };
@@ -66,6 +67,8 @@ export default async function LeadDetail({ params }: { params: Promise<{ id: str
   const staff = eid ? listStaffByEnterprise(eid).filter((m) => m.status === "active") : [];
   const assigneeOptions = staff.map((m) => ({ value: m.id, label: `${m.name} · ${ROLE_LABEL[m.role]}` }));
   const assignee = staff.find((m) => m.id === lead.assigneeStaffId);
+  const activities = listLeadActivities(lead.id);
+  const roleText = (r: string) => ENT_ROLE_LABEL[r as EntStaffRole] ?? r;
 
   return (
     <EnterpriseShell title="线索详情" subtitle={`${lead.name} · ${lead.source}`}>
@@ -126,6 +129,42 @@ export default async function LeadDetail({ params }: { params: Promise<{ id: str
               </button>
             </form>
           ))
+        )}
+      </div>
+
+      {/* 跟进记录（CRM 时间线） */}
+      <div className="mt-6 rounded-2xl border border-border bg-background overflow-hidden">
+        <div className="px-5 py-3 border-b border-border text-[14px] font-semibold inline-flex items-center gap-1.5">
+          <History className="h-4 w-4 text-cat-build" /> 跟进记录 <span className="text-[12px] font-normal text-muted-foreground">（{activities.length}）</span>
+        </div>
+
+        {/* 记一条跟进 */}
+        <form action={addLeadNoteAction} className="px-5 py-4 border-b border-border">
+          <input type="hidden" name="id" value={lead.id} />
+          <div className="flex flex-col sm:flex-row gap-2.5 sm:items-end">
+            <textarea name="note" rows={2} required placeholder="记一条跟进：如「已电话联系，客户考虑中，下周再约量房」…" className="flex-1 rounded-xl border border-border bg-background px-3 py-2 text-[13px] outline-none focus:border-foreground/30 resize-none" />
+            <button className="h-10 px-5 rounded-xl bg-foreground text-background text-[13px] font-medium inline-flex items-center justify-center gap-1.5 shrink-0"><Send className="h-3.5 w-3.5" /> 记录</button>
+          </div>
+        </form>
+
+        {activities.length === 0 ? (
+          <div className="px-5 py-10 text-center text-[13px] text-muted-foreground">还没有跟进记录。记第一条，或更新状态后会自动留痕。</div>
+        ) : (
+          <ul className="divide-y divide-border">
+            {activities.map((a) => (
+              <li key={a.id} className="px-5 py-3.5 flex gap-3">
+                <span className={`h-8 w-8 rounded-full inline-flex items-center justify-center shrink-0 ${a.kind === "status" ? "bg-accent-tea/10 text-accent-tea" : "bg-cat-build-soft text-cat-build"}`}>
+                  {a.kind === "status" ? <RefreshCw className="h-4 w-4" /> : <MessageSquareText className="h-4 w-4" />}
+                </span>
+                <div className="min-w-0 flex-1">
+                  <div className="text-[13px] whitespace-pre-wrap break-words">{a.note}</div>
+                  <div className="text-[11px] text-muted-foreground mt-0.5">
+                    <b className="text-foreground">{a.authorName}</b>{a.authorRole && <> · {roleText(a.authorRole)}</>} · {fmt(a.createdAt)}
+                  </div>
+                </div>
+              </li>
+            ))}
+          </ul>
         )}
       </div>
     </EnterpriseShell>
