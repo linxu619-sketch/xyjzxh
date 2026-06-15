@@ -8,7 +8,7 @@ import {
   brandActiveHolder,
   type ReasonType, type OrderStatus,
 } from "@/lib/data/supplies-source";
-import { getMemberTier, quotaOf } from "@/lib/data/member-tier";
+import { resolveCapsByMemberRef } from "@/lib/data/member-caps";
 import { resolveSeller } from "@/lib/dashboard/seller";
 
 const REASONS: ReasonType[] = ["agent", "self", "direct"];
@@ -24,10 +24,12 @@ export async function createListingAction(fd: FormData) {
   const seller = await resolveSeller();
   if (!seller) throw new Error("无权限：仅企业会员 / 个人会员可上架商品");
 
-  // 等级配额
-  const tier = getMemberTier(seller.type, seller.id);
-  const quota = quotaOf(tier);
-  if (countListingsBySeller(seller.type, seller.id) >= quota) {
+  // 会员能力：开店开关 + 上架额度（等级默认，管理员可单会员覆盖）
+  const caps = resolveCapsByMemberRef(seller.type, seller.id);
+  if (!caps.canOpenStore) {
+    redirect(`${seller.base}?err=store-disabled`);
+  }
+  if (countListingsBySeller(seller.type, seller.id) >= caps.storeQuota) {
     redirect(`${seller.base}?err=quota`);
   }
 

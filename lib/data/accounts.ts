@@ -20,20 +20,30 @@ export type Account = {
   appId: number | null;
   memberRef: string | null;
   tier: string | null;
+  capStore: number | null;       // 会员能力覆盖：NULL=随等级 | 0=禁止开店 | 1=允许
+  capStoreQuota: number | null;  // 店铺上架额度覆盖：NULL=随等级 | >=0=自定义
   createdAt: number;
 };
 
 type Row = {
   id: number; phone: string | null; role: string | null; status: string;
-  password_hash: string | null; name: string | null; app_id: number | null; member_ref: string | null; tier: string | null; created_at: number | null;
+  password_hash: string | null; name: string | null; app_id: number | null; member_ref: string | null; tier: string | null;
+  cap_store: number | null; cap_store_quota: number | null; created_at: number | null;
 };
 
 function rowTo(r: Row): Account {
   return {
     id: r.id, phone: r.phone ?? "", role: (r.role as AccountRole) ?? "customer",
     status: (r.status as AccountStatus) ?? "pending", passwordHash: r.password_hash,
-    name: r.name ?? "", appId: r.app_id, memberRef: r.member_ref, tier: r.tier ?? null, createdAt: r.created_at ?? 0,
+    name: r.name ?? "", appId: r.app_id, memberRef: r.member_ref, tier: r.tier ?? null,
+    capStore: r.cap_store ?? null, capStoreQuota: r.cap_store_quota ?? null, createdAt: r.created_at ?? 0,
   };
+}
+
+// 设置会员能力覆盖（NULL=随等级）。仅协会管理员调用。
+export function setMemberCaps(phone: string, caps: { capStore: number | null; capStoreQuota: number | null }): void {
+  getDb().prepare("UPDATE accounts SET cap_store = ?, cap_store_quota = ? WHERE phone = ?")
+    .run(caps.capStore, caps.capStoreQuota, phone.trim());
 }
 
 export function getAccountByPhone(phone: string): Account | undefined {

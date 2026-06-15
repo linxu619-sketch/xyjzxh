@@ -1682,6 +1682,9 @@ function migrate(db: DB) {
     "ALTER TABLE payments ADD COLUMN payout_by TEXT DEFAULT ''",
     "ALTER TABLE payments ADD COLUMN refunded_at INTEGER DEFAULT 0",
     "ALTER TABLE payments ADD COLUMN refund_note TEXT DEFAULT ''",
+    // 会员能力覆盖（单会员级，NULL=随等级默认）：开店开关 + 店铺上架额度
+    "ALTER TABLE accounts ADD COLUMN cap_store INTEGER",       // NULL=随等级 | 0=禁止开店 | 1=允许(覆盖)
+    "ALTER TABLE accounts ADD COLUMN cap_store_quota INTEGER", // NULL=随等级 quotaOf | >=0=自定义上架上限
     // 派工闭环：岗位「开始日期」(进场/可入职) + 投递「到岗/完工」时间戳（录用→到岗→完工三态）
     "ALTER TABLE jobs ADD COLUMN start_date TEXT DEFAULT ''",
     "ALTER TABLE job_applications ADD COLUMN onboard_at INTEGER DEFAULT 0",

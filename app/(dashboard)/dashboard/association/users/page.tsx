@@ -6,8 +6,10 @@ import { Badge } from "@/components/ui/badge";
 import { listAccounts, countAccountsByRole, type AccountStatus } from "@/lib/data/accounts";
 import { listStaff } from "@/lib/data/staff-source";
 import { roleLabel, roleTone } from "@/lib/auth/roles";
+import { normalizeTier, type TierTrack } from "@/lib/data/member-tier";
+import { capsOfAccount } from "@/lib/data/member-caps";
 
-export const metadata = { title: "用户管理 · 协会工作台" };
+export const metadata = { title: "会员管理 · 协会工作台" };
 
 const ST_LABEL: Record<AccountStatus, string> = { active: "正常", pending: "审核中", rejected: "已停用" };
 const ST_TONE: Record<AccountStatus, "tea" | "yellow" | "decor"> = { active: "tea", pending: "yellow", rejected: "decor" };
@@ -32,7 +34,7 @@ export default async function UsersAdmin({ searchParams }: { searchParams: Promi
   const stFilter = (["active", "pending", "rejected"] as const).find((s) => s === st);
 
   return (
-    <AssociationShell title="用户管理" subtitle="平台四类用户的账号总览与启用/停用">
+    <AssociationShell title="会员管理" subtitle="会员等级与能力(开店 / 店铺额度) · 账号启停">
       <StatFilters
         items={TABS.map((t) => ({
           key: t.key,
@@ -90,6 +92,10 @@ export default async function UsersAdmin({ searchParams }: { searchParams: Promi
             for (const [k, v] of [...p.entries()]) if (!v) p.delete(k);
             return `${base}?${p.toString()}`;
           };
+          // 会员(企业/个人)显示等级+店铺能力；业主无
+          const isMember = active !== "customer";
+          const headCls = isMember ? "md:grid-cols-[1.4fr_1fr_1.3fr_auto]" : "md:grid-cols-[1.4fr_1fr_1fr_auto]";
+          const rowCls = isMember ? "grid-cols-[1fr_auto] md:grid-cols-[1.4fr_1fr_1.3fr_auto]" : "grid-cols-[1fr_auto] md:grid-cols-[1.4fr_1fr_1fr_auto]";
           return (
             <div className="rounded-2xl border border-border bg-background overflow-hidden">
               <div className="px-5 py-3 border-b border-border flex items-center justify-between gap-3 flex-wrap">
@@ -112,27 +118,49 @@ export default async function UsersAdmin({ searchParams }: { searchParams: Promi
                 </div>
               ) : (
                 <>
-                  <div className="hidden md:grid grid-cols-[1.4fr_1fr_1fr_1fr_auto] gap-3 px-5 py-2.5 border-b border-border text-[11px] text-muted-foreground tracking-wider">
-                    <span>姓名</span><span>手机号</span><span>会员档案</span><span>注册时间</span><span className="text-right">状态</span>
+                  <div className={`hidden md:grid ${headCls} gap-3 px-5 py-2.5 border-b border-border text-[11px] text-muted-foreground tracking-wider`}>
+                    <span>姓名</span>
+                    {isMember ? <><span>等级</span><span>店铺(开店 · 额度)</span></> : <><span>手机号</span><span>注册时间</span></>}
+                    <span className="text-right">状态</span>
                   </div>
                   <ul className="divide-y divide-border">
-                    {list.map((a) => (
+                    {list.map((a) => {
+                      const track: TierTrack | null = a.role === "individual" ? "practitioner" : a.role === "enterprise" ? "enterprise" : null;
+                      const tierTxt = track ? normalizeTier(track, a.tier) : null;
+                      const caps = track ? capsOfAccount(a) : null;
+                      const quotaTxt = caps ? (caps.storeQuota === Infinity ? "不限" : `${caps.storeQuota} 款`) : "";
+                      return (
                       <li key={a.phone}>
-                        <Link href={`/dashboard/association/users/${encodeURIComponent(a.phone)}`} className="grid grid-cols-[1fr_auto] md:grid-cols-[1.4fr_1fr_1fr_1fr_auto] gap-3 items-center px-5 py-3.5 text-[13px] hover:bg-surface transition-colors active:scale-[0.99]">
+                        <Link href={`/dashboard/association/users/${encodeURIComponent(a.phone)}`} className={`grid ${rowCls} gap-3 items-center px-5 py-3.5 text-[13px] hover:bg-surface transition-colors active:scale-[0.99]`}>
                           <span className="font-medium truncate inline-flex items-center gap-2 min-w-0">
                             <span className="h-8 w-8 rounded-lg bg-surface inline-flex items-center justify-center shrink-0 font-semibold md:hidden">{(a.name || "?").slice(0, 1)}</span>
-                            <span className="truncate">{a.name || "(未填名称)"}</span>
+                            <span className="truncate min-w-0">
+                              <span className="truncate block">{a.name || "(未填名称)"}</span>
+                              {isMember && caps && <span className="md:hidden text-[11px] text-muted-foreground font-normal">{tierTxt} · {caps.canOpenStore ? `开店 ${quotaTxt}` : "禁开店"}</span>}
+                              {!isMember && <span className="md:hidden text-[11px] text-muted-foreground font-normal">{mask(a.phone)}</span>}
+                            </span>
                           </span>
-                          <span className="hidden md:block text-muted-foreground tabular-nums">{mask(a.phone)}</span>
-                          <span className="hidden md:block text-muted-foreground truncate">{a.memberRef || "—"}</span>
-                          <span className="hidden md:block text-muted-foreground">{fmt(a.createdAt)}</span>
+                          {isMember ? (
+                            <>
+                              <span className="hidden md:inline-flex items-center">{tierTxt && <Badge tone="yellow" className="!px-2 !py-0.5">{tierTxt}</Badge>}</span>
+                              <span className="hidden md:block text-[12px] text-muted-foreground truncate">
+                                {caps?.canOpenStore ? <>开店 · {quotaTxt}{caps.storeQuotaOverridden && <span className="text-brand"> · 覆盖</span>}</> : <span className="text-cat-decor">已禁开店</span>}
+                              </span>
+                            </>
+                          ) : (
+                            <>
+                              <span className="hidden md:block text-muted-foreground tabular-nums">{mask(a.phone)}</span>
+                              <span className="hidden md:block text-muted-foreground">{fmt(a.createdAt)}</span>
+                            </>
+                          )}
                           <span className="inline-flex items-center gap-2 justify-end shrink-0">
                             <Badge tone={ST_TONE[a.status]}>{ST_LABEL[a.status]}</Badge>
                             <ChevronRight className="h-4 w-4 text-muted-foreground" />
                           </span>
                         </Link>
                       </li>
-                    ))}
+                    );
+                    })}
                   </ul>
                 </>
               )}

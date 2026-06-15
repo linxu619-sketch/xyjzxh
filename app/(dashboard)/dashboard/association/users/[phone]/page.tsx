@@ -6,7 +6,9 @@ import { Badge } from "@/components/ui/badge";
 import { getAccountByPhone, type AccountStatus } from "@/lib/data/accounts";
 import { getApplicationByAppId, type IdVerifyStatus } from "@/lib/data/applications";
 import { tierLadder, normalizeTier, quotaOf, type TierTrack } from "@/lib/data/member-tier";
-import { setAccountStatusAction, setMemberTierAction, updateAccountProfileAction, setAccountPasswordAction, deleteAccountAction } from "../actions";
+import { capsOfAccount } from "@/lib/data/member-caps";
+import { setAccountStatusAction, setMemberTierAction, updateAccountProfileAction, setAccountPasswordAction, deleteAccountAction, setMemberCapsAction } from "../actions";
+import { Store } from "lucide-react";
 import { GuardedActionModal } from "@/components/dashboard/guarded-action-modal";
 
 const VERIFY_LABEL: Record<IdVerifyStatus, string> = { verified: "已实名核验", failed: "核验未通过", unverified: "待实名核验" };
@@ -32,6 +34,9 @@ export default async function UserDetail({ params, searchParams }: { params: Pro
   const ladder = track ? tierLadder(track) : [];
   const tier = track ? normalizeTier(track, a.tier) : null;
   const trackLabel = track === "enterprise" ? "治理梯队" : track === "practitioner" ? "专业梯队" : "";
+  // 会员能力（等级默认 + 单会员覆盖）：开店开关 + 店铺额度
+  const caps = track ? capsOfAccount(a) : null;
+  const tierQuota = tier ? quotaOf(tier) : 0;
   // 回链入会申请：展示实名信息摘要 + 跳完整申请与证照
   const appRec = a.appId ? getApplicationByAppId(a.appId) : undefined;
   const pl = (appRec?.payload ?? {}) as Record<string, unknown>;
@@ -146,6 +151,38 @@ export default async function UserDetail({ params, searchParams }: { params: Pro
                 {meta.perks.map((p) => <li key={p} className="inline-flex items-center gap-1"><Check className="h-3 w-3 text-accent-tea" />{p}</li>)}
               </ul>
             ) : null; })()}
+          </div>
+        )}
+
+        {/* 会员能力（店铺）：等级默认 + 单会员覆盖 */}
+        {track && caps && (
+          <div className="mt-6 pt-5 border-t border-border">
+            <div className="text-[12px] text-muted-foreground mb-1 inline-flex items-center gap-1.5"><Store className="h-3.5 w-3.5 text-cat-build" /> 会员能力 · 店铺</div>
+            <p className="text-[11px] text-muted-foreground mb-3">
+              默认随等级，可对该会员单独覆盖。当前：开店 <b className={caps.canOpenStore ? "text-accent-tea" : "text-cat-decor"}>{caps.canOpenStore ? "允许" : "禁止"}</b> · 额度 <b className="text-foreground">{caps.storeQuota === Infinity ? "不限" : caps.storeQuota}</b> 款{caps.storeQuotaOverridden ? "（已覆盖）" : "（随等级）"}。
+            </p>
+            <form action={setMemberCapsAction} className="space-y-3">
+              <input type="hidden" name="phone" value={a.phone} />
+              <div>
+                <div className="text-[12px] font-medium mb-1.5">开店</div>
+                <div className="flex gap-2 flex-wrap">
+                  <label className="flex items-center gap-1.5 h-9 px-3.5 rounded-full border border-border text-[13px] cursor-pointer has-[:checked]:border-accent-tea has-[:checked]:bg-[#e6f7f1]">
+                    <input type="radio" name="capStore" value="default" defaultChecked={a.capStore !== 0} className="accent-accent-tea" /> 默认（随等级·允许）
+                  </label>
+                  <label className="flex items-center gap-1.5 h-9 px-3.5 rounded-full border border-border text-[13px] cursor-pointer has-[:checked]:border-cat-decor has-[:checked]:bg-cat-decor-soft">
+                    <input type="radio" name="capStore" value="0" defaultChecked={a.capStore === 0} className="accent-cat-decor" /> 禁止开店
+                  </label>
+                </div>
+              </div>
+              <div>
+                <div className="text-[12px] font-medium mb-1.5">店铺上架额度</div>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <input name="capStoreQuota" type="number" min={0} defaultValue={a.capStoreQuota ?? ""} placeholder={`随等级（当前 ${tierQuota === Infinity ? "不限" : `${tierQuota} 款`}）`} className="h-10 w-56 rounded-xl border border-border bg-background px-3 text-[13px] outline-none focus:border-foreground/30" />
+                  <span className="text-[11px] text-muted-foreground">留空 = 随等级</span>
+                </div>
+              </div>
+              <button className="h-10 px-5 rounded-full bg-foreground text-background text-[13px] font-medium inline-flex items-center gap-1.5"><Save className="h-4 w-4" /> 保存能力</button>
+            </form>
           </div>
         )}
 

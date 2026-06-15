@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { requireStaffPermission } from "@/lib/auth/guard";
-import { getAccountByPhone, setAccountStatus, setAccountTier, setAccountPassword, deleteAccount, updateAccountProfile, type AccountStatus } from "@/lib/data/accounts";
+import { getAccountByPhone, setAccountStatus, setAccountTier, setAccountPassword, deleteAccount, updateAccountProfile, setMemberCaps, type AccountStatus } from "@/lib/data/accounts";
 import { setPractitionerTierByPhone } from "@/lib/data/practitioners-source";
 import { tierLadder } from "@/lib/data/member-tier";
 import { getStaff, getStaffAuthByPhone, setStaffStatus, setStaffRoles, setStaffPassword, deleteStaff, createStaff, type StaffStatus } from "@/lib/data/staff-source";
@@ -83,6 +83,27 @@ export async function setMemberTierAction(fd: FormData) {
         revalidatePath("/dashboard/practitioner/profile");
       }
     }
+  }
+  const to = `/dashboard/association/users/${encodeURIComponent(phone)}`;
+  revalidatePath(to);
+  redirect(to);
+}
+
+// 协会设置会员能力（开店开关 + 店铺上架额度覆盖；NULL=随等级）。仅会员账号生效。
+export async function setMemberCapsAction(fd: FormData) {
+  await requireStaffPermission("users");
+  const phone = String(fd.get("phone") || "").trim();
+  const acc = phone ? getAccountByPhone(phone) : undefined;
+  if (acc && (acc.role === "enterprise" || acc.role === "individual")) {
+    const capStore = String(fd.get("capStore") || "default") === "0" ? 0 : null; // 0=禁止开店 | null=随等级(允许)
+    const raw = String(fd.get("capStoreQuota") || "").trim();
+    const n = Math.floor(Number(raw));
+    const capStoreQuota = raw !== "" && Number.isFinite(n) && n >= 0 ? n : null;   // 空=随等级
+    setMemberCaps(phone, { capStore, capStoreQuota });
+    // 影响该会员店铺/商城上架，刷新相关页
+    revalidatePath("/dashboard/practitioner/store");
+    revalidatePath("/dashboard/enterprise/store");
+    revalidatePath("/supplies");
   }
   const to = `/dashboard/association/users/${encodeURIComponent(phone)}`;
   revalidatePath(to);
