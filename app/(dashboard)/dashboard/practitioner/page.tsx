@@ -79,7 +79,6 @@ export default async function PractitionerHome() {
               <div className="text-[15px] font-semibold truncate">{name}</div>
               <div className="text-[11px] text-background/70 truncate">{kind}{years ? ` · ${years} 年` : ""} · ID {pid}</div>
             </div>
-            <ChevronRight className="h-4 w-4 text-background/50 shrink-0" />
           </Link>
 
           <div className="mt-4 flex items-center gap-2 flex-wrap">
