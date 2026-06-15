@@ -593,7 +593,12 @@ CREATE TABLE IF NOT EXISTS payments (
   payee_name    TEXT,
   subject       TEXT,
   created_at    INTEGER,
-  paid_at       INTEGER
+  paid_at       INTEGER,
+  payout_status TEXT DEFAULT 'pending',  -- 应付卖家结算：pending 待结算 | settled 已打款（仅 status=paid 有意义）
+  payout_at     INTEGER DEFAULT 0,       -- 平台向卖家打款时间
+  payout_by     TEXT DEFAULT '',         -- 打款经办人
+  refunded_at   INTEGER DEFAULT 0,       -- 退款时间
+  refund_note   TEXT DEFAULT ''          -- 退款原因/备注
 );
 CREATE INDEX IF NOT EXISTS idx_pay_outno ON payments(out_trade_no);
 CREATE INDEX IF NOT EXISTS idx_pay_biz ON payments(biz_type, biz_id);
@@ -1623,6 +1628,12 @@ function migrate(db: DB) {
     "ALTER TABLE news ADD COLUMN images TEXT",   // 配图集 JSON 数组
     // AI 抓取草稿：原文正文全文（Markdown），带进正式文章 body
     "ALTER TABLE knowledge_drafts ADD COLUMN body TEXT",
+    // 平台资金「下半场」：平台代收全款后→应付卖家结算(打款) + 退款台账
+    "ALTER TABLE payments ADD COLUMN payout_status TEXT DEFAULT 'pending'",
+    "ALTER TABLE payments ADD COLUMN payout_at INTEGER DEFAULT 0",
+    "ALTER TABLE payments ADD COLUMN payout_by TEXT DEFAULT ''",
+    "ALTER TABLE payments ADD COLUMN refunded_at INTEGER DEFAULT 0",
+    "ALTER TABLE payments ADD COLUMN refund_note TEXT DEFAULT ''",
   ];
   for (const sql of alters) {
     try { db.exec(sql); } catch { /* 列已存在，忽略 */ }
