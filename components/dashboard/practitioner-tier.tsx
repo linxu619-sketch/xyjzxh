@@ -27,13 +27,13 @@ export function TierBadge({
 }
 
 export function GrowthMeter({
-  next, percent, criteria, compact = false,
+  next, percent, criteria, compact = false, dark = false,
 }: {
-  next: string | null; percent: number; criteria: GrowthCriterion[]; compact?: boolean;
+  next: string | null; percent: number; criteria: GrowthCriterion[]; compact?: boolean; dark?: boolean;
 }) {
   if (!next) {
     return (
-      <div className="inline-flex items-center gap-1.5 text-[12px] text-[#a37200]">
+      <div className={`inline-flex items-center gap-1.5 text-[12px] ${dark ? "text-accent-yellow" : "text-[#a37200]"}`}>
         <Crown className="h-3.5 w-3.5" /> 已是最高档 · 专业资历封顶
       </div>
     );
@@ -41,12 +41,12 @@ export function GrowthMeter({
   return (
     <div>
       <div className="flex items-center justify-between text-[11.5px] mb-1.5">
-        <span className="inline-flex items-center gap-1 text-muted-foreground">
+        <span className={`inline-flex items-center gap-1 ${dark ? "text-background/70" : "text-muted-foreground"}`}>
           <TrendingUp className="h-3 w-3 text-accent-tea" /> 距「{next}」评审参考
         </span>
-        <span className="font-semibold tabular-nums text-foreground">{percent}%</span>
+        <span className={`font-semibold tabular-nums ${dark ? "text-background" : "text-foreground"}`}>{percent}%</span>
       </div>
-      <div className="h-2 rounded-full bg-surface-2 overflow-hidden">
+      <div className={`h-2 rounded-full overflow-hidden ${dark ? "bg-white/15" : "bg-surface-2"}`}>
         <div
           className="h-full rounded-full bg-gradient-to-r from-[#f6c915] to-accent-tea transition-all"
           style={{ width: `${Math.max(4, percent)}%` }}
@@ -55,11 +55,11 @@ export function GrowthMeter({
       {!compact && (
         <div className="mt-2.5 grid grid-cols-3 gap-2">
           {criteria.map((c) => (
-            <div key={c.label} className="rounded-xl bg-surface px-2.5 py-2 text-center">
-              <div className="text-[10px] text-muted-foreground">{c.label}</div>
-              <div className="mt-0.5 text-[13px] font-semibold tabular-nums leading-none">
+            <div key={c.label} className={`rounded-xl px-2.5 py-2 text-center ${dark ? "bg-white/10" : "bg-surface"}`}>
+              <div className={`text-[10px] ${dark ? "text-background/60" : "text-muted-foreground"}`}>{c.label}</div>
+              <div className={`mt-0.5 text-[13px] font-semibold tabular-nums leading-none ${dark ? "text-background" : ""}`}>
                 {c.label === "评分" ? c.cur.toFixed(1) : c.cur}
-                <span className="text-[10px] font-normal text-muted-foreground">/{c.label === "评分" ? c.target.toFixed(1) : c.target}{c.unit}</span>
+                <span className={`text-[10px] font-normal ${dark ? "text-background/60" : "text-muted-foreground"}`}>/{c.label === "评分" ? c.target.toFixed(1) : c.target}{c.unit}</span>
               </div>
             </div>
           ))}

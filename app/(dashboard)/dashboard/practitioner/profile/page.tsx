@@ -2,9 +2,11 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import {
   ShieldCheck, Star, Sparkles, ChevronRight, LogOut, Check, Briefcase, CalendarClock, QrCode, SlidersHorizontal, CheckCircle2,
+  Bell, HelpCircle, FileText,
 } from "lucide-react";
 import { PractitionerShell } from "@/components/dashboard/practitioner-shell";
 import { TierBadge, GrowthMeter } from "@/components/dashboard/practitioner-tier";
+import { Toggle } from "@/components/dashboard/section";
 import { logoutAction } from "@/app/(main)/login/actions";
 import { getSession } from "@/lib/auth/session";
 import { getPractitionerByPhone } from "@/lib/data/practitioners-source";
@@ -150,6 +152,27 @@ export default async function PractitionerProfile({ searchParams }: { searchPara
         </div>
       </section>
 
+      {/* 设置（原设置页并入「我的」：通知 / 帮助与条款 / 实名）*/}
+      <section className="rounded-3xl bg-background border border-border overflow-hidden mb-4">
+        <div className="px-5 pt-4 pb-1 text-[11px] text-muted-foreground tracking-wider uppercase">设置 · 通知</div>
+        <div className="divide-y divide-border">
+          {["新岗位推送", "工伤险 / 保单到期", "协会公告 / 培训开课", "夜间免打扰 22:00-08:00"].map((l) => (
+            <div key={l} className="flex items-center gap-3 px-5 py-3.5">
+              <Bell className="h-4 w-4 text-muted-foreground shrink-0" />
+              <div className="flex-1 text-[14px]">{l}</div>
+              <Toggle defaultChecked />
+            </div>
+          ))}
+        </div>
+        <div className="px-5 pt-4 pb-1 text-[11px] text-muted-foreground tracking-wider uppercase border-t border-border">帮助与条款</div>
+        <div className="divide-y divide-border">
+          <SetRow icon={ShieldCheck} label="实名认证" sub={`已通过 · ${name}`} />
+          <SetRow icon={HelpCircle} label="帮助中心" sub="常见问题 · 协会热线" href="/about/contact" />
+          <SetRow icon={FileText} label="服务条款" href="/legal/terms" />
+          <SetRow icon={ShieldCheck} label="隐私政策" href="/legal/privacy" />
+        </div>
+      </section>
+
       {/* AI + 退出 */}
       <Link href="/ai/hr" className="block rounded-3xl bg-foreground text-background p-5 mb-3 active:scale-[0.99] transition-transform">
         <div className="flex items-center gap-3">
@@ -187,6 +210,24 @@ function Achieve({ icon: Icon, iconClass, label, value, sub }: {
       <div className="text-[10px] text-muted-foreground mt-1">{sub}</div>
     </div>
   );
+}
+
+function SetRow({ icon: Icon, label, sub, href }: {
+  icon: React.ComponentType<{ className?: string }>;
+  label: string; sub?: string; href?: string;
+}) {
+  const inner = (
+    <>
+      <Icon className="h-4 w-4 text-muted-foreground shrink-0" />
+      <div className="flex-1 min-w-0">
+        <div className="text-[14px]">{label}</div>
+        {sub && <div className="text-[11px] text-muted-foreground mt-0.5">{sub}</div>}
+      </div>
+      {href && <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0" />}
+    </>
+  );
+  if (!href) return <div className="flex items-center gap-3 px-5 py-3.5">{inner}</div>;
+  return <Link href={href} className="flex items-center gap-3 px-5 py-3.5 active:bg-surface">{inner}</Link>;
 }
 
 function Mini2({ label, value, sub }: { label: string; value: string; sub: string }) {
