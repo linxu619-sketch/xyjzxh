@@ -45,3 +45,15 @@ export function listLeadActivities(leadId: number): LeadActivity[] {
     .all(leadId) as Row[];
   return rows.map(rowTo);
 }
+
+// 批量取每条线索的最后跟进时间（供「待跟进」提醒判定停滞天数）
+export function lastActivityByLead(leadIds: number[]): Record<number, number> {
+  if (!leadIds.length) return {};
+  const ph = leadIds.map(() => "?").join(",");
+  const rows = getDb()
+    .prepare(`SELECT lead_id AS id, MAX(created_at) AS last FROM lead_activities WHERE lead_id IN (${ph}) GROUP BY lead_id`)
+    .all(...leadIds) as { id: number; last: number | null }[];
+  const out: Record<number, number> = {};
+  for (const r of rows) out[r.id] = r.last ?? 0;
+  return out;
+}

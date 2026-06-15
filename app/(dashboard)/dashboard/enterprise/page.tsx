@@ -2,6 +2,7 @@ import Link from "next/link";
 import {
   ExternalLink, Sparkles, AlertCircle, ChevronRight,
   Phone, FileCheck2, Eye, Globe2, Pencil, Library, Megaphone, MessagesSquare,
+  ListChecks, Clock,
 } from "lucide-react";
 import { EnterpriseShell } from "@/components/dashboard/shell";
 import { StatCard, Panel } from "@/components/dashboard/widgets";
@@ -10,6 +11,8 @@ import { getSession, type Session } from "@/lib/auth/session";
 import { getEnterpriseBySlugOrId } from "@/lib/data/enterprises-source";
 import { listReportsByUid, listReportsByEnterprise } from "@/lib/data/reports";
 import { listLeadsByEnterprise } from "@/lib/data/leads";
+import { lastActivityByLead } from "@/lib/data/lead-activities";
+import { leadTodos, reportTodos, type LeadTodo, type ReportTodo } from "@/lib/data/followup";
 import { listCasesByEnterprise } from "@/lib/data/cases";
 import { questionCounts } from "@/lib/ai/knowledge-source";
 import { listPublished } from "@/lib/data/news-source";
@@ -65,7 +68,10 @@ export default async function EnterpriseDashboard() {
   const myLeads = eid ? listLeadsByEnterprise(eid) : [];
   const myCases = eid ? listCasesByEnterprise(eid) : [];
   const newLeads = myLeads.filter((l) => l.status === "new").length;
-  const pendingReports = myReports.filter((r) => r.status === "pending").length;
+  // 待办 · 待跟进：停滞线索（全公司）+ 被驳回需整改的报备
+  const ownerNames = [ent?.name, ent?.hero.brand].filter(Boolean) as string[];
+  const leadTodoList = leadTodos(myLeads, lastActivityByLead(myLeads.map((l) => l.id)), new Date().getTime());
+  const reportTodoList = eid ? reportTodos(listReportsByEnterprise(ownerNames)) : [];
   // 真实线索漏斗
   const totalLeads = myLeads.length;
   const signedLeads = myLeads.filter((l) => l.status === "signed").length;
@@ -115,23 +121,8 @@ export default async function EnterpriseDashboard() {
         </div>
       </div>
 
-      {/* 紧急提醒条 */}
-      <div className="mb-5 rounded-2xl bg-gradient-to-r from-cat-decor to-[#e6531f] text-white p-4 flex items-center gap-3 shadow-md">
-        <span className="relative h-9 w-9 rounded-xl bg-white/20 inline-flex items-center justify-center shrink-0">
-          <AlertCircle className="h-5 w-5" />
-          <span className="absolute inset-0 rounded-xl bg-white/20 animate-ping opacity-40" />
-        </span>
-        <div className="flex-1 min-w-0">
-          <div className="text-[13px] font-semibold">{newLeads} 条新线索待跟进 · {pendingReports} 项报备等审核</div>
-          <div className="text-[11px] text-white/85 mt-0.5">线索与报备为本企业真实数据 · 点右侧前往处理</div>
-        </div>
-        <Link
-          href="/dashboard/enterprise/leads"
-          className="hidden md:inline-flex items-center gap-1 text-[12px] font-medium bg-accent-yellow text-foreground h-9 px-4 rounded-full"
-        >
-          跟进线索 <ChevronRight className="h-3 w-3" />
-        </Link>
-      </div>
+      {/* 待办 · 待跟进（真实数据驱动：停滞线索 + 待整改报备） */}
+      <TodoBlock leads={leadTodoList} reports={reportTodoList} scope="company" />
 
       {/* 数据说明 */}
       <div className="mb-2 text-[11px] text-muted-foreground">
@@ -335,6 +326,9 @@ async function StaffOverview({ session, brand, eid, names }: { session: Session;
   const signed = myLeads.filter((l) => l.status === "signed").length;
   const activeLeads = myLeads.filter((l) => ["contacting", "surveying"].includes(l.status)).length;
   const approved = myReports.filter((r) => r.status === "approved").length;
+  // 我的待办：分派给我、待跟进的线索 + 被驳回需整改的报备
+  const leadTodoList = canLeads ? leadTodos(myLeads, lastActivityByLead(myLeads.map((l) => l.id)), new Date().getTime()) : [];
+  const reportTodoList = canProjects ? reportTodos(myReports) : [];
 
   return (
     <EnterpriseShell title={`${session.name} · 我的工作台`} subtitle={`${brand} · ${roleLabel}`}>
@@ -345,6 +339,8 @@ async function StaffOverview({ session, brand, eid, names }: { session: Session;
           <div className="text-[12px] text-muted-foreground mt-0.5">这里只显示<b className="text-foreground">分派给你</b>的工作与你的业绩。需要分派 / 看全公司数据，请联系企业负责人。</div>
         </div>
       </div>
+
+      {(canLeads || canProjects) && <TodoBlock leads={leadTodoList} reports={reportTodoList} scope="mine" />}
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
         {canLeads && <StatCard label="我的线索" value={myLeads.length} sub={`跟进中 ${activeLeads}`} color="decor" />}
@@ -406,6 +402,73 @@ async function StaffOverview({ session, brand, eid, names }: { session: Session;
         <Megaphone className="h-4 w-4 text-cat-build" /> 协会通知 / 知识库见左侧「协会资讯」。
       </div>
     </EnterpriseShell>
+  );
+}
+
+// 待办 · 待跟进 区块（老板看全公司 / 成员看分派给自己；空时显示"已清空"）
+function TodoBlock({ leads, reports, scope }: { leads: LeadTodo[]; reports: ReportTodo[]; scope: "mine" | "company" }) {
+  const total = leads.length + reports.length;
+  if (total === 0) {
+    return (
+      <div className="mb-5 rounded-2xl border border-border bg-surface p-4 flex items-center gap-3">
+        <span className="h-9 w-9 rounded-xl bg-accent-tea/15 text-accent-tea inline-flex items-center justify-center shrink-0"><ListChecks className="h-5 w-5" /></span>
+        <div className="text-[13px]"><b className="text-accent-tea">待办已清空</b><span className="text-muted-foreground"> · {scope === "mine" ? "分派给你的线索都跟进到位了" : "暂无待跟进线索 / 待整改报备"}</span></div>
+      </div>
+    );
+  }
+  const showLeads = leads.slice(0, 6);
+  const moreLeads = leads.length - showLeads.length;
+  return (
+    <div className="mb-5 rounded-2xl border border-cat-decor/30 bg-cat-decor-soft/30 overflow-hidden">
+      <div className="px-4 py-3 flex items-center gap-2.5 border-b border-cat-decor/20">
+        <span className="relative h-8 w-8 rounded-xl bg-cat-decor text-white inline-flex items-center justify-center shrink-0">
+          <AlertCircle className="h-4 w-4" />
+          <span className="absolute inset-0 rounded-xl bg-cat-decor/40 animate-ping opacity-30" />
+        </span>
+        <div className="flex-1 min-w-0">
+          <div className="text-[13px] font-semibold">待办 · {total} 项需要处理</div>
+          <div className="text-[11px] text-muted-foreground mt-0.5">
+            {leads.length > 0 && <span>{leads.length} 条线索待跟进</span>}
+            {leads.length > 0 && reports.length > 0 && <span> · </span>}
+            {reports.length > 0 && <span>{reports.length} 项报备待整改</span>}
+            {scope === "company" ? " · 全公司" : " · 分派给你"}
+          </div>
+        </div>
+      </div>
+      <ul className="divide-y divide-cat-decor/15">
+        {showLeads.map((t) => (
+          <li key={`l-${t.lead.id}`}>
+            <Link href={`/dashboard/enterprise/leads/${t.lead.id}`} className="flex items-center gap-3 px-4 py-2.5 -mx-0 hover:bg-cat-decor-soft/40 transition-colors group">
+              <span className="h-8 w-8 rounded-full bg-cat-decor-soft text-cat-decor inline-flex items-center justify-center text-[12px] font-semibold shrink-0">{t.lead.name.slice(0, 1)}</span>
+              <span className="flex-1 min-w-0">
+                <span className="text-[13px] font-medium truncate block group-hover:text-brand transition-colors">{t.lead.name}<span className="text-muted-foreground font-normal"> · {t.lead.type || "线索"}{t.lead.area ? ` · ${t.lead.area}㎡` : ""}</span></span>
+                <span className="text-[11px] mt-0.5 inline-flex items-center gap-1 text-muted-foreground"><Clock className="h-3 w-3" /> {t.reason}</span>
+              </span>
+              <Badge tone={t.tone === "decor" ? "decor" : "yellow"} className="shrink-0">{t.tone === "decor" ? "待首联" : "停滞"}</Badge>
+              <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0" />
+            </Link>
+          </li>
+        ))}
+        {reports.map((t) => (
+          <li key={`r-${t.report.id}`}>
+            <Link href={`/dashboard/enterprise/projects/${t.report.id}`} className="flex items-center gap-3 px-4 py-2.5 hover:bg-cat-decor-soft/40 transition-colors group">
+              <span className="h-8 w-8 rounded-full bg-cat-build-soft text-cat-build inline-flex items-center justify-center shrink-0"><FileCheck2 className="h-4 w-4" /></span>
+              <span className="flex-1 min-w-0">
+                <span className="text-[13px] font-medium truncate block group-hover:text-brand transition-colors">{t.report.project}</span>
+                <span className="text-[11px] mt-0.5 inline-flex items-center gap-1 text-muted-foreground"><Clock className="h-3 w-3" /> {t.reason}</span>
+              </span>
+              <Badge tone="decor" className="shrink-0">已驳回</Badge>
+              <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0" />
+            </Link>
+          </li>
+        ))}
+      </ul>
+      {moreLeads > 0 && (
+        <Link href="/dashboard/enterprise/leads" className="block px-4 py-2.5 text-[12px] text-brand border-t border-cat-decor/15 hover:bg-cat-decor-soft/30 transition-colors">
+          还有 {moreLeads} 条待跟进线索，查看全部 →
+        </Link>
+      )}
+    </div>
   );
 }
 

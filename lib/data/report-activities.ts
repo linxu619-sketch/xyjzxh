@@ -42,3 +42,15 @@ export function listReportActivities(reportId: number): ReportActivity[] {
     .all(reportId) as Row[];
   return rows.map(rowTo);
 }
+
+// 批量取每条报备的最后跟进时间（与线索同款，供待办判定）
+export function lastActivityByReport(reportIds: number[]): Record<number, number> {
+  if (!reportIds.length) return {};
+  const ph = reportIds.map(() => "?").join(",");
+  const rows = getDb()
+    .prepare(`SELECT report_id AS id, MAX(created_at) AS last FROM report_activities WHERE report_id IN (${ph}) GROUP BY report_id`)
+    .all(...reportIds) as { id: number; last: number | null }[];
+  const out: Record<number, number> = {};
+  for (const r of rows) out[r.id] = r.last ?? 0;
+  return out;
+}
