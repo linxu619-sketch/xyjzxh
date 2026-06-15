@@ -2,7 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import {
   ShieldCheck, Star, Sparkles, ChevronRight, LogOut, Check, Briefcase, CalendarClock, QrCode, SlidersHorizontal, CheckCircle2,
-  Bell, HelpCircle, FileText,
+  Bell, HelpCircle, FileText, BadgeCheck, Award, GraduationCap, Trash2, AlertCircle,
 } from "lucide-react";
 import { PractitionerShell } from "@/components/dashboard/practitioner-shell";
 import { TierBadge, GrowthMeter } from "@/components/dashboard/practitioner-tier";
@@ -10,19 +10,31 @@ import { Toggle } from "@/components/dashboard/section";
 import { logoutAction } from "@/app/(main)/login/actions";
 import { getSession } from "@/lib/auth/session";
 import { getPractitionerByPhone } from "@/lib/data/practitioners-source";
+import { getPractitionerIdentity } from "@/lib/data/applications";
+import { listCertsByPhone, ensureRegistrationCert, type CertSource } from "@/lib/data/practitioner-certs";
 import { practitionerGrowth, practitionerLevel, metaOf } from "@/lib/data/member-tier";
 import type { PractitionerTier } from "@/lib/data/member-tier";
 import { effectivePractitionerPhone, isPractitionerPreview } from "@/lib/dashboard/preview";
+import { CertUploader } from "./CertUploader";
+import { deleteCertAction } from "./cert-actions";
 
 export const metadata = { title: "我的 · 荣誉档案" };
 
-export default async function PractitionerProfile({ searchParams }: { searchParams: Promise<{ saved?: string }> }) {
+const CERT_SOURCE: Record<CertSource, string> = { upload: "本人上传", registration: "注册带入", training: "协会培训发证" };
+
+export default async function PractitionerProfile({ searchParams }: { searchParams: Promise<{ saved?: string; certok?: string; certerr?: string }> }) {
   const session = await getSession();
   if (!session || (session.role !== "practitioner" && !isPractitionerPreview(session))) {
     redirect("/login?role=practitioner");
   }
-  const { saved } = await searchParams;
-  const me = getPractitionerByPhone(effectivePractitionerPhone(session));
+  const { saved, certok, certerr } = await searchParams;
+  const phone = effectivePractitionerPhone(session);
+  const me = getPractitionerByPhone(phone);
+  // 实名证件（身份证人像/国徽 + 资格证，注册带入）+ 核验状态；身份证仅本人可见
+  const identity = getPractitionerIdentity(phone);
+  // 把注册带入的资格证幂等导入证书库，再列出全部证书
+  if (identity?.certImage && !isPractitionerPreview(session)) ensureRegistrationCert(phone, identity.certImage);
+  const certs = listCertsByPhone(phone);
   const age = me?.birthYear ? new Date().getFullYear() - me.birthYear : null;
   const name = me?.name ?? session.name;
   const kind = me?.kind ?? "从业者";
@@ -45,6 +57,16 @@ export default async function PractitionerProfile({ searchParams }: { searchPara
       {saved && (
         <div className="mb-3 rounded-2xl border border-accent-tea/30 bg-[#e6f7f1] text-accent-tea p-3.5 text-[13px] inline-flex items-center gap-2 w-full">
           <CheckCircle2 className="h-4 w-4 shrink-0" /> 个人资料已保存，岗位推荐已按新资料更新。
+        </div>
+      )}
+      {certok && (
+        <div className="mb-3 rounded-2xl border border-accent-tea/30 bg-[#e6f7f1] text-accent-tea p-3.5 text-[13px] inline-flex items-center gap-2 w-full">
+          <CheckCircle2 className="h-4 w-4 shrink-0" /> 证书已上传，待协会核验后展示「已核验」。
+        </div>
+      )}
+      {certerr && (
+        <div className="mb-3 rounded-2xl border border-cat-decor/30 bg-cat-decor-soft/40 text-cat-decor p-3.5 text-[13px] inline-flex items-center gap-2 w-full">
+          <AlertCircle className="h-4 w-4 shrink-0" /> 请填写证书名称并上传证书图片。
         </div>
       )}
       {/* 等级 · 成长进度（荣誉档案主卡：等级徽章 + 进度 + 当前档权益）*/}
@@ -128,15 +150,72 @@ export default async function PractitionerProfile({ searchParams }: { searchPara
         </div>
       </section>
 
-      {/* 资质证书 */}
+      {/* 实名认证（身份证仅本人可见；用人企业只看「已核验」状态，不看原件）*/}
+      {identity && (
+        <section className="rounded-3xl bg-background border border-border p-5 mb-4">
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="text-[14px] font-semibold tracking-tight">实名认证</h3>
+            {identity.verified
+              ? <span className="inline-flex items-center gap-1 text-[11px] text-accent-tea"><BadgeCheck className="h-3.5 w-3.5" /> 协会已核验</span>
+              : <span className="inline-flex items-center gap-1 text-[11px] text-accent-yellow"><ShieldCheck className="h-3.5 w-3.5" /> 核验中</span>}
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            {[{ u: identity.idFront, l: "身份证人像面" }, { u: identity.idBack, l: "身份证国徽面" }].map((d) => (
+              <div key={d.l}>
+                <div className="text-[11px] text-muted-foreground mb-1">{d.l}</div>
+                {d.u ? (
+                  <a href={d.u} target="_blank" rel="noreferrer" className="block rounded-xl border border-border overflow-hidden" style={{ aspectRatio: "85.6 / 54" }}>
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={d.u} alt={d.l} className="h-full w-full object-cover" />
+                  </a>
+                ) : (
+                  <div className="rounded-xl bg-surface text-[11px] text-muted-foreground flex items-center justify-center" style={{ aspectRatio: "85.6 / 54" }}>未上传</div>
+                )}
+              </div>
+            ))}
+          </div>
+          <p className="mt-2.5 text-[11px] text-muted-foreground">身份证仅你本人 / 协会审核可见，<b className="text-foreground">不对用人企业开放</b>；企业仅能看到「已核验」状态。</p>
+        </section>
+      )}
+
+      {/* 资质 · 证书库（注册带入 / 本人上传 / 协会培训发证；用人企业可调阅）*/}
       <section className="rounded-3xl bg-background border border-border p-5 mb-4">
         <div className="flex items-center justify-between mb-3">
-          <h3 className="text-[14px] font-semibold tracking-tight">资质 · 证书</h3>
-          <Link href="/dashboard/practitioner/training" className="text-[11px] text-brand">上传 →</Link>
+          <h3 className="text-[14px] font-semibold tracking-tight inline-flex items-center gap-1.5"><Award className="h-4 w-4 text-accent-yellow" /> 资质 · 证书</h3>
+          <span className="text-[11px] text-muted-foreground">{certs.length} 张 · 供企业调阅</span>
         </div>
-        <div className="rounded-2xl bg-surface p-5 text-center text-[12px] text-muted-foreground">
-          暂无证书 · 去「培训 · 证书」上传
-        </div>
+        {certs.length > 0 && (
+          <div className="grid grid-cols-2 gap-3 mb-3">
+            {certs.map((c) => (
+              <div key={c.id} className="rounded-2xl border border-border overflow-hidden bg-background">
+                <a href={c.imageUrl} target="_blank" rel="noreferrer" className="block bg-surface" style={{ aspectRatio: "1.4 / 1" }}>
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={c.imageUrl} alt={c.title} className="h-full w-full object-cover" />
+                </a>
+                <div className="p-2.5">
+                  <div className="text-[12.5px] font-medium truncate inline-flex items-center gap-1">
+                    {c.source === "training" && <GraduationCap className="h-3 w-3 text-cat-design shrink-0" />}{c.title}
+                  </div>
+                  <div className="mt-1 flex items-center justify-between gap-1">
+                    <span className="text-[10px] text-muted-foreground">{CERT_SOURCE[c.source]}{c.issued ? ` · ${c.issued}` : ""}</span>
+                    {c.verifyStatus === "verified"
+                      ? <span className="inline-flex items-center gap-0.5 text-[10px] text-accent-tea"><BadgeCheck className="h-3 w-3" />已核验</span>
+                      : <span className="text-[10px] text-accent-yellow">待核验</span>}
+                  </div>
+                  {c.source !== "registration" && c.source !== "training" && (
+                    <form action={deleteCertAction} className="mt-1.5">
+                      <input type="hidden" name="id" value={c.id} />
+                      <button className="text-[10px] text-muted-foreground hover:text-cat-decor inline-flex items-center gap-0.5"><Trash2 className="h-3 w-3" /> 删除</button>
+                    </form>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+        {certs.length === 0 && <p className="mb-3 text-[12px] text-muted-foreground rounded-2xl bg-surface p-4 text-center">暂无证书。上传资格证书,协会培训结业的电子证书也会自动归档到这里。</p>}
+        <CertUploader />
+        <p className="mt-2.5 text-[11px] text-muted-foreground">证书经协会核验后,用人企业在派工时可调阅,助你接单。</p>
       </section>
 
       {/* 历史项目 */}

@@ -268,6 +268,20 @@ CREATE TABLE IF NOT EXISTS member_certificates (
   created_at  INTEGER
 );
 
+-- 从业者证书库：个人资料里的资质/证书证明（注册带入 / 本人上传 / 协会培训发证），供用人企业调阅
+CREATE TABLE IF NOT EXISTS practitioner_certs (
+  id                 INTEGER PRIMARY KEY AUTOINCREMENT,
+  practitioner_phone TEXT,
+  title              TEXT,                 -- 证书名称（二建/电工证/培训结业证…）
+  image_url          TEXT,                 -- 证书图片
+  source             TEXT DEFAULT 'upload',-- upload 本人上传 | registration 注册带入 | training 协会培训发证
+  issuer             TEXT DEFAULT '',      -- 发证机构（培训发证=信阳市建筑装饰装修协会）
+  issued             TEXT DEFAULT '',      -- 发证日期 / 证书编号
+  verify_status      TEXT DEFAULT 'pending', -- pending 待核验 | verified 协会已核验
+  created_at         INTEGER
+);
+CREATE INDEX IF NOT EXISTS idx_pcert_phone ON practitioner_certs(practitioner_phone, created_at);
+
 CREATE TABLE IF NOT EXISTS reviews (
   id          INTEGER PRIMARY KEY AUTOINCREMENT,
   uid         TEXT,

@@ -84,6 +84,22 @@ export function getLatestApplicationByPhone(phone: string): Application | undefi
   return row ? rowTo(row) : undefined;
 }
 
+// 从业者实名证件（注册时上传，存 application payload）：身份证人像/国徽面 + 资格证图 + 核验状态。
+// 身份证原件属敏感信息，仅本人 / 协会审核可见，不对用人企业开放。
+export type PractitionerIdentity = { realName: string; idFront: string; idBack: string; certImage: string; verified: boolean };
+export function getPractitionerIdentity(phone: string): PractitionerIdentity | undefined {
+  const app = getLatestApplicationByPhone(phone);
+  if (!app || app.type !== "individual") return undefined;
+  const p = app.payload as Record<string, string>;
+  return {
+    realName: app.applicant,
+    idFront: p["身份证人像面"] || "",
+    idBack: p["身份证国徽面"] || "",
+    certImage: p["资格证书"] || "",
+    verified: app.idVerifyStatus === "verified",
+  };
+}
+
 export function listApplications(status?: AppStatus): Application[] {
   const db = getDb();
   const rows = (status

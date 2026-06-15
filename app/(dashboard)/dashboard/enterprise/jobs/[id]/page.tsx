@@ -8,6 +8,8 @@ import { Badge } from "@/components/ui/badge";
 import { getSession } from "@/lib/auth/session";
 import { getJob, listApplicationsByJob, countHired, SETTLE_LABEL, SETTLE_HINT, type AppStatus, type Job, type JobApplication, type SettleMode } from "@/lib/data/jobs";
 import { getPractitionerByPhone, type Practitioner } from "@/lib/data/practitioners-source";
+import { getPractitionerIdentity } from "@/lib/data/applications";
+import { listCertsByPhone, type PractitionerCert } from "@/lib/data/practitioner-certs";
 import { setJobStatusAction, reviewApplicantAction } from "../actions";
 import { ConfirmForm } from "../ConfirmForm";
 
@@ -58,7 +60,14 @@ export default async function JobDetail({ params, searchParams }: { params: Prom
   const full = hired >= job.openings;
   // 投递者画像（按手机号回查从业者档案）
   const profiles = new Map<string, Practitioner | undefined>();
-  for (const a of apps) if (!profiles.has(a.phone)) profiles.set(a.phone, getPractitionerByPhone(a.phone));
+  // 证照调阅：实名核验状态 + 证书（不含身份证原件，隐私）
+  const certsBy = new Map<string, PractitionerCert[]>();
+  const verifiedBy = new Map<string, boolean>();
+  for (const a of apps) if (!profiles.has(a.phone)) {
+    profiles.set(a.phone, getPractitionerByPhone(a.phone));
+    certsBy.set(a.phone, listCertsByPhone(a.phone));
+    verifiedBy.set(a.phone, getPractitionerIdentity(a.phone)?.verified ?? false);
+  }
 
   const okText = aok === "accepted" ? "已录用，名额已占用。" : aok === "working" ? "已标记到岗，进入施工中。" : aok === "done" ? "已完工，该派工单已闭环。" : aok === "rejected" ? "已更新为未通过 / 已取消。" : aok === "pending" ? "已重新置为待处理。" : "";
   const errText = aerr === "full" ? "名额已满，无法再录用。请先「结束招聘」或取消他人录用。" : aerr === "flow" ? "该操作不符合流程（如已完工不可再改）。" : "";
@@ -112,7 +121,7 @@ export default async function JobDetail({ params, searchParams }: { params: Prom
         ) : (
           <ul className="divide-y divide-border">
             {apps.map((a) => (
-              <ApplicantRow key={a.id} a={a} job={job} profile={profiles.get(a.phone)} full={full} />
+              <ApplicantRow key={a.id} a={a} job={job} profile={profiles.get(a.phone)} full={full} certs={certsBy.get(a.phone) ?? []} verified={verifiedBy.get(a.phone) ?? false} />
             ))}
           </ul>
         )}
@@ -121,7 +130,7 @@ export default async function JobDetail({ params, searchParams }: { params: Prom
   );
 }
 
-function ApplicantRow({ a, job, profile, full }: { a: JobApplication; job: Job; profile: Practitioner | undefined; full: boolean }) {
+function ApplicantRow({ a, job, profile, full, certs, verified }: { a: JobApplication; job: Job; profile: Practitioner | undefined; full: boolean; certs: PractitionerCert[]; verified: boolean }) {
   const age = profile?.birthYear ? new Date().getFullYear() - profile.birthYear : null;
   const isHire = job.type === "hire";
   const expect = isHire
@@ -186,6 +195,28 @@ function ApplicantRow({ a, job, profile, full }: { a: JobApplication; job: Job; 
       )}
 
       {a.note && <p className="mt-2 text-[12px] text-muted-foreground leading-5 pl-12">“{a.note}”</p>}
+
+      {/* 证照调阅：实名核验状态 + 证书（不含身份证原件）*/}
+      <div className="mt-2.5 pl-12">
+        <div className="flex items-center gap-2 flex-wrap text-[11px]">
+          <span className="text-muted-foreground">证照</span>
+          {verified
+            ? <span className="inline-flex items-center gap-0.5 text-accent-tea"><BadgeCheck className="h-3.5 w-3.5" />实名已核验</span>
+            : <span className="text-muted-foreground">实名核验中</span>}
+          {certs.length > 0 && <span className="text-muted-foreground">· {certs.length} 张证书</span>}
+        </div>
+        {certs.length > 0 && (
+          <div className="mt-1.5 flex gap-2 flex-wrap">
+            {certs.map((c) => (
+              <a key={c.id} href={c.imageUrl} target="_blank" rel="noreferrer" title={`${c.title}${c.verifyStatus === "verified" ? " · 协会已核验" : " · 待核验"}`} className="relative block h-12 w-16 rounded-md border border-border overflow-hidden bg-surface">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={c.imageUrl} alt={c.title} className="h-full w-full object-cover" />
+                {c.verifyStatus === "verified" && <BadgeCheck className="absolute -top-1 -right-1 h-3.5 w-3.5 text-accent-tea bg-background rounded-full" />}
+              </a>
+            ))}
+          </div>
+        )}
+      </div>
 
       {/* 施工进度（录用→到岗→完工）*/}
       {(a.status === "working" || a.status === "done") && (
