@@ -86,12 +86,21 @@ export default async function PayPage({ params, searchParams }: { params: Promis
                 ))}
               </div>
 
-              {/* 确认到账（演示）：真实环境由渠道回调触发 */}
-              <form action={confirmPaymentAction}>
-                <input type="hidden" name="id" value={pay.id} />
-                <button className="w-full h-12 rounded-full bg-accent-tea text-white text-[15px] font-medium inline-flex items-center justify-center gap-2"><CheckCircle2 className="h-5 w-5" /> 我已支付 · 确认到账</button>
-              </form>
-              <div className="text-[11px] text-muted-foreground inline-flex items-center gap-1.5"><ShieldCheck className="h-3.5 w-3.5 text-accent-tea" /> 演示：未接入真实渠道，点击「确认到账」手动结算；接入后由支付回调自动完成。</div>
+              {/* 到账确认：银行转账由协会核对账户后在后台确认（买家不自助结算）；扫码渠道当前为演示手动确认，接入后由回调自动完成 */}
+              {pay.method.startsWith("bank") ? (
+                <div className="rounded-2xl border border-border bg-surface/50 p-4 text-[12px] text-muted-foreground leading-5 flex items-start gap-2">
+                  <ShieldCheck className="h-4 w-4 text-accent-tea shrink-0 mt-0.5" />
+                  <span>请按上方账户完成转账，并在备注填写订单号 <b className="text-foreground">{pay.outTradeNo}</b>，保留银行回单。<b className="text-foreground">协会核对账户到账后将确认结算，无需在此点击确认。</b></span>
+                </div>
+              ) : (
+                <>
+                  <form action={confirmPaymentAction}>
+                    <input type="hidden" name="id" value={pay.id} />
+                    <button className="w-full h-12 rounded-full bg-accent-tea text-white text-[15px] font-medium inline-flex items-center justify-center gap-2"><CheckCircle2 className="h-5 w-5" /> 我已支付 · 确认到账</button>
+                  </form>
+                  <div className="text-[11px] text-muted-foreground inline-flex items-center gap-1.5"><ShieldCheck className="h-3.5 w-3.5 text-accent-tea" /> 演示：未接入真实渠道，点击「确认到账」手动结算；接入后由支付回调自动完成。</div>
+                </>
+              )}
             </div>
           )}
         </div>

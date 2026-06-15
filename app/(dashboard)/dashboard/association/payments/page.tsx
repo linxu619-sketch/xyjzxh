@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { GuardedActionModal } from "@/components/dashboard/guarded-action-modal";
 import { listAllPayments, paymentsSummary, type Payment } from "@/lib/data/payments-source";
 import type { PayMethod, PayStatus } from "@/lib/payments";
-import { markPayoutAction, refundPaymentAction } from "./actions";
+import { markPayoutAction, refundPaymentAction, confirmReceiptAction } from "./actions";
 
 export const metadata = { title: "平台资金 · 收银 / 结算 · 协会工作台" };
 
@@ -60,6 +60,7 @@ export default async function PlatformPayments({ searchParams }: { searchParams:
         平台收银台代收全款 → 自动拆分 <b className="text-foreground">平台佣金</b>（商品 0–2%）与<b className="text-foreground">卖家应结</b>。资金走完整生命周期：<b className="text-foreground">待收款 → 已到账 → 应付卖家结算（线下打款后逐笔标记）→ 已结清</b>；异常单可<b className="text-foreground">退款</b>。打款 / 退款均需管理员密码二次核验。
       </div>
 
+      {ok === "receipt" && <Banner tone="ok" text="已确认到账，该笔转入「待结算给卖家」。" />}
       {ok === "payout" && <Banner tone="ok" text="已标记向卖家打款，该笔转入「已结给卖家」。" />}
       {ok === "refund" && <Banner tone="ok" text="已退款，该笔转入「已退款」并记入台账。" />}
 
@@ -165,7 +166,24 @@ export default async function PlatformPayments({ searchParams }: { searchParams:
                         </>
                       )}
                       {p.status === "paid" && p.payoutStatus === "settled" && <span className="text-[12px] text-accent-tea inline-flex items-center gap-1"><CheckCircle2 className="h-3.5 w-3.5" /> 已结清</span>}
-                      {p.status === "pending" && <Link href={`/dashboard/pay/${p.id}`} className="h-8 px-3 rounded-full border border-border text-[12px] inline-flex items-center text-muted-foreground hover:bg-surface">去收银台</Link>}
+                      {p.status === "pending" && (
+                        <>
+                          <GuardedActionModal
+                            action={confirmReceiptAction}
+                            hidden={{ id: String(p.id) }}
+                            trigger={<span className="inline-flex items-center gap-1"><CheckCircle2 className="h-3.5 w-3.5" /> 确认到账</span>}
+                            triggerClassName="h-8 px-3 rounded-full bg-accent-tea text-white text-[12px] font-medium inline-flex items-center hover:opacity-90"
+                            title="确认款项已到账"
+                            description={`核对到付款方「${p.payerName || "—"}」通过${METHOD_LABEL[p.method]}支付的 ¥${p.amount.toLocaleString()}（订单号 ${p.outTradeNo}）。${p.method.startsWith("bank") ? "请在对公/对私账户确认收到该笔款项后再确认，以免账实不符。" : ""}确认后将结算业务单，并转入「待结算给卖家」。`}
+                            fields={<><label className="block text-[12px] text-muted-foreground mb-1.5">银行流水号 / 到账参考（可选）</label><input name="ref" placeholder="如银行回单流水号，便于对账" className="w-full rounded-xl border border-border bg-background px-3 h-10 text-[13px] outline-none focus:border-accent-tea/50" /></>}
+                            confirmLabel="确认已到账"
+                            confirmClassName="h-10 px-4 rounded-full bg-accent-tea text-white text-[13px] font-medium hover:opacity-90"
+                            errored={err === "receipt" && errId === String(p.id)}
+                            errorText="管理员密码不正确，未确认到账，请重试。"
+                          />
+                          <Link href={`/dashboard/pay/${p.id}`} className="h-8 px-3 rounded-full border border-border text-[12px] inline-flex items-center text-muted-foreground hover:bg-surface">收银台</Link>
+                        </>
+                      )}
                       {p.status === "refunded" && <span className="text-[12px] text-muted-foreground">已退款</span>}
                     </span>
                   </li>
