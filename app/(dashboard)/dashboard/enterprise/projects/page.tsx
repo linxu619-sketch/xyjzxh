@@ -7,6 +7,7 @@ import { effectiveEnterpriseId, isEnterprisePreview } from "@/lib/dashboard/prev
 import { getEnterpriseBySlugOrId } from "@/lib/data/enterprises-source";
 import { listReportsByEnterprise } from "@/lib/data/reports";
 import { listStaffByEnterprise, type EntStaffRole } from "@/lib/data/enterprise-staff";
+import { entScopesOwnData, entStaffId } from "@/lib/auth/ent-access";
 import { ReportAssigneeSelect } from "./ReportAssigneeSelect";
 
 export const metadata = { title: "项目与报备 · 企业工作台" };
@@ -32,9 +33,12 @@ export default async function ProjectsPage() {
   const ent = eid ? await getEnterpriseBySlugOrId(eid) : undefined;
   // 按企业名/简称汇总本企业全部报备（不再只看当前登录人；不再混入全平台 mock 项目）
   const names = [ent?.name, ent?.hero.brand].filter(Boolean) as string[];
-  const reports = listReportsByEnterprise(names);
+  // 受限成员（项目经理/设计师）只看分派给自己的报备
+  const scoped = entScopesOwnData(session);
+  const sid = entStaffId(session);
+  const reports = listReportsByEnterprise(names).filter((r) => !scoped || r.assigneeStaffId === sid);
   const count = (st: string) => reports.filter((r) => r.status === st).length;
-  const unassigned = reports.filter((r) => !r.assigneeStaffId).length;
+  const unassigned = scoped ? 0 : reports.filter((r) => !r.assigneeStaffId).length;
   // 团队成员（在职）用于分派；名册映射用于只读展示
   const staff = eid ? listStaffByEnterprise(eid).filter((m) => m.status === "active") : [];
   const staffName = new Map(staff.map((m) => [m.id, m.name]));
@@ -91,7 +95,7 @@ export default async function ProjectsPage() {
                   <span className="hidden md:block">{r.type && <Badge tone={TYPE_TONE[r.type] ?? "build"}>{r.type}</Badge>}</span>
                   <span className="hidden md:block text-muted-foreground">{r.area || "—"}㎡ · {r.budget || "—"}万</span>
                   <span className="hidden md:block">
-                    {preview || staff.length === 0
+                    {preview || scoped || staff.length === 0
                       ? <span className="text-[12px]">{r.assigneeStaffId && staffName.get(r.assigneeStaffId) ? <span className="text-foreground">{staffName.get(r.assigneeStaffId)}</span> : <span className="text-accent-yellow">未分派</span>}</span>
                       : <ReportAssigneeSelect reportId={r.id} staffId={r.assigneeStaffId} options={assigneeOptions} />}
                   </span>

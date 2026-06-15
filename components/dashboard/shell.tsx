@@ -14,6 +14,8 @@ import { getEnterpriseBySlugOrId } from "@/lib/data/enterprises-source";
 import { getStaff } from "@/lib/data/staff-source";
 import { getEffectivePermissionsForRoles } from "@/lib/runtime-config";
 import { isEnterprisePreview, effectiveEnterpriseId } from "@/lib/dashboard/preview";
+import { isEntStaff, isEntFull, canAccessEnt, ENT_ROLE_LABEL } from "@/lib/auth/ent-access";
+import type { EntStaffRole } from "@/lib/data/enterprise-staff";
 import Link from "next/link";
 import { Eye, Lock } from "lucide-react";
 
@@ -147,9 +149,19 @@ export async function EnterpriseShell({ title, subtitle, actions, children }: Sh
     redirect("/login?role=enterprise");
   }
   if (session.role === "enterprise" && session.pending) redirect("/dashboard/pending");
+
+  // 团队成员（受限会话）：按角色集中拦截越权 URL（x-pathname 由 middleware 注入）+ 过滤导航
+  const restricted = isEntStaff(session) && !isEntFull(session);
+  if (restricted) {
+    const pathname = (await headers()).get("x-pathname") || "";
+    if (pathname && !canAccessEnt(session!.staffRole, pathname)) redirect("/dashboard/enterprise");
+  }
+  const staffLabel = session!.staffRole ? (ENT_ROLE_LABEL[session!.staffRole as EntStaffRole] ?? "成员") : "企业管理员";
+
   const eid = effectiveEnterpriseId(session);
   const pendingReports = preview ? 0 : listReportsByUid(session!.uid).filter((r) => r.status === "pending").length;
-  const items = withBadges(ENT_NAV, {
+  const nav = restricted ? ENT_NAV.filter((it) => canAccessEnt(session!.staffRole, it.href)) : ENT_NAV;
+  const items = withBadges(nav, {
     "/dashboard/enterprise/projects": pendingReports,
   });
   // 品牌名按登录企业动态显示（解析 mock 的 e001~ 与入会建档的 app-X 企业）
@@ -161,7 +173,7 @@ export async function EnterpriseShell({ title, subtitle, actions, children }: Sh
         brand={brand}
         role={ent?.name ?? "Enterprise Console"}
         items={items}
-        user={{ name: preview ? "协会预览" : session!.name, meta: preview ? "只读预览样板企业" : `企业管理员 · ${maskPhone(session!.phone)}` }}
+        user={{ name: preview ? "协会预览" : session!.name, meta: preview ? "只读预览样板企业" : `${staffLabel} · ${maskPhone(session!.phone)}` }}
         tone="build"
         home="/xh"
         back={preview ? { href: "/dashboard/association", label: "返回协会工作台" } : { href: ent?.slug ? `/biz/${ent.slug}` : "/", label: "查看我的子站" }}
@@ -182,9 +194,9 @@ export async function EnterpriseShell({ title, subtitle, actions, children }: Sh
             trailing={!preview && session ? (
               <AccountMenu
                 name={session.name}
-                roleLabel="企业管理员"
+                roleLabel={staffLabel}
                 phone={maskPhone(session.phone)}
-                settingsHref="/dashboard/enterprise/settings"
+                settingsHref={restricted ? "/dashboard/enterprise" : "/dashboard/enterprise/settings"}
               />
             ) : undefined}
           />

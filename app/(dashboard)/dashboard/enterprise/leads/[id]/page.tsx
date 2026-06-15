@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { getSession } from "@/lib/auth/session";
 import { getLead, type LeadStatus } from "@/lib/data/leads";
 import { effectiveEnterpriseId } from "@/lib/dashboard/preview";
+import { entScopesOwnData, entStaffId } from "@/lib/auth/ent-access";
 import { listStaffByEnterprise, type EntStaffRole } from "@/lib/data/enterprise-staff";
 import { updateLeadStatusAction } from "../actions";
 import { AssigneeSelect } from "../AssigneeSelect";
@@ -46,8 +47,12 @@ export default async function LeadDetail({ params }: { params: Promise<{ id: str
   const session = await getSession();
   const lead = getLead(Number(id));
   const owned = lead && session?.enterpriseId && lead.enterpriseId === session.enterpriseId;
+  // 受限成员只能看分派给自己的线索
+  const scoped = entScopesOwnData(session);
+  const sid = entStaffId(session);
+  const accessible = owned && (!scoped || lead!.assigneeStaffId === sid);
 
-  if (!lead || !owned) {
+  if (!lead || !accessible) {
     return (
       <EnterpriseShell title="线索详情">
         <Link href="/dashboard/enterprise/leads" className="inline-flex items-center gap-1.5 text-[13px] text-muted-foreground hover:text-foreground"><ArrowLeft className="h-3.5 w-3.5" /> 返回线索列表</Link>
@@ -97,7 +102,9 @@ export default async function LeadDetail({ params }: { params: Promise<{ id: str
             </div>
           </div>
         </div>
-        {staff.length === 0 ? (
+        {scoped ? (
+          <span className="text-[12px] text-muted-foreground shrink-0">由你跟进</span>
+        ) : staff.length === 0 ? (
           <Link href="/dashboard/enterprise/team" className="text-[12px] text-brand inline-flex items-center gap-0.5 shrink-0">先去添加团队成员 →</Link>
         ) : (
           <AssigneeSelect leadId={lead.id} staffId={lead.assigneeStaffId} options={assigneeOptions} />

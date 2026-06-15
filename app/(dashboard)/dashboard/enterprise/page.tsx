@@ -1,14 +1,14 @@
 import Link from "next/link";
 import {
   ExternalLink, Sparkles, AlertCircle, ChevronRight,
-  Phone, FileCheck2, Eye, Globe2, Pencil, Library, Megaphone,
+  Phone, FileCheck2, Eye, Globe2, Pencil, Library, Megaphone, MessagesSquare,
 } from "lucide-react";
 import { EnterpriseShell } from "@/components/dashboard/shell";
 import { StatCard, Panel } from "@/components/dashboard/widgets";
 import { Badge } from "@/components/ui/badge";
-import { getSession } from "@/lib/auth/session";
+import { getSession, type Session } from "@/lib/auth/session";
 import { getEnterpriseBySlugOrId } from "@/lib/data/enterprises-source";
-import { listReportsByUid } from "@/lib/data/reports";
+import { listReportsByUid, listReportsByEnterprise } from "@/lib/data/reports";
 import { listLeadsByEnterprise } from "@/lib/data/leads";
 import { listCasesByEnterprise } from "@/lib/data/cases";
 import { questionCounts } from "@/lib/ai/knowledge-source";
@@ -16,8 +16,21 @@ import { listPublished } from "@/lib/data/news-source";
 import { listKnowledge } from "@/lib/data/knowledge-source";
 import { AI_EMPLOYEES } from "@/lib/site";
 import { effectiveEnterpriseId, isEnterprisePreview } from "@/lib/dashboard/preview";
+import { entScopesOwnData, entStaffId, canAccessEnt, ENT_ROLE_LABEL } from "@/lib/auth/ent-access";
+import type { EntStaffRole } from "@/lib/data/enterprise-staff";
 
 export const metadata = { title: "企业工作台 · 信阳市建筑装饰装修协会" };
+
+const RPT_LABEL: Record<string, { label: string; tone: "tea" | "decor" | "yellow" }> = {
+  approved: { label: "已通过", tone: "tea" }, rejected: { label: "已驳回", tone: "decor" }, pending: { label: "待审", tone: "yellow" },
+};
+
+function dstr(ms: number) {
+  if (!ms) return "—";
+  const d = new Date(ms);
+  const p = (n: number) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`;
+}
 
 const RPT_STATUS: Record<string, { label: string; tone: "tea" | "decor" | "yellow" }> = {
   approved: { label: "已通过", tone: "tea" },
@@ -42,6 +55,12 @@ export default async function EnterpriseDashboard() {
   const ent = eid ? await getEnterpriseBySlugOrId(eid) : undefined;
   const brand = ent?.hero.brand ?? ent?.name ?? "企业工作台";
   const slug = ent?.slug ?? "mingjia";
+
+  // 团队成员（受限会话）：只看分派给自己的工作，渲染「我的工作台」
+  if (entScopesOwnData(session) && eid) {
+    return <StaffOverview session={session!} brand={brand} eid={eid} names={[ent?.name, ent?.hero.brand].filter(Boolean) as string[]} />;
+  }
+
   const myReports = session && !isEnterprisePreview(session) ? listReportsByUid(session.uid) : [];
   const myLeads = eid ? listLeadsByEnterprise(eid) : [];
   const myCases = eid ? listCasesByEnterprise(eid) : [];
@@ -298,6 +317,93 @@ export default async function EnterpriseDashboard() {
             </div>
           </div>
         </Panel>
+      </div>
+    </EnterpriseShell>
+  );
+}
+
+// 团队成员的「我的工作台」：只看分派给自己的线索/报备 + 个人业绩
+async function StaffOverview({ session, brand, eid, names }: { session: Session; brand: string; eid: string; names: string[] }) {
+  const sid = entStaffId(session);
+  const role = (session.staffRole as EntStaffRole) ?? "viewer";
+  const roleLabel = ENT_ROLE_LABEL[role] ?? "成员";
+  const canLeads = canAccessEnt(session.staffRole, "/dashboard/enterprise/leads");
+  const canProjects = canAccessEnt(session.staffRole, "/dashboard/enterprise/projects");
+
+  const myLeads = canLeads ? listLeadsByEnterprise(eid).filter((l) => l.assigneeStaffId === sid) : [];
+  const myReports = canProjects ? listReportsByEnterprise(names).filter((r) => r.assigneeStaffId === sid) : [];
+  const signed = myLeads.filter((l) => l.status === "signed").length;
+  const activeLeads = myLeads.filter((l) => ["contacting", "surveying"].includes(l.status)).length;
+  const approved = myReports.filter((r) => r.status === "approved").length;
+
+  return (
+    <EnterpriseShell title={`${session.name} · 我的工作台`} subtitle={`${brand} · ${roleLabel}`}>
+      <div className="mb-5 rounded-2xl border border-cat-build/30 bg-cat-build-soft/40 p-4 flex items-start gap-3">
+        <span className="h-10 w-10 rounded-xl bg-cat-build text-white inline-flex items-center justify-center shrink-0"><MessagesSquare className="h-5 w-5" /></span>
+        <div className="min-w-0">
+          <div className="text-[14px] font-semibold">你是 {brand} 的{roleLabel}</div>
+          <div className="text-[12px] text-muted-foreground mt-0.5">这里只显示<b className="text-foreground">分派给你</b>的工作与你的业绩。需要分派 / 看全公司数据，请联系企业负责人。</div>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
+        {canLeads && <StatCard label="我的线索" value={myLeads.length} sub={`跟进中 ${activeLeads}`} color="decor" />}
+        {canLeads && <StatCard label="我的签单" value={signed} sub={myLeads.length ? `签单率 ${((signed / myLeads.length) * 100).toFixed(0)}%` : "—"} color="tea" />}
+        {canProjects && <StatCard label="我的报备" value={myReports.length} sub={`已通过 ${approved}`} color="build" />}
+        {canProjects && <StatCard label="报备通过" value={approved} sub="协会审批" color="design" />}
+        {!canLeads && !canProjects && <StatCard label="角色" value={roleLabel} sub="只读 / 专项" color="build" />}
+      </div>
+
+      <div className="mt-6 grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-5">
+        {canLeads && (
+          <Panel title="我的线索" action={<Link href="/dashboard/enterprise/leads" className="text-[12px] text-brand inline-flex items-center gap-0.5">全部 {myLeads.length} 条 <ChevronRight className="h-3 w-3" /></Link>}>
+            {myLeads.length === 0 ? (
+              <div className="py-8 text-center text-[13px] text-muted-foreground">还没有分派给你的线索。</div>
+            ) : (
+              <ul className="divide-y divide-border">
+                {myLeads.slice(0, 6).map((l) => (
+                  <li key={l.id}>
+                    <Link href={`/dashboard/enterprise/leads/${l.id}`} className="py-3 flex items-center gap-3 -mx-2 px-2 rounded-lg hover:bg-surface transition-colors group">
+                      <span className="h-9 w-9 rounded-full bg-cat-decor-soft text-cat-decor inline-flex items-center justify-center text-[12px] font-semibold shrink-0">{l.name.slice(0, 1)}</span>
+                      <span className="flex-1 min-w-0">
+                        <span className="font-medium truncate block group-hover:text-brand transition-colors">{l.name}</span>
+                        <span className="text-[11px] text-muted-foreground truncate block">{l.type || "—"}{l.area ? ` · ${l.area}㎡` : ""} · {l.source}</span>
+                      </span>
+                      <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0" />
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </Panel>
+        )}
+        {canProjects && (
+          <Panel title="我的报备" action={<Link href="/dashboard/enterprise/projects" className="text-[12px] text-brand inline-flex items-center gap-0.5">全部 {myReports.length} 条 <ChevronRight className="h-3 w-3" /></Link>}>
+            {myReports.length === 0 ? (
+              <div className="py-8 text-center text-[13px] text-muted-foreground">还没有分派给你的报备。</div>
+            ) : (
+              <ul className="divide-y divide-border">
+                {myReports.slice(0, 6).map((r) => {
+                  const st = RPT_LABEL[r.status] ?? RPT_LABEL.pending;
+                  return (
+                    <li key={r.id} className="py-3 flex items-center gap-3">
+                      <FileCheck2 className="h-4 w-4 text-cat-build shrink-0" />
+                      <div className="flex-1 min-w-0">
+                        <div className="text-[13px] font-medium truncate">{r.project}</div>
+                        <div className="text-[11px] text-muted-foreground mt-0.5"><code className="font-mono">{r.code}</code> · {dstr(r.createdAt)}</div>
+                      </div>
+                      <Badge tone={st.tone}>{st.label}</Badge>
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
+          </Panel>
+        )}
+      </div>
+
+      <div className="mt-5 rounded-2xl border border-border bg-surface p-4 text-[12px] text-muted-foreground inline-flex items-center gap-2">
+        <Megaphone className="h-4 w-4 text-cat-build" /> 协会通知 / 知识库见左侧「协会资讯」。
       </div>
     </EnterpriseShell>
   );

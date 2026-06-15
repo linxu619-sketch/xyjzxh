@@ -7,11 +7,13 @@ import { effectiveEnterpriseId } from "@/lib/dashboard/preview";
 import { getEnterpriseBySlugOrId } from "@/lib/data/enterprises-source";
 import { getReport, setReportAssignee } from "@/lib/data/reports";
 import { getStaff } from "@/lib/data/enterprise-staff";
+import { entScopesOwnData } from "@/lib/auth/ent-access";
 
 // 分派报备给团队成员（staffId=0 取消分派）。报备无 enterprise_id，按企业名校验归属。
 export async function setReportAssigneeAction(fd: FormData) {
   const s = await getSession();
   if (!s || s.role !== "enterprise") throw new Error("无权限：仅企业账号可分派报备");
+  if (entScopesOwnData(s)) throw new Error("无权限：成员不可改派报备");
 
   const id = Number(fd.get("id") || 0);
   const staffId = Number(fd.get("staffId") || 0);

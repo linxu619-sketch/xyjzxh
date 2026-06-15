@@ -62,6 +62,16 @@ export function getStaff(id: number): EnterpriseStaff | undefined {
   return r ? rowTo(r) : undefined;
 }
 
+/** 成员独立登录用：按手机号找「在职、非 owner」的团队成员（owner 走企业账号登录）。 */
+export function getActiveStaffByPhone(phone: string): EnterpriseStaff | undefined {
+  const p = (phone || "").trim();
+  if (!p) return undefined;
+  const r = getDb()
+    .prepare("SELECT * FROM enterprise_staff WHERE phone = ? AND status = 'active' AND role != 'owner' ORDER BY created_at ASC LIMIT 1")
+    .get(p) as Row | undefined;
+  return r ? rowTo(r) : undefined;
+}
+
 /** 直接添加自己公司的团队成员（即在职，无需对方激活）。手机号选填，仅作通讯录与去重。 */
 export function addStaff(input: { enterpriseId: string; name: string; phone: string; role: EntStaffRole }): { ok: boolean; error?: "name" | "phone" | "dup" } {
   const name = input.name.trim();

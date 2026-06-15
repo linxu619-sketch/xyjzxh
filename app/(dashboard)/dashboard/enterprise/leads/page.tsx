@@ -8,6 +8,7 @@ import { getSession } from "@/lib/auth/session";
 import { listLeadsByEnterprise, type LeadStatus } from "@/lib/data/leads";
 import { listStaffByEnterprise } from "@/lib/data/enterprise-staff";
 import { effectiveEnterpriseId } from "@/lib/dashboard/preview";
+import { entScopesOwnData, entStaffId } from "@/lib/auth/ent-access";
 
 const FILTERABLE: LeadStatus[] = ["new", "contacting", "surveying", "signed", "lost"];
 
@@ -31,7 +32,10 @@ export default async function LeadsPage({ searchParams }: { searchParams: Promis
   const { f } = await searchParams;
   const session = await getSession();
   const eid = effectiveEnterpriseId(session);
-  const all = eid ? listLeadsByEnterprise(eid) : [];
+  // 受限成员（销售等）只看分派给自己的线索
+  const scoped = entScopesOwnData(session);
+  const sid = entStaffId(session);
+  const all = (eid ? listLeadsByEnterprise(eid) : []).filter((l) => !scoped || l.assigneeStaffId === sid);
   const staffName = new Map((eid ? listStaffByEnterprise(eid) : []).map((m) => [m.id, m.name]));
 
   const total = all.length;

@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { getSession } from "@/lib/auth/session";
 import { effectiveEnterpriseId } from "@/lib/dashboard/preview";
+import { isEntFull } from "@/lib/auth/ent-access";
 import {
   addStaff, setStaffStatus, setStaffRole, removeStaff,
   type EntStaffRole, type EntStaffStatus,
@@ -11,10 +12,11 @@ import {
 
 const BACK = "/dashboard/enterprise/team";
 
-// 仅「企业账号本人」可管理团队（协会只读预览不可变更）
+// 仅「企业账号本人 / 管理员成员」可管理团队（受限成员、协会只读预览不可变更）
 async function requireEnterprise(): Promise<string> {
   const s = await getSession();
   if (!s || s.role !== "enterprise") throw new Error("无权限：仅企业账号可管理团队");
+  if (!isEntFull(s)) throw new Error("无权限：仅负责人 / 管理员可管理团队");
   const eid = effectiveEnterpriseId(s);
   if (!eid) throw new Error("无企业身份");
   return eid;

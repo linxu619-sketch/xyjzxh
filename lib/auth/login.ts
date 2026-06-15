@@ -2,6 +2,7 @@ import "server-only";
 import { SYSTEM_ADMIN } from "./system-admin";
 import { getStaffAuthByPhone } from "@/lib/data/staff-source";
 import { findEnterpriseByContactPhone, ensureEnterpriseForAccount } from "@/lib/data/enterprises-source";
+import { getActiveStaffByPhone } from "@/lib/data/enterprise-staff";
 import { getPractitionerByPhone } from "@/lib/data/practitioners-source";
 import { getAccountByPhone, upsertAccount } from "@/lib/data/accounts";
 import { verifyPassword } from "./password";
@@ -35,6 +36,28 @@ function isAssociationPhone(phone: string): boolean {
   return p === SYSTEM_ADMIN.phone || !!getStaffAuthByPhone(p);
 }
 const ASSOC_PHONE_ERR = "该手机号是协会工作人员账号，请选择「协会」用密码登录";
+
+/**
+ * 团队成员（老板在「团队管理」加入、独立登录）：受限企业会话。
+ * role=enterprise 让其进入企业工作台，staffRole 用于按角色收权 + 只看分派给自己的数据。
+ * 放在企业登录的「演示兜底绑 e002」之前调用，避免成员被误绑成样板企业。
+ */
+function staffLoginResult(cleanPhone: string): LoginResult | null {
+  const staff = getActiveStaffByPhone(cleanPhone);
+  if (!staff || !staff.enterpriseId) return null;
+  return {
+    ok: true,
+    isSystemAdmin: false,
+    session: {
+      uid: `entstaff-${staff.id}`,
+      role: "enterprise",
+      name: staff.name || "团队成员",
+      phone: cleanPhone,
+      enterpriseId: staff.enterpriseId,
+      staffRole: staff.role,
+    },
+  };
+}
 
 /* ------------------------------------------------------------
    密码登录防爆破 —— 进程内限流(单实例够用;多实例上线后换 Redis/库)
@@ -261,6 +284,10 @@ export async function loginEnterpriseWithPassword(
     return { ok: false, error: `该手机号已注册为${acct.role === "individual" ? "个人会员" : "业主"}，请用对应身份登录` };
   }
 
+  // —— 团队成员（独立登录）：受限企业会话，须在演示兜底之前 ——
+  const staffRes = staffLoginResult(cleanPhone);
+  if (staffRes) return staffRes;
+
   // —— 真实绑定回退：手机号匹配到正式会员企业（兼容入会建档但无账号的情况）——
   const ent = findEnterpriseByContactPhone(cleanPhone);
   if (ent) {
@@ -327,6 +354,10 @@ export async function loginEnterpriseWithSms(
   if (acct && (acct.role === "individual" || acct.role === "customer")) {
     return { ok: false, error: `该手机号已注册为${acct.role === "individual" ? "个人会员" : "业主"}，请用对应身份登录` };
   }
+
+  // —— 团队成员（独立登录）：受限企业会话，须在演示兜底之前 ——
+  const staffRes = staffLoginResult(cleanPhone);
+  if (staffRes) return staffRes;
 
   // —— 真实绑定回退：手机号匹配到正式会员企业 ——
   const ent = findEnterpriseByContactPhone(cleanPhone);
