@@ -89,7 +89,7 @@ export default async function ProjectsPage() {
                 <li key={r.id} className="grid grid-cols-[1fr_auto] md:grid-cols-[110px_1.5fr_0.7fr_1fr_1fr_auto] gap-3 items-center px-5 py-3.5 text-[13px]">
                   <code className="hidden md:block text-[12px] font-mono text-muted-foreground truncate">{r.code}</code>
                   <span className="min-w-0">
-                    <span className="font-medium truncate block">{r.project}</span>
+                    <Link href={`/dashboard/enterprise/projects/${r.id}`} className="font-medium truncate block hover:text-brand transition-colors">{r.project}</Link>
                     <span className="md:hidden text-[11px] text-muted-foreground truncate block">{r.code} · {r.area || "—"}㎡ · {r.budget || "—"}万 · {fmtDate(r.createdAt)}</span>
                   </span>
                   <span className="hidden md:block">{r.type && <Badge tone={TYPE_TONE[r.type] ?? "build"}>{r.type}</Badge>}</span>

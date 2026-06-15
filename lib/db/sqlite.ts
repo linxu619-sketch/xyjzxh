@@ -98,6 +98,18 @@ CREATE TABLE IF NOT EXISTS project_reports (
 );
 CREATE INDEX IF NOT EXISTS idx_reports_status ON project_reports(status, created_at);
 
+-- 报备跟进记录（CRM 时间线，与线索同款；企业内成员/老板记跟进）
+CREATE TABLE IF NOT EXISTS report_activities (
+  id          INTEGER PRIMARY KEY AUTOINCREMENT,
+  report_id   INTEGER,
+  author_name TEXT,
+  author_role TEXT,
+  kind        TEXT DEFAULT 'note',
+  note        TEXT,
+  created_at  INTEGER
+);
+CREATE INDEX IF NOT EXISTS idx_reportact_report ON report_activities(report_id, created_at);
+
 -- 消费者门户「工装报备一网通办」公开展示项目（带进度/投保/工期）
 CREATE TABLE IF NOT EXISTS showcase_projects (
   id           TEXT PRIMARY KEY,
