@@ -12,8 +12,8 @@ export type EntStaffStatus = "active" | "locked" | "invited";
 
 export const ENT_STAFF_ROLES: EntStaffRole[] =
   ["owner", "admin", "sales", "site_manager", "designer", "finance", "viewer"];
-// 邀请时可选的角色（owner 是企业账号本人，不可被邀请/更改）
-export const ENT_INVITE_ROLES: EntStaffRole[] =
+// 可分配给成员的角色（owner 是企业账号本人，不可分配/更改）
+export const ENT_ASSIGNABLE_ROLES: EntStaffRole[] =
   ["admin", "sales", "site_manager", "designer", "finance", "viewer"];
 
 export type EnterpriseStaff = {
@@ -62,15 +62,19 @@ export function getStaff(id: number): EnterpriseStaff | undefined {
   return r ? rowTo(r) : undefined;
 }
 
-export function inviteStaff(input: { enterpriseId: string; name: string; phone: string; role: EntStaffRole }): number | null {
-  if (!input.enterpriseId || !input.name.trim() || !/^1\d{10}$/.test(input.phone.trim())) return null;
-  if (!ENT_INVITE_ROLES.includes(input.role)) return null;
+/** 直接添加自己公司的团队成员（即在职，无需对方激活）。手机号选填，仅作通讯录与去重。 */
+export function addStaff(input: { enterpriseId: string; name: string; phone: string; role: EntStaffRole }): { ok: boolean; error?: "name" | "phone" | "dup" } {
+  const name = input.name.trim();
+  const phone = input.phone.trim();
+  if (!input.enterpriseId || !name) return { ok: false, error: "name" };
+  if (phone && !/^1\d{10}$/.test(phone)) return { ok: false, error: "phone" };
+  const role = ENT_ASSIGNABLE_ROLES.includes(input.role) ? input.role : "viewer";
   const db = getDb();
-  // 同企业同手机号去重
-  if (db.prepare("SELECT 1 FROM enterprise_staff WHERE enterprise_id = ? AND phone = ?").get(input.enterpriseId, input.phone.trim())) return null;
-  const info = db.prepare("INSERT INTO enterprise_staff (enterprise_id,name,phone,role,status,created_at) VALUES (?,?,?,?, 'invited', ?)")
-    .run(input.enterpriseId, input.name.trim(), input.phone.trim(), input.role, Date.now());
-  return Number(info.lastInsertRowid);
+  // 填了手机号才做同企业去重（避免同号重复录入）
+  if (phone && db.prepare("SELECT 1 FROM enterprise_staff WHERE enterprise_id = ? AND phone = ?").get(input.enterpriseId, phone)) return { ok: false, error: "dup" };
+  db.prepare("INSERT INTO enterprise_staff (enterprise_id,name,phone,role,status,created_at) VALUES (?,?,?,?, 'active', ?)")
+    .run(input.enterpriseId, name, phone, role, Date.now());
+  return { ok: true };
 }
 
 // 下面三个仅作用于本企业、且非 owner（owner 是账号本人，不可改/锁/删）
@@ -79,7 +83,7 @@ export function setStaffStatus(enterpriseId: string, id: number, status: EntStaf
     .run(status, id, enterpriseId);
 }
 export function setStaffRole(enterpriseId: string, id: number, role: EntStaffRole): void {
-  if (!ENT_INVITE_ROLES.includes(role)) return;
+  if (!ENT_ASSIGNABLE_ROLES.includes(role)) return;
   getDb().prepare("UPDATE enterprise_staff SET role = ? WHERE id = ? AND enterprise_id = ? AND role != 'owner'")
     .run(role, id, enterpriseId);
 }

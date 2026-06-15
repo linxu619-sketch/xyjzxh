@@ -5,7 +5,7 @@ import { redirect } from "next/navigation";
 import { getSession } from "@/lib/auth/session";
 import { effectiveEnterpriseId } from "@/lib/dashboard/preview";
 import {
-  inviteStaff, setStaffStatus, setStaffRole, removeStaff,
+  addStaff, setStaffStatus, setStaffRole, removeStaff,
   type EntStaffRole, type EntStaffStatus,
 } from "@/lib/data/enterprise-staff";
 
@@ -20,16 +20,16 @@ async function requireEnterprise(): Promise<string> {
   return eid;
 }
 
-export async function inviteStaffAction(fd: FormData) {
+export async function addStaffAction(fd: FormData) {
   const eid = await requireEnterprise();
-  inviteStaff({
+  const r = addStaff({
     enterpriseId: eid,
     name: String(fd.get("name") || ""),
     phone: String(fd.get("phone") || ""),
     role: String(fd.get("role") || "viewer") as EntStaffRole,
   });
   revalidatePath(BACK);
-  redirect(BACK);
+  redirect(r.ok ? `${BACK}?added=1` : `${BACK}?err=${r.error}`);
 }
 
 export async function setStaffStatusAction(fd: FormData) {

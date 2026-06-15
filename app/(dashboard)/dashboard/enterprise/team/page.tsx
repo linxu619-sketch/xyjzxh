@@ -1,11 +1,11 @@
-import { Plus, Crown, ShieldCheck, Lock, Unlock, Trash2, UserCheck } from "lucide-react";
+import { Plus, Crown, ShieldCheck, Lock, Unlock, Trash2, UserCheck, CheckCircle2, AlertCircle } from "lucide-react";
 import { EnterpriseShell } from "@/components/dashboard/shell";
 import { Badge } from "@/components/ui/badge";
 import { getSession } from "@/lib/auth/session";
 import { effectiveEnterpriseId, isEnterprisePreview } from "@/lib/dashboard/preview";
 import { getEnterpriseBySlugOrId } from "@/lib/data/enterprises-source";
-import { ensureOwner, listStaffByEnterprise, ENT_INVITE_ROLES, type EntStaffRole, type EntStaffStatus } from "@/lib/data/enterprise-staff";
-import { inviteStaffAction, setStaffStatusAction, removeStaffAction } from "./actions";
+import { ensureOwner, listStaffByEnterprise, ENT_ASSIGNABLE_ROLES, type EntStaffRole, type EntStaffStatus } from "@/lib/data/enterprise-staff";
+import { addStaffAction, setStaffStatusAction, removeStaffAction } from "./actions";
 import { RoleSelect } from "./RoleSelect";
 
 export const metadata = { title: "团队管理 · 企业工作台" };
@@ -18,12 +18,14 @@ const ROLE_TONE: Record<EntStaffRole, "brand" | "build" | "decor" | "design" | "
   owner: "yellow", admin: "brand", sales: "decor", site_manager: "build",
   designer: "design", finance: "tea", viewer: "neutral",
 };
-const STATUS_LABEL: Record<EntStaffStatus, string> = { active: "在职", locked: "已锁定", invited: "待激活" };
+const STATUS_LABEL: Record<EntStaffStatus, string> = { active: "在职", locked: "已停用", invited: "待激活" };
 const STATUS_TONE: Record<EntStaffStatus, "tea" | "decor" | "yellow"> = { active: "tea", locked: "decor", invited: "yellow" };
+const ERR_TEXT: Record<string, string> = { name: "请填写成员姓名。", phone: "手机号格式不正确（11 位）。", dup: "该手机号已在团队中，请勿重复添加。" };
 
 const INPUT = "h-10 rounded-xl border border-border bg-background px-3 text-[13px] outline-none focus:border-foreground/30 w-full";
 
-export default async function TeamPage() {
+export default async function TeamPage({ searchParams }: { searchParams: Promise<{ added?: string; err?: string }> }) {
+  const { added, err } = await searchParams;
   const session = await getSession();
   const eid = effectiveEnterpriseId(session);
   const preview = isEnterprisePreview(session);
@@ -33,25 +35,25 @@ export default async function TeamPage() {
   const team = eid ? listStaffByEnterprise(eid) : [];
   const active = team.filter((m) => m.status === "active").length;
   const invited = team.filter((m) => m.status === "invited").length;
-  const roleOptions = ENT_INVITE_ROLES.map((r) => ({ value: r, label: ROLE_LABEL[r] }));
+  const roleOptions = ENT_ASSIGNABLE_ROLES.map((r) => ({ value: r, label: ROLE_LABEL[r] }));
 
   return (
     <EnterpriseShell
       title="团队管理"
-      subtitle={`成员 ${team.length} 人 · 在职 ${active} · 待激活 ${invited}`}
+      subtitle={`公司成员 ${team.length} 人 · 在职 ${active}${invited ? ` · 待激活 ${invited}` : ""}`}
     >
-      {/* 邀请成员（协会只读预览不显示）*/}
+      {/* 添加成员（协会只读预览不显示）。自己公司的员工直接录入即在职，无需邀请/激活。*/}
       {!preview && (
-        <form action={inviteStaffAction} className="mb-5 rounded-2xl border border-border bg-background p-4 md:p-5">
-          <div className="text-[13px] font-semibold mb-3 inline-flex items-center gap-1.5"><Plus className="h-4 w-4" /> 邀请成员</div>
+        <form action={addStaffAction} className="mb-5 rounded-2xl border border-border bg-background p-4 md:p-5">
+          <div className="text-[13px] font-semibold mb-3 inline-flex items-center gap-1.5"><Plus className="h-4 w-4" /> 添加成员</div>
           <div className="grid grid-cols-1 sm:grid-cols-[1fr_1fr_1fr_auto] gap-3 items-end">
             <label className="block">
               <span className="text-[12px] text-muted-foreground">姓名</span>
               <input name="name" required placeholder="成员姓名" className={INPUT} />
             </label>
             <label className="block">
-              <span className="text-[12px] text-muted-foreground">手机号</span>
-              <input name="phone" required placeholder="11 位手机号" className={INPUT} />
+              <span className="text-[12px] text-muted-foreground">手机号 <span className="text-muted-foreground/70">(选填)</span></span>
+              <input name="phone" placeholder="联系手机号，可不填" className={INPUT} />
             </label>
             <label className="block">
               <span className="text-[12px] text-muted-foreground">角色</span>
@@ -59,9 +61,11 @@ export default async function TeamPage() {
                 {roleOptions.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
               </select>
             </label>
-            <button type="submit" className="h-10 px-5 rounded-xl bg-foreground text-background text-[13px] font-medium shrink-0">发出邀请</button>
+            <button type="submit" className="h-10 px-5 rounded-xl bg-foreground text-background text-[13px] font-medium shrink-0">添加成员</button>
           </div>
-          <p className="mt-2.5 text-[11px] text-muted-foreground">邀请后成员为「待激活」，对方用该手机号登录企业端即激活。</p>
+          {added && <p className="mt-2.5 text-[11px] text-accent-tea inline-flex items-center gap-1"><CheckCircle2 className="h-3.5 w-3.5" /> 已添加，成员即为在职。</p>}
+          {err && ERR_TEXT[err] && <p className="mt-2.5 text-[11px] text-cat-decor inline-flex items-center gap-1"><AlertCircle className="h-3.5 w-3.5" /> {ERR_TEXT[err]}</p>}
+          {!added && !err && <p className="mt-2.5 text-[11px] text-muted-foreground">录入你公司的成员并分配角色；添加后即为在职。如需暂停某成员权限可「停用」，离职可「移除」。</p>}
         </form>
       )}
 
@@ -71,7 +75,7 @@ export default async function TeamPage() {
           <span>成员</span><span>手机</span><span>角色</span><span>状态</span><span className="text-right">操作</span>
         </div>
         {team.length === 0 ? (
-          <div className="px-5 py-12 text-center text-[13px] text-muted-foreground">还没有团队成员，用上方「邀请成员」添加。</div>
+          <div className="px-5 py-12 text-center text-[13px] text-muted-foreground">还没有团队成员，用上方「添加成员」录入你公司的员工。</div>
         ) : (
           <ul className="divide-y divide-border">
             {team.map((m) => {
@@ -83,10 +87,10 @@ export default async function TeamPage() {
                     <span className="h-9 w-9 rounded-full bg-foreground text-background inline-flex items-center justify-center text-[12px] font-semibold shrink-0">{m.name.slice(0, 1)}</span>
                     <span className="min-w-0">
                       <span className="font-medium truncate flex items-center gap-1.5">{m.name}{isOwner && <Crown className="h-3 w-3 text-accent-yellow shrink-0" />}</span>
-                      <span className="md:hidden text-[11px] text-muted-foreground">{m.phone} · {ROLE_LABEL[m.role]}</span>
+                      <span className="md:hidden text-[11px] text-muted-foreground">{m.phone ? `${m.phone} · ` : ""}{ROLE_LABEL[m.role]}</span>
                     </span>
                   </div>
-                  <span className="hidden md:block text-muted-foreground tabular-nums">{m.phone}</span>
+                  <span className="hidden md:block text-muted-foreground tabular-nums">{m.phone || "—"}</span>
                   <span className="hidden md:flex items-center">
                     {editable ? <RoleSelect id={m.id} role={m.role} options={roleOptions} /> : <Badge tone={ROLE_TONE[m.role]}>{ROLE_LABEL[m.role]}</Badge>}
                   </span>
@@ -103,13 +107,13 @@ export default async function TeamPage() {
                         {m.status === "active" && (
                           <form action={setStaffStatusAction}>
                             <input type="hidden" name="id" value={m.id} /><input type="hidden" name="status" value="locked" />
-                            <button title="锁定" className="h-8 w-8 rounded-lg text-muted-foreground hover:text-cat-decor hover:bg-surface inline-flex items-center justify-center"><Lock className="h-3.5 w-3.5" /></button>
+                            <button title="停用" className="h-8 w-8 rounded-lg text-muted-foreground hover:text-cat-decor hover:bg-surface inline-flex items-center justify-center"><Lock className="h-3.5 w-3.5" /></button>
                           </form>
                         )}
                         {m.status === "locked" && (
                           <form action={setStaffStatusAction}>
                             <input type="hidden" name="id" value={m.id} /><input type="hidden" name="status" value="active" />
-                            <button title="解锁" className="h-8 w-8 rounded-lg text-muted-foreground hover:text-accent-tea hover:bg-surface inline-flex items-center justify-center"><Unlock className="h-3.5 w-3.5" /></button>
+                            <button title="恢复在职" className="h-8 w-8 rounded-lg text-muted-foreground hover:text-accent-tea hover:bg-surface inline-flex items-center justify-center"><Unlock className="h-3.5 w-3.5" /></button>
                           </form>
                         )}
                         <form action={removeStaffAction}>
@@ -131,7 +135,7 @@ export default async function TeamPage() {
       <div className="mt-6 rounded-2xl border border-border bg-surface p-5 flex items-start gap-3">
         <ShieldCheck className="h-5 w-5 text-accent-tea mt-0.5 shrink-0" />
         <div className="text-[12px] text-muted-foreground leading-5">
-          <b className="text-foreground">权限说明：</b> 负责人(账号本人)拥有全部权限；管理员可邀请成员、改子站、看全部数据；销售/项目经理/设计师看自己负责的线索与项目；财务看金额相关；查看者只读。
+          <b className="text-foreground">权限说明：</b> 负责人(账号本人)拥有全部权限；管理员可添加成员、改子站、看全部数据；销售/项目经理/设计师看自己负责的线索与项目；财务看金额相关；查看者只读。
         </div>
       </div>
     </EnterpriseShell>
