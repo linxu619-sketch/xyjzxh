@@ -15,10 +15,7 @@ export default async function ProfileEdit() {
   const me = getPractitionerByPhone(effectivePractitionerPhone(session));
 
   return (
-    <PractitionerShell title="完善找活资料" subtitle="资料越全，给你推的活越准 · 双方不做无用功">
-      <p className="mb-4 text-[12px] text-muted-foreground leading-5">
-        填好「能做的工种、年龄、期望日薪、可接区域」，找活页就只把<b className="text-foreground">你会做、够格、够价、就近</b>的岗位推给你。
-      </p>
+    <PractitionerShell title="完善找活资料" subtitle="资料越全，推的活越准">
       <MatchInfoForm
         init={{
           canKinds: me?.canKinds ?? [],

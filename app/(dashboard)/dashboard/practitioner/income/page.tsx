@@ -62,7 +62,7 @@ export default async function PractitionerIncome() {
           {/* 证明用途 */}
           <div className="rounded-2xl bg-[#e6f7f1] p-4 mb-4 flex items-start gap-2.5 text-[12px] text-accent-tea">
             <ShieldCheck className="h-4 w-4 mt-0.5 shrink-0" />
-            <div className="leading-5">收入证明由协会盖章，<b>河南省工行 / 建行 / 信阳农商行</b> 与 <b>市政务大厅</b> 均认可，可用于贷款 / 落户 / 子女入学。</div>
+            <div className="leading-5">收入证明由协会盖章，可用于贷款 / 落户 / 子女入学。</div>
           </div>
 
           {/* 录用岗位明细 */}

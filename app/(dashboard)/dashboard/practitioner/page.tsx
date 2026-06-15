@@ -174,7 +174,6 @@ export default async function PractitionerHome() {
             <Sparkles className="h-6 w-6 text-accent-yellow shrink-0" />
             <div className="flex-1 min-w-0">
               <div className="text-[14px] font-semibold">AI 小才 · 找活 / 申诉 / 培训</div>
-              <div className="text-[11px] text-background/70 mt-0.5">随时问 TA 关于接单、欠薪、证书的问题</div>
             </div>
             <ArrowUpRight className="h-4 w-4" />
           </div>

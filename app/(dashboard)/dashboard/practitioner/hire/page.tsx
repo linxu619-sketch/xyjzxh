@@ -56,7 +56,7 @@ export default async function PractitionerHire({ searchParams }: { searchParams:
         <Link href="/dashboard/practitioner/profile/edit" className="block rounded-2xl border border-[#f6c915]/40 bg-[#fff6d6] text-[#a37200] p-3.5 mb-4 active:scale-[0.99] transition-transform">
           <div className="flex items-center gap-2.5">
             <SlidersHorizontal className="h-4 w-4 shrink-0" />
-            <div className="flex-1 text-[12.5px] leading-5">填写「期望月薪范围」等资料，招聘岗位推荐更准——只推你专业对口、够格、薪资合得来的。</div>
+            <div className="flex-1 text-[12.5px] leading-5">填写「期望月薪范围」等资料，推荐更准。</div>
             <ChevronRight className="h-4 w-4" />
           </div>
         </Link>

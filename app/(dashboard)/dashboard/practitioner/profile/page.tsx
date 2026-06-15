@@ -54,11 +54,6 @@ export default async function PractitionerProfile({ searchParams }: { searchPara
           <span className="text-[11px] text-muted-foreground shrink-0">协会评定 · {isMaxTier ? "已封顶" : `下一档 ${growth.next}`}</span>
         </div>
         <GrowthMeter next={growth.next} percent={growth.percent} criteria={growth.criteria} />
-        {!isMaxTier && (
-          <p className="mt-2.5 text-[11px] text-muted-foreground leading-5">
-            进度为晋级参考；达到参考线后由协会评审授予「{growth.next}」，专业资历越高，名录展示越靠前、权益越多。
-          </p>
-        )}
         {/* 当前档权益 */}
         <div className="mt-4 pt-4 border-t border-border">
           <div className="text-[11px] text-muted-foreground mb-2">「{tier}」权益</div>
@@ -118,7 +113,7 @@ export default async function PractitionerProfile({ searchParams }: { searchPara
               {me.canDistricts.map((d) => <span key={d} className="text-[12px] rounded-full bg-surface text-muted-foreground px-2.5 py-1">{d}</span>)}
             </div>
           </div>
-          <p className="mt-3 text-[11px] text-muted-foreground leading-5">这些信息决定<Link href="/dashboard/practitioner/jobs" className="text-brand">找活页</Link>给你推哪些岗位——只推你会做、够格、够价、就近的，双方不做无用功。</p>
+          <p className="mt-3 text-[11px] text-muted-foreground">影响<Link href="/dashboard/practitioner/jobs" className="text-brand">找活页</Link>的岗位推荐。</p>
         </section>
       )}
 
@@ -140,7 +135,7 @@ export default async function PractitionerProfile({ searchParams }: { searchPara
           <Link href="/dashboard/practitioner/training" className="text-[11px] text-brand">上传 →</Link>
         </div>
         <div className="rounded-2xl bg-surface p-5 text-center text-[12px] text-muted-foreground">
-          暂未上传证书。去「培训 · 证书」上传二建 / 设计师证 / 安全员等，认证后展示在名录、并助力晋级评审。
+          暂无证书 · 去「培训 · 证书」上传
         </div>
       </section>
 
@@ -148,7 +143,7 @@ export default async function PractitionerProfile({ searchParams }: { searchPara
       <section className="rounded-3xl bg-background border border-border p-5 mb-4">
         <h3 className="text-[14px] font-semibold tracking-tight mb-3">历史项目</h3>
         <div className="rounded-2xl bg-surface p-5 text-center text-[12px] text-muted-foreground">
-          暂无项目记录。接单并完成后，企业评价会聚合到这里，累计接单与好评是晋级的重要依据。
+          暂无项目记录 · 接单完成后在此聚合
         </div>
       </section>
 
