@@ -1,7 +1,7 @@
 import Link from "next/link";
 import {
   ExternalLink, Sparkles, AlertCircle, ChevronRight,
-  Phone, FileCheck2, Eye, Globe2, Pencil, Flag,
+  Phone, FileCheck2, Eye, Globe2, Pencil, Library, Megaphone,
 } from "lucide-react";
 import { EnterpriseShell } from "@/components/dashboard/shell";
 import { StatCard, Panel } from "@/components/dashboard/widgets";
@@ -13,6 +13,7 @@ import { listLeadsByEnterprise } from "@/lib/data/leads";
 import { listCasesByEnterprise } from "@/lib/data/cases";
 import { questionCounts } from "@/lib/ai/knowledge-source";
 import { listPublished } from "@/lib/data/news-source";
+import { listKnowledge } from "@/lib/data/knowledge-source";
 import { AI_EMPLOYEES } from "@/lib/site";
 import { effectiveEnterpriseId, isEnterprisePreview } from "@/lib/dashboard/preview";
 
@@ -57,9 +58,11 @@ export default async function EnterpriseDashboard() {
   const aiName: Record<string, string> = Object.fromEntries(AI_EMPLOYEES.map((e) => [e.key, e.name]));
   const topAi = Object.entries(aiUsage.byKey).sort((a, b) => b[1] - a[1]).slice(0, 4);
   // 协会层资讯打通：党建动态在前 + 协会公告/政策在后（企业会员属协会层，可在自己后台看党建与协会资讯）
-  const partyFeed = listPublished("党建").slice(0, 3);
+  const partyFeed = listPublished("党建").slice(0, 2);
   const otherFeed = listPublished().filter((n) => n.category !== "党建").slice(0, 3);
   const assocFeed = [...partyFeed, ...otherFeed].slice(0, 5);
+  // 知识库精选（热门在前），与协会资讯一并打通到工作台
+  const kFeed = [...listKnowledge()].sort((a, b) => Number(b.hot) - Number(a.hot)).slice(0, 4);
 
   return (
     <EnterpriseShell
@@ -243,32 +246,57 @@ export default async function EnterpriseDashboard() {
           </Link>
         </Panel>
 
-        {/* 党建 · 协会资讯（协会层资讯打通到企业工作台；子站属业主层，不放此内容）*/}
+        {/* 协会资讯 + 知识库（协会层内容打通到企业工作台；详情在工作台内阅读，不跳出。子站属业主层，不放此内容）*/}
         <Panel
-          title="党建 · 协会资讯"
+          title="协会资讯 · 知识库"
           className="lg:col-span-3"
           action={
-            <Link href="/cpc" className="text-[12px] text-party inline-flex items-center gap-0.5">
-              <Flag className="h-3 w-3" /> 党建专栏 <ChevronRight className="h-3 w-3" />
+            <Link href="/dashboard/enterprise/association" className="text-[12px] text-brand inline-flex items-center gap-0.5">
+              进入协会资讯 <ChevronRight className="h-3 w-3" />
             </Link>
           }
         >
-          {assocFeed.length === 0 ? (
-            <div className="py-8 text-center text-[13px] text-muted-foreground">协会暂无资讯。</div>
-          ) : (
-            <ul className="divide-y divide-border">
-              {assocFeed.map((n) => (
-                <li key={n.id}>
-                  <Link href={`/news/${n.id}`} className="py-3 flex items-center gap-3 -mx-2 px-2 rounded-lg hover:bg-surface transition-colors group">
-                    <Badge tone={n.category === "党建" ? "party" : "brand"} className="!px-2 !py-0.5 shrink-0">{n.category}</Badge>
-                    <span className="flex-1 min-w-0 truncate text-[13px] group-hover:text-foreground transition-colors">{n.title}</span>
-                    <span className="text-[11px] text-muted-foreground shrink-0 tabular-nums hidden sm:inline">{fmtDate(n.createdAt)}</span>
-                    <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0" />
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          )}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8">
+            {/* 协会通知 / 新闻 / 党建 */}
+            <div>
+              <div className="text-[11px] tracking-wider text-muted-foreground uppercase mb-1 inline-flex items-center gap-1.5"><Megaphone className="h-3.5 w-3.5 text-cat-build" /> 通知 · 新闻 · 党建</div>
+              {assocFeed.length === 0 ? (
+                <div className="py-6 text-center text-[13px] text-muted-foreground">协会暂无资讯。</div>
+              ) : (
+                <ul className="divide-y divide-border">
+                  {assocFeed.map((n) => (
+                    <li key={n.id}>
+                      <Link href={`/dashboard/enterprise/association/news/${n.id}`} className="py-2.5 flex items-center gap-2.5 -mx-2 px-2 rounded-lg hover:bg-surface transition-colors group">
+                        <Badge tone={n.category === "党建" ? "party" : "brand"} className="!px-2 !py-0.5 shrink-0">{n.category}</Badge>
+                        <span className="flex-1 min-w-0 truncate text-[13px] group-hover:text-foreground transition-colors">{n.title}</span>
+                        <span className="text-[11px] text-muted-foreground shrink-0 tabular-nums hidden lg:inline">{fmtDate(n.createdAt)}</span>
+                        <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0" />
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+            {/* 知识库精选 */}
+            <div className="mt-4 md:mt-0">
+              <div className="text-[11px] tracking-wider text-muted-foreground uppercase mb-1 inline-flex items-center gap-1.5"><Library className="h-3.5 w-3.5 text-cat-design" /> 知识库精选</div>
+              {kFeed.length === 0 ? (
+                <div className="py-6 text-center text-[13px] text-muted-foreground">知识库暂无资料。</div>
+              ) : (
+                <ul className="divide-y divide-border">
+                  {kFeed.map((k) => (
+                    <li key={k.id}>
+                      <Link href={`/dashboard/enterprise/association/knowledge/${k.id}`} className="py-2.5 flex items-center gap-2.5 -mx-2 px-2 rounded-lg hover:bg-surface transition-colors group">
+                        <Badge tone="design" className="!px-2 !py-0.5 shrink-0">{k.category}</Badge>
+                        <span className="flex-1 min-w-0 truncate text-[13px] group-hover:text-foreground transition-colors">{k.title}</span>
+                        <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0" />
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          </div>
         </Panel>
       </div>
     </EnterpriseShell>

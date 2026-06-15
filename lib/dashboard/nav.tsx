@@ -35,6 +35,7 @@ export const ASSOC_NAV: AssocNavItem[] = [
 export const ENT_NAV = [
   { href: "/dashboard/enterprise",          label: "总览",       icon: <LayoutDashboard className={I} /> },
   { href: "/dashboard/enterprise/site",     label: "我的子站",   icon: <Globe2 className={I} /> },
+  { href: "/dashboard/enterprise/association", label: "协会资讯", icon: <Newspaper className={I} /> },
   { href: "/dashboard/enterprise/leads",    label: "客户线索",   icon: <MessagesSquare className={I} /> },
   { href: "/dashboard/enterprise/orders",   label: "施工订单",   icon: <Hammer className={I} /> },
   { href: "/dashboard/enterprise/projects", label: "项目与报备", icon: <FileCheck2 className={I} /> },
