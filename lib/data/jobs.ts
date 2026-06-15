@@ -13,6 +13,15 @@ export const HIRED_STATUSES: AppStatus[] = ["accepted", "working", "done"];
 
 export type JobType = "gig" | "hire";
 
+// 零工工资结算方式（仅 gig）：日结 / 周结 / 完工结（""=未设，旧数据兜底为完工结展示）
+export type SettleMode = "daily" | "weekly" | "on_complete";
+export const SETTLE_LABEL: Record<SettleMode, string> = { daily: "日结", weekly: "周结", on_complete: "完工结" };
+export const SETTLE_HINT: Record<SettleMode, string> = {
+  daily: "每个工作日按日薪结算一次",
+  weekly: "每周按当周出勤天数结算一次",
+  on_complete: "完工后按总出勤天数一次结清",
+};
+
 export type Job = {
   id: number;
   enterpriseId: string;
@@ -36,6 +45,7 @@ export type Job = {
   genderReq: string;       // 性别要求 男/女（""=不限）
   needCert: boolean;       // 是否需持证上岗
   startDate: string;       // 开始日期（零工=进场日 / 招聘=可入职日，YYYY-MM-DD，""=待定）
+  settleMode: SettleMode | ""; // 工资结算方式（仅零工，""=未设）
   status: JobStatus;
   createdAt: number;
 };
@@ -59,7 +69,7 @@ type JobRow = {
   kind: string | null; district: string | null; edu: string | null; insurance: string | null; benefits: string | null; daily: number | null; daily_max: number | null; openings: number | null;
   duration: string | null; urgent: number | null; detail: string | null;
   min_age: number | null; max_age: number | null; min_years: number | null;
-  gender_req: string | null; need_cert: number | null; start_date: string | null;
+  gender_req: string | null; need_cert: number | null; start_date: string | null; settle_mode: string | null;
   status: string; created_at: number | null;
 };
 type AppRow = {
@@ -80,6 +90,7 @@ function toJob(r: JobRow): Job {
     duration: r.duration ?? "", urgent: !!r.urgent, detail: r.detail ?? "",
     minAge: r.min_age ?? null, maxAge: r.max_age ?? null, minYears: r.min_years ?? 0,
     genderReq: r.gender_req ?? "", needCert: !!r.need_cert, startDate: r.start_date ?? "",
+    settleMode: (r.settle_mode as SettleMode) || "",
     status: (r.status as JobStatus) ?? "open",
     createdAt: r.created_at ?? 0,
   };
@@ -125,17 +136,18 @@ export function createJob(input: {
   insurance?: string; benefits?: string[];
   district?: string; daily?: number; dailyMax?: number | null; openings?: number; duration?: string; urgent?: boolean; detail?: string;
   minAge?: number | null; maxAge?: number | null; minYears?: number; genderReq?: string; needCert?: boolean; startDate?: string;
+  settleMode?: SettleMode | "";
 }): number {
   const info = getDb().prepare(
-    `INSERT INTO jobs (enterprise_id,enterprise_name,type,title,kind,district,edu,insurance,benefits,daily,daily_max,openings,duration,urgent,detail,min_age,max_age,min_years,gender_req,need_cert,start_date,status,created_at)
-     VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?, 'open', ?)`,
+    `INSERT INTO jobs (enterprise_id,enterprise_name,type,title,kind,district,edu,insurance,benefits,daily,daily_max,openings,duration,urgent,detail,min_age,max_age,min_years,gender_req,need_cert,start_date,settle_mode,status,created_at)
+     VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?, 'open', ?)`,
   ).run(
     input.enterpriseId, input.enterpriseName, input.type ?? "gig", input.title, input.kind,
     input.district ?? "", input.edu ?? "", input.insurance ?? "", JSON.stringify(input.benefits ?? []),
     input.daily ?? 0, input.dailyMax ?? null, input.openings ?? 1, input.duration ?? "",
     input.urgent ? 1 : 0, input.detail ?? "",
     input.minAge ?? null, input.maxAge ?? null, input.minYears ?? 0,
-    input.genderReq ?? "", input.needCert ? 1 : 0, input.startDate ?? "",
+    input.genderReq ?? "", input.needCert ? 1 : 0, input.startDate ?? "", input.settleMode ?? "",
     Date.now(),
   );
   return Number(info.lastInsertRowid);

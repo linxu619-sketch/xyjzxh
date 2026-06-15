@@ -4,7 +4,7 @@ import { EnterpriseShell } from "@/components/dashboard/shell";
 import { StatFilters } from "@/components/dashboard/stat-filters";
 import { Badge } from "@/components/ui/badge";
 import { getSession } from "@/lib/auth/session";
-import { listJobsByEnterprise, countApplicants, countHired, type JobStatus } from "@/lib/data/jobs";
+import { listJobsByEnterprise, countApplicants, countHired, SETTLE_LABEL, type JobStatus, type SettleMode } from "@/lib/data/jobs";
 import { PostJobForm } from "./PostJobForm";
 import { effectiveEnterpriseId } from "@/lib/dashboard/preview";
 
@@ -69,7 +69,7 @@ export default async function JobsPage({ searchParams }: { searchParams: Promise
                         </span>
                       </span>
                       <span className="hidden md:block text-muted-foreground truncate">{j.kind}</span>
-                      <span className="hidden md:block text-muted-foreground">{j.district || "信阳"} · ¥{j.daily}/天 · 录用 {hired}/{j.openings}</span>
+                      <span className="hidden md:block text-muted-foreground">{j.district || "信阳"} · ¥{j.daily}/天 · {SETTLE_LABEL[(j.settleMode || "on_complete") as SettleMode]} · 录用 {hired}/{j.openings}</span>
                       <span className="hidden md:inline-flex items-center gap-1 text-accent-tea"><Users2 className="h-3.5 w-3.5" />{apps}</span>
                       <span className="inline-flex items-center gap-2 justify-end shrink-0">
                         {full && <Badge tone="build" className="!px-1.5 !py-0">满</Badge>}

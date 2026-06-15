@@ -436,6 +436,7 @@ CREATE TABLE IF NOT EXISTS jobs (
   gender_req      TEXT,    -- 性别要求 男/女（空=不限）
   need_cert       INTEGER, -- 是否需持证上岗 1=需要
   start_date      TEXT DEFAULT '', -- 开始日期：零工=进场/开工日 · 招聘=可入职日（YYYY-MM-DD）
+  settle_mode     TEXT DEFAULT '', -- 零工工资结算方式：daily 日结 | weekly 周结 | on_complete 完工结
   status          TEXT DEFAULT 'open', -- open | closed
   created_at      INTEGER
 );
@@ -1671,6 +1672,8 @@ function migrate(db: DB) {
     "ALTER TABLE jobs ADD COLUMN start_date TEXT DEFAULT ''",
     "ALTER TABLE job_applications ADD COLUMN onboard_at INTEGER DEFAULT 0",
     "ALTER TABLE job_applications ADD COLUMN done_at INTEGER DEFAULT 0",
+    // 零工工资结算方式（日结/周结/完工结）—— 派工资金流程入口
+    "ALTER TABLE jobs ADD COLUMN settle_mode TEXT DEFAULT ''",
   ];
   for (const sql of alters) {
     try { db.exec(sql); } catch { /* 列已存在，忽略 */ }

@@ -6,7 +6,7 @@ import {
 import { EnterpriseShell } from "@/components/dashboard/shell";
 import { Badge } from "@/components/ui/badge";
 import { getSession } from "@/lib/auth/session";
-import { getJob, listApplicationsByJob, countHired, type AppStatus, type Job, type JobApplication } from "@/lib/data/jobs";
+import { getJob, listApplicationsByJob, countHired, SETTLE_LABEL, SETTLE_HINT, type AppStatus, type Job, type JobApplication, type SettleMode } from "@/lib/data/jobs";
 import { getPractitionerByPhone, type Practitioner } from "@/lib/data/practitioners-source";
 import { setJobStatusAction, reviewApplicantAction } from "../actions";
 import { ConfirmForm } from "../ConfirmForm";
@@ -92,6 +92,7 @@ export default async function JobDetail({ params, searchParams }: { params: Prom
           <Row k={isHire ? "月薪 / 名额" : "日薪 / 名额"} v={`${payText} · ${job.openings} ${isHire ? "人" : "名额"}（已录用 ${hired}）`} />
           <Row k={isHire ? "区域" : "区域 / 工期"} v={isHire ? (job.district || "—") : `${job.district || "—"} · ${job.duration || "—"}`} />
           <Row k={isHire ? "可入职日期" : "进场 / 开工日期"} v={job.startDate || "待定（与录用者商定）"} />
+          {!isHire && <Row k="工资结算" v={`${SETTLE_LABEL[(job.settleMode || "on_complete") as SettleMode]} · ${SETTLE_HINT[(job.settleMode || "on_complete") as SettleMode]}`} />}
           <Row k="招工要求" v={reqs} />
           {!isHire && <Row k="工伤保障" v={job.insurance === "company" ? "企业承保 · 含工伤险（协会团险 5 元/天/人）" : "工人自理"} />}
           {isHire && job.benefits.length > 0 && <Row k="福利待遇" v={job.benefits.join(" · ")} />}

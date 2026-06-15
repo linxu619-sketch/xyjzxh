@@ -42,6 +42,7 @@ export async function createJobAction(fd: FormData) {
     openings: Number(fd.get("openings") || 1) || 1,
     duration: String(fd.get("duration") || "").trim(),
     startDate: String(fd.get("startDate") || "").trim(),
+    settleMode: (() => { const m = String(fd.get("settleMode") || ""); return m === "daily" || m === "weekly" || m === "on_complete" ? m : "on_complete"; })(),
     urgent: fd.get("urgent") === "on",
     detail: String(fd.get("detail") || "").trim(),
     insurance: fd.get("insurance") === "self" ? "self" : "company",

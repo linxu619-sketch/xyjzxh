@@ -5,7 +5,7 @@ import { PractitionerShell } from "@/components/dashboard/practitioner-shell";
 import { JobHireSwitcher } from "@/components/dashboard/job-hire-switcher";
 import { Badge } from "@/components/ui/badge";
 import { getSession } from "@/lib/auth/session";
-import { listOpenJobs, listApplicationsByPractitioner } from "@/lib/data/jobs";
+import { listOpenJobs, listApplicationsByPractitioner, SETTLE_LABEL, type SettleMode } from "@/lib/data/jobs";
 import { getPractitionerByPhone } from "@/lib/data/practitioners-source";
 import { matchJobs, type JobMatch } from "@/lib/data/job-matching";
 import { applyJobAction } from "./actions";
@@ -155,6 +155,7 @@ function JobCard({ m, st, dim }: { m: JobMatch; st?: string; dim?: boolean }) {
       <div className="mt-3 flex items-center gap-2 text-[11px] text-muted-foreground flex-wrap">
         <span className="inline-flex items-center gap-0.5"><MapPin className="h-2.5 w-2.5" /> {j.district || "信阳"}</span>
         {j.duration && <><span>·</span><span className="inline-flex items-center gap-0.5"><Clock className="h-2.5 w-2.5" />{j.duration}</span></>}
+        <span>·</span><span className="text-accent-tea font-medium">{SETTLE_LABEL[(j.settleMode || "on_complete") as SettleMode]}</span>
         {(j.minAge || j.maxAge) && <><span>·</span><span>年龄 {j.minAge ?? "不限"}-{j.maxAge ?? "不限"}</span></>}
         {j.minYears > 0 && <><span>·</span><span>经验 ≥{j.minYears}年</span></>}
         {j.genderReq && <><span>·</span><span>限{j.genderReq}</span></>}

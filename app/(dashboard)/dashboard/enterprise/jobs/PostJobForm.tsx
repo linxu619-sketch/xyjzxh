@@ -51,6 +51,22 @@ export function PostJobForm() {
             <Field label="工期"><input name="duration" placeholder="约25天" className={INPUT} /></Field>
           </div>
           <Field label="进场 / 开工日期"><input name="startDate" type="date" className={INPUT} /><span className="text-[11px] text-muted-foreground">具体哪天进场上工；不填=与录用者商定。</span></Field>
+          <Field label="工资结算方式" required>
+            <div className="grid grid-cols-3 gap-2">
+              {[
+                { v: "daily", t: "日结", d: "每天结" },
+                { v: "weekly", t: "周结", d: "每周结" },
+                { v: "on_complete", t: "完工结", d: "完工一次结" },
+              ].map((o, i) => (
+                <label key={o.v} className="flex flex-col items-center justify-center gap-0.5 h-14 rounded-xl border border-border text-[13px] cursor-pointer has-[:checked]:border-accent-tea has-[:checked]:bg-[#e6f7f1]">
+                  <input type="radio" name="settleMode" value={o.v} defaultChecked={i === 2} className="sr-only" />
+                  <span className="font-medium">{o.t}</span>
+                  <span className="text-[10px] text-muted-foreground">{o.d}</span>
+                </label>
+              ))}
+            </div>
+            <span className="text-[11px] text-muted-foreground">按出勤天数 × 日薪结算；完工后凭考勤生成工资单，经协会监管账户代发（含工伤险代扣）。</span>
+          </Field>
           {/* 招工要求（用于与从业者资料双向匹配；留空=不限）*/}
           <div className="grid grid-cols-3 gap-3">
             <Field label="最低年龄"><input name="minAge" inputMode="numeric" placeholder="18" className={INPUT} /></Field>
