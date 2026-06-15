@@ -44,7 +44,7 @@ export default async function PractitionerProfile({ searchParams }: { searchPara
     <PractitionerShell title="我的" subtitle={`${name} · ${kind}${years ? ` · ${years} 年` : ""} · ${city} · ID ${pid}`}>
       {saved && (
         <div className="mb-3 rounded-2xl border border-accent-tea/30 bg-[#e6f7f1] text-accent-tea p-3.5 text-[13px] inline-flex items-center gap-2 w-full">
-          <CheckCircle2 className="h-4 w-4 shrink-0" /> 找活资料已保存，岗位推荐已按新资料更新。
+          <CheckCircle2 className="h-4 w-4 shrink-0" /> 个人资料已保存，岗位推荐已按新资料更新。
         </div>
       )}
       {/* 等级 · 成长进度（荣誉档案主卡：等级徽章 + 进度 + 当前档权益）*/}
@@ -81,11 +81,11 @@ export default async function PractitionerProfile({ searchParams }: { searchPara
         </Link>
       )}
 
-      {/* 找活资料（驱动岗位匹配）*/}
+      {/* 个人资料（即找活资料，驱动岗位匹配）*/}
       {me && (
         <section className="rounded-3xl bg-background border border-border p-5 mb-4">
           <div className="flex items-center justify-between mb-3">
-            <h3 className="text-[14px] font-semibold tracking-tight">找活资料</h3>
+            <h3 className="text-[14px] font-semibold tracking-tight">个人资料</h3>
             <Link href="/dashboard/practitioner/profile/edit" className="text-[11px] text-brand inline-flex items-center gap-1"><SlidersHorizontal className="h-3 w-3" /> 编辑</Link>
           </div>
           <div className="mb-3">

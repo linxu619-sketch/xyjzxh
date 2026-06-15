@@ -82,7 +82,7 @@ export default async function PractitionerJobs({ searchParams }: { searchParams:
       {matched.length === 0 ? (
         <div className="rounded-3xl border border-dashed border-border bg-background p-8 text-center text-[13px] text-muted-foreground">
           暂无完全适配你资料的岗位。<br />
-          <Link href="/dashboard/practitioner/profile/edit" className="text-brand">完善找活资料</Link>
+          <Link href="/dashboard/practitioner/profile/edit" className="text-brand">完善个人资料</Link>
           {others.length > 0 && <> 或 <Link href="/dashboard/practitioner/jobs?all=1" className="text-brand">查看全部 {others.length} 个岗位</Link></>}。
         </div>
       ) : (

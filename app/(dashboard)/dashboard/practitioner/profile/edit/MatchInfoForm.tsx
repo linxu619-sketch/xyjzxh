@@ -91,7 +91,7 @@ export function MatchInfoForm({ init }: {
       </Section>
 
       <button type="submit" className="w-full h-12 rounded-full bg-accent-tea text-white text-[14px] font-medium inline-flex items-center justify-center gap-2 active:scale-[0.99] transition-transform">
-        <Save className="h-4 w-4" /> 保存找活资料
+        <Save className="h-4 w-4" /> 保存个人资料
       </button>
     </form>
   );
