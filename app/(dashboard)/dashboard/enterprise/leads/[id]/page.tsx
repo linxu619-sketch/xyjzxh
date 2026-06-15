@@ -1,14 +1,22 @@
 import Link from "next/link";
 import {
-  ArrowLeft, Phone, MapPin, MessageSquareText, CheckCircle2, XCircle, RotateCcw, ClipboardCheck,
+  ArrowLeft, Phone, MapPin, MessageSquareText, CheckCircle2, XCircle, RotateCcw, ClipboardCheck, UserCog,
 } from "lucide-react";
 import { EnterpriseShell } from "@/components/dashboard/shell";
 import { Badge } from "@/components/ui/badge";
 import { getSession } from "@/lib/auth/session";
 import { getLead, type LeadStatus } from "@/lib/data/leads";
+import { effectiveEnterpriseId } from "@/lib/dashboard/preview";
+import { listStaffByEnterprise, type EntStaffRole } from "@/lib/data/enterprise-staff";
 import { updateLeadStatusAction } from "../actions";
+import { AssigneeSelect } from "../AssigneeSelect";
 
 export const metadata = { title: "线索详情 · 企业工作台" };
+
+const ROLE_LABEL: Record<EntStaffRole, string> = {
+  owner: "负责人", admin: "管理员", sales: "销售顾问", site_manager: "项目经理",
+  designer: "设计师", finance: "财务", viewer: "查看者",
+};
 
 const STATUS_LABEL: Record<LeadStatus, string> = {
   new: "新线索", contacting: "沟通中", surveying: "量房中", signed: "已签单", lost: "已流失",
@@ -49,6 +57,10 @@ export default async function LeadDetail({ params }: { params: Promise<{ id: str
   }
 
   const flow = FLOW[lead.status] ?? [];
+  const eid = effectiveEnterpriseId(session);
+  const staff = eid ? listStaffByEnterprise(eid).filter((m) => m.status === "active") : [];
+  const assigneeOptions = staff.map((m) => ({ value: m.id, label: `${m.name} · ${ROLE_LABEL[m.role]}` }));
+  const assignee = staff.find((m) => m.id === lead.assigneeStaffId);
 
   return (
     <EnterpriseShell title="线索详情" subtitle={`${lead.name} · ${lead.source}`}>
@@ -72,6 +84,24 @@ export default async function LeadDetail({ params }: { params: Promise<{ id: str
           <Row k="来源" v={lead.source} />
           <Row k="提交时间" v={fmt(lead.createdAt)} />
         </dl>
+      </div>
+
+      {/* 负责人 / 分派 */}
+      <div className="mt-5 rounded-2xl border border-border bg-background p-4 md:p-5 flex flex-col sm:flex-row sm:items-center gap-3 sm:justify-between">
+        <div className="flex items-center gap-2.5 min-w-0">
+          <span className="h-9 w-9 rounded-xl bg-cat-build-soft text-cat-build inline-flex items-center justify-center shrink-0"><UserCog className="h-4 w-4" /></span>
+          <div className="min-w-0">
+            <div className="text-[13px] font-semibold">负责人</div>
+            <div className="text-[12px] text-muted-foreground">
+              {assignee ? <>当前由 <b className="text-foreground">{assignee.name}</b>（{ROLE_LABEL[assignee.role]}）跟进</> : "尚未分派；选一名成员负责跟进，业绩计入其团队看板。"}
+            </div>
+          </div>
+        </div>
+        {staff.length === 0 ? (
+          <Link href="/dashboard/enterprise/team" className="text-[12px] text-brand inline-flex items-center gap-0.5 shrink-0">先去添加团队成员 →</Link>
+        ) : (
+          <AssigneeSelect leadId={lead.id} staffId={lead.assigneeStaffId} options={assigneeOptions} />
+        )}
       </div>
 
       {/* 状态流转 */}

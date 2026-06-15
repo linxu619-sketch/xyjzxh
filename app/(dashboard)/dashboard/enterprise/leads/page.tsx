@@ -1,11 +1,12 @@
 import Link from "next/link";
-import { Search, PhoneCall, Filter, ChevronRight } from "lucide-react";
+import { Search, Filter, ChevronRight } from "lucide-react";
 import { EnterpriseShell } from "@/components/dashboard/shell";
 import { FilterBar } from "@/components/dashboard/section";
 import { StatFilters } from "@/components/dashboard/stat-filters";
 import { Badge } from "@/components/ui/badge";
 import { getSession } from "@/lib/auth/session";
 import { listLeadsByEnterprise, type LeadStatus } from "@/lib/data/leads";
+import { listStaffByEnterprise } from "@/lib/data/enterprise-staff";
 import { effectiveEnterpriseId } from "@/lib/dashboard/preview";
 
 const FILTERABLE: LeadStatus[] = ["new", "contacting", "surveying", "signed", "lost"];
@@ -31,10 +32,12 @@ export default async function LeadsPage({ searchParams }: { searchParams: Promis
   const session = await getSession();
   const eid = effectiveEnterpriseId(session);
   const all = eid ? listLeadsByEnterprise(eid) : [];
+  const staffName = new Map((eid ? listStaffByEnterprise(eid) : []).map((m) => [m.id, m.name]));
 
   const total = all.length;
   const signed = all.filter((l) => l.status === "signed").length;
   const pending = all.filter((l) => l.status === "new").length;
+  const unassigned = all.filter((l) => !l.assigneeStaffId).length;
   const rate = total ? `${((signed / total) * 100).toFixed(1)}%` : "—";
 
   const active = f && FILTERABLE.includes(f as LeadStatus) ? (f as LeadStatus) : undefined;
@@ -72,16 +75,18 @@ export default async function LeadsPage({ searchParams }: { searchParams: Promis
       </FilterBar>
 
       <div className="rounded-2xl border border-border bg-background overflow-hidden">
-        <div className="px-5 py-3 border-b border-border text-[14px] font-semibold flex items-center justify-between">
-          <span>客户线索 · 点击查看并跟进</span>
-          {active && <Link href={base} className="text-[12px] text-brand font-normal">清除筛选（{STATUS_LABEL[active]}）✕</Link>}
+        <div className="px-5 py-3 border-b border-border text-[14px] font-semibold flex items-center justify-between gap-3">
+          <span className="inline-flex items-center gap-2">客户线索 · 点击查看并分派/跟进
+            {unassigned > 0 && <span className="text-[11px] font-normal text-accent-yellow border border-accent-yellow/40 rounded-full px-2 py-0.5">{unassigned} 条未分派</span>}
+          </span>
+          {active && <Link href={base} className="text-[12px] text-brand font-normal shrink-0">清除筛选（{STATUS_LABEL[active]}）✕</Link>}
         </div>
         {leads.length === 0 ? (
           <div className="px-5 py-16 text-center text-[13px] text-muted-foreground">{active ? `没有「${STATUS_LABEL[active]}」的线索。` : "还没有客户线索。子站「提交需求」表单提交后会实时出现在这里。"}</div>
         ) : (
           <>
             <div className="hidden md:grid grid-cols-[1.2fr_1.3fr_1fr_1fr_auto] gap-3 px-5 py-2.5 border-b border-border text-[11px] text-muted-foreground tracking-wider">
-              <span>客户</span><span>需求</span><span>来源</span><span>电话</span><span className="text-right">状态</span>
+              <span>客户</span><span>需求</span><span>来源</span><span>负责人</span><span className="text-right">状态</span>
             </div>
             <ul className="divide-y divide-border">
               {leads.map((l) => (
@@ -96,7 +101,9 @@ export default async function LeadsPage({ searchParams }: { searchParams: Promis
                     </span>
                     <span className="hidden md:block text-muted-foreground truncate">{l.type || "—"}{l.area ? ` · ${l.area}㎡` : ""}{l.budget ? ` · ${l.budget}万` : ""}</span>
                     <span className="hidden md:block text-muted-foreground truncate">{l.source}</span>
-                    <span className="hidden md:inline-flex items-center gap-1 text-muted-foreground"><PhoneCall className="h-3 w-3" />{l.phone}</span>
+                    <span className="hidden md:block truncate">{l.assigneeStaffId && staffName.get(l.assigneeStaffId)
+                      ? <span className="text-foreground">{staffName.get(l.assigneeStaffId)}</span>
+                      : <span className="text-accent-yellow">未分派</span>}</span>
                     <span className="inline-flex items-center gap-2 justify-end shrink-0">
                       <Badge tone={STATUS_TONE[l.status]}>{STATUS_LABEL[l.status]}</Badge>
                       <ChevronRight className="h-4 w-4 text-muted-foreground" />

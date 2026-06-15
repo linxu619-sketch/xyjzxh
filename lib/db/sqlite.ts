@@ -346,6 +346,7 @@ CREATE TABLE IF NOT EXISTS leads (
   note          TEXT,
   source        TEXT,    -- 子站表单 | 在线咨询 | AI 估价 ...
   status        TEXT DEFAULT 'new', -- new | contacting | surveying | signed | lost
+  assignee_staff_id INTEGER DEFAULT 0, -- 负责人=enterprise_staff.id（0=未分派）
   created_at    INTEGER
 );
 CREATE INDEX IF NOT EXISTS idx_leads_ent ON leads(enterprise_id, created_at);
@@ -1628,6 +1629,8 @@ function migrate(db: DB) {
     "ALTER TABLE news ADD COLUMN images TEXT",   // 配图集 JSON 数组
     // AI 抓取草稿：原文正文全文（Markdown），带进正式文章 body
     "ALTER TABLE knowledge_drafts ADD COLUMN body TEXT",
+    // 线索分派：负责人=enterprise_staff.id（团队成员业绩看板用）
+    "ALTER TABLE leads ADD COLUMN assignee_staff_id INTEGER DEFAULT 0",
     // 平台资金「下半场」：平台代收全款后→应付卖家结算(打款) + 退款台账
     "ALTER TABLE payments ADD COLUMN payout_status TEXT DEFAULT 'pending'",
     "ALTER TABLE payments ADD COLUMN payout_at INTEGER DEFAULT 0",
