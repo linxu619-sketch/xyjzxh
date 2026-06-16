@@ -4,7 +4,8 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { getSession } from "@/lib/auth/session";
 import { getEnterpriseBySlugOrId } from "@/lib/data/enterprises-source";
-import { createJob, getJob, setJobStatus, getApplication, setApplicationStatus, countHired, type AppStatus, type JobStatus } from "@/lib/data/jobs";
+import { createJob, getJob, setJobStatus, getApplication, setApplicationStatus, countHired, computeEscrow, setJobEscrow, type AppStatus, type JobStatus } from "@/lib/data/jobs";
+import { createPayment } from "@/lib/data/payments-source";
 
 // 派工闭环：投递状态前向流转白名单（录用→到岗→完工；完工=终态；不合适/取消/中止→rejected）
 const ALLOWED_APP_FLOW: Record<AppStatus, AppStatus[]> = {
@@ -31,28 +32,44 @@ export async function createJobAction(fd: FormData) {
     const n = Math.floor(Number(fd.get(k)));
     return Number.isFinite(n) && n > 0 ? n : null;
   };
-  createJob({
+  const daily = Number(fd.get("daily") || 0) || 0;
+  const dailyMax = posInt("dailyMax");
+  const openings = Number(fd.get("openings") || 1) || 1;
+  const expectedDays = Math.max(0, Math.floor(Number(fd.get("expectedDays")) || 0));
+  const insurance = fd.get("insurance") === "self" ? "self" : "company";
+  const jobId = createJob({
     enterpriseId: s.enterpriseId!,
     enterpriseName: ent?.hero.brand ?? ent?.name ?? "本企业",
     title,
     kind,
     district: String(fd.get("district") || "").trim(),
-    daily: Number(fd.get("daily") || 0) || 0,
-    dailyMax: posInt("dailyMax"),
-    openings: Number(fd.get("openings") || 1) || 1,
+    daily,
+    dailyMax,
+    openings,
     duration: String(fd.get("duration") || "").trim(),
     startDate: String(fd.get("startDate") || "").trim(),
     settleMode: (() => { const m = String(fd.get("settleMode") || ""); return m === "daily" || m === "weekly" || m === "on_complete" ? m : "on_complete"; })(),
+    expectedDays,
     urgent: fd.get("urgent") === "on",
     detail: String(fd.get("detail") || "").trim(),
-    insurance: fd.get("insurance") === "self" ? "self" : "company",
+    insurance,
     minAge: posInt("minAge"),
     maxAge: posInt("maxAge"),
     minYears: posInt("minYears") ?? 0,
     genderReq: (() => { const g = String(fd.get("genderReq") || "").trim(); return g === "男" || g === "女" ? g : ""; })(),
     needCert: fd.get("needCert") === "on",
   });
+  // 发布即托管：算应托管 → 建托管支付单 → 跳收银台付保证金（到账后岗位才放出）
+  const escrow = computeEscrow({ daily, dailyMax, openings, expectedDays, insurance });
   revalidatePath("/dashboard/enterprise/jobs");
+  if (escrow > 0) {
+    const pay = createPayment({
+      bizType: "wage_escrow", bizId: jobId, method: "bank_corp", amount: escrow,
+      payerName: ent?.name ?? "企业", payeeName: "协会监管账户", subject: `工资保证金托管 · ${title}`,
+    });
+    setJobEscrow(jobId, escrow, pay.id);
+    redirect(`/dashboard/pay/${pay.id}`);
+  }
   redirect("/dashboard/enterprise/jobs?jok=1");
 }
 

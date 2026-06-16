@@ -72,6 +72,7 @@ export default async function JobsPage({ searchParams }: { searchParams: Promise
                       <span className="hidden md:block text-muted-foreground">{j.district || "信阳"} · ¥{j.daily}/天 · {SETTLE_LABEL[(j.settleMode || "on_complete") as SettleMode]} · 录用 {hired}/{j.openings}</span>
                       <span className="hidden md:inline-flex items-center gap-1 text-accent-tea"><Users2 className="h-3.5 w-3.5" />{apps}</span>
                       <span className="inline-flex items-center gap-2 justify-end shrink-0">
+                        {j.escrowStatus === "unfunded" && <Badge tone="decor" className="!px-1.5 !py-0">待托管</Badge>}
                         {full && <Badge tone="build" className="!px-1.5 !py-0">满</Badge>}
                         <Badge tone={j.status === "open" ? "tea" : "neutral"}>{j.status === "open" ? "在招" : "已结束"}</Badge>
                         <ChevronRight className="h-4 w-4 text-muted-foreground" />

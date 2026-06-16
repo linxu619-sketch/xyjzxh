@@ -46,9 +46,29 @@ export type Job = {
   needCert: boolean;       // 是否需持证上岗
   startDate: string;       // 开始日期（零工=进场日 / 招聘=可入职日，YYYY-MM-DD，""=待定）
   settleMode: SettleMode | ""; // 工资结算方式（仅零工，""=未设）
+  expectedDays: number;        // 预估用工天数（算托管）
+  escrowAmount: number;        // 应托管(元)
+  escrowStatus: EscrowStatus;  // none | unfunded | funded | refunded
+  escrowPayId: number;         // 关联 payments.id
   status: JobStatus;
   createdAt: number;
 };
+
+// 发布即托管：托管池状态
+export type EscrowStatus = "none" | "unfunded" | "funded" | "refunded";
+export const ESCROW_LABEL: Record<EscrowStatus, string> = { none: "无需托管", unfunded: "待托管", funded: "已托管", refunded: "已退回" };
+
+// 应托管 = 日薪上限 × 名额 × 预估天数 +（企业承保时）工伤险 5元/天/人
+export const INSURANCE_DAILY = 5;
+export function computeEscrow(input: { daily: number; dailyMax: number | null; openings: number; expectedDays: number; insurance: string }): number {
+  const rate = Math.max(input.daily || 0, input.dailyMax || 0);
+  const days = Math.max(0, Math.floor(input.expectedDays || 0));
+  const heads = Math.max(1, input.openings || 1);
+  if (rate <= 0 || days <= 0) return 0;
+  const wage = rate * heads * days;
+  const ins = input.insurance === "company" ? INSURANCE_DAILY * heads * days : 0;
+  return wage + ins;
+}
 
 export type JobApplication = {
   id: number;
@@ -70,6 +90,7 @@ type JobRow = {
   duration: string | null; urgent: number | null; detail: string | null;
   min_age: number | null; max_age: number | null; min_years: number | null;
   gender_req: string | null; need_cert: number | null; start_date: string | null; settle_mode: string | null;
+  expected_days: number | null; escrow_amount: number | null; escrow_status: string | null; escrow_pay_id: number | null;
   status: string; created_at: number | null;
 };
 type AppRow = {
@@ -91,6 +112,10 @@ function toJob(r: JobRow): Job {
     minAge: r.min_age ?? null, maxAge: r.max_age ?? null, minYears: r.min_years ?? 0,
     genderReq: r.gender_req ?? "", needCert: !!r.need_cert, startDate: r.start_date ?? "",
     settleMode: (r.settle_mode as SettleMode) || "",
+    expectedDays: r.expected_days ?? 0,
+    escrowAmount: r.escrow_amount ?? 0,
+    escrowStatus: (r.escrow_status as EscrowStatus) || "none",
+    escrowPayId: r.escrow_pay_id ?? 0,
     status: (r.status as JobStatus) ?? "open",
     createdAt: r.created_at ?? 0,
   };
@@ -108,7 +133,8 @@ function toApp(r: AppRow): JobApplication {
 
 // 发活/零工（日薪）—— 默认 listOpenJobs 即零工，保持既有调用语义
 export function listOpenJobs(): Job[] {
-  const rows = getDb().prepare("SELECT * FROM jobs WHERE status = 'open' AND type = 'gig' ORDER BY urgent DESC, created_at DESC").all() as JobRow[];
+  // 发布即托管：未托管(unfunded)的零工不放出（工人看不到）；none(旧/免) 与 funded 正常展示
+  const rows = getDb().prepare("SELECT * FROM jobs WHERE status = 'open' AND type = 'gig' AND escrow_status != 'unfunded' ORDER BY urgent DESC, created_at DESC").all() as JobRow[];
   return rows.map(toJob);
 }
 
@@ -136,21 +162,30 @@ export function createJob(input: {
   insurance?: string; benefits?: string[];
   district?: string; daily?: number; dailyMax?: number | null; openings?: number; duration?: string; urgent?: boolean; detail?: string;
   minAge?: number | null; maxAge?: number | null; minYears?: number; genderReq?: string; needCert?: boolean; startDate?: string;
-  settleMode?: SettleMode | "";
+  settleMode?: SettleMode | ""; expectedDays?: number;
 }): number {
   const info = getDb().prepare(
-    `INSERT INTO jobs (enterprise_id,enterprise_name,type,title,kind,district,edu,insurance,benefits,daily,daily_max,openings,duration,urgent,detail,min_age,max_age,min_years,gender_req,need_cert,start_date,settle_mode,status,created_at)
-     VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?, 'open', ?)`,
+    `INSERT INTO jobs (enterprise_id,enterprise_name,type,title,kind,district,edu,insurance,benefits,daily,daily_max,openings,duration,urgent,detail,min_age,max_age,min_years,gender_req,need_cert,start_date,settle_mode,expected_days,status,created_at)
+     VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?, 'open', ?)`,
   ).run(
     input.enterpriseId, input.enterpriseName, input.type ?? "gig", input.title, input.kind,
     input.district ?? "", input.edu ?? "", input.insurance ?? "", JSON.stringify(input.benefits ?? []),
     input.daily ?? 0, input.dailyMax ?? null, input.openings ?? 1, input.duration ?? "",
     input.urgent ? 1 : 0, input.detail ?? "",
     input.minAge ?? null, input.maxAge ?? null, input.minYears ?? 0,
-    input.genderReq ?? "", input.needCert ? 1 : 0, input.startDate ?? "", input.settleMode ?? "",
+    input.genderReq ?? "", input.needCert ? 1 : 0, input.startDate ?? "", input.settleMode ?? "", Math.max(0, Math.floor(input.expectedDays ?? 0)),
     Date.now(),
   );
   return Number(info.lastInsertRowid);
+}
+
+// 托管：登记托管支付单（应托管额 + 支付单号 + 置为待托管）
+export function setJobEscrow(id: number, amount: number, payId: number): void {
+  getDb().prepare("UPDATE jobs SET escrow_amount = ?, escrow_pay_id = ?, escrow_status = 'unfunded' WHERE id = ?").run(amount, payId, id);
+}
+// 托管到账（settle.ts 在 wage_escrow 支付成功时调用）→ 岗位放出
+export function markEscrowFunded(id: number): void {
+  getDb().prepare("UPDATE jobs SET escrow_status = 'funded' WHERE id = ? AND escrow_status = 'unfunded'").run(id);
 }
 
 export function setJobStatus(id: number, status: JobStatus) {

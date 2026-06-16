@@ -6,7 +6,7 @@ import {
 import { EnterpriseShell } from "@/components/dashboard/shell";
 import { Badge } from "@/components/ui/badge";
 import { getSession } from "@/lib/auth/session";
-import { getJob, listApplicationsByJob, countHired, SETTLE_LABEL, SETTLE_HINT, type AppStatus, type Job, type JobApplication, type SettleMode } from "@/lib/data/jobs";
+import { getJob, listApplicationsByJob, countHired, SETTLE_LABEL, SETTLE_HINT, ESCROW_LABEL, type AppStatus, type Job, type JobApplication, type SettleMode } from "@/lib/data/jobs";
 import { getPractitionerByPhone, type Practitioner } from "@/lib/data/practitioners-source";
 import { getPractitionerIdentity } from "@/lib/data/applications";
 import { listCertsByPhone, type PractitionerCert } from "@/lib/data/practitioner-certs";
@@ -76,6 +76,19 @@ export default async function JobDetail({ params, searchParams }: { params: Prom
     <EnterpriseShell title="岗位详情" subtitle={`${job.title} · ${apps.length} 份投递 · 已录用 ${hired}/${job.openings}`}>
       <Link href={backHref} className="inline-flex items-center gap-1.5 text-[13px] text-muted-foreground hover:text-foreground mb-4"><ArrowLeft className="h-3.5 w-3.5" /> {backLabel}</Link>
 
+      {/* 工资托管(发布即托管)状态 */}
+      {!isHire && job.escrowStatus === "unfunded" && (
+        <div className="mb-4 rounded-2xl border border-cat-decor/30 bg-cat-decor-soft/40 p-4 flex items-center gap-3">
+          <AlertTriangle className="h-5 w-5 text-cat-decor shrink-0" />
+          <div className="flex-1 min-w-0 text-[13px]">
+            <b>待托管工资保证金 ¥{job.escrowAmount.toLocaleString()}</b> · 未托管前该岗位<b>不会向工人放出</b>。
+          </div>
+          <Link href={`/dashboard/pay/${job.escrowPayId}`} className="h-9 px-4 rounded-full bg-cat-decor text-white text-[12px] font-medium inline-flex items-center gap-1.5 shrink-0">去支付保证金</Link>
+        </div>
+      )}
+      {!isHire && job.escrowStatus === "funded" && (
+        <div className="mb-4 rounded-xl border border-accent-tea/30 bg-accent-tea/10 px-4 py-2.5 text-[13px] text-accent-tea inline-flex items-center gap-1.5"><CheckCircle2 className="h-4 w-4" /> 工资已托管 ¥{job.escrowAmount.toLocaleString()} 在协会监管账户 · 按考勤自动结算给工人,结余完工后退回。</div>
+      )}
       {okText && <div className="mb-4 rounded-xl border border-accent-tea/30 bg-accent-tea/10 px-4 py-2.5 text-[13px] text-accent-tea inline-flex items-center gap-1.5"><CheckCircle2 className="h-4 w-4" /> {okText}</div>}
       {errText && <div className="mb-4 rounded-xl border border-cat-decor/30 bg-cat-decor-soft/40 px-4 py-2.5 text-[13px] text-cat-decor inline-flex items-center gap-1.5"><AlertTriangle className="h-4 w-4" /> {errText}</div>}
 
@@ -102,6 +115,7 @@ export default async function JobDetail({ params, searchParams }: { params: Prom
           <Row k={isHire ? "区域" : "区域 / 工期"} v={isHire ? (job.district || "—") : `${job.district || "—"} · ${job.duration || "—"}`} />
           <Row k={isHire ? "可入职日期" : "进场 / 开工日期"} v={job.startDate || "待定（与录用者商定）"} />
           {!isHire && <Row k="工资结算" v={`${SETTLE_LABEL[(job.settleMode || "on_complete") as SettleMode]} · ${SETTLE_HINT[(job.settleMode || "on_complete") as SettleMode]}`} />}
+          {!isHire && job.escrowStatus !== "none" && <Row k="工资托管" v={`${ESCROW_LABEL[job.escrowStatus]}${job.escrowAmount ? ` · ¥${job.escrowAmount.toLocaleString()}` : ""}${job.expectedDays ? ` · 预估 ${job.expectedDays} 天` : ""}`} />}
           <Row k="招工要求" v={reqs} />
           {!isHire && <Row k="工伤保障" v={job.insurance === "company" ? "企业承保 · 含工伤险（协会团险 5 元/天/人）" : "工人自理"} />}
           {isHire && job.benefits.length > 0 && <Row k="福利待遇" v={job.benefits.join(" · ")} />}

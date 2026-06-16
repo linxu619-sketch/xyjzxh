@@ -50,6 +50,10 @@ export function PostJobForm() {
             <Field label="名额"><input name="openings" inputMode="numeric" placeholder="5" className={INPUT} /></Field>
             <Field label="工期"><input name="duration" placeholder="约25天" className={INPUT} /></Field>
           </div>
+          <Field label="预估用工天数" required>
+            <input name="expectedDays" inputMode="numeric" required placeholder="如 25" className={INPUT} />
+            <span className="text-[11px] text-muted-foreground">发布需先把工资托管到协会监管账户:应托管 = 日薪上限 × 名额 × 天数（企业承保再 + 工伤险 5元/天/人）。多退少补,结余完工后自动退回。</span>
+          </Field>
           <Field label="进场 / 开工日期"><input name="startDate" type="date" className={INPUT} /><span className="text-[11px] text-muted-foreground">具体哪天进场上工；不填=与录用者商定。</span></Field>
           <Field label="工资结算方式" required>
             <div className="grid grid-cols-3 gap-2">

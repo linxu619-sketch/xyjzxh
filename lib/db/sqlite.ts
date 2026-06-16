@@ -1691,6 +1691,11 @@ function migrate(db: DB) {
     "ALTER TABLE job_applications ADD COLUMN done_at INTEGER DEFAULT 0",
     // 零工工资结算方式（日结/周结/完工结）—— 派工资金流程入口
     "ALTER TABLE jobs ADD COLUMN settle_mode TEXT DEFAULT ''",
+    // 发布即托管（协会代收代付·E1）：预估用工天数 + 应托管额 + 托管状态 + 托管支付单
+    "ALTER TABLE jobs ADD COLUMN expected_days INTEGER DEFAULT 0", // 预估用工天数(算托管)
+    "ALTER TABLE jobs ADD COLUMN escrow_amount INTEGER DEFAULT 0", // 应托管(元)=日薪上限×名额×天数+工伤险
+    "ALTER TABLE jobs ADD COLUMN escrow_status TEXT DEFAULT 'none'", // none(免/旧) | unfunded(待托管) | funded(已托管) | refunded
+    "ALTER TABLE jobs ADD COLUMN escrow_pay_id INTEGER DEFAULT 0",  // 关联 payments.id
   ];
   for (const sql of alters) {
     try { db.exec(sql); } catch { /* 列已存在，忽略 */ }

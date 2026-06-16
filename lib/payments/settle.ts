@@ -1,6 +1,7 @@
 import "server-only";
 import { getPaymentByOutTradeNo, markPaymentPaid, type Payment } from "@/lib/data/payments-source";
 import { markOrderPaid } from "@/lib/data/supplies-source";
+import { markEscrowFunded } from "@/lib/data/jobs";
 
 /**
  * 支付成功落地（渠道回调验签通过 / 人工确认到账时调用）：
@@ -14,6 +15,10 @@ export function settlePayment(pay: Payment, channelRef?: string): boolean {
   switch (pay.bizType) {
     case "supply_order":
       markOrderPaid(pay.bizId);
+      break;
+    case "wage_escrow":
+      // 工资保证金到账 → 该零工岗位托管完成 → 放出可接单
+      markEscrowFunded(pay.bizId);
       break;
     // case "construction_order": ...
     default:
