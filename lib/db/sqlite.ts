@@ -457,6 +457,25 @@ CREATE TABLE IF NOT EXISTS jobs (
 CREATE INDEX IF NOT EXISTS idx_jobs_status ON jobs(status, created_at);
 CREATE INDEX IF NOT EXISTS idx_jobs_ent ON jobs(enterprise_id, created_at);
 
+-- 工资划付台账（E3）：从托管池按确认出勤自动结算给工人；kind=refund 为结余退企业
+CREATE TABLE IF NOT EXISTS wage_payouts (
+  id                 INTEGER PRIMARY KEY AUTOINCREMENT,
+  application_id     INTEGER,  -- 工资=对应录用工人；退款=0
+  job_id             INTEGER,
+  practitioner_phone TEXT,
+  worker_name        TEXT,
+  kind               TEXT DEFAULT 'wage',     -- wage 工资 | refund 结余退企业
+  period_label       TEXT,                    -- 日结日期 / 第N周 / 完工结 / 退款
+  days               INTEGER DEFAULT 0,
+  daily              INTEGER DEFAULT 0,
+  amount             INTEGER,                 -- 元
+  status             TEXT DEFAULT 'settled',  -- settled 已从托管结算 | paid 已到账 | holding 挂账待领(E4)
+  created_at         INTEGER
+);
+CREATE INDEX IF NOT EXISTS idx_payout_job ON wage_payouts(job_id, created_at);
+CREATE INDEX IF NOT EXISTS idx_payout_app ON wage_payouts(application_id, created_at);
+CREATE INDEX IF NOT EXISTS idx_payout_phone ON wage_payouts(practitioner_phone, created_at);
+
 -- 考勤打卡（E2）：每个录用工人 × 每个工作日一条；工人打卡 → 企业确认。确认出勤=自动结算依据
 CREATE TABLE IF NOT EXISTS work_attendance (
   id                 INTEGER PRIMARY KEY AUTOINCREMENT,

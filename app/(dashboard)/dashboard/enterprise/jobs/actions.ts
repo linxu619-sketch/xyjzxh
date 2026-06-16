@@ -7,6 +7,7 @@ import { getEnterpriseBySlugOrId } from "@/lib/data/enterprises-source";
 import { createJob, getJob, setJobStatus, getApplication, setApplicationStatus, countHired, computeEscrow, setJobEscrow, type AppStatus, type JobStatus } from "@/lib/data/jobs";
 import { createPayment } from "@/lib/data/payments-source";
 import { confirmAttendance, rejectAttendance, enterpriseAddDay, getAttendance } from "@/lib/data/attendance";
+import { settleApplication, refundJobEscrow } from "@/lib/data/wage-payouts";
 
 // 派工闭环：投递状态前向流转白名单（录用→到岗→完工；完工=终态；不合适/取消/中止→rejected）
 const ALLOWED_APP_FLOW: Record<AppStatus, AppStatus[]> = {
@@ -117,6 +118,10 @@ export async function setJobStatusAction(fd: FormData) {
   const job = getJob(id);
   if (!job || job.enterpriseId !== s.enterpriseId) throw new Error("无权操作该岗位");
   if (status === "open" || status === "closed") setJobStatus(id, status);
+  // 结束招聘 → 托管池结余自动退回企业（仅对已托管的零工）
+  if (status === "closed" && job.type === "gig" && job.escrowStatus === "funded") {
+    refundJobEscrow(id, job.enterpriseName || "企业");
+  }
   revalidatePath("/dashboard/enterprise/jobs");
   revalidatePath(`/dashboard/enterprise/jobs/${id}`);
   redirect(`/dashboard/enterprise/jobs/${id}`);
@@ -134,7 +139,22 @@ export async function confirmAttendanceAction(fd: FormData) {
   const att = getAttendance(id);
   if (!att || !(await ownedAttendanceJob(s, att.jobId))) throw new Error("无权操作该考勤");
   confirmAttendance(id, s.name || "企业");
+  // 日结：确认出勤即自动结算当日工资（从托管池划付）
+  const job = getJob(att.jobId);
+  if (job?.settleMode === "daily") settleApplication(att.applicationId);
   const to = `/dashboard/enterprise/jobs/${att.jobId}`;
+  revalidatePath(to);
+  redirect(to);
+}
+
+// 企业「立即结算」：把该工人已确认未结的出勤一次性结算（周结兜底 / 手动）
+export async function settleNowAction(fd: FormData) {
+  const s = await requireEnterprise();
+  const appId = Number(fd.get("applicationId") || 0);
+  const app = getApplication(appId);
+  if (!app || app.enterpriseId !== s.enterpriseId) throw new Error("无权操作该投递");
+  settleApplication(appId);
+  const to = `/dashboard/enterprise/jobs/${app.jobId}`;
   revalidatePath(to);
   redirect(to);
 }
@@ -180,6 +200,8 @@ export async function reviewApplicantAction(fd: FormData) {
     if (job && countHired(app.jobId) >= job.openings) redirect(`${back}?aerr=full`);
   }
   setApplicationStatus(id, status);
+  // 完工 → 自动结算全部确认出勤（完工结生效；日/周结兜底尾款）
+  if (status === "done") settleApplication(id);
   revalidatePath(back);
   redirect(`${back}?aok=${status}`);
 }

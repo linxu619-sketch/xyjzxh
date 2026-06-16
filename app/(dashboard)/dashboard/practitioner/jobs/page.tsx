@@ -8,6 +8,7 @@ import { getSession } from "@/lib/auth/session";
 import { listOpenJobs, listApplicationsByPractitioner, getJob, SETTLE_LABEL, type SettleMode } from "@/lib/data/jobs";
 import { getPractitionerByPhone } from "@/lib/data/practitioners-source";
 import { todayAttendanceStatus, countConfirmedDays } from "@/lib/data/attendance";
+import { settledAmountByApplication } from "@/lib/data/wage-payouts";
 import { matchJobs, type JobMatch } from "@/lib/data/job-matching";
 import { applyJobAction, checkInAction } from "./actions";
 import { effectivePractitionerPhone, isPractitionerPreview } from "@/lib/dashboard/preview";
@@ -27,7 +28,7 @@ export default async function PractitionerJobs({ searchParams }: { searchParams:
   const appliedMap = new Map(myApps.map((a) => [a.jobId, a.status]));
   // 在岗打卡：我 status=working 的投递
   const workingApps = myApps.filter((a) => a.status === "working").map((a) => ({
-    app: a, job: getJob(a.jobId), today: todayAttendanceStatus(a.id), confirmed: countConfirmedDays(a.id),
+    app: a, job: getJob(a.jobId), today: todayAttendanceStatus(a.id), confirmed: countConfirmedDays(a.id), settled: settledAmountByApplication(a.id),
   }));
 
   // 双向匹配：按从业者资料把岗位分成「适配」与「其他」
@@ -63,11 +64,11 @@ export default async function PractitionerJobs({ searchParams }: { searchParams:
         <div className="mb-4 rounded-3xl border border-cat-build/30 bg-cat-build-soft/40 p-4">
           <div className="text-[13px] font-semibold inline-flex items-center gap-1.5 mb-2"><CalendarCheck className="h-4 w-4 text-cat-build" /> 在岗打卡 · {workingApps.length} 个在做</div>
           <ul className="space-y-2">
-            {workingApps.map(({ app, job, today, confirmed }) => (
+            {workingApps.map(({ app, job, today, confirmed, settled }) => (
               <li key={app.id} className="rounded-2xl bg-background border border-border p-3 flex items-center gap-3">
                 <div className="flex-1 min-w-0">
                   <div className="text-[13px] font-medium truncate">{job?.title ?? "用工"}</div>
-                  <div className="text-[11px] text-muted-foreground mt-0.5">已确认出勤 <b className="text-accent-tea">{confirmed}</b> 天{job?.daily ? ` · 日薪 ¥${job.daily}${job.dailyMax && job.dailyMax > job.daily ? `-${job.dailyMax}` : ""}` : ""}</div>
+                  <div className="text-[11px] text-muted-foreground mt-0.5">已确认出勤 <b className="text-accent-tea">{confirmed}</b> 天{settled > 0 ? ` · 已结 ¥${settled.toLocaleString()}` : ""}{job?.daily ? ` · 日薪 ¥${job.daily}` : ""}</div>
                 </div>
                 {today === "confirmed" ? (
                   <span className="text-[12px] text-accent-tea inline-flex items-center gap-1 shrink-0"><CheckCircle2 className="h-4 w-4" />今日已确认</span>

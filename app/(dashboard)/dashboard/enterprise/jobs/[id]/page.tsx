@@ -11,7 +11,8 @@ import { getPractitionerByPhone, type Practitioner } from "@/lib/data/practition
 import { getPractitionerIdentity } from "@/lib/data/applications";
 import { listCertsByPhone, type PractitionerCert } from "@/lib/data/practitioner-certs";
 import { listAttendanceByApplication, type WorkAttendance } from "@/lib/data/attendance";
-import { setJobStatusAction, reviewApplicantAction, confirmAttendanceAction, rejectAttendanceAction, addAttendanceDayAction } from "../actions";
+import { escrowDrawnByJob, escrowBalance, settledAmountByApplication, settledDaysByApplication } from "@/lib/data/wage-payouts";
+import { setJobStatusAction, reviewApplicantAction, confirmAttendanceAction, rejectAttendanceAction, addAttendanceDayAction, settleNowAction } from "../actions";
 import { ConfirmForm } from "../ConfirmForm";
 
 export const metadata = { title: "岗位详情 · 企业工作台" };
@@ -71,7 +72,16 @@ export default async function JobDetail({ params, searchParams }: { params: Prom
   }
   // 考勤(E2)：在岗/完工的工人才有考勤；按 application 取
   const attendanceBy = new Map<number, WorkAttendance[]>();
-  for (const a of apps) if (a.status === "working" || a.status === "done") attendanceBy.set(a.id, listAttendanceByApplication(a.id));
+  const settledAmtBy = new Map<number, number>();
+  const settledDaysBy = new Map<number, number>();
+  for (const a of apps) if (a.status === "working" || a.status === "done") {
+    attendanceBy.set(a.id, listAttendanceByApplication(a.id));
+    settledAmtBy.set(a.id, settledAmountByApplication(a.id));
+    settledDaysBy.set(a.id, settledDaysByApplication(a.id));
+  }
+  // 托管池(E1/E3)：应托管 / 已划出 / 余额
+  const escrowDrawn = !isHire ? escrowDrawnByJob(job.id) : 0;
+  const escrowLeft = !isHire ? escrowBalance(job.id) : 0;
 
   const okText = aok === "accepted" ? "已录用，名额已占用。" : aok === "working" ? "已标记到岗，进入施工中。" : aok === "done" ? "已完工，该派工单已闭环。" : aok === "rejected" ? "已更新为未通过 / 已取消。" : aok === "pending" ? "已重新置为待处理。" : "";
   const errText = aerr === "full" ? "名额已满，无法再录用。请先「结束招聘」或取消他人录用。" : aerr === "flow" ? "该操作不符合流程（如已完工不可再改）。" : "";
@@ -91,7 +101,13 @@ export default async function JobDetail({ params, searchParams }: { params: Prom
         </div>
       )}
       {!isHire && job.escrowStatus === "funded" && (
-        <div className="mb-4 rounded-xl border border-accent-tea/30 bg-accent-tea/10 px-4 py-2.5 text-[13px] text-accent-tea inline-flex items-center gap-1.5"><CheckCircle2 className="h-4 w-4" /> 工资已托管 ¥{job.escrowAmount.toLocaleString()} 在协会监管账户 · 按考勤自动结算给工人,结余完工后退回。</div>
+        <div className="mb-4 rounded-2xl border border-accent-tea/30 bg-accent-tea/10 px-4 py-3 text-[13px]">
+          <div className="text-accent-tea inline-flex items-center gap-1.5 font-medium"><CheckCircle2 className="h-4 w-4" /> 工资已托管在协会监管账户</div>
+          <div className="mt-1 text-[12px] text-muted-foreground">应托管 <b className="text-foreground">¥{job.escrowAmount.toLocaleString()}</b> · 已结工资 <b className="text-cat-decor">¥{escrowDrawn.toLocaleString()}</b> · 池内余额 <b className="text-accent-tea">¥{escrowLeft.toLocaleString()}</b>。按确认出勤自动结算,结束招聘后结余自动退回。</div>
+        </div>
+      )}
+      {!isHire && job.escrowStatus === "refunded" && (
+        <div className="mb-4 rounded-xl border border-border bg-surface px-4 py-2.5 text-[13px] text-muted-foreground inline-flex items-center gap-1.5"><CheckCircle2 className="h-4 w-4" /> 托管已结清 · 工资 ¥{escrowDrawn.toLocaleString()} 已结算,结余已退回企业。</div>
       )}
       {okText && <div className="mb-4 rounded-xl border border-accent-tea/30 bg-accent-tea/10 px-4 py-2.5 text-[13px] text-accent-tea inline-flex items-center gap-1.5"><CheckCircle2 className="h-4 w-4" /> {okText}</div>}
       {errText && <div className="mb-4 rounded-xl border border-cat-decor/30 bg-cat-decor-soft/40 px-4 py-2.5 text-[13px] text-cat-decor inline-flex items-center gap-1.5"><AlertTriangle className="h-4 w-4" /> {errText}</div>}
@@ -139,7 +155,7 @@ export default async function JobDetail({ params, searchParams }: { params: Prom
         ) : (
           <ul className="divide-y divide-border">
             {apps.map((a) => (
-              <ApplicantRow key={a.id} a={a} job={job} profile={profiles.get(a.phone)} full={full} certs={certsBy.get(a.phone) ?? []} verified={verifiedBy.get(a.phone) ?? false} attendance={attendanceBy.get(a.id) ?? []} />
+              <ApplicantRow key={a.id} a={a} job={job} profile={profiles.get(a.phone)} full={full} certs={certsBy.get(a.phone) ?? []} verified={verifiedBy.get(a.phone) ?? false} attendance={attendanceBy.get(a.id) ?? []} settledAmount={settledAmtBy.get(a.id) ?? 0} settledDays={settledDaysBy.get(a.id) ?? 0} />
             ))}
           </ul>
         )}
@@ -148,9 +164,10 @@ export default async function JobDetail({ params, searchParams }: { params: Prom
   );
 }
 
-function ApplicantRow({ a, job, profile, full, certs, verified, attendance }: { a: JobApplication; job: Job; profile: Practitioner | undefined; full: boolean; certs: PractitionerCert[]; verified: boolean; attendance: WorkAttendance[] }) {
+function ApplicantRow({ a, job, profile, full, certs, verified, attendance, settledAmount, settledDays }: { a: JobApplication; job: Job; profile: Practitioner | undefined; full: boolean; certs: PractitionerCert[]; verified: boolean; attendance: WorkAttendance[]; settledAmount: number; settledDays: number }) {
   const confirmedDays = attendance.filter((x) => x.status === "confirmed").length;
   const pendingDays = attendance.filter((x) => x.status === "checked").length;
+  const unsettledDays = Math.max(0, confirmedDays - settledDays);
   const age = profile?.birthYear ? new Date().getFullYear() - profile.birthYear : null;
   const isHire = job.type === "hire";
   const expect = isHire
@@ -250,8 +267,15 @@ function ApplicantRow({ a, job, profile, full, certs, verified, attendance }: { 
       {/* 考勤(E2)：工人打卡 → 企业确认；确认出勤=自动结算依据 */}
       {(a.status === "working" || a.status === "done") && (
         <div className="mt-3 pl-12">
-          <div className="text-[12px] font-medium mb-1.5 inline-flex items-center gap-1.5">
-            <CalendarDays className="h-3.5 w-3.5 text-cat-build" /> 考勤 · 已确认 <b className="text-accent-tea">{confirmedDays}</b> 天{pendingDays > 0 && <span className="text-accent-yellow font-normal"> · {pendingDays} 天待确认</span>}
+          <div className="text-[12px] font-medium mb-1.5 flex items-center gap-1.5 flex-wrap">
+            <span className="inline-flex items-center gap-1.5"><CalendarDays className="h-3.5 w-3.5 text-cat-build" /> 考勤 · 已确认 <b className="text-accent-tea">{confirmedDays}</b> 天{pendingDays > 0 && <span className="text-accent-yellow font-normal"> · {pendingDays} 待确认</span>}</span>
+            {settledAmount > 0 && <span className="text-muted-foreground font-normal">· 已结 <b className="text-cat-decor">¥{settledAmount.toLocaleString()}</b></span>}
+            {unsettledDays > 0 && job.daily > 0 && (
+              <form action={settleNowAction} className="inline">
+                <input type="hidden" name="applicationId" value={a.id} />
+                <button className="h-6 px-2.5 rounded-full bg-cat-decor text-white text-[11px] font-medium">立即结算 {unsettledDays} 天 · ¥{(unsettledDays * job.daily).toLocaleString()}</button>
+              </form>
+            )}
           </div>
           {attendance.length === 0 ? (
             <p className="text-[11px] text-muted-foreground">工人每日打卡后在此确认；也可「补登」未打卡的出勤。确认出勤将作为工资自动结算依据。</p>
