@@ -19,6 +19,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 const ROOT_DOMAIN = "xyjzxh.com";
 const ASSOC_HOST = "xh";
+const GR_HOST = "gr"; // 个人从业者专属子域 gr.xyjzxh.com（入口直达从业者工作台；门面按协会层）
 
 const DEV_ROOTS = ["localhost", "lvh.me", "nip.io", "127.0.0.1"];
 const COOKIE_FACE = "xy_face";
@@ -31,6 +32,7 @@ function parseHost(host: string): { face: Face; tenant?: string } {
   // 生产
   if (bare === ROOT_DOMAIN || bare === `www.${ROOT_DOMAIN}`) return { face: "consumer" };
   if (bare === `${ASSOC_HOST}.${ROOT_DOMAIN}`) return { face: "xh" };
+  if (bare === `${GR_HOST}.${ROOT_DOMAIN}`) return { face: "xh" }; // gr 子域：从业者属协会层，门面按 xh（不当企业租户）
   if (bare.endsWith(`.${ROOT_DOMAIN}`)) {
     const sub = bare.slice(0, -1 - ROOT_DOMAIN.length);
     return { face: "tenant", tenant: sub };
@@ -40,6 +42,7 @@ function parseHost(host: string): { face: Face; tenant?: string } {
   for (const r of DEV_ROOTS) {
     if (bare === r) return { face: "consumer" };
     if (bare === `${ASSOC_HOST}.${r}`) return { face: "xh" };
+    if (bare === `${GR_HOST}.${r}`) return { face: "xh" }; // gr.lvh.me 等
     if (bare.endsWith(`.${r}`)) {
       const sub = bare.slice(0, -1 - r.length);
       if (sub === "www") return { face: "consumer" };
@@ -54,6 +57,11 @@ function parseHost(host: string): { face: Face; tenant?: string } {
 // 裸 host：IP 地址 / localhost / 127.0.0.1 —— 没有子域名分流能力，门面靠 cookie 维持
 function isBareHost(bare: string): boolean {
   return bare === "localhost" || bare === "127.0.0.1" || /^\d{1,3}(\.\d{1,3}){3}$/.test(bare);
+}
+
+// gr.xyjzxh.com（及 gr.lvh.me 等开发别名）：个人从业者专属子域
+function isGrHost(bare: string): boolean {
+  return bare === `${GR_HOST}.${ROOT_DOMAIN}` || DEV_ROOTS.some((r) => bare === `${GR_HOST}.${r}`);
 }
 
 export function middleware(req: NextRequest) {
@@ -108,6 +116,17 @@ export function middleware(req: NextRequest) {
     url.pathname.startsWith("/dashboard/practitioner") ||
     url.pathname.startsWith("/dashboard/pending")
   ) {
+    return respond("xh");
+  }
+
+  // 个人从业者专属子域 gr.xyjzxh.com：根路径直达从业者工作台；其余路径按协会层服务（内部路径不变）。
+  // 上方按路径的拦截（/dashboard/practitioner、/login、/biz 等）已先处理；此处仅兜 gr 根与其他公开页。
+  if (isGrHost(host.replace(/:\d+$/, ""))) {
+    if (url.pathname === "/") {
+      const rewritten = url.clone();
+      rewritten.pathname = "/dashboard/practitioner";
+      return respond("xh", { rewrite: rewritten });
+    }
     return respond("xh");
   }
 

@@ -14,6 +14,17 @@
 
 ---
 
+## [0.176.0] - 2026-06-16
+
+### 个人从业者专属子域 gr.xyjzxh.com（方案 A·轻量别名）
+给个人从业者一个独立干净入口,防止跨端跳转混乱。
+- `middleware.ts` 识别 `gr.xyjzxh.com`(及开发 `gr.lvh.me`)为从业者入口:**根 `/` 重写到 `/dashboard/practitioner`**,其余按协会层门面(个人会员属协会层,`face=xh`,不当企业租户)。
+- **内部路径不变**(仍 `/dashboard/practitioner/*`),所有链接/跳转/`redirect` 零改动,近零风险。未登录访问 `gr.xyjzxh.com/` 落从业者登录。
+- ⚠️ 子域真正上线还需运维三件(代码外):**DNS 加 `gr.` 解析 · TLS 覆盖 `gr.`(建议通配 `*.xyjzxh.com`)· 会话 cookie 加 `domain=.xyjzxh.com`**(否则跨子域丢登录态)。三件未做前用 `gr.lvh.me:3000` 验证。约定见 CONVENTIONS 门面表。
+- 未做短地址(`gr.xyjzxh.com/jobs`)：那需全量改链接 + 跨 host 登录 + 旧址重定向,风险高,暂不做。
+
+---
+
 ## [0.175.1] - 2026-06-16
 
 ### 会员能力 · 个人会员默认禁止开店

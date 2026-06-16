@@ -31,7 +31,9 @@
   | 消费者门户（业主找装修） | `xyjzxh.com` | `localhost:3000` | `/`（`app/(main)/page.tsx`，`ConsumerHome`）|
   | 协会门户（企业/从业者） | `xh.xyjzxh.com` | `xh.lvh.me:3000`（或 `localhost:3000/xh`） | `/` 重写到 `/xh`（`app/(main)/xh/page.tsx`，`AssociationHome`）|
   | 企业子站 | `<租户>.xyjzxh.com` | `<租户>.lvh.me:3000` | 重写到 `/biz/<租户>` |
+  | **个人从业者入口** | `gr.xyjzxh.com` | `gr.lvh.me:3000` | 根 `/` 重写到 `/dashboard/practitioner`（门面按协会层 `xh`）|
   - 当前门面通过 cookie `xy_face` 与响应头 `x-face` 标记。
+  - **`gr.` 子域 = 个人从业者专属入口（方案 A·轻量别名）**：`gr.xyjzxh.com/` 直达从业者工作台,**内部路径仍为 `/dashboard/practitioner/*`**(地址栏长路径,链接零改动)。个人会员属协会层,门面按 `xh`,不当企业租户。⚠️ 子域真正生效还需运维三件:**DNS 加 `gr.` 解析 + TLS 覆盖 `gr.`(通配 `*.xyjzxh.com`)+ 会话 cookie 跨子域(`session.ts` cookie 加 `domain=.xyjzxh.com`,仅真域名生效;否则跨子域会丢登录态)**。未做这三件前,本地用 `gr.lvh.me:3000` 验证。
   - **本地访问协会门户的正确方式**（`localhost:3000` 只显示消费者门户）：
     - `localhost:3000/xh` — 最简单、离线即用，但 face 标记仍是 consumer（仅看内容够用）。
     - `xh.lvh.me:3000` — 真实子域名分流（face=xh），需联网；`middleware.ts` 的 `DEV_ROOTS` 已内置 `lvh.me`。
