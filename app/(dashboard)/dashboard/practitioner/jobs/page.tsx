@@ -1,29 +1,34 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { MapPin, Sparkles, ChevronRight, Clock, ShieldCheck, ArrowUpRight, CheckCircle2, SlidersHorizontal } from "lucide-react";
+import { MapPin, Sparkles, ChevronRight, Clock, ShieldCheck, ArrowUpRight, CheckCircle2, SlidersHorizontal, CalendarCheck } from "lucide-react";
 import { PractitionerShell } from "@/components/dashboard/practitioner-shell";
 import { JobHireSwitcher } from "@/components/dashboard/job-hire-switcher";
 import { Badge } from "@/components/ui/badge";
 import { getSession } from "@/lib/auth/session";
-import { listOpenJobs, listApplicationsByPractitioner, SETTLE_LABEL, type SettleMode } from "@/lib/data/jobs";
+import { listOpenJobs, listApplicationsByPractitioner, getJob, SETTLE_LABEL, type SettleMode } from "@/lib/data/jobs";
 import { getPractitionerByPhone } from "@/lib/data/practitioners-source";
+import { todayAttendanceStatus, countConfirmedDays } from "@/lib/data/attendance";
 import { matchJobs, type JobMatch } from "@/lib/data/job-matching";
-import { applyJobAction } from "./actions";
+import { applyJobAction, checkInAction } from "./actions";
 import { effectivePractitionerPhone, isPractitionerPreview } from "@/lib/dashboard/preview";
 
 export const metadata = { title: "找活 · 从业者门户" };
 
 const STATUS_LABEL: Record<string, string> = { pending: "已投递 · 待企业处理", accepted: "已被录用 🎉", working: "施工中", done: "已完工", rejected: "未通过" };
 
-export default async function PractitionerJobs({ searchParams }: { searchParams: Promise<{ aok?: string; adup?: string; aerr?: string; pv?: string; all?: string }> }) {
+export default async function PractitionerJobs({ searchParams }: { searchParams: Promise<{ aok?: string; adup?: string; aerr?: string; pv?: string; all?: string; checked?: string; ckerr?: string }> }) {
   const session = await getSession();
   if (!session || (session.role !== "practitioner" && !isPractitionerPreview(session))) redirect("/login?role=practitioner");
-  const { aok, adup, aerr, pv, all } = await searchParams;
+  const { aok, adup, aerr, pv, all, checked, ckerr } = await searchParams;
 
   const phone = effectivePractitionerPhone(session);
   const me = getPractitionerByPhone(phone);
   const myApps = listApplicationsByPractitioner(phone);
   const appliedMap = new Map(myApps.map((a) => [a.jobId, a.status]));
+  // 在岗打卡：我 status=working 的投递
+  const workingApps = myApps.filter((a) => a.status === "working").map((a) => ({
+    app: a, job: getJob(a.jobId), today: todayAttendanceStatus(a.id), confirmed: countConfirmedDays(a.id),
+  }));
 
   // 双向匹配：按从业者资料把岗位分成「适配」与「其他」
   const { matched, others } = matchJobs(
@@ -50,6 +55,35 @@ export default async function PractitionerJobs({ searchParams }: { searchParams:
       {aok && <Banner ok>报名成功！企业会尽快查看你的投递，请留意电话。</Banner>}
       {adup && <Banner>你已报名过该岗位，无需重复报名。</Banner>}
       {aerr && <Banner err>该岗位已结束招聘，换一个试试。</Banner>}
+      {checked && <Banner ok>今日打卡成功！待企业确认出勤后,工资按结算方式自动到账。</Banner>}
+      {ckerr && <Banner err>当前不可打卡(需企业已录用且标记到岗)。</Banner>}
+
+      {/* 在岗打卡：我正在做的活,每日打卡 → 企业确认 → 工资自动结算 */}
+      {workingApps.length > 0 && (
+        <div className="mb-4 rounded-3xl border border-cat-build/30 bg-cat-build-soft/40 p-4">
+          <div className="text-[13px] font-semibold inline-flex items-center gap-1.5 mb-2"><CalendarCheck className="h-4 w-4 text-cat-build" /> 在岗打卡 · {workingApps.length} 个在做</div>
+          <ul className="space-y-2">
+            {workingApps.map(({ app, job, today, confirmed }) => (
+              <li key={app.id} className="rounded-2xl bg-background border border-border p-3 flex items-center gap-3">
+                <div className="flex-1 min-w-0">
+                  <div className="text-[13px] font-medium truncate">{job?.title ?? "用工"}</div>
+                  <div className="text-[11px] text-muted-foreground mt-0.5">已确认出勤 <b className="text-accent-tea">{confirmed}</b> 天{job?.daily ? ` · 日薪 ¥${job.daily}${job.dailyMax && job.dailyMax > job.daily ? `-${job.dailyMax}` : ""}` : ""}</div>
+                </div>
+                {today === "confirmed" ? (
+                  <span className="text-[12px] text-accent-tea inline-flex items-center gap-1 shrink-0"><CheckCircle2 className="h-4 w-4" />今日已确认</span>
+                ) : today === "checked" ? (
+                  <span className="text-[12px] text-accent-yellow shrink-0">今日已打卡 · 待确认</span>
+                ) : (
+                  <form action={checkInAction} className="shrink-0">
+                    <input type="hidden" name="applicationId" value={app.id} />
+                    <button className="h-9 px-4 rounded-full bg-cat-build text-white text-[12px] font-medium inline-flex items-center gap-1.5"><CalendarCheck className="h-3.5 w-3.5" /> 今日打卡</button>
+                  </form>
+                )}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
 
       {/* 完善资料提示（资料不全则推得不准）*/}
       {infoIncomplete && (

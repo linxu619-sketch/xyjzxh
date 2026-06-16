@@ -6,6 +6,7 @@ import { getSession } from "@/lib/auth/session";
 import { getEnterpriseBySlugOrId } from "@/lib/data/enterprises-source";
 import { createJob, getJob, setJobStatus, getApplication, setApplicationStatus, countHired, computeEscrow, setJobEscrow, type AppStatus, type JobStatus } from "@/lib/data/jobs";
 import { createPayment } from "@/lib/data/payments-source";
+import { confirmAttendance, rejectAttendance, enterpriseAddDay, getAttendance } from "@/lib/data/attendance";
 
 // 派工闭环：投递状态前向流转白名单（录用→到岗→完工；完工=终态；不合适/取消/中止→rejected）
 const ALLOWED_APP_FLOW: Record<AppStatus, AppStatus[]> = {
@@ -119,6 +120,49 @@ export async function setJobStatusAction(fd: FormData) {
   revalidatePath("/dashboard/enterprise/jobs");
   revalidatePath(`/dashboard/enterprise/jobs/${id}`);
   redirect(`/dashboard/enterprise/jobs/${id}`);
+}
+
+// —— 考勤：企业确认出勤 / 标缺勤 / 补登（确认出勤=自动结算依据）——
+async function ownedAttendanceJob(s: { enterpriseId?: string }, jobId: number): Promise<boolean> {
+  const job = getJob(jobId);
+  return !!(job && job.enterpriseId === s.enterpriseId);
+}
+
+export async function confirmAttendanceAction(fd: FormData) {
+  const s = await requireEnterprise();
+  const id = Number(fd.get("id") || 0);
+  const att = getAttendance(id);
+  if (!att || !(await ownedAttendanceJob(s, att.jobId))) throw new Error("无权操作该考勤");
+  confirmAttendance(id, s.name || "企业");
+  const to = `/dashboard/enterprise/jobs/${att.jobId}`;
+  revalidatePath(to);
+  redirect(to);
+}
+
+export async function rejectAttendanceAction(fd: FormData) {
+  const s = await requireEnterprise();
+  const id = Number(fd.get("id") || 0);
+  const att = getAttendance(id);
+  if (!att || !(await ownedAttendanceJob(s, att.jobId))) throw new Error("无权操作该考勤");
+  rejectAttendance(id);
+  const to = `/dashboard/enterprise/jobs/${att.jobId}`;
+  revalidatePath(to);
+  redirect(to);
+}
+
+// 企业补登某天出勤（工人没打卡但实际出勤）
+export async function addAttendanceDayAction(fd: FormData) {
+  const s = await requireEnterprise();
+  const appId = Number(fd.get("applicationId") || 0);
+  const date = String(fd.get("date") || "").trim();
+  const app = getApplication(appId);
+  if (!app || app.enterpriseId !== s.enterpriseId) throw new Error("无权操作该投递");
+  if (date && /^\d{4}-\d{2}-\d{2}$/.test(date)) {
+    enterpriseAddDay({ applicationId: appId, jobId: app.jobId, phone: app.phone, date, by: s.name || "企业" });
+  }
+  const to = `/dashboard/enterprise/jobs/${app.jobId}`;
+  revalidatePath(to);
+  redirect(to);
 }
 
 export async function reviewApplicantAction(fd: FormData) {

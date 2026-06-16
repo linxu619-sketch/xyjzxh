@@ -457,6 +457,22 @@ CREATE TABLE IF NOT EXISTS jobs (
 CREATE INDEX IF NOT EXISTS idx_jobs_status ON jobs(status, created_at);
 CREATE INDEX IF NOT EXISTS idx_jobs_ent ON jobs(enterprise_id, created_at);
 
+-- 考勤打卡（E2）：每个录用工人 × 每个工作日一条；工人打卡 → 企业确认。确认出勤=自动结算依据
+CREATE TABLE IF NOT EXISTS work_attendance (
+  id                 INTEGER PRIMARY KEY AUTOINCREMENT,
+  application_id     INTEGER,  -- 关联 job_applications（录用的工人）
+  job_id             INTEGER,
+  practitioner_phone TEXT,
+  work_date          TEXT,     -- YYYY-MM-DD
+  status             TEXT DEFAULT 'checked', -- checked(工人打卡) | confirmed(企业确认) | rejected(企业标缺勤)
+  check_in_at        INTEGER DEFAULT 0,
+  confirmed_at       INTEGER DEFAULT 0,
+  confirmed_by       TEXT DEFAULT '',
+  created_at         INTEGER
+);
+CREATE INDEX IF NOT EXISTS idx_attend_app ON work_attendance(application_id, work_date);
+CREATE INDEX IF NOT EXISTS idx_attend_job ON work_attendance(job_id, work_date);
+
 CREATE TABLE IF NOT EXISTS job_applications (
   id                 INTEGER PRIMARY KEY AUTOINCREMENT,
   job_id             INTEGER,

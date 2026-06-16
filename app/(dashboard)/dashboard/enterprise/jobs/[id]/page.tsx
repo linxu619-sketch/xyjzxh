@@ -10,7 +10,8 @@ import { getJob, listApplicationsByJob, countHired, SETTLE_LABEL, SETTLE_HINT, E
 import { getPractitionerByPhone, type Practitioner } from "@/lib/data/practitioners-source";
 import { getPractitionerIdentity } from "@/lib/data/applications";
 import { listCertsByPhone, type PractitionerCert } from "@/lib/data/practitioner-certs";
-import { setJobStatusAction, reviewApplicantAction } from "../actions";
+import { listAttendanceByApplication, type WorkAttendance } from "@/lib/data/attendance";
+import { setJobStatusAction, reviewApplicantAction, confirmAttendanceAction, rejectAttendanceAction, addAttendanceDayAction } from "../actions";
 import { ConfirmForm } from "../ConfirmForm";
 
 export const metadata = { title: "岗位详情 · 企业工作台" };
@@ -68,6 +69,9 @@ export default async function JobDetail({ params, searchParams }: { params: Prom
     certsBy.set(a.phone, listCertsByPhone(a.phone));
     verifiedBy.set(a.phone, getPractitionerIdentity(a.phone)?.verified ?? false);
   }
+  // 考勤(E2)：在岗/完工的工人才有考勤；按 application 取
+  const attendanceBy = new Map<number, WorkAttendance[]>();
+  for (const a of apps) if (a.status === "working" || a.status === "done") attendanceBy.set(a.id, listAttendanceByApplication(a.id));
 
   const okText = aok === "accepted" ? "已录用，名额已占用。" : aok === "working" ? "已标记到岗，进入施工中。" : aok === "done" ? "已完工，该派工单已闭环。" : aok === "rejected" ? "已更新为未通过 / 已取消。" : aok === "pending" ? "已重新置为待处理。" : "";
   const errText = aerr === "full" ? "名额已满，无法再录用。请先「结束招聘」或取消他人录用。" : aerr === "flow" ? "该操作不符合流程（如已完工不可再改）。" : "";
@@ -135,7 +139,7 @@ export default async function JobDetail({ params, searchParams }: { params: Prom
         ) : (
           <ul className="divide-y divide-border">
             {apps.map((a) => (
-              <ApplicantRow key={a.id} a={a} job={job} profile={profiles.get(a.phone)} full={full} certs={certsBy.get(a.phone) ?? []} verified={verifiedBy.get(a.phone) ?? false} />
+              <ApplicantRow key={a.id} a={a} job={job} profile={profiles.get(a.phone)} full={full} certs={certsBy.get(a.phone) ?? []} verified={verifiedBy.get(a.phone) ?? false} attendance={attendanceBy.get(a.id) ?? []} />
             ))}
           </ul>
         )}
@@ -144,7 +148,9 @@ export default async function JobDetail({ params, searchParams }: { params: Prom
   );
 }
 
-function ApplicantRow({ a, job, profile, full, certs, verified }: { a: JobApplication; job: Job; profile: Practitioner | undefined; full: boolean; certs: PractitionerCert[]; verified: boolean }) {
+function ApplicantRow({ a, job, profile, full, certs, verified, attendance }: { a: JobApplication; job: Job; profile: Practitioner | undefined; full: boolean; certs: PractitionerCert[]; verified: boolean; attendance: WorkAttendance[] }) {
+  const confirmedDays = attendance.filter((x) => x.status === "confirmed").length;
+  const pendingDays = attendance.filter((x) => x.status === "checked").length;
   const age = profile?.birthYear ? new Date().getFullYear() - profile.birthYear : null;
   const isHire = job.type === "hire";
   const expect = isHire
@@ -238,6 +244,46 @@ function ApplicantRow({ a, job, profile, full, certs, verified }: { a: JobApplic
           <CalendarDays className="h-3.5 w-3.5" />
           {a.onboardAt > 0 && <span>到岗 {fmt(a.onboardAt)}</span>}
           {a.doneAt > 0 && <span>· 完工 {fmt(a.doneAt)}</span>}
+        </div>
+      )}
+
+      {/* 考勤(E2)：工人打卡 → 企业确认；确认出勤=自动结算依据 */}
+      {(a.status === "working" || a.status === "done") && (
+        <div className="mt-3 pl-12">
+          <div className="text-[12px] font-medium mb-1.5 inline-flex items-center gap-1.5">
+            <CalendarDays className="h-3.5 w-3.5 text-cat-build" /> 考勤 · 已确认 <b className="text-accent-tea">{confirmedDays}</b> 天{pendingDays > 0 && <span className="text-accent-yellow font-normal"> · {pendingDays} 天待确认</span>}
+          </div>
+          {attendance.length === 0 ? (
+            <p className="text-[11px] text-muted-foreground">工人每日打卡后在此确认；也可「补登」未打卡的出勤。确认出勤将作为工资自动结算依据。</p>
+          ) : (
+            <ul className="space-y-1 mb-1.5">
+              {attendance.map((at) => (
+                <li key={at.id} className="flex items-center gap-2 text-[12px]">
+                  <span className="tabular-nums text-muted-foreground w-[88px]">{at.workDate}</span>
+                  {at.status === "confirmed" ? <span className="inline-flex items-center gap-0.5 text-accent-tea"><CheckCircle2 className="h-3.5 w-3.5" />已确认</span>
+                    : at.status === "rejected" ? <span className="text-muted-foreground">缺勤</span>
+                    : (
+                      <span className="inline-flex items-center gap-1.5">
+                        <span className="text-accent-yellow">待确认</span>
+                        {a.status !== "done" && (
+                          <>
+                            <form action={confirmAttendanceAction}><input type="hidden" name="id" value={at.id} /><button className="h-6 px-2 rounded-full bg-accent-tea text-white text-[11px]">确认</button></form>
+                            <form action={rejectAttendanceAction}><input type="hidden" name="id" value={at.id} /><button className="h-6 px-2 rounded-full border border-border text-[11px] text-muted-foreground">缺勤</button></form>
+                          </>
+                        )}
+                      </span>
+                    )}
+                </li>
+              ))}
+            </ul>
+          )}
+          {a.status !== "done" && (
+            <form action={addAttendanceDayAction} className="flex items-center gap-1.5">
+              <input type="hidden" name="applicationId" value={a.id} />
+              <input type="date" name="date" required className="h-8 rounded-lg border border-border bg-background px-2 text-[12px]" />
+              <button className="h-8 px-3 rounded-full border border-border text-[12px] hover:bg-surface">补登出勤</button>
+            </form>
+          )}
         </div>
       )}
 
