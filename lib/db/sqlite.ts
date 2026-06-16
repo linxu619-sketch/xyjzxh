@@ -1724,6 +1724,10 @@ function migrate(db: DB) {
     "ALTER TABLE jobs ADD COLUMN start_date TEXT DEFAULT ''",
     "ALTER TABLE job_applications ADD COLUMN onboard_at INTEGER DEFAULT 0",
     "ALTER TABLE job_applications ADD COLUMN done_at INTEGER DEFAULT 0",
+    // 工人收款账户（E4）：微信/支付宝/银行卡 —— 工资代付到此；未绑则挂账待领
+    "ALTER TABLE practitioners ADD COLUMN payout_method TEXT DEFAULT ''",  // wechat | alipay | bank
+    "ALTER TABLE practitioners ADD COLUMN payout_account TEXT DEFAULT ''", // 账号/卡号
+    "ALTER TABLE practitioners ADD COLUMN payout_name TEXT DEFAULT ''",    // 户名
     // 零工工资结算方式（日结/周结/完工结）—— 派工资金流程入口
     "ALTER TABLE jobs ADD COLUMN settle_mode TEXT DEFAULT ''",
     // 发布即托管（协会代收代付·E1）：预估用工天数 + 应托管额 + 托管状态 + 托管支付单

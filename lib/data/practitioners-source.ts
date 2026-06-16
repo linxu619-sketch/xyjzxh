@@ -170,6 +170,30 @@ export function updatePractitionerMatchInfo(phone: string, input: {
   } catch { /* 忽略 */ }
 }
 
+// 工人收款账户（E4 工资代付）：微信/支付宝/银行卡
+export type PayoutAccount = { method: string; account: string; name: string };
+export function getPayoutAccount(phone: string): PayoutAccount | null {
+  const clean = (phone || "").trim();
+  if (!clean) return null;
+  try {
+    const row = getDb().prepare("SELECT payout_method, payout_account, payout_name FROM practitioners WHERE phone = ? LIMIT 1")
+      .get(clean) as { payout_method: string | null; payout_account: string | null; payout_name: string | null } | undefined;
+    if (!row || !row.payout_method || !row.payout_account) return null;
+    return { method: row.payout_method, account: row.payout_account, name: row.payout_name ?? "" };
+  } catch { return null; }
+}
+export function hasPayoutAccount(phone: string): boolean {
+  return getPayoutAccount(phone) !== null;
+}
+export function setPayoutAccount(phone: string, a: PayoutAccount): void {
+  const clean = (phone || "").trim();
+  if (!clean) return;
+  try {
+    getDb().prepare("UPDATE practitioners SET payout_method = ?, payout_account = ?, payout_name = ? WHERE phone = ?")
+      .run(a.method, a.account, a.name, clean);
+  } catch { /* 列未迁移/库不可用时忽略 */ }
+}
+
 // 按入会申请 id 取从业者引用（p-<id>），用于审核通过后绑定账号
 export function getPractitionerRefByAppId(appId: number): string | undefined {
   try {

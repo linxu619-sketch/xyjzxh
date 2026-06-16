@@ -1,11 +1,13 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { Wallet, Download, ShieldCheck, Sparkles, Building2, BarChart3, ChevronRight } from "lucide-react";
+import { Wallet, Download, ShieldCheck, Sparkles, Building2, BarChart3, ChevronRight, CheckCircle2, Clock, AlertCircle } from "lucide-react";
 import { PractitionerShell } from "@/components/dashboard/practitioner-shell";
-import { Badge } from "@/components/ui/badge";
 import { getSession } from "@/lib/auth/session";
 import { listApplicationsByPractitioner, getJob } from "@/lib/data/jobs";
+import { getPayoutAccount } from "@/lib/data/practitioners-source";
+import { listWagePayoutsByPhone, wageSumByPhone } from "@/lib/data/wage-payouts";
 import { effectivePractitionerPhone, isPractitionerPreview } from "@/lib/dashboard/preview";
+import { PayoutAccountForm } from "./PayoutAccountForm";
 
 export const metadata = { title: "钱包 / 收入流水 · 从业者门户" };
 
@@ -20,13 +22,20 @@ function fmt(ms: number) {
   return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`;
 }
 
-export default async function PractitionerIncome() {
+export default async function PractitionerIncome({ searchParams }: { searchParams: Promise<{ bankok?: string; bankerr?: string; released?: string; pv?: string }> }) {
   const session = await getSession();
   if (!session || (session.role !== "practitioner" && !isPractitionerPreview(session))) redirect("/login?role=practitioner");
   if (session.role === "practitioner" && session.pending) redirect("/dashboard/pending");
+  const { bankok, bankerr, released } = await searchParams;
+
+  const phone = effectivePractitionerPhone(session);
+  // 真实工资到账（E3/E4）：收款账户 + 工资台账 + 已到账/挂账汇总
+  const account = getPayoutAccount(phone);
+  const wagePayouts = listWagePayoutsByPhone(phone);
+  const wageSum = wageSumByPhone(phone);
 
   // 收入来自「已录用」的岗位（日薪 × 工期推算，实际以结算为准）
-  const apps = listApplicationsByPractitioner(effectivePractitionerPhone(session)).filter((a) => a.status === "accepted");
+  const apps = listApplicationsByPractitioner(phone).filter((a) => a.status === "accepted");
   const engagements = apps.map((a) => {
     const job = getJob(a.jobId);
     const d = job ? days(job.duration) : 0;
@@ -39,12 +48,58 @@ export default async function PractitionerIncome() {
   return (
     <PractitionerShell
       title="钱包 · 收入流水"
-      subtitle={engagements.length ? `${engagements.length} 个录用岗位 · 预计收入 ¥${totalEst.toLocaleString()}` : "暂无收入记录"}
+      subtitle={wageSum.paid > 0 ? `工资已到账 ¥${wageSum.paid.toLocaleString()}${wageSum.holding > 0 ? ` · 待领 ¥${wageSum.holding.toLocaleString()}` : ""}` : engagements.length ? `${engagements.length} 个录用岗位 · 预计 ¥${totalEst.toLocaleString()}` : "暂无收入记录"}
     >
+      {bankok && <div className="mb-3 rounded-2xl border border-accent-tea/30 bg-[#e6f7f1] text-accent-tea p-3.5 text-[13px] inline-flex items-center gap-2 w-full"><CheckCircle2 className="h-4 w-4 shrink-0" /> 收款账户已绑定{released ? ` · 已自动补发挂账工资 ¥${Number(released).toLocaleString()}` : ""}。</div>}
+      {bankerr && <div className="mb-3 rounded-2xl border border-cat-decor/30 bg-cat-decor-soft/40 text-cat-decor p-3.5 text-[13px] inline-flex items-center gap-2 w-full"><AlertCircle className="h-4 w-4 shrink-0" /> 请选择收款方式并填写账号与户名。</div>}
+
+      {/* 工资到账（真实结算：从协会托管池按确认出勤自动划付）*/}
+      {(wagePayouts.length > 0 || wageSum.holding > 0) && (
+        <div className="rounded-3xl bg-gradient-to-br from-accent-tea to-[#0f9f73] text-white p-5 mb-4 relative overflow-hidden shadow-lg">
+          <div className="absolute -right-10 -top-10 h-32 w-32 rounded-full bg-white/20 blur-2xl" />
+          <Wallet className="relative h-7 w-7 text-accent-yellow" />
+          <div className="relative mt-3 text-[11px] text-white/80 tracking-wider uppercase">工资已到账（协会托管代付）</div>
+          <div className="relative mt-1 text-[40px] font-semibold tracking-tight leading-none tabular-nums">¥{wageSum.paid.toLocaleString()}</div>
+          {wageSum.holding > 0 && <div className="relative mt-2 text-[12px] text-white/90">另有 <b>¥{wageSum.holding.toLocaleString()}</b> 挂账待领 · {account ? "正在补发" : "绑定收款账户即可领取"}</div>}
+        </div>
+      )}
+
+      {/* 收款账户（绑定后挂账工资自动补发；之后结算直接到账）*/}
+      <PayoutAccountForm bound={account} />
+
+      {/* 工资到账明细 */}
+      {wagePayouts.length > 0 && (
+        <div className="rounded-3xl border border-border bg-background overflow-hidden mb-4">
+          <div className="px-5 py-3 border-b border-border text-[14px] font-semibold inline-flex items-center gap-1.5"><BarChart3 className="h-4 w-4 text-muted-foreground" /> 工资到账明细</div>
+          <ul className="divide-y divide-border">
+            {wagePayouts.map((p) => {
+              const job = getJob(p.jobId);
+              return (
+                <li key={p.id} className="px-5 py-3.5 flex items-center gap-3 text-[13px]">
+                  <div className="flex-1 min-w-0">
+                    <div className="font-medium truncate">{job?.title ?? "用工"}</div>
+                    <div className="text-[11px] text-muted-foreground mt-0.5">{p.periodLabel} · {p.days}天 × ¥{p.daily} · {fmt(p.createdAt)}</div>
+                  </div>
+                  <div className="text-right shrink-0">
+                    <div className="text-[16px] font-semibold text-cat-decor tabular-nums">¥{p.amount.toLocaleString()}</div>
+                    {p.status === "paid"
+                      ? <span className="text-[10px] text-accent-tea inline-flex items-center gap-0.5"><CheckCircle2 className="h-3 w-3" />已到账</span>
+                      : <span className="text-[10px] text-accent-yellow inline-flex items-center gap-0.5"><Clock className="h-3 w-3" />挂账待领</span>}
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
+        </div>
+      )}
+
+      {/* 录用岗位预计收入（参考，实际以结算为准）*/}
       {engagements.length === 0 ? (
+        wagePayouts.length === 0 ? (
         <div className="rounded-3xl border border-dashed border-border bg-background p-10 text-center text-[13px] text-muted-foreground">
           还没有收入记录。在 <Link href="/dashboard/practitioner/jobs" className="text-brand">找活</Link> 报名并被企业录用后，预计收入会汇总在这里，可申请协会盖章收入证明。
         </div>
+        ) : null
       ) : (
         <>
           {/* 总览卡（真实推算） */}

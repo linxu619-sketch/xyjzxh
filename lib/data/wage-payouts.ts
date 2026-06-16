@@ -1,7 +1,8 @@
 import "server-only";
 import { getDb } from "@/lib/db/sqlite";
-import { getJob, getApplication } from "@/lib/data/jobs";
+import { getJob, getApplication, INSURANCE_DAILY } from "@/lib/data/jobs";
 import { countConfirmedDays, todayStr } from "@/lib/data/attendance";
+import { hasPayoutAccount } from "@/lib/data/practitioners-source";
 
 /* ============================================================
    工资自动结算（E3）
@@ -12,7 +13,7 @@ import { countConfirmedDays, todayStr } from "@/lib/data/attendance";
    本期框架先行：记台账 + 扣托管池，状态 settled（真实到账/挂账待领见 E4）。
    ============================================================ */
 
-export type PayoutKind = "wage" | "refund";
+export type PayoutKind = "wage" | "refund" | "insurance";
 export type PayoutStatusW = "settled" | "paid" | "holding";
 
 export type WagePayout = {
@@ -85,24 +86,52 @@ export function settleApplication(appId: number): number {
   if (!job || job.escrowStatus !== "funded") return 0; // 未托管不结
   const daily = job.daily || 0;
   if (daily <= 0) return 0;
+  const insRate = job.insurance === "company" ? INSURANCE_DAILY : 0; // 工伤险代扣(企业承保)
+  const perDay = daily + insRate;
   const confirmed = countConfirmedDays(appId);
   const already = settledDaysByApplication(appId);
   const unpaidDays = confirmed - already;
   if (unpaidDays <= 0) return 0;
-  // 托管余额封顶（防超额；正常 escrow 按上限预留必然够付）
+  // 托管余额按「每日成本=日薪+工伤险」封顶（防超额；正常 escrow 按上限预留必然够付）
   const balance = escrowBalance(app.jobId);
-  if (balance <= 0) return 0;
-  const wantDays = unpaidDays;
-  let payDays = wantDays;
-  let amount = payDays * daily;
-  if (amount > balance) { payDays = Math.floor(balance / daily); amount = payDays * daily; }
-  if (payDays <= 0 || amount <= 0) return 0;
+  if (balance < perDay) return 0;
+  let payDays = unpaidDays;
+  if (payDays * perDay > balance) payDays = Math.floor(balance / perDay);
+  if (payDays <= 0) return 0;
+  const wage = payDays * daily;
+  // 工人有收款账户 → 到账(paid)；没绑 → 挂账待领(holding)，绑定后自动补发
+  const status: PayoutStatusW = hasPayoutAccount(app.phone) ? "paid" : "holding";
   insert({
     applicationId: appId, jobId: app.jobId, phone: app.phone, workerName: app.name,
     kind: "wage", periodLabel: `${SETTLE_PERIOD[job.settleMode] ?? "结算"} · ${todayStr()}`,
-    days: payDays, daily, amount, status: "settled",
+    days: payDays, daily, amount: wage, status,
   });
-  return amount;
+  // 工伤险代扣 → 协会工伤团险（按出勤天数 5 元/天）
+  if (insRate > 0) {
+    insert({
+      applicationId: appId, jobId: app.jobId, phone: "", workerName: "协会工伤团险",
+      kind: "insurance", periodLabel: `工伤险 ${payDays} 天`, days: payDays, daily: insRate, amount: payDays * insRate, status: "paid",
+    });
+  }
+  return wage;
+}
+
+// 工人绑定收款账户后：把其挂账(holding)工资自动补发为到账(paid)。返回补发金额。
+export function releaseHoldingPayouts(phone: string): number {
+  const clean = (phone || "").trim();
+  if (!clean) return 0;
+  const amt = sum("SELECT COALESCE(SUM(amount),0) AS s FROM wage_payouts WHERE practitioner_phone = ? AND kind = 'wage' AND status = 'holding'", clean);
+  getDb().prepare("UPDATE wage_payouts SET status = 'paid' WHERE practitioner_phone = ? AND kind = 'wage' AND status = 'holding'").run(clean);
+  return amt;
+}
+
+// 工人维度汇总：已到账 / 挂账待领
+export function wageSumByPhone(phone: string): { paid: number; holding: number } {
+  const clean = (phone || "").trim();
+  return {
+    paid: sum("SELECT COALESCE(SUM(amount),0) AS s FROM wage_payouts WHERE practitioner_phone = ? AND kind = 'wage' AND status = 'paid'", clean),
+    holding: sum("SELECT COALESCE(SUM(amount),0) AS s FROM wage_payouts WHERE practitioner_phone = ? AND kind = 'wage' AND status = 'holding'", clean),
+  };
 }
 
 // 周结定时扫描：所有「周结·已托管」零工的在岗/完工工人,结算其确认未结出勤（cron 调用）
